@@ -31,4 +31,6 @@ jobs:
         run: pnpm run typecheck
 
       - name: Build
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: pk_test_dummy_ci_only
         run: pnpm build

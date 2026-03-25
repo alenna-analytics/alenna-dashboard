@@ -5,6 +5,7 @@ import { apiFetch } from '@/lib/api'
 import type {
   AnalyticsFilters,
   DailySeriesResponse,
+  ProductCatalogResponse,
   ProjectionResponse,
   SummaryResponse,
   TopProductsResponse,
@@ -22,6 +23,7 @@ function buildParams(filters: AnalyticsFilters): URLSearchParams {
   if (filters.granularity) params.set('granularity', filters.granularity)
   if (filters.limit) params.set('limit', String(filters.limit))
   if (filters.horizon_weeks) params.set('horizon_weeks', String(filters.horizon_weeks))
+  if (filters.product_id) params.set('product_id', filters.product_id)
   return params
 }
 
@@ -40,7 +42,14 @@ export function useAnalyticsSummary(filters: AnalyticsFilters) {
   const params = buildParams(filters)
 
   return useQuery<SummaryResponse>({
-    queryKey: ['analytics', 'summary', filters.start_date, filters.end_date, filters.platform],
+    queryKey: [
+      'analytics',
+      'summary',
+      filters.start_date,
+      filters.end_date,
+      filters.platform,
+      filters.product_id,
+    ],
     queryFn: () => fetchJson(`/analytics/summary?${params}`, (a) => getToken(a)),
     enabled: !!tenantId,
     staleTime: 60_000,
@@ -53,7 +62,15 @@ export function useAnalyticsDaily(filters: AnalyticsFilters) {
   const params = buildParams(filters)
 
   return useQuery<DailySeriesResponse>({
-    queryKey: ['analytics', 'daily', filters.start_date, filters.end_date, filters.platform, filters.granularity],
+    queryKey: [
+      'analytics',
+      'daily',
+      filters.start_date,
+      filters.end_date,
+      filters.platform,
+      filters.granularity,
+      filters.product_id,
+    ],
     queryFn: () => fetchJson(`/analytics/daily?${params}`, (a) => getToken(a)),
     enabled: !!tenantId,
     staleTime: 60_000,
@@ -70,6 +87,20 @@ export function useAnalyticsProducts(filters: AnalyticsFilters) {
     queryFn: () => fetchJson(`/analytics/products?${params}`, (a) => getToken(a)),
     enabled: !!tenantId,
     staleTime: 60_000,
+  })
+}
+
+export function useProductCatalog(limit = 300) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const params = new URLSearchParams()
+  params.set('limit', String(limit))
+
+  return useQuery<ProductCatalogResponse>({
+    queryKey: ['analytics', 'product-candidates', limit],
+    queryFn: () => fetchJson(`/analytics/product-candidates?${params}`, (a) => getToken(a)),
+    enabled: !!tenantId,
+    staleTime: 300_000,
   })
 }
 

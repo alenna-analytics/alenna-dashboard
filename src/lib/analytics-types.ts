@@ -90,4 +90,15 @@ export type AnalyticsFilters = {
   granularity?: string
   limit?: number
   horizon_weeks?: number
+  product_id?: string
+}
+
+export type ProductCandidate = {
+  product_id: string
+  title: string
+  internal_sku: string | null
+}
+
+export type ProductCatalogResponse = {
+  items: ProductCandidate[]
 }

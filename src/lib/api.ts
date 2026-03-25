@@ -10,7 +10,8 @@ export async function apiFetch(
 ): Promise<Response> {
   const url = `${baseUrl()}${path.startsWith('/') ? path : `/${path}`}`
   const headers = new Headers(init.headers)
-  const token = await getToken()
+  // Clerk caches tokens; org_id/role come from the session template after active-tenant metadata sync.
+  const token = await getToken({ skipCache: true })
   if (token) {
     headers.set('Authorization', `Bearer ${token}`)
   }

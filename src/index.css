@@ -47,6 +47,7 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
   --color-chart-grid: var(--chart-grid);
+  --color-chart-waterfall-connector: var(--chart-waterfall-connector);
 
   --font-sans: 'Geist Variable', 'Geist', system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
@@ -115,6 +116,7 @@
   --chart-4: #3b82f6;
   --chart-5: #ec4899;
   --chart-grid: rgba(0, 0, 0, 0.06);
+  --chart-waterfall-connector: rgba(0, 0, 0, 0.34);
 
   --font-display: var(--font-sans);
   --font-mono: 'Geist Mono', ui-monospace, monospace;
@@ -176,6 +178,7 @@
   --info-dim: rgba(96, 165, 250, 0.15);
 
   --chart-grid: rgba(255, 255, 255, 0.05);
+  --chart-waterfall-connector: rgba(255, 255, 255, 0.32);
 
   --background: var(--bg-base);
   --foreground: var(--text-primary);

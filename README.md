@@ -21,7 +21,7 @@ For local sign-in, add **`http://localhost:5173`** under **Allowed redirect URLs
 
 ### Multi-tenant session (no Clerk Organizations)
 
-Tenancy is in **our** database. The dashboard stores the active company on the Clerk user as **`publicMetadata.active_tenant_id`** (UUID string) and **`publicMetadata.active_role`** (`staff` \| `admin` \| `super_admin`). After choosing a company, call **`POST /me/active-tenant`** (via `useTenantSwitcher` in `src/auth/hooks.ts`) so the role matches the backend, then metadata is updated and the session token is refreshed.
+Tenancy is in **our** database. The active company is stored on the Clerk user as **`publicMetadata.active_tenant_id`** (UUID string) and **`publicMetadata.active_role`** (`staff` \| `admin` \| `super_admin`). After choosing a company, **`POST /me/active-tenant`** (via `useTenantSwitcher`) validates membership and the **API** updates Clerk `public_metadata` with the Backend API (the browser cannot PATCH `public_metadata` on Clerk API v2025+). Ensure **`CLERK_SECRET_KEY`** is set in the FastAPI `.env`. Then `user.reload()` and `getToken({ skipCache: true })` pick up the new session claims.
 
 In the Clerk Dashboard, customize the **session token** so the API receives claims (names match the backend):
 

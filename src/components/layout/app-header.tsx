@@ -1,6 +1,7 @@
 import { UserButton } from '@clerk/react'
 import { MenuIcon, MoonIcon, SunIcon } from 'lucide-react'
 
+import { useLanguage } from '@/components/providers/language-provider'
 import { useTheme } from '@/components/providers/theme-provider'
 import { Button } from '@/components/ui/button'
 
@@ -10,6 +11,7 @@ type AppHeaderProps = {
 
 export function AppHeader({ onMenuClick }: AppHeaderProps) {
   const { theme, toggleTheme } = useTheme()
+  const { lang, toggleLang } = useLanguage()
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border-subtle bg-bg-surface px-4">
@@ -42,6 +44,16 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
           ) : (
             <MoonIcon className="size-4" />
           )}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          aria-label={lang === 'es' ? 'Switch to English' : 'Switch to Spanish'}
+          onClick={toggleLang}
+          className="h-8"
+        >
+          {lang === 'es' ? 'EN' : 'ES'}
         </Button>
         <UserButton />
       </div>

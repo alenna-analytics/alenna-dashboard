@@ -42,7 +42,10 @@ export function BarChartPanel({
           <CartesianGrid {...cartesianGridProps} />
           <XAxis dataKey={dataKeyX} {...xAxisProps} />
           <YAxis {...yAxisProps} width={40} />
-          <Tooltip contentStyle={tooltipContentStyle} />
+          <Tooltip
+            contentStyle={tooltipContentStyle}
+            cursor={{ fill: 'transparent' }}
+          />
           {bars.map((b, i) => (
             <Bar
               key={b.key}

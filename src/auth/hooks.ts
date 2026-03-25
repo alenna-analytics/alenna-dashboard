@@ -37,7 +37,7 @@ export function useTenantSwitcher() {
       const t = await res.text()
       throw new Error(t || res.statusText)
     }
-    const data = (await res.json()) as {
+    await res.json() as {
       tenant_id: string
       tenant_name: string
       role: string
@@ -46,12 +46,7 @@ export function useTenantSwitcher() {
     if (!user) {
       return
     }
-    const nextMeta: Record<string, unknown> = {
-      ...(user.publicMetadata as Record<string, unknown>),
-      active_tenant_id: data.tenant_id,
-      active_role: data.role,
-    }
-    await user.update({ publicMetadata: nextMeta } as Parameters<typeof user.update>[0])
+    // public_metadata is updated by the API (Clerk Backend API); client user.update(publicMetadata) returns 422 on API v2025+.
     await user.reload()
     await getToken({ skipCache: true })
   }

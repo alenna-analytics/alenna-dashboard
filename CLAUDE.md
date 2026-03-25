@@ -53,7 +53,7 @@ Web app for the ecommerce analytics SaaS: connect sales channels (Shopify, Merca
 6. Dense tables: row height **`h-10`**, header styling per guide — use the shared **`DataTable`** composition.
 7. **Single primitive policy:** one shadcn file per concern in `components/ui/`; extend variants there. Use **`components/composed/`** for `MetricCard`, `DataTable`, `EmptyState`, etc., instead of cloning primitives.
 
-**Phase 4 shell:** Nested routes under `/app` (`AppAuthBoundary` → `AppShellLayout`); bootstrap and `/me` loading live in `useAppBootstrap`; sidebar collapse preference in `useSidebarCollapsed` (localStorage). Default theme is **dark** (`ThemeProvider` + `class="dark"` on `<html>` in `index.html` for first paint).
+**Phase 4 shell:** Nested routes under `/dashboard` (`AppAuthBoundary` → `AppShellLayout`); bootstrap and `/me` loading live in `useAppBootstrap`; sidebar collapse preference in `useSidebarCollapsed` (localStorage). Default theme is **dark** (`ThemeProvider` + `class="dark"` on `<html>` in `index.html` for first paint). Legacy `/app/*` redirects to `/dashboard`. Global `AppErrorBoundary` wraps routes; `/500` and boundary show `ServerErrorPage`; unknown URLs → `NotFoundPage` (including unknown segments under `/dashboard`).
 
 ## Style & quality
 
@@ -80,7 +80,7 @@ Chronological notes (append newest at the bottom). Then apply **Auto-enhance**.
 
 - **Phase 3 auth:** `ClerkProvider` only in `src/main.tsx` with `publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}` and `afterSignOutUrl`; key comes from `.env.local`, not hardcoded. Conditional UI uses `<Show when="signed-in|signed-out">` plus `SignInButton` / `SignUpButton` / `UserButton`. API calls use `src/lib/api.ts` with Clerk `getToken()` for `Authorization: Bearer`. **Tenancy:** use `src/auth/hooks.ts` (`useCurrentUser`, `useCurrentTenant`, `useTenantSwitcher`) instead of importing Clerk in feature components; active tenant/role live in `publicMetadata` and the session JWT template (`org_id`, `role`) per README.
 
-- **Phase 4 shell:** `AppProviders` (theme + TanStack Query) wrap the router inside `ClerkProvider`. Import path alias `@/` → `src/`. shadcn/ui Tailwind v4 + `@base-ui` components live in `src/components/ui`; composed patterns in `src/components/composed`; layout in `src/components/layout`; chart wrappers in `src/components/charts` with shared `chart-theme.ts` (Recharts consumes CSS variables only). React Router nested routes: `/app` → `AppShellLayout` with sidebar nav to `dashboard`, `connectors`, `expenses`, `settings`, `billing`.
+- **Phase 4 shell:** `AppProviders` (theme + TanStack Query) wrap the router inside `ClerkProvider`. Import path alias `@/` → `src/`. shadcn/ui Tailwind v4 + `@base-ui` components live in `src/components/ui`; composed patterns in `src/components/composed`; layout in `src/components/layout`; chart wrappers in `src/components/charts` with shared `chart-theme.ts` (Recharts consumes CSS variables only). React Router nested routes: `/dashboard` → `AppShellLayout` with index `DashboardPage` and `connectors`, `expenses`, `settings`, `billing`.
 
 - **App shell layout:** Root uses `h-svh overflow-hidden` so only `<main>` scrolls (`flex-1 min-h-0 overflow-y-auto`); sidebar + header stay in view. Below `lg`, the sidebar is a fixed off-canvas drawer (`translate-x` + backdrop); `useMediaQuery` via `useSyncExternalStore`; `drawerOpen = mobileNavOpen && !isLargeScreen`; header menu button opens the drawer. Desktop collapse state applies only when `isLargeScreen` (`sidebarCollapsedUi`).
 

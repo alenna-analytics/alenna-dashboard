@@ -3,6 +3,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
+import { AppErrorBoundary } from '@/components/app-error-boundary'
 import { AppProviders } from '@/components/providers/app-providers'
 
 import App from './App.tsx'
@@ -16,7 +17,9 @@ createRoot(document.getElementById('root')!).render(
     >
       <AppProviders>
         <BrowserRouter>
-          <App />
+          <AppErrorBoundary>
+            <App />
+          </AppErrorBoundary>
         </BrowserRouter>
       </AppProviders>
     </ClerkProvider>

@@ -18,11 +18,11 @@ import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
 const NAV = [
-  { to: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboardIcon },
-  { to: '/app/connectors', label: 'Connectors', icon: PlugIcon },
-  { to: '/app/expenses', label: 'Expenses', icon: ReceiptIcon },
-  { to: '/app/settings', label: 'Settings', icon: SettingsIcon },
-  { to: '/app/billing', label: 'Billing', icon: CreditCardIcon },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboardIcon },
+  { to: '/dashboard/connectors', label: 'Connectors', icon: PlugIcon },
+  { to: '/dashboard/expenses', label: 'Expenses', icon: ReceiptIcon },
+  { to: '/dashboard/settings', label: 'Settings', icon: SettingsIcon },
+  { to: '/dashboard/billing', label: 'Billing', icon: CreditCardIcon },
 ] as const
 
 type AppSidebarProps = {
@@ -117,6 +117,7 @@ export function AppSidebar({
             <NavLink
               key={to}
               to={to}
+              end={to === '/dashboard'}
               onClick={() => {
                 onMobileClose()
               }}

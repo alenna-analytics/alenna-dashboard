@@ -36,8 +36,8 @@ export function HomePage() {
         <Show when="signed-in">
           <div className="auth-actions">
             <UserButton />
-            <Link className="counter" to="/app">
-              Open app
+            <Link className="counter" to="/dashboard">
+              Open dashboard
             </Link>
           </div>
         </Show>

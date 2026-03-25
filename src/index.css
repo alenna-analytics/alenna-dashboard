@@ -48,6 +48,7 @@
   --color-chart-5: var(--chart-5);
   --color-chart-grid: var(--chart-grid);
   --color-chart-waterfall-connector: var(--chart-waterfall-connector);
+  --color-chart-line-secondary: var(--chart-line-secondary);
 
   --font-sans: 'Geist Variable', 'Geist', system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
@@ -117,6 +118,7 @@
   --chart-5: #ec4899;
   --chart-grid: rgba(0, 0, 0, 0.06);
   --chart-waterfall-connector: rgba(0, 0, 0, 0.34);
+  --chart-line-secondary: #b45353;
 
   --font-display: var(--font-sans);
   --font-mono: 'Geist Mono', ui-monospace, monospace;
@@ -151,34 +153,41 @@
 }
 
 .dark {
-  --bg-base: #09090b;
-  --bg-surface: #111113;
-  --bg-elevated: #18181b;
-  --bg-sunken: #0d0d0f;
+  --bg-base: #0b0b0c;
+  --bg-surface: #141518;
+  --bg-elevated: #1a1b1f;
+  --bg-sunken: #0e0e10;
 
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-tertiary: #52525b;
-  --text-disabled: #3f3f46;
+  --text-primary: #ececee;
+  --text-secondary: #9b9ba3;
+  --text-tertiary: #6b6b74;
+  --text-disabled: #45454c;
 
-  --border-subtle: rgba(255, 255, 255, 0.04);
-  --border-default: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.09);
   --border-strong: rgba(255, 255, 255, 0.14);
 
-  --accent: #8b5cf6;
-  --accent-light: #a78bfa;
-  --accent-dim: rgba(139, 92, 246, 0.15);
+  --accent: #7c7cf0;
+  --accent-light: #9494f5;
+  --accent-dim: rgba(124, 124, 240, 0.12);
 
-  --success-dim: rgba(16, 185, 129, 0.15);
-  --danger: #f87171;
-  --danger-dim: rgba(248, 113, 113, 0.15);
-  --warning: #fbb040;
-  --warning-dim: rgba(251, 176, 64, 0.15);
-  --info: #60a5fa;
-  --info-dim: rgba(96, 165, 250, 0.15);
+  --success: #5eb88a;
+  --success-dim: rgba(94, 184, 138, 0.12);
+  --danger: #d48484;
+  --danger-dim: rgba(212, 132, 132, 0.12);
+  --warning: #c9a06c;
+  --warning-dim: rgba(201, 160, 108, 0.12);
+  --info: #7a9fd4;
+  --info-dim: rgba(122, 159, 212, 0.12);
 
-  --chart-grid: rgba(255, 255, 255, 0.05);
-  --chart-waterfall-connector: rgba(255, 255, 255, 0.32);
+  --chart-1: #6b7fd8;
+  --chart-2: #5eb88a;
+  --chart-3: #9b8ac4;
+  --chart-4: #7a9fd4;
+  --chart-5: #b89b7a;
+  --chart-grid: rgba(255, 255, 255, 0.035);
+  --chart-waterfall-connector: rgba(255, 255, 255, 0.2);
+  --chart-line-secondary: #a89090;
 
   --background: var(--bg-base);
   --foreground: var(--text-primary);
@@ -229,11 +238,11 @@
 
 @layer utilities {
   .delta-positive {
-    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-xs text-success shadow-[0_0_8px_rgba(16,185,129,0.25)] bg-success/10;
+    @apply inline-flex items-center gap-1 rounded-md border border-success/15 bg-success/8 px-2 py-0.5 font-mono text-[11px] tracking-wide text-success;
   }
 
   .delta-negative {
-    @apply inline-flex items-center gap-1 rounded-md bg-danger/10 px-2 py-0.5 font-mono text-xs text-danger;
+    @apply inline-flex items-center gap-1 rounded-md border border-danger/15 bg-danger/8 px-2 py-0.5 font-mono text-[11px] tracking-wide text-danger;
   }
 
   .skeleton-shimmer {

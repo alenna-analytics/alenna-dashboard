@@ -41,9 +41,9 @@ const PLATFORM_LABELS: Record<SalesChannel, string> = {
 }
 
 const COLORS_BY_CHANNEL: Record<SalesChannel, string> = {
-  shopify: '#4fc3f7',
-  amazon: '#ffb74d',
-  mercadolibre: '#facc15',
+  shopify: '#6b7fd8',
+  amazon: '#b89a7a',
+  mercadolibre: '#a8a060',
 }
 
 function defaultStart(): Date {
@@ -247,7 +247,7 @@ export function DashboardPageV2() {
     return (
       <>
         <DeltaBadge positive={pct >= 0} value={`${Math.abs(pct).toFixed(1)}%`} />
-        <span className="text-xs text-text-tertiary">{t('deltaVsPrev')}</span>
+        <span className="text-[11px] font-medium text-text-tertiary/90">{t('deltaVsPrev')}</span>
       </>
     )
   }
@@ -406,33 +406,34 @@ export function DashboardPageV2() {
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PageHeader title={t('pageTitle')} description={t('pageDesc')} />
 
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5">
         <DatePickerField
           value={startDate}
           onChange={(d) => d && setParam('start', toIso(d))}
           placeholder={t('filterStart')}
         />
-        <span className="text-xs text-text-tertiary">{t('filterTo')}</span>
+        <span className="text-[11px] font-medium text-text-tertiary">{t('filterTo')}</span>
         <DatePickerField
           value={endDate}
           onChange={(d) => d && setParam('end', toIso(d))}
           placeholder={t('filterEnd')}
         />
 
-        <div className="relative ml-auto flex items-center gap-1">
+        <div className="relative ml-auto flex items-center gap-2">
           <button
+            type="button"
             onClick={() => setChannelOpen(!channelOpen)}
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-input bg-transparent px-2.5 text-xs font-medium text-text-secondary hover:bg-muted"
+            className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-border-subtle bg-white/[0.03] px-3 text-xs font-medium text-text-secondary transition-colors hover:border-border-default hover:bg-white/[0.05]"
           >
             {t('channels')}
             {selectedPlatforms ? ` (${selectedPlatforms.length})` : ''}
           </button>
           {channelOpen && (
-            <div className="absolute right-0 top-full z-20 mt-1 rounded-lg border border-border-default bg-bg-surface p-2 shadow-lg">
+            <div className="absolute right-0 top-full z-20 mt-1.5 rounded-[10px] border border-border-subtle bg-bg-elevated p-2 shadow-[0_8px_30px_rgba(0,0,0,0.45)]">
               {PLATFORMS.map((p) => (
                 <label
                   key={p}
@@ -455,23 +456,38 @@ export function DashboardPageV2() {
           value={granularity}
           onValueChange={(v) => setParam('granularity', v)}
         >
-          <TabsList>
-            <TabsTrigger value="daily">{t('granularityDaily')}</TabsTrigger>
-            <TabsTrigger value="weekly">{t('granularityWeekly')}</TabsTrigger>
-            <TabsTrigger value="monthly">{t('granularityMonthly')}</TabsTrigger>
+          <TabsList className="h-9 gap-0.5 rounded-[10px] border border-border-subtle bg-white/[0.03] p-1">
+            <TabsTrigger
+              value="daily"
+              className="h-[calc(100%-2px)] rounded-md px-3 text-xs font-medium data-active:bg-white/[0.07] data-active:shadow-none"
+            >
+              {t('granularityDaily')}
+            </TabsTrigger>
+            <TabsTrigger
+              value="weekly"
+              className="h-[calc(100%-2px)] rounded-md px-3 text-xs font-medium data-active:bg-white/[0.07] data-active:shadow-none"
+            >
+              {t('granularityWeekly')}
+            </TabsTrigger>
+            <TabsTrigger
+              value="monthly"
+              className="h-[calc(100%-2px)] rounded-md px-3 text-xs font-medium data-active:bg-white/[0.07] data-active:shadow-none"
+            >
+              {t('granularityMonthly')}
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
       {/* KPIs */}
       {summaryLoading || !summary ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 rounded-xl" />
+            <Skeleton key={i} className="min-h-[7.5rem] rounded-[12px]" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-5">
           <MetricCard
             variant="hero"
             label={t('kpiGross')}
@@ -506,14 +522,14 @@ export function DashboardPageV2() {
       )}
 
       {/* Graph row 1 */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
-        <Card className="flex-1 lg:flex-[1.6] border-border-default bg-bg-surface">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold text-text-primary">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
+        <Card className="flex flex-1 flex-col lg:flex-[1.6]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-text-secondary">
               {t('wfTitle')}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-6 pt-0">
             {summaryLoading ? (
               <Skeleton className="h-[280px] w-full rounded-xl" />
             ) : (
@@ -522,13 +538,13 @@ export function DashboardPageV2() {
           </CardContent>
         </Card>
 
-        <Card className="flex-1 lg:flex-[0.7] border-border-default bg-bg-surface">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold text-text-primary">
+        <Card className="flex flex-1 flex-col lg:flex-[0.7]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-text-secondary">
               {t('donutTitle')}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-6 pt-0">
             {shopifySeries.isLoading || amazonSeries.isLoading || mlSeries.isLoading ? (
               <Skeleton className="h-80 w-full rounded-lg" />
             ) : donutData.length ? (
@@ -539,13 +555,13 @@ export function DashboardPageV2() {
           </CardContent>
         </Card>
 
-        <Card className="flex-1 lg:flex-[0.7] border-border-default bg-bg-surface">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold text-text-primary">
+        <Card className="flex flex-1 flex-col lg:flex-[0.7]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-text-secondary">
               {t('costTitle')}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-6 pt-0">
             {shopifySeries.isLoading || amazonSeries.isLoading || mlSeries.isLoading ? (
               <Skeleton className="h-64 w-full rounded-lg" />
             ) : costData.length ? (
@@ -568,13 +584,13 @@ export function DashboardPageV2() {
       </div>
 
       {/* Graph 3 monthly */}
-      <Card className="border-border-default bg-bg-surface">
-        <CardHeader>
-          <CardTitle className="text-base font-semibold text-text-primary">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-text-secondary">
             {t('monthlyTitle')}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pb-6 pt-0">
           {monthlyLoading ? (
             <Skeleton className="h-[320px] w-full rounded-xl" />
           ) : monthlyData.length ? (
@@ -595,14 +611,14 @@ export function DashboardPageV2() {
       </Card>
 
       {/* Graph row 3: overlay + margin */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
-        <Card className="flex-1 lg:flex-1 border-border-default bg-bg-surface">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold text-text-primary">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
+        <Card className="flex flex-1 flex-col">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-text-secondary">
               {t('overlayTitle')}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-6 pt-0">
             {shopifySeries.isLoading || amazonSeries.isLoading || mlSeries.isLoading ? (
               <Skeleton className="h-[360px] w-full rounded-xl" />
             ) : overlayDataAndMaps.overlayData.length ? (
@@ -620,13 +636,13 @@ export function DashboardPageV2() {
           </CardContent>
         </Card>
 
-        <Card className="flex-1 lg:flex-1 border-border-default bg-bg-surface">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold text-text-primary">
+        <Card className="flex flex-1 flex-col">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-text-secondary">
               {t('marginTitle')}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-6 pt-0">
             {shopifySeries.isLoading || amazonSeries.isLoading || mlSeries.isLoading ? (
               <Skeleton className="h-[300px] w-full rounded-xl" />
             ) : marginByChannelData.length ? (
@@ -662,7 +678,7 @@ export function DashboardPageV2() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-2 rounded-lg border border-border-default p-3">
+              <div className="grid grid-cols-1 gap-2 rounded-[10px] border border-border-subtle bg-white/[0.02] p-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-text-secondary">{t('modalGross')}</span>
                   <span className="font-mono">{fmtCurrency(modalPoint.gross_revenue)}</span>

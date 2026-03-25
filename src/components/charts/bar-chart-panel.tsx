@@ -53,7 +53,8 @@ export function BarChartPanel({
               name={b.name ?? b.key}
               fill={CHART_COLORS[i % CHART_COLORS.length]}
               stackId={b.stackId}
-              radius={[4, 4, 0, 0]}
+              radius={[3, 3, 0, 0]}
+              fillOpacity={0.88}
             />
           ))}
         </BarChart>

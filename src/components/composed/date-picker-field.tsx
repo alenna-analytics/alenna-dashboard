@@ -29,7 +29,7 @@ export function DatePickerField({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         className={cn(
-          'inline-flex h-8 w-[min(100%,240px)] items-center justify-start gap-2 rounded-lg border border-input bg-transparent px-2.5 text-sm font-normal outline-none transition-colors select-none hover:bg-muted focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
+          'inline-flex h-9 w-[min(100%,240px)] items-center justify-start gap-2 rounded-[10px] border border-border-subtle bg-white/[0.03] px-3 text-xs font-medium text-text-secondary outline-none transition-colors select-none hover:border-border-default hover:bg-white/[0.05] focus-visible:border-border-default focus-visible:ring-2 focus-visible:ring-white/10',
           className
         )}
       >

@@ -20,45 +20,40 @@ export function MetricCard({
   variant = 'standard',
   className,
 }: MetricCardProps) {
-  const inner = (
+  return (
     <Card
       className={cn(
-        'gap-0 border-border-default bg-bg-surface py-0',
-        variant === 'hero' ? 'rounded-2xl' : 'rounded-xl',
+        'h-full min-h-[7.5rem] gap-0 border-border-subtle bg-bg-surface py-0',
+        variant === 'hero' && 'border-l-[3px] border-l-white/[0.12]',
+        'rounded-[12px]',
         className
       )}
     >
-      <CardHeader className="flex flex-row items-center justify-between px-5 pb-0 pt-5">
-        <span className="text-xs font-semibold tracking-wider text-text-secondary uppercase">
+      <CardHeader className="flex flex-row items-start justify-between gap-2 px-6 pb-0 pt-6">
+        <span className="text-[11px] font-medium leading-tight tracking-tight text-text-tertiary">
           {label}
         </span>
         {currency ? (
-          <span className="font-mono text-xs text-text-tertiary">{currency}</span>
+          <span className="shrink-0 tabular-nums font-mono text-[11px] font-medium text-text-tertiary/90">
+            {currency}
+          </span>
         ) : null}
       </CardHeader>
-      <CardContent className="space-y-1 px-5 pt-3 pb-5">
+      <CardContent className="space-y-1.5 px-6 pt-3 pb-6">
         <p
           className={cn(
-            'font-semibold text-text-primary',
+            'tabular-nums font-medium tracking-wide text-text-primary',
             variant === 'hero'
-              ? 'font-mono text-3xl lg:text-4xl'
-              : 'font-mono text-2xl'
+              ? 'font-mono text-2xl lg:text-[1.75rem] leading-none'
+              : 'font-mono text-xl lg:text-[1.35rem] leading-tight'
           )}
         >
           {value}
         </p>
         {footer ? (
-          <div className="flex flex-wrap items-center gap-2 pt-1">{footer}</div>
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">{footer}</div>
         ) : null}
       </CardContent>
     </Card>
-  )
-
-  if (variant !== 'hero') return inner
-
-  return (
-    <div className="relative rounded-2xl bg-gradient-to-br from-accent/40 via-transparent to-transparent p-px">
-      {inner}
-    </div>
   )
 }

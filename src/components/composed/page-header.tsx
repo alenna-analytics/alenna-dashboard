@@ -23,11 +23,13 @@ export function PageHeader({
       )}
     >
       <div>
-        <h1 className="text-xl font-semibold tracking-tight text-text-primary">
+        <h1 className="text-lg font-medium tracking-tight text-text-primary">
           {title}
         </h1>
         {description ? (
-          <p className="mt-1 text-sm text-text-secondary">{description}</p>
+          <p className="mt-1.5 text-sm font-normal leading-relaxed text-text-tertiary">
+            {description}
+          </p>
         ) : null}
       </div>
       {actions ? (

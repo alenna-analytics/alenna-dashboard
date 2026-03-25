@@ -103,9 +103,9 @@ export function PieChartPanel({
             cy="46%"
             innerRadius={innerRadius}
             outerRadius={outerRadius}
-            paddingAngle={2}
-            stroke="rgba(0,0,0,0.35)"
-            strokeWidth={1}
+            paddingAngle={1.5}
+            stroke="var(--bg-surface)"
+            strokeWidth={2}
             label={DonutPercentLabel}
             labelLine={false}
           >
@@ -113,8 +113,9 @@ export function PieChartPanel({
               <Cell
                 key={entry.name}
                 fill={CHART_COLORS[i % CHART_COLORS.length]}
-                stroke="rgba(0,0,0,0.4)"
-                strokeWidth={1}
+                fillOpacity={0.92}
+                stroke="var(--bg-surface)"
+                strokeWidth={2}
               />
             ))}
           </Pie>
@@ -124,8 +125,8 @@ export function PieChartPanel({
             iconType="square"
             iconSize={10}
             wrapperStyle={{
-              paddingTop: 4,
-              fontSize: 12,
+              paddingTop: 8,
+              fontSize: 11,
               fontFamily: 'var(--font-mono)',
             }}
             formatter={(value) => (
@@ -135,10 +136,11 @@ export function PieChartPanel({
           <Tooltip
             contentStyle={{
               background: 'var(--bg-elevated)',
-              border: '1px solid var(--border-default)',
-              borderRadius: '8px',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '10px',
               fontFamily: 'var(--font-mono)',
-              fontSize: '12px',
+              fontSize: '11px',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
             }}
           />
         </PieChart>

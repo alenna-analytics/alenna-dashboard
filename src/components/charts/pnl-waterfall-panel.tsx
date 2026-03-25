@@ -54,7 +54,7 @@ function barChangeArrow(delta: number): string {
 export function PnlWaterfallPanel({
   steps,
   heightClassName = 'h-[300px]',
-  accentColor = '#6c8ef5',
+  accentColor = 'var(--chart-1)',
 }: PnlWaterfallPanelProps) {
   const W = 920
   const H = 288
@@ -66,8 +66,8 @@ export function PnlWaterfallPanel({
   const plotH = H - padT - padB
 
   const { bars, minV, maxV } = useMemo(() => {
-    const pos = '#66bb6a'
-    const neg = '#f87171'
+    const pos = 'var(--success)'
+    const neg = 'var(--danger)'
 
     const computedBars: WaterfallBar[] = []
     let current = 0
@@ -187,8 +187,8 @@ export function PnlWaterfallPanel({
                 y1={yy}
                 y2={yy}
                 stroke="var(--chart-grid)"
-                strokeDasharray="4 6"
-                opacity={0.85}
+                strokeDasharray="4 8"
+                opacity={0.4}
               />
               <text
                 x={padL - 8}
@@ -210,8 +210,8 @@ export function PnlWaterfallPanel({
           x2={W - padR}
           y1={zeroY}
           y2={zeroY}
-          stroke="rgba(255,255,255,0.35)"
-          strokeWidth={1.25}
+          stroke="rgba(255,255,255,0.12)"
+          strokeWidth={1}
         />
 
         {bars.slice(0, -1).map((b, i) => {
@@ -273,7 +273,7 @@ export function PnlWaterfallPanel({
                 y={y}
                 width={barW}
                 height={h}
-                rx={6}
+                rx={4}
                 fill={b.fill}
                 className="cursor-default"
                 onMouseEnter={() => syncTooltipPosition(i)}
@@ -298,7 +298,7 @@ export function PnlWaterfallPanel({
                 textAnchor="middle"
                 fill="var(--text-primary)"
                 fontSize={11}
-                fontWeight={600}
+                fontWeight={500}
                 fontFamily="var(--font-mono)"
                 className="pointer-events-none"
               >

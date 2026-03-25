@@ -7,18 +7,19 @@ export const CHART_COLORS = [
   'var(--chart-4)',
 ] as const
 
-export const chartMargins = { top: 8, right: 8, left: 0, bottom: 0 }
+export const chartMargins = { top: 16, right: 12, left: 4, bottom: 8 }
 
 export const cartesianGridProps = {
-  strokeDasharray: '3 3' as const,
+  strokeDasharray: '3 8' as const,
   stroke: 'var(--chart-grid)',
+  strokeOpacity: 0.65,
   vertical: false,
 }
 
 export const xAxisProps = {
   tick: {
     fill: 'var(--text-tertiary)',
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: 'var(--font-mono)',
   },
   axisLine: false,
@@ -28,7 +29,7 @@ export const xAxisProps = {
 export const yAxisProps = {
   tick: {
     fill: 'var(--text-tertiary)',
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: 'var(--font-mono)',
   },
   axisLine: false,
@@ -37,8 +38,9 @@ export const yAxisProps = {
 
 export const tooltipContentStyle: CSSProperties = {
   background: 'var(--bg-elevated)',
-  border: '1px solid var(--border-default)',
-  borderRadius: '8px',
+  border: '1px solid var(--border-subtle)',
+  borderRadius: '10px',
   fontFamily: 'var(--font-mono)',
-  fontSize: '12px',
+  fontSize: '11px',
+  boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
 }

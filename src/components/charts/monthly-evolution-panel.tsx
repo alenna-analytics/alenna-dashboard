@@ -60,10 +60,11 @@ export function MonthlyEvolutionPanel({
           <Tooltip
             contentStyle={{
               background: 'var(--bg-elevated)',
-              border: '1px solid var(--border-default)',
-              borderRadius: '8px',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '10px',
               fontFamily: 'var(--font-mono)',
-              fontSize: '12px',
+              fontSize: '11px',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
             }}
             formatter={(value) => fmtCurrency(value as number)}
           />
@@ -72,33 +73,37 @@ export function MonthlyEvolutionPanel({
             dataKey="gross_revenue"
             name={titleLabels.grossRevenue}
             fill={CHART_COLORS[0]}
-            radius={[4, 4, 0, 0]}
+            fillOpacity={0.55}
+            radius={[3, 3, 0, 0]}
           />
           <Bar
             dataKey="net_revenue"
             name={titleLabels.netRevenue}
-            fill={CHART_COLORS[1]}
-            radius={[4, 4, 0, 0]}
+            fill={CHART_COLORS[0]}
+            fillOpacity={0.85}
+            radius={[3, 3, 0, 0]}
           />
           <Bar
             dataKey="gross_profit"
             name={titleLabels.grossProfit}
-            fill={CHART_COLORS[2]}
-            radius={[4, 4, 0, 0]}
+            fill={CHART_COLORS[1]}
+            fillOpacity={0.72}
+            radius={[3, 3, 0, 0]}
           />
           <Bar
             dataKey="ebitda"
             name={titleLabels.ebitda}
-            fill={CHART_COLORS[3]}
-            radius={[4, 4, 0, 0]}
+            fill={CHART_COLORS[2]}
+            fillOpacity={0.65}
+            radius={[3, 3, 0, 0]}
           />
           <Line
             type="monotone"
             dataKey="margin_pct"
             name={titleLabels.marginPct}
             yAxisId="right"
-            stroke="#f87171"
-            strokeWidth={2}
+            stroke="var(--chart-line-secondary)"
+            strokeWidth={1.5}
             dot={false}
           />
         </ComposedChart>

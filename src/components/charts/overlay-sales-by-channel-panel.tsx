@@ -70,8 +70,8 @@ export function OverlaySalesByChannelPanel({
   const xFor = (periodIdx: number, channelIdx: number) =>
     padL + periodIdx * periodW + channelIdx * cellW + (cellW - barW) / 2
 
-  const grossOpacity = 0.22
-  const netOpacity = 0.85
+  const grossOpacity = 0.16
+  const netOpacity = 0.78
 
   return (
     <div className={cn('w-full min-h-0', heightClassName)}>
@@ -81,15 +81,15 @@ export function OverlaySalesByChannelPanel({
           x2={W - padR}
           y1={zeroY}
           y2={zeroY}
-          stroke="rgba(255,255,255,0.18)"
+          stroke="rgba(255,255,255,0.1)"
         />
 
         <g>
           <text
             x={padL}
             y={14}
-            fill="rgba(200,210,230,0.6)"
-            fontSize={12}
+            fill="var(--text-tertiary)"
+            fontSize={11}
             fontFamily="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
           >
             {grossLabel} (opacity) / {netLabel} (opacity)
@@ -107,8 +107,8 @@ export function OverlaySalesByChannelPanel({
                   x={xCenter}
                   y={H - 48}
                   textAnchor="middle"
-                  fill="rgba(200,210,230,0.55)"
-                  fontSize={11}
+                  fill="var(--text-tertiary)"
+                  fontSize={10}
                   fontFamily="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
                 >
                   {d.periodLabel}
@@ -144,7 +144,7 @@ export function OverlaySalesByChannelPanel({
                       y={grossY}
                       width={barW}
                       height={grossH}
-                      rx={6}
+                      rx={4}
                       fill={color}
                       opacity={grossOpacity}
                       onClick={onClick}
@@ -157,7 +157,7 @@ export function OverlaySalesByChannelPanel({
                       y={netY}
                       width={barW}
                       height={netH}
-                      rx={6}
+                      rx={4}
                       fill={color}
                       opacity={netOpacity}
                       onClick={onClick}

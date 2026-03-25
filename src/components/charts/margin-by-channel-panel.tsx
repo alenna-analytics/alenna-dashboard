@@ -61,7 +61,8 @@ export function MarginByChannelPanel({
               dataKey={s.key}
               name={s.name}
               stroke={s.color}
-              strokeWidth={2}
+              strokeOpacity={0.92}
+              strokeWidth={1.5}
               dot={false}
             />
           ))}

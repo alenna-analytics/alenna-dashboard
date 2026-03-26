@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { monthOptionsForYear } from '@/lib/dashboard-date-shortcuts'
+import type { DashboardStringKey } from '@/lib/dashboard-strings'
 import type { ProductCandidate } from '@/lib/analytics-types'
 import { cn } from '@/lib/utils'
 
@@ -22,7 +23,7 @@ const filterTriggerClass =
 type SalesChannel = 'shopify' | 'amazon' | 'mercadolibre'
 
 export type DashboardFiltersBarProps = {
-  t: (key: string) => string
+  t: (key: DashboardStringKey) => string
   locale: string
   startDate: Date
   endDate: Date
@@ -34,7 +35,7 @@ export type DashboardFiltersBarProps = {
   shortcutMonthValue: string
   referenceYearForMonth: number
   onMonthShortcut: (ym: string) => void
-  platforms: SalesChannel[]
+  platforms: readonly SalesChannel[]
   platformLabels: Record<SalesChannel, string>
   selectedPlatforms: SalesChannel[] | undefined
   onTogglePlatform: (p: SalesChannel) => void

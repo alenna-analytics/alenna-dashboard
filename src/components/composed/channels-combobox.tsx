@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'
 type Platform = 'shopify' | 'amazon' | 'mercadolibre'
 
 type ChannelsComboboxProps = {
-  platforms: Platform[]
+  platforms: readonly Platform[]
   labels: Record<Platform, string>
   selected: Platform[] | undefined
   allSelectedLabel: string

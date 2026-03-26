@@ -30,9 +30,9 @@ export function NotFoundPage({ variant = 'page' }: NotFoundPageProps) {
         </Link>
         <Link
           className={cn(buttonVariants({ variant: 'outline' }))}
-          to="/dashboard"
+          to="/dashboard/sales"
         >
-          Dashboard
+          Sales
         </Link>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -40,7 +40,6 @@ import {
 import { fmtDateByLanguage, fmtPct, toIso, toLocalIsoDate } from '@/lib/format'
 import { useCurrency } from '@/components/providers/currency-provider'
 import { useLanguage } from '@/components/providers/language-provider'
-import { usePageChrome } from '@/components/providers/page-chrome-context'
 
 type SalesChannel = DashboardSalesChannel
 
@@ -75,7 +74,6 @@ function uniqueValidProductIds(searchParams: URLSearchParams): string[] | undefi
 
 export function DashboardPage() {
   const { lang } = useLanguage()
-  const { setPageMeta } = usePageChrome()
   const { formatCurrency, formatCurrencyValue, displayCurrency } = useCurrency()
   const [params, setParams] = useSearchParams()
 
@@ -173,11 +171,6 @@ export function DashboardPage() {
     (key: DashboardStringKey) => dashboardT(lang, key),
     [lang],
   )
-
-  useEffect(() => {
-    setPageMeta({ title: t('pageTitle') })
-    return () => setPageMeta({ title: '' })
-  }, [t, setPageMeta])
 
   const { data: summary, isLoading: summaryLoading } = useAnalyticsSummary(filters)
   const {
@@ -467,9 +460,18 @@ export function DashboardPage() {
     }
     return m
   }, [])
+  const staticCardClassName = 'hover:translate-y-0'
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-8 pb-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight text-text-primary">
+          {t('pageTitle')}
+        </h1>
+        <p className="text-sm text-text-secondary">
+          Análisis de ventas por canal y periodo
+        </p>
+      </div>
       <DashboardFiltersBar
         t={t}
         locale={dashboardLocale}
@@ -556,7 +558,7 @@ export function DashboardPage() {
           {t('sectionProfitability')}
         </h2>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(240px,3fr)] lg:items-stretch">
-          <Card className="w-full bg-card lg:min-h-[380px]">
+          <Card className={`w-full bg-card lg:min-h-[380px] ${staticCardClassName}`}>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-text-primary">
                 {t('wfTitle')}
@@ -579,7 +581,7 @@ export function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="flex min-h-0 min-w-0 flex-col bg-card">
+          <Card className={`flex min-h-0 min-w-0 flex-col bg-card ${staticCardClassName}`}>
             <CardHeader className="pb-3">
               <CardTitle className="text-xs font-medium text-text-tertiary">
                 {t('donutTitle')}
@@ -606,7 +608,7 @@ export function DashboardPage() {
         <h2 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-text-tertiary">
           {t('sectionTrends')}
         </h2>
-        <Card className="bg-card">
+        <Card className={`bg-card ${staticCardClassName}`}>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-text-primary">
               {t('monthlyTitle')}
@@ -632,7 +634,7 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="w-full bg-card">
+        <Card className={`w-full bg-card ${staticCardClassName}`}>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-text-secondary">
               {t('overlayTitle')}
@@ -663,7 +665,7 @@ export function DashboardPage() {
         </Card>
 
         <div className="grid grid-cols-1 gap-6 pt-1 lg:grid-cols-2 lg:items-stretch">
-          <Card className="flex min-h-0 min-w-0 flex-col bg-card">
+          <Card className={`flex min-h-0 min-w-0 flex-col bg-card ${staticCardClassName}`}>
             <CardHeader className="pb-3">
               <CardTitle className="text-xs font-medium text-text-tertiary">
                 {t('costTitle')}
@@ -690,7 +692,7 @@ export function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="flex min-h-0 min-w-0 flex-col bg-card">
+          <Card className={`flex min-h-0 min-w-0 flex-col bg-card ${staticCardClassName}`}>
             <CardHeader className="pb-3">
               <CardTitle className="text-xs font-medium text-text-tertiary">
                 {t('marginTitle')}

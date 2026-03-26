@@ -3,7 +3,6 @@ import { MenuIcon, MoonIcon, SunIcon } from 'lucide-react'
 
 import { useCurrency } from '@/components/providers/currency-provider'
 import { useLanguage } from '@/components/providers/language-provider'
-import { usePageChrome } from '@/components/providers/page-chrome-context'
 import { useTheme } from '@/components/providers/theme-provider'
 import { Button } from '@/components/ui/button'
 import { shellT } from '@/lib/shell-strings'
@@ -17,7 +16,6 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
   const { theme, toggleTheme } = useTheme()
   const { lang, toggleLang } = useLanguage()
   const { displayCurrency, setDisplayCurrency } = useCurrency()
-  const { title } = usePageChrome()
 
   const ariaTheme =
     theme === 'dark'
@@ -41,15 +39,7 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
             <MenuIcon className="size-4" />
           </Button>
         ) : null}
-        {title ? (
-          <div className="flex min-w-0 flex-1 items-center">
-            <h1 className="truncate text-[15px] font-medium leading-tight tracking-tight text-text-primary">
-              {title}
-            </h1>
-          </div>
-        ) : (
-          <div className="flex-1" aria-hidden />
-        )}
+        <div className="flex-1" aria-hidden />
       </div>
       <div className="flex items-center gap-2">
         <Button

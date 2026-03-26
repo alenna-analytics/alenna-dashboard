@@ -2,7 +2,8 @@ const SHELL_STRINGS = {
   es: {
     navSectionAnalytics: 'Analítica',
     navSectionConfiguration: 'Configuración',
-    navDashboard: 'Dashboard',
+    navDashboard: 'Ventas',
+    navProducts: 'Productos',
     navExpenses: 'Gastos',
     navConnections: 'Conexiones',
     navBilling: 'Facturación',
@@ -32,7 +33,8 @@ const SHELL_STRINGS = {
   en: {
     navSectionAnalytics: 'Analytics',
     navSectionConfiguration: 'Configuration',
-    navDashboard: 'Dashboard',
+    navDashboard: 'Sales',
+    navProducts: 'Products',
     navExpenses: 'Expenses',
     navConnections: 'Connections',
     navBilling: 'Billing',

@@ -41,9 +41,9 @@ export function ServerErrorPage({ error, onRetry }: ServerErrorPageProps) {
         </Link>
         <Link
           className={cn(buttonVariants({ variant: 'outline' }))}
-          to="/dashboard"
+          to="/dashboard/sales"
         >
-          Dashboard
+          Sales
         </Link>
       </div>
     </div>

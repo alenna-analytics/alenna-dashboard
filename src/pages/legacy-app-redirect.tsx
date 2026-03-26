@@ -5,7 +5,7 @@ export function LegacyAppRedirect() {
   const suffix = pathname.replace(/^\/app\/?/, '') || ''
   const target =
     suffix === '' || suffix === 'dashboard'
-      ? '/dashboard'
+      ? '/dashboard/sales'
       : `/dashboard/${suffix}`
   return <Navigate to={target} replace />
 }

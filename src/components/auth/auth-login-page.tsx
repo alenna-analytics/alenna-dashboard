@@ -58,7 +58,7 @@ export function AuthLoginPage() {
           </div>
 
           <div className="w-full md:pl-2 flex justify-center items-center">
-            <SignIn appearance={signInAppearance} forceRedirectUrl="/dashboard" />
+            <SignIn appearance={signInAppearance} forceRedirectUrl="/dashboard/sales" />
           </div>
         </CardContent>
       </Card>

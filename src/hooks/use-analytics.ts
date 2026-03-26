@@ -1,11 +1,16 @@
 import { useAuth } from '@clerk/react'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch } from '@/lib/api'
 import type {
   AnalyticsFilters,
   DailySeriesResponse,
   ProductCatalogResponse,
+  ProductCostUpdateRequest,
+  ProductCostUpdateResponse,
+  ProductsCostEditorResponse,
+  ProductsInsightsResponse,
+  ProductsSkuTableResponse,
   ProjectionResponse,
   SummaryResponse,
   TopProductsResponse,
@@ -118,5 +123,112 @@ export function useAnalyticsProjections(filters: AnalyticsFilters) {
     queryFn: () => fetchJson(`/analytics/projections?${params}`, (a) => getToken(a)),
     enabled: !!tenantId,
     staleTime: 60_000,
+  })
+}
+
+export function useProductsInsights(filters: AnalyticsFilters) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const params = buildParams(filters)
+
+  return useQuery<ProductsInsightsResponse>({
+    queryKey: [
+      'analytics',
+      'products-insights',
+      filters.start_date,
+      filters.end_date,
+      filters.platform,
+      filters.limit,
+    ],
+    queryFn: () => fetchJson(`/analytics/products/insights?${params}`, (a) => getToken(a)),
+    enabled: !!tenantId,
+    staleTime: 60_000,
+  })
+}
+
+export function useUpdateProductCosts() {
+  const { getToken } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation<ProductCostUpdateResponse, Error, ProductCostUpdateRequest>({
+    mutationFn: async (body) => {
+      const res = await apiFetch('/analytics/products/costs', (a) => getToken(a), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || res.statusText)
+      }
+      return res.json() as Promise<ProductCostUpdateResponse>
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['analytics', 'products-insights'] })
+      await queryClient.invalidateQueries({ queryKey: ['analytics', 'summary'] })
+      await queryClient.invalidateQueries({ queryKey: ['analytics', 'daily'] })
+    },
+  })
+}
+
+type ProductsPagedQueryFilters = AnalyticsFilters & {
+  search?: string
+  page: number
+  page_size: number
+}
+
+export function useProductsSkuTable(filters: ProductsPagedQueryFilters) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const params = buildParams(filters)
+  if (filters.search?.trim()) {
+    params.set('search', filters.search.trim())
+  }
+  params.set('page', String(filters.page))
+  params.set('page_size', String(filters.page_size))
+
+  return useQuery<ProductsSkuTableResponse>({
+    queryKey: [
+      'analytics',
+      'products-sku-table',
+      filters.start_date,
+      filters.end_date,
+      filters.platform,
+      filters.search,
+      filters.page,
+      filters.page_size,
+    ],
+    queryFn: () => fetchJson(`/analytics/products/sku-table?${params}`, (a) => getToken(a)),
+    enabled: !!tenantId,
+    staleTime: 60_000,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useProductsCostEditor(filters: ProductsPagedQueryFilters) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const params = buildParams(filters)
+  if (filters.search?.trim()) {
+    params.set('search', filters.search.trim())
+  }
+  params.set('page', String(filters.page))
+  params.set('page_size', String(filters.page_size))
+
+  return useQuery<ProductsCostEditorResponse>({
+    queryKey: [
+      'analytics',
+      'products-cost-editor',
+      filters.start_date,
+      filters.end_date,
+      filters.platform,
+      filters.search,
+      filters.page,
+      filters.page_size,
+    ],
+    queryFn: () => fetchJson(`/analytics/products/cost-editor?${params}`, (a) => getToken(a)),
+    enabled: !!tenantId,
+    staleTime: 60_000,
+    placeholderData: keepPreviousData,
   })
 }

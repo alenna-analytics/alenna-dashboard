@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   CreditCardIcon,
   LayoutDashboardIcon,
+  PackageIcon,
   PanelLeftCloseIcon,
   PanelLeftIcon,
   PlugIcon,
@@ -63,7 +64,7 @@ function NavSection({
           <NavLink
             key={to}
             to={to}
-            end={to === '/dashboard'}
+            end={to === '/dashboard/sales'}
             onClick={() => {
               onMobileClose()
             }}
@@ -101,9 +102,14 @@ export function AppSidebar({
   const analyticsNav = useMemo<NavItem[]>(
     () => [
       {
-        to: '/dashboard',
+        to: '/dashboard/sales',
         label: shellT(lang, 'navDashboard'),
         icon: LayoutDashboardIcon,
+      },
+      {
+        to: '/dashboard/products',
+        label: shellT(lang, 'navProducts'),
+        icon: PackageIcon,
       },
       {
         to: '/dashboard/expenses',

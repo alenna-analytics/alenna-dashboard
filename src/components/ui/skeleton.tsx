@@ -5,10 +5,10 @@ function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="skeleton"
       className={cn(
-        "relative overflow-hidden rounded-md bg-zinc-200/85 dark:bg-zinc-700/45",
+        "relative overflow-hidden rounded-md bg-[#dbe7ff]/55 dark:bg-[#131d30]",
         "before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.6s_infinite]",
-        "before:bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.24),transparent)]",
-        "dark:before:bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.14),transparent)]",
+        "before:bg-[linear-gradient(90deg,transparent,rgba(91,140,255,0.12),transparent)]",
+        "dark:before:bg-[linear-gradient(90deg,transparent,rgba(124,163,255,0.14),transparent)]",
         className
       )}
       {...props}

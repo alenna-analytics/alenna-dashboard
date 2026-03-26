@@ -17,7 +17,7 @@ import type { ProductCandidate } from '@/lib/analytics-types'
 import { cn } from '@/lib/utils'
 
 const filterTriggerClass =
-  'h-9 min-w-[7.5rem] max-w-[13rem] rounded-[10px] border-border-subtle bg-white/[0.03] text-xs font-medium text-text-secondary shadow-none hover:bg-white/[0.05] focus-visible:ring-2 focus-visible:ring-white/10 dark:border-border-subtle dark:bg-white/[0.03] dark:hover:bg-white/[0.05]'
+  '!h-9 min-h-9 min-w-[7.5rem] max-w-[13rem] rounded-[10px] border-border-subtle bg-white/[0.03] px-3 text-xs font-medium text-text-secondary shadow-none hover:bg-white/[0.05] focus-visible:ring-2 focus-visible:ring-white/10 dark:border-border-subtle dark:bg-white/[0.03] dark:hover:bg-white/[0.05]'
 
 type SalesChannel = 'shopify' | 'amazon' | 'mercadolibre'
 
@@ -40,8 +40,10 @@ export type DashboardFiltersBarProps = {
   onTogglePlatform: (p: SalesChannel) => void
   onSelectAllPlatforms: () => void
   productItems: ProductCandidate[]
-  productId: string | undefined
-  onProductChange: (id: string | undefined) => void
+  selectedProductIds: string[] | undefined
+  productTriggerLabel: string
+  onToggleProduct: (productId: string) => void
+  onSelectAllProducts: () => void
   productCatalogLoading: boolean
   granularity: string
   onGranularityChange: (v: string) => void
@@ -66,8 +68,10 @@ export function DashboardFiltersBar({
   onTogglePlatform,
   onSelectAllPlatforms,
   productItems,
-  productId,
-  onProductChange,
+  selectedProductIds,
+  productTriggerLabel,
+  onToggleProduct,
+  onSelectAllProducts,
   productCatalogLoading,
   granularity,
   onGranularityChange,
@@ -106,7 +110,6 @@ export function DashboardFiltersBar({
         >
           <SelectTrigger
             id="dashboard-shortcut-year"
-            size="sm"
             className={cn(filterTriggerClass, 'min-w-[7.5rem]')}
             aria-label={t('shortcutYear')}
           >
@@ -134,7 +137,6 @@ export function DashboardFiltersBar({
         >
           <SelectTrigger
             id="dashboard-shortcut-month"
-            size="sm"
             className={cn(filterTriggerClass, 'min-w-[10.5rem]')}
             aria-label={t('shortcutMonth')}
           >
@@ -163,8 +165,10 @@ export function DashboardFiltersBar({
       <span className="sr-only">{t('filterProduct')}</span>
       <ProductCombobox
         items={productItems}
-        value={productId}
-        onChange={onProductChange}
+        selectedIds={selectedProductIds}
+        onToggleProduct={onToggleProduct}
+        onSelectAllProducts={onSelectAllProducts}
+        triggerLabel={productTriggerLabel}
         placeholder={t('filterProduct')}
         allLabel={t('allProducts')}
         searchPlaceholder={t('searchProducts')}

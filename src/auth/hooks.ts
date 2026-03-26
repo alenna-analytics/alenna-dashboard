@@ -6,6 +6,8 @@ export type TenantSummary = {
   name: string
   role: string
   role_name: string
+  base_currency: string
+  fx_mxn_per_usd: string
 }
 
 export function useCurrentUser() {

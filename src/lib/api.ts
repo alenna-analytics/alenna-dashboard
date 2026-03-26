@@ -37,3 +37,19 @@ export async function apiPostJson(
     },
   )
 }
+
+export async function apiPatchJson(
+  path: string,
+  getToken: GetTokenFn,
+  body: unknown,
+  init: RequestInit = {},
+): Promise<Response> {
+  const headers = new Headers(init.headers)
+  headers.set('Content-Type', 'application/json')
+  return apiFetch(path, getToken, {
+    ...init,
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify(body),
+  })
+}

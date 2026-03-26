@@ -1,3 +1,4 @@
+import type { LucideIcon } from 'lucide-react'
 import {
   CreditCardIcon,
   LayoutDashboardIcon,
@@ -17,13 +18,22 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
-const NAV = [
+type NavItem = {
+  to: string
+  label: string
+  icon: LucideIcon
+}
+
+const ANALYTICS_NAV: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboardIcon },
-  { to: '/dashboard/connectors', label: 'Connectors', icon: PlugIcon },
   { to: '/dashboard/expenses', label: 'Expenses', icon: ReceiptIcon },
-  { to: '/dashboard/settings', label: 'Settings', icon: SettingsIcon },
+]
+
+const CONFIG_NAV: NavItem[] = [
+  { to: '/dashboard/connectors', label: 'Connectors', icon: PlugIcon },
   { to: '/dashboard/billing', label: 'Billing', icon: CreditCardIcon },
-] as const
+  { to: '/dashboard/settings', label: 'Settings', icon: SettingsIcon },
+]
 
 type AppSidebarProps = {
   collapsed: boolean
@@ -33,6 +43,56 @@ type AppSidebarProps = {
   onTenantSelect: (id: string) => void
   mobileOpen: boolean
   onMobileClose: () => void
+}
+
+function NavSection({
+  title,
+  items,
+  collapsed,
+  onMobileClose,
+}: {
+  title: string
+  items: NavItem[]
+  collapsed: boolean
+  onMobileClose: () => void
+}) {
+  return (
+    <>
+      <p
+        className={cn(
+          'mb-1 px-3 text-[11px] font-medium tracking-widest text-text-tertiary uppercase',
+          collapsed && 'sr-only'
+        )}
+      >
+        {title}
+      </p>
+      <nav className="flex flex-col gap-0.5">
+        {items.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === '/dashboard'}
+            onClick={() => {
+              onMobileClose()
+            }}
+            className={({ isActive }) =>
+              cn(
+                'relative flex h-9 items-center gap-3 rounded-lg text-sm transition-colors',
+                collapsed ? 'justify-center px-0 lg:justify-center' : 'px-3',
+                isActive
+                  ? 'bg-accent/10 text-accent before:absolute before:top-2 before:bottom-2 before:left-0 before:w-0.5 before:rounded-full before:bg-accent before:content-[""]'
+                  : 'text-text-secondary hover:bg-accent/5 hover:text-text-primary'
+              )
+            }
+            title={collapsed ? label : undefined}
+          >
+            <Icon className="size-4 shrink-0 opacity-80" />
+            {!collapsed ? label : null}
+          </NavLink>
+        ))}
+      </nav>
+    </>
+  )
 }
 
 export function AppSidebar({
@@ -55,15 +115,26 @@ export function AppSidebar({
     >
       <div
         className={cn(
-          'flex h-14 shrink-0 items-center border-b border-border-subtle',
-          collapsed ? 'justify-center px-2' : 'justify-between px-3'
+          'flex shrink-0 items-center gap-2 border-b border-border-subtle',
+          collapsed ? 'flex-col py-2' : 'h-14 min-h-14 px-3',
+          !collapsed && 'justify-between'
         )}
       >
-        {!collapsed ? (
-          <span className="truncate pl-2 text-sm font-semibold tracking-tight text-text-primary">
-            Ecom Analytics
-          </span>
-        ) : null}
+        <div
+          className={cn(
+            'min-w-0',
+            collapsed ? 'flex justify-center' : 'flex-1'
+          )}
+        >
+          <CompanySwitcher
+            tenants={tenants}
+            tenantId={tenantId}
+            onSelect={onTenantSelect}
+            collapsed={collapsed}
+            hideLabel
+            className={collapsed ? '' : 'w-full min-w-0'}
+          />
+        </div>
         <div className="flex shrink-0 items-center gap-1">
           <Button
             type="button"
@@ -92,52 +163,27 @@ export function AppSidebar({
         </div>
       </div>
 
-      <div className="p-2">
-        <CompanySwitcher
-          tenants={tenants}
-          tenantId={tenantId}
-          onSelect={onTenantSelect}
-          collapsed={collapsed}
-        />
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="px-2 py-3">
+            <NavSection
+              title="Analytics"
+              items={ANALYTICS_NAV}
+              collapsed={collapsed}
+              onMobileClose={onMobileClose}
+            />
+          </div>
+        </ScrollArea>
+        <Separator className="bg-border-subtle" />
+        <div className="shrink-0 px-2 py-3">
+          <NavSection
+            title="Configuration"
+            items={CONFIG_NAV}
+            collapsed={collapsed}
+            onMobileClose={onMobileClose}
+          />
+        </div>
       </div>
-
-      <Separator className="bg-border-subtle" />
-
-      <ScrollArea className="flex-1 px-2 py-3">
-        <p
-          className={cn(
-            'mb-1 px-3 text-[11px] font-medium tracking-widest text-text-tertiary uppercase',
-            collapsed && 'sr-only'
-          )}
-        >
-          Main
-        </p>
-        <nav className="flex flex-col gap-0.5">
-          {NAV.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/dashboard'}
-              onClick={() => {
-                onMobileClose()
-              }}
-              className={({ isActive }) =>
-                cn(
-                  'relative flex h-9 items-center gap-3 rounded-lg text-sm transition-colors',
-                  collapsed ? 'justify-center px-0 lg:justify-center' : 'px-3',
-                  isActive
-                    ? 'bg-accent/10 text-accent before:absolute before:top-2 before:bottom-2 before:left-0 before:w-0.5 before:rounded-full before:bg-accent before:content-[""]'
-                    : 'text-text-secondary hover:bg-accent/5 hover:text-text-primary'
-                )
-              }
-              title={collapsed ? label : undefined}
-            >
-              <Icon className="size-4 shrink-0 opacity-80" />
-              {!collapsed ? label : null}
-            </NavLink>
-          ))}
-        </nav>
-      </ScrollArea>
     </aside>
   )
 }

@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 
 import { useCurrentTenant, useTenantSwitcher } from '@/auth/hooks'
 import { AppBootLoader } from '@/components/layout/app-boot-loader'
 import { AppHeader } from '@/components/layout/app-header'
 import { AppSidebar } from '@/components/layout/app-sidebar'
+import { CurrencyProvider } from '@/components/providers/currency-provider'
+import { WorkspaceProvider } from '@/components/providers/workspace-context'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed'
@@ -15,11 +17,18 @@ export function AppShellLayout() {
   const { switchTenant } = useTenantSwitcher()
   const {
     tenants,
+    me,
+    refetchMe,
     error,
     tenantsLoading,
     meLoading,
     resolvingSingleTenant,
   } = useAppBootstrap()
+
+  const workspaceValue = useMemo(
+    () => ({ me, refetchMe }),
+    [me, refetchMe],
+  )
   const { collapsed, toggleCollapsed } = useSidebarCollapsed()
   const isLargeScreen = useMediaQuery('(min-width: 1024px)')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
@@ -46,7 +55,12 @@ export function AppShellLayout() {
   }
 
   return (
-    <div className="flex h-svh overflow-hidden bg-bg-base">
+    <WorkspaceProvider value={workspaceValue}>
+      <CurrencyProvider
+        baseCurrencyRaw={me?.base_currency}
+        fxMxnPerUsdRaw={me?.fx_mxn_per_usd}
+      >
+        <div className="flex h-svh overflow-hidden bg-bg-base">
       <button
         type="button"
         className={cn(
@@ -97,5 +111,7 @@ export function AppShellLayout() {
         </main>
       </div>
     </div>
+      </CurrencyProvider>
+    </WorkspaceProvider>
   )
 }

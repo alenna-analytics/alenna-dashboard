@@ -23,7 +23,11 @@ function buildParams(filters: AnalyticsFilters): URLSearchParams {
   if (filters.granularity) params.set('granularity', filters.granularity)
   if (filters.limit) params.set('limit', String(filters.limit))
   if (filters.horizon_weeks) params.set('horizon_weeks', String(filters.horizon_weeks))
-  if (filters.product_id) params.set('product_id', filters.product_id)
+  if (filters.product_ids?.length) {
+    for (const id of filters.product_ids) {
+      params.append('product_id', id)
+    }
+  }
   return params
 }
 
@@ -48,7 +52,7 @@ export function useAnalyticsSummary(filters: AnalyticsFilters) {
       filters.start_date,
       filters.end_date,
       filters.platform,
-      filters.product_id,
+      filters.product_ids?.slice().sort().join(','),
     ],
     queryFn: () => fetchJson(`/analytics/summary?${params}`, (a) => getToken(a)),
     enabled: !!tenantId,
@@ -69,7 +73,7 @@ export function useAnalyticsDaily(filters: AnalyticsFilters) {
       filters.end_date,
       filters.platform,
       filters.granularity,
-      filters.product_id,
+      filters.product_ids?.slice().sort().join(','),
     ],
     queryFn: () => fetchJson(`/analytics/daily?${params}`, (a) => getToken(a)),
     enabled: !!tenantId,

@@ -12,6 +12,7 @@ export type KpiValues = {
   channel_commission: string
   shipping_cost: string
   ads_spend: string
+  ebitda: string
 }
 
 export type DeltaValue = {
@@ -47,6 +48,7 @@ export type DailySeriesPoint = {
   channel_commission: string
   shipping_cost: string
   ads_spend: string
+  ebitda: string
   by_platform: PlatformKpi[] | null
 }
 
@@ -90,7 +92,8 @@ export type AnalyticsFilters = {
   granularity?: string
   limit?: number
   horizon_weeks?: number
-  product_id?: string
+  /** Repeated as `product_id` on the API query string. */
+  product_ids?: string[]
 }
 
 export type ProductCandidate = {

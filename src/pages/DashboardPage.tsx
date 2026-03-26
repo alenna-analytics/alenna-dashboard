@@ -9,7 +9,10 @@ import { PieChartPanel } from '@/components/charts/pie-chart-panel'
 import { BarChartPanel } from '@/components/charts/bar-chart-panel'
 import { MonthlyEvolutionPanel } from '@/components/charts/monthly-evolution-panel'
 import { MarginByChannelPanel } from '@/components/charts/margin-by-channel-panel'
-import { PnlWaterfallPanel } from '@/components/charts/pnl-waterfall-panel'
+import {
+  PnlWaterfallPanel,
+  type WaterfallStep,
+} from '@/components/charts/pnl-waterfall-panel'
 import {
   OverlaySalesByChannelPanel,
   type OverlaySalesDatum,
@@ -31,7 +34,8 @@ import {
   fullCalendarMonthValue,
   isFullCalendarYearRange,
 } from '@/lib/dashboard-date-shortcuts'
-import { fmtCurrency, fmtDate, fmtPct, toIso, toLocalIsoDate } from '@/lib/format'
+import { fmtDate, fmtPct, toIso, toLocalIsoDate } from '@/lib/format'
+import { useCurrency } from '@/components/providers/currency-provider'
 import { useLanguage } from '@/components/providers/language-provider'
 
 type SalesChannel = 'shopify' | 'amazon' | 'mercadolibre'
@@ -65,19 +69,27 @@ function parseDate(s: string | null, fallback: Date): Date {
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-function parseProductId(s: string | null): string | undefined {
-  if (!s) return undefined
-  return UUID_RE.test(s) ? s : undefined
+function uniqueValidProductIds(searchParams: URLSearchParams): string[] | undefined {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const raw of searchParams.getAll('product_id')) {
+    if (UUID_RE.test(raw) && !seen.has(raw)) {
+      seen.add(raw)
+      out.push(raw)
+    }
+  }
+  return out.length ? out : undefined
 }
 
 export function DashboardPage() {
   const { lang } = useLanguage()
+  const { formatCurrency, displayCurrency } = useCurrency()
   const [params, setParams] = useSearchParams()
 
   const startDate = parseDate(params.get('start'), defaultStart())
   const endDate = parseDate(params.get('end'), new Date())
   const granularity = params.get('granularity') ?? 'daily'
-  const productId = parseProductId(params.get('product_id'))
+  const selectedProductIds = useMemo(() => uniqueValidProductIds(params), [params])
 
   const selectedPlatforms = useMemo(() => {
     const p = params.getAll('platform')
@@ -95,9 +107,9 @@ export function DashboardPage() {
       end_date: toIso(endDate),
       platform: selectedPlatforms,
       granularity,
-      product_id: productId,
+      product_ids: selectedProductIds,
     }
-  }, [startDate, endDate, selectedPlatforms, granularity, productId])
+  }, [startDate, endDate, selectedPlatforms, granularity, selectedProductIds])
 
   const setParam = (key: string, value: string) => {
     const next = new URLSearchParams(params)
@@ -125,10 +137,19 @@ export function DashboardPage() {
     setParams(next)
   }
 
-  const setProductParam = (id: string | undefined) => {
+  const toggleProduct = (id: string) => {
+    const current = uniqueValidProductIds(params) ?? []
     const next = new URLSearchParams(params)
-    if (id) next.set('product_id', id)
-    else next.delete('product_id')
+    next.delete('product_id')
+    const isOn = current.includes(id)
+    const nxt = isOn ? current.filter((x) => x !== id) : [...current, id]
+    for (const p of nxt) next.append('product_id', p)
+    setParams(next)
+  }
+
+  const selectAllProducts = () => {
+    const next = new URLSearchParams(params)
+    next.delete('product_id')
     setParams(next)
   }
 
@@ -192,6 +213,7 @@ export function DashboardPage() {
         allProducts: 'Todos los productos',
         searchProducts: 'Buscar producto…',
         noProducts: 'Sin productos',
+        productsPickedCount: '{{n}} productos',
 
         granularityDaily: 'Diario',
         granularityWeekly: 'Semanal',
@@ -204,19 +226,31 @@ export function DashboardPage() {
         kpiReceived: 'Total recibido',
 
         deltaVsPrev: 'vs periodo anterior',
+        deltaVsPrevMonth: 'vs mes anterior',
 
         wfTitle: 'Cascada P&L',
-        donutTitle: 'Mix de participación de ventas por canal en el periodo',
+        donutTitle: 'Participación de ventas por canal',
         monthlyTitle: 'Evolución Mensual — Ingresos · Utilidad · EBITDA · Margen',
         costTitle: 'Estructura de costos por canal y categoría',
         overlayTitle: 'Ventas brutas y netas por canal',
+        overlayMonthlyHint: 'Agregación mensual por canal (más legible que el detalle diario).',
         marginTitle: 'Margen % por Canal',
 
         traceGrossRevenue: 'Ventas brutas',
         traceNetRevenue: 'Ventas netas',
         traceGrossProfit: 'Utilidad bruta',
+        traceCostOfSalesTotal: 'Costo de ventas (total)',
+        traceCostOfSalesOther: 'Otros costos de ventas',
+        tracePnlReconcile: 'Otros ajustes a utilidad bruta',
+        wfReconcileFootnote:
+          '“Otros ajustes…” aparece solo si la utilidad bruta del archivo no coincide exactamente con ventas netas menos costo de ventas total (redondeo u otras partidas en el origen).',
         traceEbitda: 'EBITDA',
         traceMarginPct: 'Margen %',
+
+        monthlyStackEbitda: 'EBITDA',
+        monthlyStackLayerUb: 'Utilidad bruta − EBITDA',
+        monthlyStackLayerNet: 'Ventas netas − utilidad bruta',
+        monthlyStackLayerGross: 'Ventas brutas − ventas netas',
 
         costCogs: 'COGS',
         costCommission: 'Comisiones',
@@ -236,6 +270,9 @@ export function DashboardPage() {
 
         legendGross: 'Ventas brutas (menos opacidad)',
         legendNet: 'Ventas netas (más opacidad)',
+
+        productScopeBanner:
+          'Vista por producto: los anuncios no se asignan por SKU; la cascada termina en utilidad bruta. Comisiones y envío se prorratean por participación de la línea en el subtotal del pedido.',
       },
       en: {
         pageTitle: 'Dashboard',
@@ -254,6 +291,7 @@ export function DashboardPage() {
         allProducts: 'All products',
         searchProducts: 'Search product…',
         noProducts: 'No products',
+        productsPickedCount: '{{n}} products',
 
         granularityDaily: 'Daily',
         granularityWeekly: 'Weekly',
@@ -266,19 +304,31 @@ export function DashboardPage() {
         kpiReceived: 'Total received',
 
         deltaVsPrev: 'vs prior period',
+        deltaVsPrevMonth: 'vs prior month',
 
         wfTitle: 'P&L waterfall',
-        donutTitle: 'Share of net sales by channel in the period',
+        donutTitle: 'Share of net sales by channel',
         monthlyTitle: 'Monthly evolution — Revenue · Profit · EBITDA · Margin',
         costTitle: 'Cost structure by channel and category',
         overlayTitle: 'Gross and net sales by channel',
+        overlayMonthlyHint: 'Monthly totals per channel (easier to read than daily detail).',
         marginTitle: 'Margin % by channel',
 
         traceGrossRevenue: 'Gross revenue',
         traceNetRevenue: 'Net revenue',
         traceGrossProfit: 'Gross profit',
+        traceCostOfSalesTotal: 'Cost of sales (total)',
+        traceCostOfSalesOther: 'Other cost of sales',
+        tracePnlReconcile: 'Other adjustments to gross profit',
+        wfReconcileFootnote:
+          '“Other adjustments…” only appears when reported gross profit does not exactly equal net sales minus total cost of sales (rounding or extra lines in the source data).',
         traceEbitda: 'EBITDA',
         traceMarginPct: 'Margin %',
+
+        monthlyStackEbitda: 'EBITDA',
+        monthlyStackLayerUb: 'Gross profit − EBITDA',
+        monthlyStackLayerNet: 'Net sales − gross profit',
+        monthlyStackLayerGross: 'Gross sales − net sales',
 
         costCogs: 'COGS',
         costCommission: 'Commissions',
@@ -298,11 +348,24 @@ export function DashboardPage() {
 
         legendGross: 'Gross (lower opacity)',
         legendNet: 'Net (higher opacity)',
+
+        productScopeBanner:
+          'Product view: ad spend is not allocated to SKUs; the waterfall ends at gross profit. Commission and shipping are prorated by line share of order subtotal.',
       },
     } as const
 
     return (STRINGS[lang as 'es' | 'en'] as Record<string, string>)[key] ?? key
   }, [lang])
+
+  const productTriggerLabel = useMemo(() => {
+    if (!selectedProductIds?.length) return t('allProducts')
+    if (selectedProductIds.length === 1) {
+      const hit = productCatalog?.items.find((i) => i.product_id === selectedProductIds[0])
+      if (!hit) return t('filterProduct')
+      return hit.internal_sku ? `${hit.title} (${hit.internal_sku})` : hit.title
+    }
+    return t('productsPickedCount').replace('{{n}}', String(selectedProductIds.length))
+  }, [t, selectedProductIds, productCatalog?.items])
 
   const { data: summary, isLoading: summaryLoading } = useAnalyticsSummary(filters)
   const {
@@ -314,6 +377,22 @@ export function DashboardPage() {
   const amazonSeries = useAnalyticsDaily({ ...filters, platform: ['amazon'] })
   const mlSeries = useAnalyticsDaily({ ...filters, platform: ['mercadolibre'] })
 
+  const shopifyOverlaySeries = useAnalyticsDaily({
+    ...filters,
+    platform: ['shopify'],
+    granularity: 'monthly',
+  })
+  const amazonOverlaySeries = useAnalyticsDaily({
+    ...filters,
+    platform: ['amazon'],
+    granularity: 'monthly',
+  })
+  const mlOverlaySeries = useAnalyticsDaily({
+    ...filters,
+    platform: ['mercadolibre'],
+    granularity: 'monthly',
+  })
+
   const platformSeries = useMemo(() => {
     const m: Record<SalesChannel, DailySeriesPoint[] | undefined> = {
       shopify: shopifySeries.data?.series,
@@ -323,6 +402,11 @@ export function DashboardPage() {
     return m
   }, [shopifySeries.data, amazonSeries.data, mlSeries.data])
 
+  const compareToPriorMonth = useMemo(
+    () => fullCalendarMonthValue(startDate, endDate) !== null,
+    [startDate, endDate],
+  )
+
   const delta = (key: string) => {
     if (!summary?.deltas) return null
     const d = summary.deltas[key]
@@ -331,34 +415,79 @@ export function DashboardPage() {
     return (
       <>
         <DeltaBadge positive={pct >= 0} value={`${Math.abs(pct).toFixed(1)}%`} />
-        <span className="text-[11px] font-medium text-text-tertiary/90">{t('deltaVsPrev')}</span>
+        <span className="text-[11px] font-medium text-text-tertiary/90">
+          {compareToPriorMonth ? t('deltaVsPrevMonth') : t('deltaVsPrev')}
+        </span>
       </>
     )
   }
 
   const summaryKpis = summary?.current
 
-  const waterfallSteps = useMemo(() => {
-    if (!summaryKpis) return []
+  const { waterfallSteps, waterfallReconcileFootnote } = useMemo(() => {
+    if (!summaryKpis) {
+      return { waterfallSteps: [] as WaterfallStep[], waterfallReconcileFootnote: false }
+    }
     const vb = Number(summaryKpis.gross_revenue)
     const com = Math.abs(Number(summaryKpis.channel_commission))
     const env = Math.abs(Number(summaryKpis.shipping_cost))
     const vn = Number(summaryKpis.net_revenue)
-    const cogs = Math.abs(Number(summaryKpis.cogs))
+    const cogsProduct = Math.abs(Number(summaryKpis.cogs))
+    const totalCogs = Math.abs(Number(summaryKpis.total_cogs))
     const ub = Number(summaryKpis.gross_profit)
     const ads = Math.abs(Number(summaryKpis.ads_spend))
-    const ebitda = ub - ads
+    const ebitda = Number(summaryKpis.ebitda)
 
-    return [
-      { label: t('traceGrossRevenue'), value: vb, measure: 'absolute' as const },
-      { label: t('costCommission'), value: -com, measure: 'relative' as const },
-      { label: t('costShipping'), value: -env, measure: 'relative' as const },
-      { label: t('traceNetRevenue'), value: vn, measure: 'total' as const },
-      { label: t('costCogs'), value: -cogs, measure: 'relative' as const },
-      { label: t('traceGrossProfit'), value: ub, measure: 'total' as const },
-      { label: t('traceEbitda'), value: ebitda, measure: 'total' as const },
+    const impliedAfterCogs = vn - totalCogs
+    const residualToUb = ub - impliedAfterCogs
+    const eps = Math.max(1, Math.abs(vn) * 0.0005)
+    const otherCogsMag = Math.max(0, totalCogs - cogsProduct)
+
+    const base: {
+      label: string
+      value: number
+      measure: 'absolute' | 'relative' | 'total'
+    }[] = [
+      { label: t('traceGrossRevenue'), value: vb, measure: 'absolute' },
+      { label: t('costCommission'), value: -com, measure: 'relative' },
+      { label: t('costShipping'), value: -env, measure: 'relative' },
+      { label: t('traceNetRevenue'), value: vn, measure: 'total' },
     ]
-  }, [summaryKpis, t])
+
+    if (totalCogs <= eps && cogsProduct <= eps) {
+      /* no COGS in slice */
+    } else if (cogsProduct > eps) {
+      base.push({ label: t('costCogs'), value: -cogsProduct, measure: 'relative' })
+      if (otherCogsMag > eps) {
+        base.push({
+          label: t('traceCostOfSalesOther'),
+          value: -otherCogsMag,
+          measure: 'relative',
+        })
+      }
+    } else if (totalCogs > eps) {
+      base.push({
+        label: t('traceCostOfSalesTotal'),
+        value: -totalCogs,
+        measure: 'relative',
+      })
+    }
+
+    let showReconcile = false
+    if (Math.abs(residualToUb) > eps) {
+      base.push({ label: t('tracePnlReconcile'), value: residualToUb, measure: 'relative' })
+      showReconcile = true
+    }
+    base.push({ label: t('traceGrossProfit'), value: ub, measure: 'total' })
+
+    if (selectedProductIds?.length && ads === 0) {
+      return { waterfallSteps: base, waterfallReconcileFootnote: showReconcile }
+    }
+    return {
+      waterfallSteps: [...base, { label: t('traceEbitda'), value: ebitda, measure: 'total' as const }],
+      waterfallReconcileFootnote: showReconcile,
+    }
+  }, [summaryKpis, t, selectedProductIds?.length])
 
   const donutData = useMemo(() => {
     const points: { name: string; value: number }[] = []
@@ -390,24 +519,34 @@ export function DashboardPage() {
   const monthlyData = useMemo(() => {
     const s = monthlySeries?.series ?? []
     return s.map((pt) => {
+      const gross = Number(pt.gross_revenue)
+      const net = Number(pt.net_revenue)
       const grossProfit = Number(pt.gross_profit)
-      const ads = Math.abs(Number(pt.ads_spend))
+      const ebitda = Number(pt.ebitda)
+      const stackEbitda = Math.max(0, ebitda)
+      const stackUbOverEbitda = Math.max(0, grossProfit - ebitda)
+      const stackNetOverUb = Math.max(0, net - grossProfit)
+      const stackGrossOverNet = Math.max(0, gross - net)
       return {
         period: fmtDate(pt.period_start),
-        gross_revenue: Number(pt.gross_revenue),
-        net_revenue: Number(pt.net_revenue),
+        gross_revenue: gross,
+        net_revenue: net,
         gross_profit: grossProfit,
-        ebitda: grossProfit - ads,
+        ebitda,
         margin_pct: Number(pt.margin_pct),
+        stackEbitda,
+        stackUbOverEbitda,
+        stackNetOverUb,
+        stackGrossOverNet,
       }
     })
   }, [monthlySeries])
 
   const overlayDataAndMaps = useMemo(() => {
     const seriesByChannelMap: Partial<Record<SalesChannel, DailySeriesPoint[]>> = {
-      shopify: shopifySeries.data?.series,
-      amazon: amazonSeries.data?.series,
-      mercadolibre: mlSeries.data?.series,
+      shopify: shopifyOverlaySeries.data?.series,
+      amazon: amazonOverlaySeries.data?.series,
+      mercadolibre: mlOverlaySeries.data?.series,
     }
 
     const periodKeys = new Set<string>()
@@ -446,12 +585,22 @@ export function DashboardPage() {
     })
 
     return { overlayData: data, mapByChannel }
-  }, [activePlatforms, shopifySeries.data, amazonSeries.data, mlSeries.data])
+  }, [
+    activePlatforms,
+    shopifyOverlaySeries.data,
+    amazonOverlaySeries.data,
+    mlOverlaySeries.data,
+  ])
 
   const marginByChannelData = useMemo(() => {
+    const seriesByChannelMap: Partial<Record<SalesChannel, DailySeriesPoint[]>> = {
+      shopify: shopifyOverlaySeries.data?.series,
+      amazon: amazonOverlaySeries.data?.series,
+      mercadolibre: mlOverlaySeries.data?.series,
+    }
     const periodKeys = new Set<string>()
     for (const c of activePlatforms) {
-      for (const pt of platformSeries[c] ?? []) periodKeys.add(pt.period_start)
+      for (const pt of seriesByChannelMap[c] ?? []) periodKeys.add(pt.period_start)
     }
     const sortedKeys = Array.from(periodKeys).sort()
 
@@ -463,7 +612,13 @@ export function DashboardPage() {
       }
       return row
     })
-  }, [activePlatforms, platformSeries, overlayDataAndMaps.mapByChannel])
+  }, [
+    activePlatforms,
+    shopifyOverlaySeries.data,
+    amazonOverlaySeries.data,
+    mlOverlaySeries.data,
+    overlayDataAndMaps.mapByChannel,
+  ])
 
   const [modalOpen, setModalOpen] = useState(false)
   const [modalSel, setModalSel] = useState<{
@@ -512,12 +667,23 @@ export function DashboardPage() {
         onTogglePlatform={togglePlatform}
         onSelectAllPlatforms={selectAllPlatforms}
         productItems={productCatalog?.items ?? []}
-        productId={productId}
-        onProductChange={setProductParam}
+        selectedProductIds={selectedProductIds}
+        productTriggerLabel={productTriggerLabel}
+        onToggleProduct={toggleProduct}
+        onSelectAllProducts={selectAllProducts}
         productCatalogLoading={productCatalogLoading}
         granularity={granularity}
         onGranularityChange={(v) => setParam('granularity', v)}
       />
+
+      {selectedProductIds?.length ? (
+        <p
+          className="rounded-[10px] border border-border-subtle bg-white/[0.02] px-3 py-2.5 text-[11px] leading-relaxed text-text-secondary dark:border-border-default dark:bg-white/[0.03]"
+          role="note"
+        >
+          {t('productScopeBanner')}
+        </p>
+      ) : null}
 
       {/* KPIs */}
       {summaryLoading || !summary ? (
@@ -531,20 +697,20 @@ export function DashboardPage() {
           <MetricCard
             variant="hero"
             label={t('kpiGross')}
-            currency="MXN"
-            value={fmtCurrency(summary.current.gross_revenue)}
+            currency={displayCurrency}
+            value={formatCurrency(summary.current.gross_revenue)}
             footer={delta('gross_revenue')}
           />
           <MetricCard
             label={t('kpiNet')}
-            currency="MXN"
-            value={fmtCurrency(summary.current.net_revenue)}
+            currency={displayCurrency}
+            value={formatCurrency(summary.current.net_revenue)}
             footer={delta('net_revenue')}
           />
           <MetricCard
             label={t('kpiGrossProfit')}
-            currency="MXN"
-            value={fmtCurrency(summary.current.gross_profit)}
+            currency={displayCurrency}
+            value={formatCurrency(summary.current.gross_profit)}
             footer={delta('gross_profit')}
           />
           <MetricCard
@@ -554,8 +720,8 @@ export function DashboardPage() {
           />
           <MetricCard
             label={t('kpiReceived')}
-            currency="MXN"
-            value={fmtCurrency(summary.current.disbursement)}
+            currency={displayCurrency}
+            value={formatCurrency(summary.current.disbursement)}
             footer={delta('disbursement')}
           />
         </div>
@@ -568,6 +734,11 @@ export function DashboardPage() {
             <CardTitle className="text-sm font-medium text-text-secondary">
               {t('wfTitle')}
             </CardTitle>
+            {waterfallReconcileFootnote ? (
+              <p className="mt-1.5 max-w-2xl text-[10px] leading-snug text-text-tertiary">
+                {t('wfReconcileFootnote')}
+              </p>
+            ) : null}
           </CardHeader>
           <CardContent className="pb-6 pt-0">
             {summaryLoading ? (
@@ -637,10 +808,10 @@ export function DashboardPage() {
             <MonthlyEvolutionPanel
               data={monthlyData}
               titleLabels={{
-                grossRevenue: t('traceGrossRevenue'),
-                netRevenue: t('traceNetRevenue'),
-                grossProfit: t('traceGrossProfit'),
-                ebitda: t('traceEbitda'),
+                stackEbitda: t('monthlyStackEbitda'),
+                stackLayerUb: t('monthlyStackLayerUb'),
+                stackLayerNet: t('monthlyStackLayerNet'),
+                stackLayerGross: t('monthlyStackLayerGross'),
                 marginPct: t('traceMarginPct'),
               }}
             />
@@ -657,14 +828,20 @@ export function DashboardPage() {
             <CardTitle className="text-sm font-medium text-text-secondary">
               {t('overlayTitle')}
             </CardTitle>
+            <p className="mt-1 text-[10px] leading-snug text-text-tertiary">
+              {t('overlayMonthlyHint')}
+            </p>
           </CardHeader>
           <CardContent className="pb-6 pt-0">
-            {shopifySeries.isLoading || amazonSeries.isLoading || mlSeries.isLoading ? (
+            {shopifyOverlaySeries.isLoading ||
+            amazonOverlaySeries.isLoading ||
+            mlOverlaySeries.isLoading ? (
               <Skeleton className="h-[360px] w-full rounded-xl" />
             ) : overlayDataAndMaps.overlayData.length ? (
               <OverlaySalesByChannelPanel
                 data={overlayDataAndMaps.overlayData as OverlaySalesDatum[]}
                 channels={activePlatforms as OverlaySalesChannel[]}
+                channelLabels={PLATFORM_LABELS}
                 colorsByChannel={COLORS_BY_CHANNEL}
                 grossLabel={t('legendGross')}
                 netLabel={t('legendNet')}
@@ -683,7 +860,9 @@ export function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-6 pt-0">
-            {shopifySeries.isLoading || amazonSeries.isLoading || mlSeries.isLoading ? (
+            {shopifyOverlaySeries.isLoading ||
+            amazonOverlaySeries.isLoading ||
+            mlOverlaySeries.isLoading ? (
               <Skeleton className="h-[300px] w-full rounded-xl" />
             ) : marginByChannelData.length ? (
               <MarginByChannelPanel
@@ -721,40 +900,40 @@ export function DashboardPage() {
               <div className="grid grid-cols-1 gap-2 rounded-[10px] border border-border-subtle bg-white/[0.02] p-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-text-secondary">{t('modalGross')}</span>
-                  <span className="font-mono">{fmtCurrency(modalPoint.gross_revenue)}</span>
+                  <span className="font-mono">{formatCurrency(modalPoint.gross_revenue)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-secondary">{t('modalNet')}</span>
-                  <span className="font-mono">{fmtCurrency(modalPoint.net_revenue)}</span>
+                  <span className="font-mono">{formatCurrency(modalPoint.net_revenue)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-secondary">{t('modalCogs')}</span>
                   <span className="font-mono">
-                    {fmtCurrency(Math.abs(Number(modalPoint.cogs)))}
+                    {formatCurrency(Math.abs(Number(modalPoint.cogs)))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-secondary">{t('modalCommission')}</span>
                   <span className="font-mono">
-                    {fmtCurrency(Math.abs(Number(modalPoint.channel_commission)))}
+                    {formatCurrency(Math.abs(Number(modalPoint.channel_commission)))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-secondary">{t('modalShipping')}</span>
                   <span className="font-mono">
-                    {fmtCurrency(Math.abs(Number(modalPoint.shipping_cost)))}
+                    {formatCurrency(Math.abs(Number(modalPoint.shipping_cost)))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-secondary">{t('modalAds')}</span>
                   <span className="font-mono">
-                    {fmtCurrency(Math.abs(Number(modalPoint.ads_spend)))}
+                    {formatCurrency(Math.abs(Number(modalPoint.ads_spend)))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-secondary">{t('modalGrossProfit')}</span>
                   <span className="font-mono">
-                    {fmtCurrency(modalPoint.gross_profit)}
+                    {formatCurrency(modalPoint.gross_profit)}
                   </span>
                 </div>
               </div>

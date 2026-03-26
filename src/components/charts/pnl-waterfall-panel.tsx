@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 
-import { fmtCurrency, fmtCurrencyCompact } from '@/lib/format'
+import { useCurrency } from '@/components/providers/currency-provider'
 import { cn } from '@/lib/utils'
 
 export type WaterfallMeasure = 'absolute' | 'relative' | 'total'
@@ -25,10 +25,15 @@ type WaterfallBar = {
   fill: string
 }
 
+/** Subtotals / results drawn from zero for readability (commissions & COGS steps stay floating). */
 const FULL_HEIGHT_LABELS = new Set([
-  'ventas netas',
   'ventas brutas',
+  'gross revenue',
+  'ventas netas',
+  'net revenue',
   'utilidad bruta',
+  'gross profit',
+  'ebitda',
 ])
 
 function isFullHeightBar(label: string): boolean {
@@ -56,6 +61,7 @@ export function PnlWaterfallPanel({
   heightClassName = 'h-[300px]',
   accentColor = 'var(--chart-1)',
 }: PnlWaterfallPanelProps) {
+  const { formatCurrency, formatCurrencyCompact } = useCurrency()
   const W = 920
   const H = 288
   const padL = 56
@@ -199,7 +205,7 @@ export function PnlWaterfallPanel({
                 fontSize={10}
                 fontFamily="var(--font-mono)"
               >
-                {fmtCurrencyCompact(tv)}
+                {formatCurrencyCompact(tv)}
               </text>
             </g>
           )
@@ -254,10 +260,10 @@ export function PnlWaterfallPanel({
 
           const topValueLabel =
             fullHeight
-              ? fmtCurrency(b.end)
+              ? formatCurrency(b.end)
               : step?.measure === 'relative'
-                ? fmtCurrency(step.value)
-                : fmtCurrency(b.end)
+                ? formatCurrency(step.value)
+                : formatCurrency(b.end)
           const barTopY = fullHeight ? Math.min(yZero, yEnd) : Math.min(yStart, yEnd)
           const topValueLabelY = barTopY - 8
 
@@ -355,6 +361,8 @@ export function PnlWaterfallPanel({
               ? steps[tooltip.index].value
               : bars[tooltip.index].delta
           }
+          formatCurrency={formatCurrency}
+          formatCurrencyCompact={formatCurrencyCompact}
         />
       ) : null}
     </div>
@@ -367,6 +375,8 @@ type WaterfallTooltipProps = {
   accumulated: number
   initial: number
   delta: number
+  formatCurrency: (value: string | number) => string
+  formatCurrencyCompact: (value: string | number) => string
 }
 
 function WaterfallTooltip({
@@ -375,6 +385,8 @@ function WaterfallTooltip({
   accumulated,
   initial,
   delta,
+  formatCurrency: fc,
+  formatCurrencyCompact: fcc,
 }: WaterfallTooltipProps) {
   const absMag = Math.abs(delta)
   const arrow = barChangeArrow(delta)
@@ -385,14 +397,14 @@ function WaterfallTooltip({
       style={style}
     >
       <div>
-        ({label}, {fmtCurrencyCompact(accumulated)})
+        ({label}, {fcc(accumulated)})
       </div>
-      <div>{fmtCurrency(absMag)}</div>
+      <div>{fc(absMag)}</div>
       <div>
-        ({fmtCurrencyCompact(absMag)}) {arrow}
+        ({fcc(absMag)}) {arrow}
       </div>
       <div className="text-text-tertiary">
-        Initial: {fmtCurrencyCompact(initial)}
+        Initial: {fcc(initial)}
       </div>
     </div>
   )

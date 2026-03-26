@@ -2,6 +2,7 @@ import {
   Bar,
   CartesianGrid,
   ComposedChart,
+  Legend,
   Line,
   ResponsiveContainer,
   Tooltip,
@@ -9,9 +10,12 @@ import {
   YAxis,
 } from 'recharts'
 
-import { fmtCurrency, fmtPct } from '@/lib/format'
+import { useCurrency } from '@/components/providers/currency-provider'
+import { fmtPct } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { CHART_COLORS, cartesianGridProps, chartMargins, xAxisProps, yAxisProps } from './chart-theme'
+
+const STACK_ID = 'monthly-income'
 
 export type MonthlyEvolutionPoint = {
   period: string
@@ -20,15 +24,19 @@ export type MonthlyEvolutionPoint = {
   gross_profit: number
   ebitda: number
   margin_pct: number
+  stackEbitda: number
+  stackUbOverEbitda: number
+  stackNetOverUb: number
+  stackGrossOverNet: number
 }
 
 type MonthlyEvolutionPanelProps = {
   data: MonthlyEvolutionPoint[]
   titleLabels: {
-    grossRevenue: string
-    netRevenue: string
-    grossProfit: string
-    ebitda: string
+    stackEbitda: string
+    stackLayerUb: string
+    stackLayerNet: string
+    stackLayerGross: string
     marginPct: string
   }
   heightClassName?: string
@@ -39,6 +47,8 @@ export function MonthlyEvolutionPanel({
   titleLabels,
   heightClassName = 'h-[320px]',
 }: MonthlyEvolutionPanelProps) {
+  const { formatCurrency } = useCurrency()
+
   return (
     <div className={cn('w-full min-h-0', heightClassName)}>
       <ResponsiveContainer width="100%" height="100%">
@@ -47,7 +57,7 @@ export function MonthlyEvolutionPanel({
           <XAxis dataKey="period" {...xAxisProps} />
           <YAxis
             {...yAxisProps}
-            tickFormatter={(v) => fmtCurrency(v)}
+            tickFormatter={(v) => formatCurrency(v)}
             width={56}
           />
           <YAxis
@@ -66,35 +76,44 @@ export function MonthlyEvolutionPanel({
               fontSize: '11px',
               boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
             }}
-            formatter={(value) => fmtCurrency(value as number)}
+            formatter={(value, name) => {
+              if (name === titleLabels.marginPct) {
+                return [fmtPct(value as number), name]
+              }
+              return [formatCurrency(value as number), name]
+            }}
           />
 
           <Bar
-            dataKey="gross_revenue"
-            name={titleLabels.grossRevenue}
-            fill={CHART_COLORS[0]}
-            fillOpacity={0.55}
-            radius={[3, 3, 0, 0]}
-          />
-          <Bar
-            dataKey="net_revenue"
-            name={titleLabels.netRevenue}
-            fill={CHART_COLORS[0]}
-            fillOpacity={0.85}
-            radius={[3, 3, 0, 0]}
-          />
-          <Bar
-            dataKey="gross_profit"
-            name={titleLabels.grossProfit}
-            fill={CHART_COLORS[1]}
-            fillOpacity={0.72}
-            radius={[3, 3, 0, 0]}
-          />
-          <Bar
-            dataKey="ebitda"
-            name={titleLabels.ebitda}
+            dataKey="stackEbitda"
+            name={titleLabels.stackEbitda}
+            stackId={STACK_ID}
             fill={CHART_COLORS[2]}
-            fillOpacity={0.65}
+            fillOpacity={0.9}
+            radius={[0, 0, 0, 0]}
+          />
+          <Bar
+            dataKey="stackUbOverEbitda"
+            name={titleLabels.stackLayerUb}
+            stackId={STACK_ID}
+            fill={CHART_COLORS[1]}
+            fillOpacity={0.85}
+            radius={[0, 0, 0, 0]}
+          />
+          <Bar
+            dataKey="stackNetOverUb"
+            name={titleLabels.stackLayerNet}
+            stackId={STACK_ID}
+            fill={CHART_COLORS[3]}
+            fillOpacity={0.8}
+            radius={[0, 0, 0, 0]}
+          />
+          <Bar
+            dataKey="stackGrossOverNet"
+            name={titleLabels.stackLayerGross}
+            stackId={STACK_ID}
+            fill={CHART_COLORS[0]}
+            fillOpacity={0.75}
             radius={[3, 3, 0, 0]}
           />
           <Line
@@ -103,12 +122,23 @@ export function MonthlyEvolutionPanel({
             name={titleLabels.marginPct}
             yAxisId="right"
             stroke="var(--chart-line-secondary)"
-            strokeWidth={1.5}
-            dot={false}
+            strokeWidth={1.75}
+            strokeDasharray="4 4"
+            dot={{ r: 3, fill: 'var(--chart-line-secondary)', strokeWidth: 0 }}
+            activeDot={{ r: 4 }}
+          />
+          <Legend
+            wrapperStyle={{
+              paddingTop: 10,
+              fontSize: 10,
+              fontFamily: 'var(--font-mono)',
+            }}
+            formatter={(value) => (
+              <span className="text-text-secondary">{value}</span>
+            )}
           />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
   )
 }
-

@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   fetchMyTenants,
   useCurrentTenant,
@@ -12,6 +12,7 @@ import type { MeResponse } from '@/lib/me-types'
 export function useAppBootstrap(): {
   tenants: TenantSummary[]
   me: MeResponse | null
+  refetchMe: () => Promise<void>
   error: string | null
   tenantsLoading: boolean
   meLoading: boolean
@@ -53,34 +54,35 @@ export function useAppBootstrap(): {
     })
   }, [isLoaded, isSignedIn, tenants, tenantId, switchTenant])
 
-  useEffect(() => {
+  const loadMe = useCallback(async () => {
     if (!isLoaded || !isSignedIn || !tenantId || !role) {
       setMe(null)
       setMeLoading(false)
       return
     }
-    let cancelled = false
     setMeLoading(true)
-    void (async () => {
-      try {
-        const res = await apiFetch('/me', (a) => getToken(a))
-        if (!res.ok) {
-          const text = await res.text()
-          throw new Error(text || res.statusText)
-        }
-        const data = (await res.json()) as MeResponse
-        if (!cancelled) setMe(data)
-      } catch (e: unknown) {
-        if (!cancelled)
-          setError(e instanceof Error ? e.message : 'Request failed')
-      } finally {
-        if (!cancelled) setMeLoading(false)
+    try {
+      const res = await apiFetch('/me', (a) => getToken(a))
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || res.statusText)
       }
-    })()
-    return () => {
-      cancelled = true
+      const data = (await res.json()) as MeResponse
+      setMe(data)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Request failed')
+    } finally {
+      setMeLoading(false)
     }
   }, [getToken, isLoaded, isSignedIn, tenantId, role])
+
+  useEffect(() => {
+    void loadMe()
+  }, [loadMe])
+
+  const refetchMe = useCallback(async () => {
+    await loadMe()
+  }, [loadMe])
 
   const resolvingSingleTenant =
     Boolean(isSignedIn) &&
@@ -92,6 +94,7 @@ export function useAppBootstrap(): {
   return {
     tenants,
     me,
+    refetchMe,
     error,
     tenantsLoading,
     meLoading,

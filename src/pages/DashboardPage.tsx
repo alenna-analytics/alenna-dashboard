@@ -1,9 +1,27 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import type { BarShapeProps } from 'recharts'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ComposedChart,
+  Line,
+  Rectangle,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 
-import { OverlaySalesByChannelPanel, type OverlaySalesDatum, type SalesChannel as OverlaySalesChannel } from '@/components/charts/overlay-sales-by-channel-panel'
-import { chartPlotSurfaceClassName, tooltipContentStyle } from '@/components/charts/chart-theme'
+import {
+  OverlaySalesByChannelPanel,
+  type OverlaySalesDatum,
+  type SalesChannel as OverlaySalesChannel,
+} from '@/components/charts/overlay-sales-by-channel-panel'
+import { BAR_TOP_RADIUS, chartPlotSurfaceClassName, tooltipContentStyle } from '@/components/charts/chart-theme'
 import { DashboardFiltersBar } from '@/components/composed/dashboard-filters-bar'
 import type { DataTableColumn } from '@/components/composed/data-table'
 import { MetricCard } from '@/components/composed/metric-card'
@@ -11,7 +29,8 @@ import { PaginatedDataTable } from '@/components/composed/paginated-data-table'
 import { StateTag } from '@/components/composed/state-tag'
 import { useCurrency } from '@/components/providers/currency-provider'
 import { useLanguage } from '@/components/providers/language-provider'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAnalyticsDaily, useAnalyticsSummary, useSalesByBrand, useSalesDetailedTable } from '@/hooks/use-analytics'
@@ -34,6 +53,190 @@ function parseDate(s: string | null, fallback: Date): Date {
   if (!s) return fallback
   const d = new Date(s + 'T00:00:00')
   return isNaN(d.getTime()) ? fallback : d
+}
+
+type UtilityTrendDatum = {
+  period: string
+  gross_revenue: number
+  net_revenue: number
+  gross_profit: number
+  margin_pct: number
+  utilityNestedMax: number
+}
+
+type UtilityNestedMetricId = 'gross' | 'net' | 'profit'
+
+const UTIL_NESTED_LAYERS: readonly {
+  id: UtilityNestedMetricId
+  fill: string
+  fillOpacity: number
+}[] = [
+  { id: 'gross', fill: '#9CCBFF', fillOpacity: 0.9 },
+  { id: 'net', fill: 'rgb(91,140,255)', fillOpacity: 0.55 },
+  { id: 'profit', fill: '#66bb6a', fillOpacity: 1 },
+] as const
+
+const UTIL_NESTED_TIE_ORDER: Record<UtilityNestedMetricId, number> = { gross: 0, net: 1, profit: 2 }
+
+function utilNestedBarsShape(props: BarShapeProps) {
+  const p = props.payload as UtilityTrendDatum
+  const { x, y, width, height } = props
+  const g = Math.max(0, p.gross_revenue)
+  const n = Math.max(0, p.net_revenue)
+  const pr = Math.max(0, p.gross_profit)
+  const m = Math.max(g, n, pr)
+  if (m <= 0 || width <= 0 || height <= 0) return null
+  const zeroY = y + height
+  const triples = UTIL_NESTED_LAYERS.map((layer) => ({
+    ...layer,
+    value: layer.id === 'gross' ? g : layer.id === 'net' ? n : pr,
+  })).filter((t) => t.value > 0)
+  triples.sort((a, b) => {
+    if (b.value !== a.value) return b.value - a.value
+    return UTIL_NESTED_TIE_ORDER[a.id] - UTIL_NESTED_TIE_ORDER[b.id]
+  })
+  return (
+    <g>
+      {triples.map((t) => {
+        const h = (t.value / m) * height
+        const yTop = zeroY - h
+        return (
+          <Rectangle
+            key={t.id}
+            x={x}
+            y={yTop}
+            width={width}
+            height={h}
+            fill={t.fill}
+            fillOpacity={t.fillOpacity}
+            radius={BAR_TOP_RADIUS}
+          />
+        )
+      })}
+    </g>
+  )
+}
+
+const UTILITY_TOOLTIP_COLORS: Record<string, string> = {
+  gross_revenue: '#9CCBFF',
+  net_revenue: 'rgba(91,140,255,0.55)',
+  gross_profit: '#66bb6a',
+  margin_pct: '#f87171',
+}
+
+function utilityTooltipEntry(
+  payload: readonly unknown[] | undefined,
+  dataKey: string,
+): { value: number; color?: string } | undefined {
+  if (!payload?.length) return undefined
+  for (const raw of payload) {
+    if (raw === null || typeof raw !== 'object') continue
+    const o = raw as Record<string, unknown>
+    const dk = o.dataKey
+    if (typeof dk !== 'string' && typeof dk !== 'number') continue
+    if (String(dk) !== dataKey) continue
+    const value = o.value
+    const num = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : Number.NaN
+    if (Number.isNaN(num)) continue
+    const color = o.color
+    return {
+      value: num,
+      color: typeof color === 'string' ? color : undefined,
+    }
+  }
+  return undefined
+}
+
+function utilityTrendRowFromTooltipPayload(
+  payload: readonly unknown[] | undefined,
+): Omit<UtilityTrendDatum, 'utilityNestedMax'> | undefined {
+  if (!payload?.length) return undefined
+  const raw = payload[0]
+  if (raw === null || typeof raw !== 'object') return undefined
+  const pl = (raw as Record<string, unknown>).payload
+  if (!pl || typeof pl !== 'object') return undefined
+  const o = pl as Record<string, unknown>
+  const gross = Number(o.gross_revenue)
+  const net = Number(o.net_revenue)
+  const profit = Number(o.gross_profit)
+  const margin = Number(o.margin_pct)
+  if (![gross, net, profit, margin].every((v) => Number.isFinite(v))) return undefined
+  return {
+    period: String(o.period ?? ''),
+    gross_revenue: gross,
+    net_revenue: net,
+    gross_profit: profit,
+    margin_pct: margin,
+  }
+}
+
+function UtilityMarginChartTooltip({
+  active,
+  payload,
+  label,
+  formatCurrency,
+  t,
+}: {
+  active?: boolean
+  payload?: readonly unknown[]
+  label?: unknown
+  formatCurrency: (n: number) => string
+  t: (key: DashboardStringKey) => string
+}) {
+  if (!active || !payload?.length) return null
+
+  const datum = utilityTrendRowFromTooltipPayload(payload)
+
+  const rows: { dataKey: string; pct: boolean }[] = [
+    { dataKey: 'gross_revenue', pct: false },
+    { dataKey: 'net_revenue', pct: false },
+    { dataKey: 'gross_profit', pct: false },
+    { dataKey: 'margin_pct', pct: true },
+  ]
+
+  const labelText = label != null ? String(label) : ''
+
+  return (
+    <div style={{ ...tooltipContentStyle, padding: '10px 12px' }}>
+      {labelText ? (
+        <div style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: 8 }}>{labelText}</div>
+      ) : null}
+      <div className="flex flex-col gap-1.5">
+        {rows.map(({ dataKey, pct }) => {
+          const item = utilityTooltipEntry(payload, dataKey)
+          const v =
+            item?.value ??
+            (datum && dataKey === 'gross_revenue'
+              ? datum.gross_revenue
+              : datum && dataKey === 'net_revenue'
+                ? datum.net_revenue
+                : datum && dataKey === 'gross_profit'
+                  ? datum.gross_profit
+                  : datum && dataKey === 'margin_pct'
+                    ? datum.margin_pct
+                    : undefined)
+          if (v === undefined || Number.isNaN(Number(v))) return null
+          const swatchColor = item?.color ?? UTILITY_TOOLTIP_COLORS[dataKey]
+          const name =
+            dataKey === 'gross_revenue'
+              ? t('traceGrossRevenue')
+              : dataKey === 'net_revenue'
+                ? t('traceNetRevenue')
+                : dataKey === 'gross_profit'
+                  ? t('traceGrossProfit')
+                  : t('traceMarginPct')
+          return (
+            <div key={dataKey} className="flex justify-between gap-6 text-[12px] leading-snug">
+              <span style={{ color: swatchColor ?? 'var(--text-primary)' }}>{name}</span>
+              <span className="tabular-nums text-text-primary">
+                {pct ? `${Number(v).toFixed(1)}%` : formatCurrency(Number(v))}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 export function DashboardPage() {
@@ -89,6 +292,8 @@ export function DashboardPage() {
   const [detailsSortBy, setDetailsSortBy] = useState('period_start')
   const [detailsSortDir, setDetailsSortDir] = useState<'asc' | 'desc'>('desc')
   const detailsPageSize = 15
+  const [utilityBarLayout, setUtilityBarLayout] = useState<'grouped' | 'stacked'>('stacked')
+  const [overlayBarLayout, setOverlayBarLayout] = useState<'grouped' | 'stacked'>('stacked')
 
   const summaryQuery = useAnalyticsSummary(filters)
   const totalSeriesQuery = useAnalyticsDaily(filters)
@@ -120,27 +325,43 @@ export function DashboardPage() {
     return Array.from(periodKeys).sort().map((periodKey) => {
       const grossByChannel = { shopify: 0, amazon: 0, mercadolibre: 0 } as Record<SalesChannel, number>
       const netByChannel = { shopify: 0, amazon: 0, mercadolibre: 0 } as Record<SalesChannel, number>
+      const profitByChannel = { shopify: 0, amazon: 0, mercadolibre: 0 } as Record<SalesChannel, number>
+      const marginPctByChannel = { shopify: 0, amazon: 0, mercadolibre: 0 } as Record<SalesChannel, number>
       for (const c of activePlatforms) {
         const point = platformSeries[c].find((pt) => pt.period_start === periodKey)
         grossByChannel[c] = point ? Number(point.gross_revenue) : 0
         netByChannel[c] = point ? Number(point.net_revenue) : 0
+        profitByChannel[c] = point ? Number(point.gross_profit) : 0
+        marginPctByChannel[c] = point ? Number(point.margin_pct) : 0
       }
       return {
         periodKey,
         periodLabel: fmtDateByLanguage(periodKey, lang),
         grossByChannel,
         netByChannel,
-      } as OverlaySalesDatum
+        profitByChannel,
+        marginPctByChannel,
+      } satisfies OverlaySalesDatum
     })
   }, [activePlatforms, platformSeries, lang])
 
-  const trendRows = useMemo(() => (totalSeriesQuery.data?.series ?? []).map((pt) => ({
-    period: fmtDateByLanguage(pt.period_start, lang),
-    gross_revenue: Number(pt.gross_revenue),
-    net_revenue: Number(pt.net_revenue),
-    gross_profit: Number(pt.gross_profit),
-    margin_pct: Number(pt.margin_pct),
-  })), [totalSeriesQuery.data, lang])
+  const trendRows = useMemo(
+    () =>
+      (totalSeriesQuery.data?.series ?? []).map((pt) => {
+        const gross_revenue = Number(pt.gross_revenue)
+        const net_revenue = Number(pt.net_revenue)
+        const gross_profit = Number(pt.gross_profit)
+        return {
+          period: fmtDateByLanguage(pt.period_start, lang),
+          gross_revenue,
+          net_revenue,
+          gross_profit,
+          margin_pct: Number(pt.margin_pct),
+          utilityNestedMax: Math.max(gross_revenue, net_revenue, gross_profit),
+        }
+      }),
+    [totalSeriesQuery.data, lang],
+  )
 
   const momRows = useMemo(() => {
     const s = monthlySeriesQuery.data?.series ?? []
@@ -297,6 +518,24 @@ export function DashboardPage() {
       <Card variant="solid">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm">{t('overlayTitle')}</CardTitle>
+          <CardAction>
+            <Tabs
+              value={overlayBarLayout}
+              onValueChange={(v) => {
+                if (v === 'grouped' || v === 'stacked') setOverlayBarLayout(v)
+              }}
+              aria-label={t('overlayTitle')}
+            >
+              <TabsList className="h-8 gap-0 rounded-lg border border-border-subtle bg-white/3 p-0.5">
+                <TabsTrigger value="stacked" className="h-[calc(100%-2px)] rounded-md px-2.5 text-[11px] font-medium data-active:bg-accent/15 data-active:text-accent-light">
+                  {t('chartViewStacked')}
+                </TabsTrigger>
+                <TabsTrigger value="grouped" className="h-[calc(100%-2px)] rounded-md px-2.5 text-[11px] font-medium data-active:bg-accent/15 data-active:text-accent-light">
+                  {t('chartViewGrouped')}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </CardAction>
         </CardHeader>
         <CardContent className="pt-0">
           {loadingMain ? (
@@ -309,6 +548,17 @@ export function DashboardPage() {
               colorsByChannel={COLORS_BY_CHANNEL}
               grossLabel={t('legendGross')}
               netLabel={t('legendNet')}
+              tooltipRows={{
+                gross: t('traceGrossRevenue'),
+                net: t('traceNetRevenue'),
+                profit: t('traceGrossProfit'),
+                margin: t('traceMarginPct'),
+              }}
+              barLayout={overlayBarLayout}
+              visibilityMenuLabel={t('overlayVisibilityMenu')}
+              visibilityMenuTitle={t('overlayVisibilityTitle')}
+              visibilityGrossNetOptionLabel={t('overlayVisibilityGrossNet')}
+              visibilityChannelsSectionLabel={t('overlayVisibilityChannels')}
               onSelect={() => {}}
             />
           )}
@@ -318,6 +568,24 @@ export function DashboardPage() {
       <Card variant="solid">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm">{t('salesUtilityMarginTitle')}</CardTitle>
+          <CardAction>
+            <Tabs
+              value={utilityBarLayout}
+              onValueChange={(v) => {
+                if (v === 'grouped' || v === 'stacked') setUtilityBarLayout(v)
+              }}
+              aria-label={t('salesUtilityMarginTitle')}
+            >
+              <TabsList className="h-8 gap-0 rounded-lg border border-border-subtle bg-white/3 p-0.5">
+                <TabsTrigger value="stacked" className="h-[calc(100%-2px)] rounded-md px-2.5 text-[11px] font-medium data-active:bg-accent/15 data-active:text-accent-light">
+                  {t('chartViewStacked')}
+                </TabsTrigger>
+                <TabsTrigger value="grouped" className="h-[calc(100%-2px)] rounded-md px-2.5 text-[11px] font-medium data-active:bg-accent/15 data-active:text-accent-light">
+                  {t('chartViewGrouped')}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </CardAction>
         </CardHeader>
         <CardContent className="pt-0">
           {totalSeriesQuery.isLoading ? (
@@ -331,20 +599,47 @@ export function DashboardPage() {
                   <YAxis tickFormatter={(v) => formatCurrency(v)} width={56} />
                   <YAxis yAxisId="right" orientation="right" tickFormatter={(v) => `${Number(v).toFixed(1)}%`} width={60} />
                   <Tooltip
-                    contentStyle={tooltipContentStyle}
-                    labelStyle={{ color: 'var(--text-primary)', fontWeight: 600 }}
                     cursor={{ fill: 'transparent' }}
-                    formatter={(value, name) => {
-                      const label = String(name)
-                      if (label === t('traceMarginPct')) {
-                        return [`${Number(value).toFixed(1)}%`, label]
-                      }
-                      return [formatCurrency(Number(value)), label]
-                    }}
+                    content={(props) => (
+                      <UtilityMarginChartTooltip
+                        {...props}
+                        formatCurrency={formatCurrency}
+                        t={t}
+                      />
+                    )}
                   />
-                  <Bar dataKey="gross_revenue" name={t('traceGrossRevenue')} fill="#9CCBFF" fillOpacity={0.9} radius={[5, 5, 0, 0]} />
-                  <Bar dataKey="net_revenue" name={t('traceNetRevenue')} fill="rgba(91,140,255,0.55)" radius={[5, 5, 0, 0]} />
-                  <Bar dataKey="gross_profit" name={t('traceGrossProfit')} fill="#66bb6a" radius={[5, 5, 0, 0]} />
+                  {utilityBarLayout === 'grouped' ? (
+                    <>
+                      <Bar
+                        dataKey="gross_revenue"
+                        name={t('traceGrossRevenue')}
+                        fill="#9CCBFF"
+                        fillOpacity={0.9}
+                        radius={BAR_TOP_RADIUS}
+                      />
+                      <Bar
+                        dataKey="net_revenue"
+                        name={t('traceNetRevenue')}
+                        fill="rgba(91,140,255,0.55)"
+                        radius={BAR_TOP_RADIUS}
+                      />
+                      <Bar
+                        dataKey="gross_profit"
+                        name={t('traceGrossProfit')}
+                        fill="#66bb6a"
+                        radius={BAR_TOP_RADIUS}
+                      />
+                    </>
+                  ) : (
+                    <Bar
+                      dataKey="utilityNestedMax"
+                      legendType="none"
+                      fill="transparent"
+                      stroke="none"
+                      isAnimationActive={false}
+                      shape={utilNestedBarsShape}
+                    />
+                  )}
                   <Line yAxisId="right" type="monotone" dataKey="margin_pct" name={t('traceMarginPct')} stroke="#f87171" strokeWidth={2} />
                 </ComposedChart>
               </ResponsiveContainer>

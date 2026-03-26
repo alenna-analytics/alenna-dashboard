@@ -8,6 +8,10 @@ export const CHART_COLORS = [
 
 export const chartMargins = { top: 20, right: 14, left: 6, bottom: 12 }
 
+/** Rounded top for vertical bars (matches other dashboard charts). */
+export const BAR_TOP_RADIUS: [number, number, number, number] = [5, 5, 0, 0]
+export const BAR_STACK_FLAT: [number, number, number, number] = [0, 0, 0, 0]
+
 /** Plot area surface — same token as KPI cards (`--card`, #151a21 in dark). */
 export const chartPlotSurfaceClassName = 'rounded-lg bg-card'
 

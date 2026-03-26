@@ -94,25 +94,26 @@ export function DashboardFiltersBar({
     if (!el) return
 
     const ro = new ResizeObserver(() => {
-      const next = Math.ceil(el.getBoundingClientRect().height)
-      setBarHeight(next)
+      setBarHeight(Math.ceil(el.getBoundingClientRect().height))
     })
     ro.observe(el)
     setBarHeight(Math.ceil(el.getBoundingClientRect().height))
     return () => ro.disconnect()
-  }, [sticky])
+  }, [sticky, docked])
 
   useEffect(() => {
     if (!sticky) return
     const el = sentinelRef.current
     if (!el) return
+    const main = el.closest('main')
+    if (!main) return
 
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0]
         setDocked(!entry.isIntersecting)
       },
-      { root: null, threshold: 1 }
+      { root: main, threshold: 1 }
     )
 
     observer.observe(el)
@@ -121,12 +122,10 @@ export function DashboardFiltersBar({
 
   const Container = (
     <div
-      ref={barRef}
       className={cn(
-        'rounded-xl border border-border-subtle/90 bg-bg-elevated/80 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_1px_0_rgba(91,140,255,0.06)] backdrop-blur-sm transition-[transform,box-shadow,background-color,border-color] duration-200 ease-out dark:bg-bg-elevated/90',
+        'rounded-xl border border-border-subtle/90 bg-bg-elevated/80 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_1px_0_rgba(91,140,255,0.06)] backdrop-blur-sm transition-[box-shadow,background-color,border-color] duration-200 ease-out dark:bg-bg-elevated/90',
         docked &&
-          'border-accent/20 bg-bg-elevated/92 shadow-[0_16px_40px_rgba(0,0,0,0.35),0_0_0_1px_rgba(91,140,255,0.15)] dark:bg-bg-elevated/92',
-        docked ? 'translate-y-0 scale-[0.99]' : 'translate-y-0 scale-100'
+        'border-accent/20 bg-bg-elevated/92 shadow-[0_16px_40px_rgba(0,0,0,0.35),0_0_0_1px_rgba(91,140,255,0.15)] dark:bg-bg-elevated/92'
       )}
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5">
@@ -252,23 +251,26 @@ export function DashboardFiltersBar({
     </div>
   )
 
-  return (
-    sticky ? (
-      <div>
-        <div ref={sentinelRef} className="h-px w-full" />
-        {docked ? <div style={{ height: barHeight }} /> : null}
+  return sticky ? (
+    <div>
+      <div ref={sentinelRef} className="h-px w-full" aria-hidden />
+      {docked ? <div style={{ height: barHeight }} aria-hidden /> : null}
+      <div
+        ref={barRef}
+        className={cn(
+          docked
+            ? 'fixed top-12 right-0 z-50 border-b border-border-subtle/60 bg-bg-base/80 shadow-[0_8px_24px_rgba(0,0,0,0.12)] backdrop-blur-md supports-backdrop-filter:bg-bg-base/70 dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)] left-[var(--app-sidebar-offset,0px)]'
+            : 'relative -mx-6 -mt-6 px-6 pt-6 lg:-mx-10 lg:-mt-8 lg:px-10 lg:pt-8'
+        )}
+      >
         {docked ? (
-          <div className="fixed right-0 top-12 z-50 bg-bg-base/70 backdrop-blur-sm left-[var(--app-sidebar-offset,0px)]">
-            <div className="mx-auto max-w-[1600px] px-6 py-3 lg:px-10">
-              {Container}
-            </div>
-          </div>
+          <div className="mx-auto max-w-[1600px] px-6 py-3 lg:px-10">{Container}</div>
         ) : (
-          <div className="-mx-6 -mt-6 px-6 pt-6 lg:-mx-10 lg:-mt-8 lg:px-10 lg:pt-8">{Container}</div>
+          Container
         )}
       </div>
-    ) : (
-      Container
-    )
+    </div>
+  ) : (
+    Container
   )
 }

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { BarChartPanel } from '@/components/charts/bar-chart-panel'
@@ -9,7 +9,8 @@ import { DashboardFiltersBar } from '@/components/composed/dashboard-filters-bar
 import { MetricCard } from '@/components/composed/metric-card'
 import { useCurrency } from '@/components/providers/currency-provider'
 import { useLanguage } from '@/components/providers/language-provider'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAnalyticsReportStatement } from '@/hooks/use-analytics'
 import type { AnalyticsFilters, ReportsErLine } from '@/lib/analytics-types'
@@ -109,6 +110,7 @@ export function ReportsPage() {
   )
   const locale = lang === 'es' ? 'es-MX' : 'en-US'
   const t = useCallback((key: DashboardStringKey) => dashboardT(lang, key), [lang])
+  const [monthlyBarLayout, setMonthlyBarLayout] = useState<'grouped' | 'stacked'>('stacked')
 
   const reportQuery = useAnalyticsReportStatement(filters)
   const report = reportQuery.data
@@ -301,10 +303,29 @@ export function ReportsPage() {
             <Card variant="solid">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm">{t('monthlyTitle')}</CardTitle>
+                <CardAction>
+                  <Tabs
+                    value={monthlyBarLayout}
+                    onValueChange={(v) => {
+                      if (v === 'grouped' || v === 'stacked') setMonthlyBarLayout(v)
+                    }}
+                    aria-label={t('monthlyTitle')}
+                  >
+                    <TabsList className="h-8 gap-0 rounded-lg border border-border-subtle bg-white/3 p-0.5">
+                      <TabsTrigger value="stacked" className="h-[calc(100%-2px)] rounded-md px-2.5 text-[11px] font-medium data-active:bg-accent/15 data-active:text-accent-light">
+                        {t('chartViewStacked')}
+                      </TabsTrigger>
+                      <TabsTrigger value="grouped" className="h-[calc(100%-2px)] rounded-md px-2.5 text-[11px] font-medium data-active:bg-accent/15 data-active:text-accent-light">
+                        {t('chartViewGrouped')}
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </CardAction>
               </CardHeader>
               <CardContent className="pt-0">
                 <MonthlyEvolutionPanel
                   data={monthlyData}
+                  barLayout={monthlyBarLayout}
                   titleLabels={{
                     stackEbitda: t('traceEbitda'),
                     stackLayerUb: t('monthlyStackLayerUb'),

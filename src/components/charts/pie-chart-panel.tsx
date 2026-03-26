@@ -141,7 +141,7 @@ export function PieChartPanel({
           />
           <Tooltip
             contentStyle={{
-              background: 'var(--bg-elevated)',
+              background: 'var(--card)',
               border: '1px solid var(--border-subtle)',
               borderRadius: '10px',
               fontFamily: 'var(--font-mono)',

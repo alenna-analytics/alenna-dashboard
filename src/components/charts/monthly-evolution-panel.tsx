@@ -69,7 +69,7 @@ export function MonthlyEvolutionPanel({
           />
           <Tooltip
             contentStyle={{
-              background: 'var(--bg-elevated)',
+              background: 'var(--card)',
               border: '1px solid var(--border-subtle)',
               borderRadius: '10px',
               fontFamily: 'var(--font-mono)',
@@ -121,12 +121,11 @@ export function MonthlyEvolutionPanel({
             dataKey="margin_pct"
             name={titleLabels.marginPct}
             yAxisId="right"
-            stroke="var(--chart-line-secondary)"
-            strokeOpacity={0.55}
-            strokeWidth={1.35}
-            strokeDasharray="5 5"
-            dot={{ r: 2, fill: 'var(--chart-line-secondary)', strokeWidth: 0, fillOpacity: 0.7 }}
-            activeDot={{ r: 3.5 }}
+            stroke="var(--chart-1)"
+            strokeOpacity={0.98}
+            strokeWidth={2.4}
+            dot={{ r: 3, fill: 'var(--chart-1)', strokeWidth: 0, fillOpacity: 0.95 }}
+            activeDot={{ r: 4.5, fill: 'var(--chart-1)' }}
           />
           <Legend
             wrapperStyle={{

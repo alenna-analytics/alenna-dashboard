@@ -125,8 +125,13 @@ export function OverlaySalesByChannelPanel({
         ))}
       </div>
 
-      <div className="min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden rounded-lg border border-border-subtle/60 bg-bg-base/30">
-        <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} className="mx-auto block max-h-full">
+      <div className="min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden rounded-lg border border-border-subtle/60 bg-transparent">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          preserveAspectRatio="xMinYMin meet"
+          className="block h-full w-full"
+          style={{ minWidth: `${W}px` }}
+        >
           {yTicks.map((tv) => {
             const yy = yScale(tv)
             return (

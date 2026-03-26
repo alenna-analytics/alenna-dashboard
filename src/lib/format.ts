@@ -47,6 +47,14 @@ export function fmtDate(iso: string): string {
   })
 }
 
+export function fmtDateByLanguage(iso: string, language: 'es' | 'en' | string): string {
+  const locale = language === 'es' ? 'es-MX' : 'en-US'
+  return new Date(iso + 'T00:00:00').toLocaleDateString(locale, {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
 export function toIso(d: Date): string {
   return d.toISOString().split('T')[0]
 }

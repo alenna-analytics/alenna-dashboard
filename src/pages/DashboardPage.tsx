@@ -37,7 +37,7 @@ import {
   type DashboardSalesChannel,
   type DashboardStringKey,
 } from '@/lib/dashboard-strings'
-import { fmtDate, fmtPct, toIso, toLocalIsoDate } from '@/lib/format'
+import { fmtDateByLanguage, fmtPct, toIso, toLocalIsoDate } from '@/lib/format'
 import { useCurrency } from '@/components/providers/currency-provider'
 import { useLanguage } from '@/components/providers/language-provider'
 import { usePageChrome } from '@/components/providers/page-chrome-context'
@@ -340,7 +340,6 @@ export function DashboardPage() {
       const stackNetOverUb = Math.max(0, net - grossProfit)
       const stackGrossOverNet = Math.max(0, gross - net)
       return {
-        period: fmtDate(pt.period_start),
         gross_revenue: gross,
         net_revenue: net,
         gross_profit: grossProfit,
@@ -350,9 +349,10 @@ export function DashboardPage() {
         stackUbOverEbitda,
         stackNetOverUb,
         stackGrossOverNet,
+        period: fmtDateByLanguage(pt.period_start, lang),
       }
     })
-  }, [monthlySeries])
+  }, [monthlySeries, lang])
 
   const overlayDataAndMaps = useMemo(() => {
     const seriesByChannelMap: Partial<Record<SalesChannel, DailySeriesPoint[]>> = {
@@ -390,7 +390,7 @@ export function DashboardPage() {
       }
       return {
         periodKey,
-        periodLabel: fmtDate(periodKey),
+        periodLabel: fmtDateByLanguage(periodKey, lang),
         grossByChannel,
         netByChannel,
       }
@@ -402,6 +402,7 @@ export function DashboardPage() {
     shopifyOverlaySeries.data,
     amazonOverlaySeries.data,
     mlOverlaySeries.data,
+    lang,
   ])
 
   const marginByChannelData = useMemo(() => {
@@ -417,7 +418,9 @@ export function DashboardPage() {
     const sortedKeys = Array.from(periodKeys).sort()
 
     return sortedKeys.map((periodKey) => {
-      const row: Record<string, string | number> = { period: fmtDate(periodKey) }
+      const row: Record<string, string | number> = {
+        period: fmtDateByLanguage(periodKey, lang),
+      }
       for (const c of activePlatforms) {
         const m = overlayDataAndMaps.mapByChannel[c]?.[periodKey]
         row[c] = m ? Number(m.margin_pct) : 0
@@ -430,6 +433,7 @@ export function DashboardPage() {
     amazonOverlaySeries.data,
     mlOverlaySeries.data,
     overlayDataAndMaps.mapByChannel,
+    lang,
   ])
 
   const [modalOpen, setModalOpen] = useState(false)
@@ -467,25 +471,25 @@ export function DashboardPage() {
   return (
     <div className="mx-auto max-w-[1600px] space-y-8 pb-6">
       <DashboardFiltersBar
-          t={t}
-          locale={dashboardLocale}
-          startDate={startDate}
-          endDate={endDate}
-          onStartChange={(d) => setParam('start', toIso(d))}
-          onEndChange={(d) => setParam('end', toIso(d))}
-          shortcutYearValue={shortcutYearValue}
-          yearShortcutOptions={yearShortcutOptions}
-          onYearShortcut={applyYearShortcut}
-          shortcutMonthValue={shortcutMonthValue}
-          referenceYearForMonth={referenceYearForMonth}
-          onMonthShortcut={applyMonthShortcut}
-          platforms={PLATFORMS}
-          platformLabels={PLATFORM_LABELS}
-          selectedPlatforms={selectedPlatforms}
+        t={t}
+        locale={dashboardLocale}
+        startDate={startDate}
+        endDate={endDate}
+        onStartChange={(d) => setParam('start', toIso(d))}
+        onEndChange={(d) => setParam('end', toIso(d))}
+        shortcutYearValue={shortcutYearValue}
+        yearShortcutOptions={yearShortcutOptions}
+        onYearShortcut={applyYearShortcut}
+        shortcutMonthValue={shortcutMonthValue}
+        referenceYearForMonth={referenceYearForMonth}
+        onMonthShortcut={applyMonthShortcut}
+        platforms={PLATFORMS}
+        platformLabels={PLATFORM_LABELS}
+        selectedPlatforms={selectedPlatforms}
         onTogglePlatform={togglePlatform}
         onSelectAllPlatforms={selectAllPlatforms}
         granularity={granularity}
-          onGranularityChange={(v) => setParam('granularity', v)}
+        onGranularityChange={(v) => setParam('granularity', v)}
       />
 
       {selectedProductIds?.length ? (
@@ -510,38 +514,38 @@ export function DashboardPage() {
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border border-border-subtle/80 bg-bg-section/90 p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <div className="">
             <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-5">
-            <MetricCard
-              label={t('kpiGross')}
-              currency={displayCurrency}
-              value={formatCurrencyValue(summary.current.gross_revenue)}
-              footer={delta('gross_revenue')}
-            />
-            <MetricCard
-              variant="accent"
-              label={t('kpiNet')}
-              currency={displayCurrency}
-              value={formatCurrencyValue(summary.current.net_revenue)}
-              footer={delta('net_revenue')}
-            />
-            <MetricCard
-              label={t('kpiGrossProfit')}
-              currency={displayCurrency}
-              value={formatCurrencyValue(summary.current.gross_profit)}
-              footer={delta('gross_profit')}
-            />
-            <MetricCard
-              label={t('kpiMargin')}
-              value={fmtPct(summary.current.margin_pct)}
-              footer={delta('margin_pct')}
-            />
-            <MetricCard
-              label={t('kpiReceived')}
-              currency={displayCurrency}
-              value={formatCurrencyValue(summary.current.disbursement)}
-              footer={delta('disbursement')}
-            />
+              <MetricCard
+                label={t('kpiGross')}
+                currency={displayCurrency}
+                value={formatCurrencyValue(summary.current.gross_revenue)}
+                footer={delta('gross_revenue')}
+              />
+              <MetricCard
+                variant="accent"
+                label={t('kpiNet')}
+                currency={displayCurrency}
+                value={formatCurrencyValue(summary.current.net_revenue)}
+                footer={delta('net_revenue')}
+              />
+              <MetricCard
+                label={t('kpiGrossProfit')}
+                currency={displayCurrency}
+                value={formatCurrencyValue(summary.current.gross_profit)}
+                footer={delta('gross_profit')}
+              />
+              <MetricCard
+                label={t('kpiMargin')}
+                value={fmtPct(summary.current.margin_pct)}
+                footer={delta('margin_pct')}
+              />
+              <MetricCard
+                label={t('kpiReceived')}
+                currency={displayCurrency}
+                value={formatCurrencyValue(summary.current.disbursement)}
+                footer={delta('disbursement')}
+              />
             </div>
           </div>
         )}
@@ -551,134 +555,76 @@ export function DashboardPage() {
         <h2 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-text-tertiary">
           {t('sectionProfitability')}
         </h2>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(240px,3fr)] lg:items-stretch">
-        <Card className="w-full lg:min-h-[380px]">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-text-primary">
-              {t('wfTitle')}
-            </CardTitle>
-            {waterfallReconcileFootnote ? (
-              <p className="mt-1.5 max-w-2xl text-[10px] leading-snug text-text-tertiary">
-                {t('wfReconcileFootnote')}
-              </p>
-            ) : null}
-          </CardHeader>
-          <CardContent className="pb-6 pt-0">
-            {summaryLoading ? (
-              <Skeleton className="h-[340px] w-full rounded-xl" />
-            ) : (
-              <PnlWaterfallPanel
-                steps={waterfallSteps}
-                heightClassName="min-h-[300px] h-[340px]"
-              />
-            )}
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(240px,3fr)] lg:items-stretch">
+          <Card className="w-full bg-card lg:min-h-[380px]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-text-primary">
+                {t('wfTitle')}
+              </CardTitle>
+              {waterfallReconcileFootnote ? (
+                <p className="mt-1.5 max-w-2xl text-[10px] leading-snug text-text-tertiary">
+                  {t('wfReconcileFootnote')}
+                </p>
+              ) : null}
+            </CardHeader>
+            <CardContent className="pb-6 pt-0">
+              {summaryLoading ? (
+                <Skeleton className="h-[340px] w-full rounded-xl" />
+              ) : (
+                <PnlWaterfallPanel
+                  steps={waterfallSteps}
+                  heightClassName="min-h-[300px] h-[340px]"
+                />
+              )}
+            </CardContent>
+          </Card>
 
-        <Card className="flex min-h-0 min-w-0 flex-col">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xs font-medium text-text-tertiary">
-              {t('donutTitle')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-1 flex-col pb-6 pt-0">
-            {shopifySeries.isLoading || amazonSeries.isLoading || mlSeries.isLoading ? (
-              <Skeleton className="h-72 w-full flex-1 rounded-xl" />
-            ) : donutData.length ? (
-              <PieChartPanel
-                data={donutData}
-                colorByName={donutColorByName}
-                heightClassName="h-72 min-h-[240px]"
-              />
-            ) : (
-              <div className="text-sm text-text-secondary">No data</div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+          <Card className="flex min-h-0 min-w-0 flex-col bg-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xs font-medium text-text-tertiary">
+                {t('donutTitle')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-1 flex-col pb-6 pt-0">
+              {shopifySeries.isLoading || amazonSeries.isLoading || mlSeries.isLoading ? (
+                <Skeleton className="h-72 w-full flex-1 rounded-xl" />
+              ) : donutData.length ? (
+                <PieChartPanel
+                  data={donutData}
+                  colorByName={donutColorByName}
+                  heightClassName="h-72 min-h-[240px]"
+                />
+              ) : (
+                <div className="text-sm text-text-secondary">No data</div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </section>
 
       <section className="space-y-6">
         <h2 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-text-tertiary">
           {t('sectionTrends')}
         </h2>
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium text-text-primary">
-            {t('monthlyTitle')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pb-6 pt-0">
-          {monthlyLoading ? (
-            <Skeleton className="h-[320px] w-full rounded-xl" />
-          ) : monthlyData.length ? (
-            <MonthlyEvolutionPanel
-              data={monthlyData}
-              titleLabels={{
-                stackEbitda: t('monthlyStackEbitda'),
-                stackLayerUb: t('monthlyStackLayerUb'),
-                stackLayerNet: t('monthlyStackLayerNet'),
-                stackLayerGross: t('monthlyStackLayerGross'),
-                marginPct: t('traceMarginPct'),
-              }}
-            />
-          ) : (
-            <div className="text-sm text-text-secondary">No data</div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card className="w-full">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium text-text-secondary">
-            {t('overlayTitle')}
-          </CardTitle>
-          <p className="mt-1 text-[10px] leading-snug text-text-tertiary">
-            {t('overlayMonthlyHint')}
-          </p>
-        </CardHeader>
-        <CardContent className="pb-6 pt-0">
-          {shopifyOverlaySeries.isLoading ||
-            amazonOverlaySeries.isLoading ||
-            mlOverlaySeries.isLoading ? (
-            <Skeleton className="h-[360px] w-full rounded-xl" />
-          ) : overlayDataAndMaps.overlayData.length ? (
-            <OverlaySalesByChannelPanel
-              data={overlayDataAndMaps.overlayData as OverlaySalesDatum[]}
-              channels={activePlatforms as OverlaySalesChannel[]}
-              channelLabels={PLATFORM_LABELS}
-              colorsByChannel={COLORS_BY_CHANNEL}
-              grossLabel={t('legendGross')}
-              netLabel={t('legendNet')}
-              onSelect={onOverlaySelect}
-            />
-          ) : (
-            <div className="text-sm text-text-secondary">No data</div>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 gap-6 pt-1 lg:grid-cols-2 lg:items-stretch">
-        <Card className="flex min-h-0 min-w-0 flex-col">
+        <Card className="bg-card">
           <CardHeader className="pb-3">
-            <CardTitle className="text-xs font-medium text-text-tertiary">
-              {t('costTitle')}
+            <CardTitle className="text-sm font-medium text-text-primary">
+              {t('monthlyTitle')}
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-6 pt-0">
-            {shopifySeries.isLoading || amazonSeries.isLoading || mlSeries.isLoading ? (
-              <Skeleton className="h-64 w-full rounded-xl" />
-            ) : costData.length ? (
-              <BarChartPanel
-                data={costData}
-                dataKeyX="name"
-                heightClassName="h-64"
-                bars={[
-                  { key: 'cogs', name: t('costCogs') },
-                  { key: 'commission', name: t('costCommission') },
-                  { key: 'shipping', name: t('costShipping') },
-                  { key: 'ads', name: t('costAds') },
-                ]}
+            {monthlyLoading ? (
+              <Skeleton className="h-[320px] w-full rounded-xl" />
+            ) : monthlyData.length ? (
+              <MonthlyEvolutionPanel
+                data={monthlyData}
+                titleLabels={{
+                  stackEbitda: t('monthlyStackEbitda'),
+                  stackLayerUb: t('monthlyStackLayerUb'),
+                  stackLayerNet: t('monthlyStackLayerNet'),
+                  stackLayerGross: t('monthlyStackLayerGross'),
+                  marginPct: t('traceMarginPct'),
+                }}
               />
             ) : (
               <div className="text-sm text-text-secondary">No data</div>
@@ -686,29 +632,87 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="flex min-h-0 min-w-0 flex-col">
+        <Card className="w-full bg-card">
           <CardHeader className="pb-3">
-            <CardTitle className="text-xs font-medium text-text-tertiary">
-              {t('marginTitle')}
+            <CardTitle className="text-sm font-medium text-text-secondary">
+              {t('overlayTitle')}
             </CardTitle>
+            <p className="mt-1 text-[10px] leading-snug text-text-tertiary">
+              {t('overlayMonthlyHint')}
+            </p>
           </CardHeader>
           <CardContent className="pb-6 pt-0">
             {shopifyOverlaySeries.isLoading ||
               amazonOverlaySeries.isLoading ||
               mlOverlaySeries.isLoading ? (
-              <Skeleton className="h-[300px] w-full rounded-xl" />
-            ) : marginByChannelData.length ? (
-              <MarginByChannelPanel
-                data={marginByChannelData}
-                xKey="period"
-                series={marginSeries}
+              <Skeleton className="h-[360px] w-full rounded-xl" />
+            ) : overlayDataAndMaps.overlayData.length ? (
+              <OverlaySalesByChannelPanel
+                data={overlayDataAndMaps.overlayData as OverlaySalesDatum[]}
+                channels={activePlatforms as OverlaySalesChannel[]}
+                channelLabels={PLATFORM_LABELS}
+                colorsByChannel={COLORS_BY_CHANNEL}
+                grossLabel={t('legendGross')}
+                netLabel={t('legendNet')}
+                onSelect={onOverlaySelect}
               />
             ) : (
               <div className="text-sm text-text-secondary">No data</div>
             )}
           </CardContent>
         </Card>
-      </div>
+
+        <div className="grid grid-cols-1 gap-6 pt-1 lg:grid-cols-2 lg:items-stretch">
+          <Card className="flex min-h-0 min-w-0 flex-col bg-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xs font-medium text-text-tertiary">
+                {t('costTitle')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pb-6 pt-0">
+              {shopifySeries.isLoading || amazonSeries.isLoading || mlSeries.isLoading ? (
+                <Skeleton className="h-64 w-full rounded-xl" />
+              ) : costData.length ? (
+                <BarChartPanel
+                  data={costData}
+                  dataKeyX="name"
+                  heightClassName="h-64"
+                  bars={[
+                    { key: 'cogs', name: t('costCogs') },
+                    { key: 'commission', name: t('costCommission') },
+                    { key: 'shipping', name: t('costShipping') },
+                    { key: 'ads', name: t('costAds') },
+                  ]}
+                />
+              ) : (
+                <div className="text-sm text-text-secondary">No data</div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="flex min-h-0 min-w-0 flex-col bg-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xs font-medium text-text-tertiary">
+                {t('marginTitle')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pb-6 pt-0">
+              {shopifyOverlaySeries.isLoading ||
+                amazonOverlaySeries.isLoading ||
+                mlOverlaySeries.isLoading ? (
+                <Skeleton className="h-[300px] w-full rounded-xl" />
+              ) : marginByChannelData.length ? (
+                <MarginByChannelPanel
+                  data={marginByChannelData}
+                  xKey="period"
+                  series={marginSeries}
+                />
+              ) : (
+                <div className="text-sm text-text-secondary">No data</div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </section>
 
       {/* Modal: breakdown for clicked bar */}
@@ -723,7 +727,7 @@ export function DashboardPage() {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="text-text-secondary">{t('modalPeriod')}</div>
                 <div className="font-mono text-text-primary">
-                  {fmtDate(modalSel.periodKey)}
+                  {fmtDateByLanguage(modalSel.periodKey, lang)}
                 </div>
                 <div className="text-text-secondary">{t('modalChannel')}</div>
                 <div className="font-mono text-text-primary">

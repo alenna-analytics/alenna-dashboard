@@ -221,6 +221,17 @@ export function PnlWaterfallPanel({
         />
 
         {bars.slice(0, -1).map((b, i) => {
+          const next = bars[i + 1]
+          const currentLabel = steps[i]?.label ?? ''
+          const nextLabel = steps[i + 1]?.label ?? ''
+          const isCurrentTotal = isFullHeightBar(currentLabel)
+          const isNextTotal = isFullHeightBar(nextLabel)
+          const hasSameEndLevel = Math.abs(b.end - next.end) < 1e-6
+
+          if (isCurrentTotal && isNextTotal && hasSameEndLevel) {
+            return null
+          }
+
           const yy = yScale(b.end)
           const x1 = xFor(i) + barW
           const x2 = xFor(i + 1)

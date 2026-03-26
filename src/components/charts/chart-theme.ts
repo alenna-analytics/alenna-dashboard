@@ -36,7 +36,7 @@ export const yAxisProps = {
 }
 
 export const tooltipContentStyle: CSSProperties = {
-  background: 'var(--bg-elevated)',
+  background: 'var(--card)',
   border: '1px solid var(--border-subtle)',
   borderRadius: '10px',
   fontFamily: 'var(--font-mono)',

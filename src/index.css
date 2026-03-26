@@ -100,9 +100,9 @@
   --border-default: rgba(0, 0, 0, 0.1);
   --border-strong: rgba(0, 0, 0, 0.18);
 
-  --accent: #7c3aed;
-  --accent-light: #8b5cf6;
-  --accent-dim: rgba(124, 58, 237, 0.12);
+  --accent: #5b8cff;
+  --accent-light: #7ca3ff;
+  --accent-dim: rgba(91, 140, 255, 0.12);
 
   --success: #10b981;
   --success-dim: rgba(16, 185, 129, 0.12);
@@ -113,7 +113,7 @@
   --info: #3b82f6;
   --info-dim: rgba(59, 130, 246, 0.12);
 
-  --chart-1: #7c3aed;
+  --chart-1: #5b8cff;
   --chart-2: #10b981;
   --chart-3: #f59e0b;
   --chart-4: #3b82f6;
@@ -305,6 +305,12 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
   }
 }
 

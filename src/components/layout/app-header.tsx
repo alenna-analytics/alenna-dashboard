@@ -3,8 +3,10 @@ import { MenuIcon, MoonIcon, SunIcon } from 'lucide-react'
 
 import { useCurrency } from '@/components/providers/currency-provider'
 import { useLanguage } from '@/components/providers/language-provider'
+import { usePageChrome } from '@/components/providers/page-chrome-context'
 import { useTheme } from '@/components/providers/theme-provider'
 import { Button } from '@/components/ui/button'
+import { shellT } from '@/lib/shell-strings'
 import { cn } from '@/lib/utils'
 
 type AppHeaderProps = {
@@ -15,31 +17,46 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
   const { theme, toggleTheme } = useTheme()
   const { lang, toggleLang } = useLanguage()
   const { displayCurrency, setDisplayCurrency } = useCurrency()
+  const { title } = usePageChrome()
+
+  const ariaTheme =
+    theme === 'dark'
+      ? shellT(lang, 'ariaSwitchToLight')
+      : shellT(lang, 'ariaSwitchToDark')
+  const ariaLang =
+    lang === 'es' ? shellT(lang, 'ariaSwitchToEnglish') : shellT(lang, 'ariaSwitchToSpanish')
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border-subtle bg-bg-surface px-4">
-      <div className="flex items-center gap-2">
+    <header className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border-subtle/80 bg-bg-surface px-4">
+      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
         {onMenuClick ? (
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="lg:hidden"
-            aria-label="Open navigation menu"
+            className="shrink-0 lg:hidden"
+            aria-label={shellT(lang, 'ariaOpenNavMenu')}
             onClick={onMenuClick}
           >
             <MenuIcon className="size-4" />
           </Button>
         ) : null}
+        {title ? (
+          <div className="flex min-w-0 flex-1 items-center">
+            <h1 className="truncate text-[15px] font-medium leading-tight tracking-tight text-text-primary">
+              {title}
+            </h1>
+          </div>
+        ) : (
+          <div className="flex-1" aria-hidden />
+        )}
       </div>
       <div className="flex items-center gap-2">
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          aria-label={
-            theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
-          }
+          aria-label={ariaTheme}
           onClick={toggleTheme}
         >
           {theme === 'dark' ? (
@@ -49,9 +66,9 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
           )}
         </Button>
         <div
-          className="flex h-8 items-center rounded-[10px] border border-border-subtle bg-white/[0.03] p-0.5 dark:border-border-default dark:bg-white/[0.04]"
+          className="flex h-8 items-center rounded-[12px] border border-border-subtle bg-white/[0.03] p-0.5 dark:border-border-default dark:bg-white/[0.04]"
           role="group"
-          aria-label="Display currency"
+          aria-label={shellT(lang, 'ariaDisplayCurrency')}
         >
           {(['MXN', 'USD'] as const).map((c) => (
             <Button
@@ -77,7 +94,7 @@ export function AppHeader({ onMenuClick }: AppHeaderProps) {
           type="button"
           variant="ghost"
           size="sm"
-          aria-label={lang === 'es' ? 'Switch to English' : 'Switch to Spanish'}
+          aria-label={ariaLang}
           onClick={toggleLang}
           className="h-8"
         >

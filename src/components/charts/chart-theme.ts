@@ -4,15 +4,14 @@ export const CHART_COLORS = [
   'var(--chart-1)',
   'var(--chart-2)',
   'var(--chart-3)',
-  'var(--chart-4)',
 ] as const
 
-export const chartMargins = { top: 16, right: 12, left: 4, bottom: 8 }
+export const chartMargins = { top: 20, right: 14, left: 6, bottom: 12 }
 
 export const cartesianGridProps = {
-  strokeDasharray: '3 8' as const,
+  strokeDasharray: '3 10' as const,
   stroke: 'var(--chart-grid)',
-  strokeOpacity: 0.65,
+  strokeOpacity: 0.45,
   vertical: false,
 }
 

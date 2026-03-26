@@ -7,6 +7,8 @@ type PageHeaderProps = {
   description?: string
   actions?: ReactNode
   className?: string
+  /** Tighter typography for data-heavy views (e.g. dashboard). */
+  dense?: boolean
 }
 
 export function PageHeader({
@@ -14,20 +16,33 @@ export function PageHeader({
   description,
   actions,
   className,
+  dense,
 }: PageHeaderProps) {
   return (
     <div
       className={cn(
-        'flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between',
+        'flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between',
         className
       )}
     >
       <div>
-        <h1 className="text-lg font-medium tracking-tight text-text-primary">
+        <h1
+          className={cn(
+            'tracking-tight text-text-primary',
+            dense
+              ? 'text-[15px] font-medium leading-snug'
+              : 'text-lg font-medium leading-tight'
+          )}
+        >
           {title}
         </h1>
         {description ? (
-          <p className="mt-1.5 text-sm font-normal leading-relaxed text-text-tertiary">
+          <p
+            className={cn(
+              'font-normal leading-relaxed text-text-tertiary',
+              dense ? 'mt-1 text-xs' : 'mt-1.5 text-sm'
+            )}
+          >
             {description}
           </p>
         ) : null}

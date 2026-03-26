@@ -9,13 +9,16 @@ import {
   SettingsIcon,
   XIcon,
 } from 'lucide-react'
+import { useMemo } from 'react'
 import { NavLink } from 'react-router-dom'
 
 import type { TenantSummary } from '@/auth/hooks'
 import { CompanySwitcher } from '@/components/layout/company-switcher'
+import { useLanguage } from '@/components/providers/language-provider'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { shellT } from '@/lib/shell-strings'
 import { cn } from '@/lib/utils'
 
 type NavItem = {
@@ -23,17 +26,6 @@ type NavItem = {
   label: string
   icon: LucideIcon
 }
-
-const ANALYTICS_NAV: NavItem[] = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboardIcon },
-  { to: '/dashboard/expenses', label: 'Expenses', icon: ReceiptIcon },
-]
-
-const CONFIG_NAV: NavItem[] = [
-  { to: '/dashboard/connectors', label: 'Connectors', icon: PlugIcon },
-  { to: '/dashboard/billing', label: 'Billing', icon: CreditCardIcon },
-  { to: '/dashboard/settings', label: 'Settings', icon: SettingsIcon },
-]
 
 type AppSidebarProps = {
   collapsed: boolean
@@ -104,6 +96,45 @@ export function AppSidebar({
   mobileOpen,
   onMobileClose,
 }: AppSidebarProps) {
+  const { lang } = useLanguage()
+
+  const analyticsNav = useMemo<NavItem[]>(
+    () => [
+      {
+        to: '/dashboard',
+        label: shellT(lang, 'navDashboard'),
+        icon: LayoutDashboardIcon,
+      },
+      {
+        to: '/dashboard/expenses',
+        label: shellT(lang, 'navExpenses'),
+        icon: ReceiptIcon,
+      },
+    ],
+    [lang],
+  )
+
+  const configNav = useMemo<NavItem[]>(
+    () => [
+      {
+        to: '/dashboard/connections',
+        label: shellT(lang, 'navConnections'),
+        icon: PlugIcon,
+      },
+      {
+        to: '/dashboard/billing',
+        label: shellT(lang, 'navBilling'),
+        icon: CreditCardIcon,
+      },
+      {
+        to: '/dashboard/settings',
+        label: shellT(lang, 'navSettings'),
+        icon: SettingsIcon,
+      },
+    ],
+    [lang],
+  )
+
   return (
     <aside
       className={cn(
@@ -115,15 +146,16 @@ export function AppSidebar({
     >
       <div
         className={cn(
-          'flex shrink-0 items-center gap-2 border-b border-border-subtle',
-          collapsed ? 'flex-col py-2' : 'h-14 min-h-14 px-3',
-          !collapsed && 'justify-between'
+          'flex shrink-0 border-b border-border-subtle',
+          collapsed
+            ? 'flex-col items-center gap-1.5 px-2 py-2'
+            : 'h-12 min-h-12 flex-row items-center justify-between gap-2 px-3'
         )}
       >
         <div
           className={cn(
             'min-w-0',
-            collapsed ? 'flex justify-center' : 'flex-1'
+            collapsed ? 'flex w-full justify-center' : 'flex-1'
           )}
         >
           <CompanySwitcher
@@ -135,13 +167,18 @@ export function AppSidebar({
             className={collapsed ? '' : 'w-full min-w-0'}
           />
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div
+          className={cn(
+            'flex shrink-0 items-center gap-1',
+            collapsed && 'w-full justify-center'
+          )}
+        >
           <Button
             type="button"
             variant="ghost"
             size="icon"
             className="lg:hidden"
-            aria-label="Close navigation menu"
+            aria-label={shellT(lang, 'ariaCloseNavMenu')}
             onClick={onMobileClose}
           >
             <XIcon className="size-4" />
@@ -152,7 +189,11 @@ export function AppSidebar({
             size="icon"
             className="hidden lg:inline-flex"
             onClick={onToggleCollapsed}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={
+              collapsed
+                ? shellT(lang, 'ariaExpandSidebar')
+                : shellT(lang, 'ariaCollapseSidebar')
+            }
           >
             {collapsed ? (
               <PanelLeftIcon className="size-4" />
@@ -167,8 +208,8 @@ export function AppSidebar({
         <ScrollArea className="min-h-0 flex-1">
           <div className="px-2 py-3">
             <NavSection
-              title="Analytics"
-              items={ANALYTICS_NAV}
+              title={shellT(lang, 'navSectionAnalytics')}
+              items={analyticsNav}
               collapsed={collapsed}
               onMobileClose={onMobileClose}
             />
@@ -177,8 +218,8 @@ export function AppSidebar({
         <Separator className="bg-border-subtle" />
         <div className="shrink-0 px-2 py-3">
           <NavSection
-            title="Configuration"
-            items={CONFIG_NAV}
+            title={shellT(lang, 'navSectionConfiguration')}
+            items={configNav}
             collapsed={collapsed}
             onMobileClose={onMobileClose}
           />

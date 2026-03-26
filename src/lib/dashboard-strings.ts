@@ -9,9 +9,9 @@ export const PLATFORM_LABELS: Record<DashboardSalesChannel, string> = {
 }
 
 export const COLORS_BY_CHANNEL: Record<DashboardSalesChannel, string> = {
-  shopify: '#6b7fd8',
-  amazon: '#b89a7a',
-  mercadolibre: '#a8a060',
+  shopify: '#5B8CFF',
+  amazon: '#9B8CE8',
+  mercadolibre: '#5A9F7A',
 }
 
 const STRINGS = {
@@ -37,6 +37,13 @@ const STRINGS = {
     granularityDaily: 'Diario',
     granularityWeekly: 'Semanal',
     granularityMonthly: 'Mensual',
+
+    sectionOverview: 'Resumen',
+    sectionProfitability: 'Rentabilidad',
+    sectionTrends: 'Tendencias',
+    filterMoreOptions: 'Más opciones',
+    filterSecondaryTitle: 'Periodo y granularidad',
+    filterGranularity: 'Granularidad',
 
     kpiGross: 'Ventas brutas',
     kpiNet: 'Ventas netas',
@@ -115,6 +122,13 @@ const STRINGS = {
     granularityDaily: 'Daily',
     granularityWeekly: 'Weekly',
     granularityMonthly: 'Monthly',
+
+    sectionOverview: 'Overview',
+    sectionProfitability: 'Profitability',
+    sectionTrends: 'Trends',
+    filterMoreOptions: 'More options',
+    filterSecondaryTitle: 'Period & granularity',
+    filterGranularity: 'Granularity',
 
     kpiGross: 'Gross sales',
     kpiNet: 'Net sales',

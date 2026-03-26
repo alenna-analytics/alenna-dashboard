@@ -1,0 +1,68 @@
+const SHELL_STRINGS = {
+  es: {
+    navSectionAnalytics: 'Analítica',
+    navSectionConfiguration: 'Configuración',
+    navDashboard: 'Dashboard',
+    navExpenses: 'Gastos',
+    navConnections: 'Conexiones',
+    navBilling: 'Facturación',
+    navSettings: 'Ajustes',
+    companyLabel: 'Empresa',
+    companySelectPlaceholder: 'Seleccionar…',
+    ariaOpenNavMenu: 'Abrir menú de navegación',
+    ariaCloseNavMenu: 'Cerrar menú de navegación',
+    ariaCloseNavBackdrop: 'Cerrar menú de navegación',
+    ariaExpandSidebar: 'Expandir barra lateral',
+    ariaCollapseSidebar: 'Contraer barra lateral',
+    ariaDisplayCurrency: 'Moneda de visualización',
+    ariaSwitchToLight: 'Cambiar a tema claro',
+    ariaSwitchToDark: 'Cambiar a tema oscuro',
+    shellSelectCompanyPrompt:
+      'Abre el menú y selecciona una empresa para continuar.',
+    bootLoadingWorkspace: 'Cargando espacio de trabajo',
+    bootLoadingLabel: 'Cargando',
+    bootBrandName: 'Nomuk',
+    bootTagline: 'Preparando tu analítica',
+    bootStage1: 'Conectando datos',
+    bootStage2: 'Procesando métricas',
+    bootStage3: 'Preparando el panel',
+    ariaSwitchToEnglish: 'Cambiar a inglés',
+    ariaSwitchToSpanish: 'Cambiar a español',
+  },
+  en: {
+    navSectionAnalytics: 'Analytics',
+    navSectionConfiguration: 'Configuration',
+    navDashboard: 'Dashboard',
+    navExpenses: 'Expenses',
+    navConnections: 'Connections',
+    navBilling: 'Billing',
+    navSettings: 'Settings',
+    companyLabel: 'Company',
+    companySelectPlaceholder: 'Select…',
+    ariaOpenNavMenu: 'Open navigation menu',
+    ariaCloseNavMenu: 'Close navigation menu',
+    ariaCloseNavBackdrop: 'Close navigation menu',
+    ariaExpandSidebar: 'Expand sidebar',
+    ariaCollapseSidebar: 'Collapse sidebar',
+    ariaDisplayCurrency: 'Display currency',
+    ariaSwitchToLight: 'Switch to light theme',
+    ariaSwitchToDark: 'Switch to dark theme',
+    shellSelectCompanyPrompt: 'Open the menu and select a company to continue.',
+    bootLoadingWorkspace: 'Loading workspace',
+    bootLoadingLabel: 'Loading',
+    bootBrandName: 'Nomuk',
+    bootTagline: 'Preparing your analytics',
+    bootStage1: 'Connecting data',
+    bootStage2: 'Processing metrics',
+    bootStage3: 'Preparing dashboard',
+    ariaSwitchToEnglish: 'Switch to English',
+    ariaSwitchToSpanish: 'Switch to Spanish',
+  },
+} as const
+
+export type ShellStringKey = keyof typeof SHELL_STRINGS.es
+
+export function shellT(lang: string, key: ShellStringKey): string {
+  const locale = lang === 'en' ? 'en' : 'es'
+  return SHELL_STRINGS[locale][key] ?? key
+}

@@ -89,7 +89,7 @@ export function MonthlyEvolutionPanel({
             name={titleLabels.stackEbitda}
             stackId={STACK_ID}
             fill={CHART_COLORS[2]}
-            fillOpacity={0.9}
+            fillOpacity={0.92}
             radius={[0, 0, 0, 0]}
           />
           <Bar
@@ -97,15 +97,15 @@ export function MonthlyEvolutionPanel({
             name={titleLabels.stackLayerUb}
             stackId={STACK_ID}
             fill={CHART_COLORS[1]}
-            fillOpacity={0.85}
+            fillOpacity={0.48}
             radius={[0, 0, 0, 0]}
           />
           <Bar
             dataKey="stackNetOverUb"
             name={titleLabels.stackLayerNet}
             stackId={STACK_ID}
-            fill={CHART_COLORS[3]}
-            fillOpacity={0.8}
+            fill="var(--chart-4)"
+            fillOpacity={0.42}
             radius={[0, 0, 0, 0]}
           />
           <Bar
@@ -113,7 +113,7 @@ export function MonthlyEvolutionPanel({
             name={titleLabels.stackLayerGross}
             stackId={STACK_ID}
             fill={CHART_COLORS[0]}
-            fillOpacity={0.75}
+            fillOpacity={0.38}
             radius={[3, 3, 0, 0]}
           />
           <Line
@@ -122,10 +122,11 @@ export function MonthlyEvolutionPanel({
             name={titleLabels.marginPct}
             yAxisId="right"
             stroke="var(--chart-line-secondary)"
-            strokeWidth={1.75}
-            strokeDasharray="4 4"
-            dot={{ r: 3, fill: 'var(--chart-line-secondary)', strokeWidth: 0 }}
-            activeDot={{ r: 4 }}
+            strokeOpacity={0.55}
+            strokeWidth={1.35}
+            strokeDasharray="5 5"
+            dot={{ r: 2, fill: 'var(--chart-line-secondary)', strokeWidth: 0, fillOpacity: 0.7 }}
+            activeDot={{ r: 3.5 }}
           />
           <Legend
             wrapperStyle={{

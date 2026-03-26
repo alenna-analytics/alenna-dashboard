@@ -1,12 +1,16 @@
-import { PageHeader } from '@/components/composed/page-header'
+import { usePageChrome } from '@/components/providers/page-chrome-context'
+import { useEffect } from 'react'
 
 export function BillingPage() {
+  const { setPageMeta } = usePageChrome()
+
+  useEffect(() => {
+    setPageMeta({ title: 'Billing' })
+    return () => setPageMeta({ title: '' })
+  }, [setPageMeta])
+
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Billing"
-        description="Plan and Stripe checkout (Phase 9)."
-      />
       <p className="text-sm text-text-secondary">Shell page — content TBD.</p>
     </div>
   )

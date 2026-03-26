@@ -59,7 +59,7 @@ function barChangeArrow(delta: number): string {
 export function PnlWaterfallPanel({
   steps,
   heightClassName = 'h-[300px]',
-  accentColor = 'var(--chart-1)',
+  accentColor = 'var(--accent)',
 }: PnlWaterfallPanelProps) {
   const { formatCurrency, formatCurrencyCompact } = useCurrency()
   const W = 920
@@ -73,7 +73,7 @@ export function PnlWaterfallPanel({
 
   const { bars, minV, maxV } = useMemo(() => {
     const pos = 'var(--success)'
-    const neg = 'var(--danger)'
+    const neg = 'var(--chart-waterfall-negative)'
 
     const computedBars: WaterfallBar[] = []
     let current = 0
@@ -122,7 +122,7 @@ export function PnlWaterfallPanel({
 
   const safeRange = maxV - minV || 1
   const yScale = (v: number) => padT + ((maxV - v) / safeRange) * plotH
-  const barGap = 10
+  const barGap = 14
   const barW = plotW / Math.max(steps.length, 1) - barGap
   const xFor = (i: number) => padL + i * (barW + barGap)
 

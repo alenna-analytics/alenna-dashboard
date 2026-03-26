@@ -41,3 +41,18 @@ export function formatMoneyAmount(
     maximumFractionDigits: compact ? 1 : 0,
   }).format(amount)
 }
+
+/** Locale-formatted amount without currency symbol (use when currency is shown elsewhere, e.g. KPI badge). */
+export function formatMoneyAmountWithoutCurrency(
+  amount: number,
+  lang: 'es' | 'en',
+  compact: boolean,
+): string {
+  const locale = lang === 'es' ? 'es-MX' : 'en-US'
+  return new Intl.NumberFormat(locale, {
+    style: 'decimal',
+    notation: compact ? 'compact' : 'standard',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: compact ? 1 : 0,
+  }).format(amount)
+}

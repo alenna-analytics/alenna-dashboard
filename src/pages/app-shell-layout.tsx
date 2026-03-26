@@ -6,13 +6,17 @@ import { AppBootLoader } from '@/components/layout/app-boot-loader'
 import { AppHeader } from '@/components/layout/app-header'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { CurrencyProvider } from '@/components/providers/currency-provider'
+import { useLanguage } from '@/components/providers/language-provider'
+import { PageChromeProvider } from '@/components/providers/page-chrome-context'
 import { WorkspaceProvider } from '@/components/providers/workspace-context'
+import { shellT } from '@/lib/shell-strings'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed'
 import { cn } from '@/lib/utils'
 
 export function AppShellLayout() {
+  const { lang } = useLanguage()
   const { tenantId } = useCurrentTenant()
   const { switchTenant } = useTenantSwitcher()
   const {
@@ -60,7 +64,8 @@ export function AppShellLayout() {
         baseCurrencyRaw={me?.base_currency}
         fxMxnPerUsdRaw={me?.fx_mxn_per_usd}
       >
-        <div className="flex h-svh overflow-hidden bg-bg-base">
+        <PageChromeProvider>
+        <div className="flex h-svh overflow-hidden bg-bg-base motion-safe:animate-[boot-shell-enter_0.4s_ease-out]">
       <button
         type="button"
         className={cn(
@@ -68,7 +73,7 @@ export function AppShellLayout() {
           drawerOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         )}
         aria-hidden={!drawerOpen}
-        aria-label="Close navigation menu"
+        aria-label={shellT(lang, 'ariaCloseNavBackdrop')}
         tabIndex={drawerOpen ? 0 : -1}
         onClick={() => {
           setMobileNavOpen(false)
@@ -93,7 +98,7 @@ export function AppShellLayout() {
             setMobileNavOpen(true)
           }}
         />
-        <main className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+        <main className="min-h-0 flex-1 overflow-y-auto bg-bg-base px-6 py-6 lg:px-10 lg:py-8">
           {error ? (
             <div
               role="alert"
@@ -104,13 +109,14 @@ export function AppShellLayout() {
           ) : null}
           {!tenantId && tenants.length > 1 ? (
             <p className="text-sm text-text-secondary">
-              Open the menu and select a company to continue.
+              {shellT(lang, 'shellSelectCompanyPrompt')}
             </p>
           ) : null}
           <Outlet />
         </main>
       </div>
     </div>
+        </PageChromeProvider>
       </CurrencyProvider>
     </WorkspaceProvider>
   )

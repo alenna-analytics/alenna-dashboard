@@ -14,6 +14,7 @@
   --radius-2xl: 24px;
 
   --color-bg-base: var(--bg-base);
+  --color-bg-section: var(--bg-section);
   --color-bg-surface: var(--bg-surface);
   --color-bg-elevated: var(--bg-elevated);
   --color-bg-sunken: var(--bg-sunken);
@@ -84,6 +85,7 @@
 
 :root {
   --bg-base: #f4f4f5;
+  --bg-section: #ebebef;
   --bg-surface: #ffffff;
   --bg-elevated: #fafafa;
   --bg-sunken: #e4e4e7;
@@ -118,6 +120,7 @@
   --chart-5: #ec4899;
   --chart-grid: rgba(0, 0, 0, 0.06);
   --chart-waterfall-connector: rgba(0, 0, 0, 0.34);
+  --chart-waterfall-negative: #c47a7a;
   --chart-line-secondary: #b45353;
 
   --font-display: var(--font-sans);
@@ -153,45 +156,47 @@
 }
 
 .dark {
-  --bg-base: #0b0b0c;
-  --bg-surface: #141518;
-  --bg-elevated: #1a1b1f;
-  --bg-sunken: #0e0e10;
+  --bg-base: #0e1116;
+  --bg-section: #151a21;
+  --bg-surface: #151a21;
+  --bg-elevated: #1b222c;
+  --bg-sunken: #0a0d12;
 
-  --text-primary: #ececee;
-  --text-secondary: #9b9ba3;
-  --text-tertiary: #6b6b74;
-  --text-disabled: #45454c;
+  --text-primary: #eef1f6;
+  --text-secondary: #9aa3b2;
+  --text-tertiary: #6b7585;
+  --text-disabled: #4a5260;
 
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-default: rgba(255, 255, 255, 0.09);
-  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-subtle: rgba(91, 140, 255, 0.08);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.16);
 
-  --accent: #7c7cf0;
-  --accent-light: #9494f5;
-  --accent-dim: rgba(124, 124, 240, 0.12);
+  --accent: #5b8cff;
+  --accent-light: #7ca3ff;
+  --accent-dim: rgba(91, 140, 255, 0.16);
 
-  --success: #5eb88a;
-  --success-dim: rgba(94, 184, 138, 0.12);
-  --danger: #d48484;
-  --danger-dim: rgba(212, 132, 132, 0.12);
+  --success: #5a9f7a;
+  --success-dim: rgba(90, 159, 122, 0.14);
+  --danger: #b07070;
+  --danger-dim: rgba(176, 112, 112, 0.14);
   --warning: #c9a06c;
   --warning-dim: rgba(201, 160, 108, 0.12);
-  --info: #7a9fd4;
-  --info-dim: rgba(122, 159, 212, 0.12);
+  --info: #5b8cff;
+  --info-dim: rgba(91, 140, 255, 0.12);
 
-  --chart-1: #6b7fd8;
-  --chart-2: #5eb88a;
-  --chart-3: #9b8ac4;
+  --chart-1: #5b8cff;
+  --chart-2: #9b8ce8;
+  --chart-3: #5a9f7a;
   --chart-4: #7a9fd4;
   --chart-5: #b89b7a;
-  --chart-grid: rgba(255, 255, 255, 0.035);
-  --chart-waterfall-connector: rgba(255, 255, 255, 0.2);
-  --chart-line-secondary: #a89090;
+  --chart-grid: rgba(255, 255, 255, 0.04);
+  --chart-waterfall-connector: rgba(91, 140, 255, 0.22);
+  --chart-waterfall-negative: #9a6a6f;
+  --chart-line-secondary: rgba(154, 170, 200, 0.45);
 
   --background: var(--bg-base);
   --foreground: var(--text-primary);
-  --card: var(--bg-surface);
+  --card: #151a21;
   --card-foreground: var(--text-primary);
   --popover: var(--bg-elevated);
   --popover-foreground: var(--text-primary);
@@ -207,7 +212,7 @@
   --input: var(--border-default);
   --ring: var(--accent);
 
-  --sidebar: var(--bg-surface);
+  --sidebar: #151a21;
   --sidebar-foreground: var(--text-primary);
   --sidebar-primary: var(--accent);
   --sidebar-primary-foreground: #fafafa;
@@ -219,6 +224,15 @@
 
 #root {
   min-height: 100dvh;
+}
+
+.dark #root {
+  background: radial-gradient(
+      ellipse 120% 80% at 50% -30%,
+      rgba(91, 140, 255, 0.09),
+      transparent 55%
+    ),
+    var(--bg-base);
 }
 
 @layer base {
@@ -244,25 +258,52 @@
   .delta-negative {
     @apply inline-flex items-center gap-1 rounded-md border border-danger/15 bg-danger/8 px-2 py-0.5 font-mono text-[11px] tracking-wide text-danger;
   }
+}
 
-  .skeleton-shimmer {
-    background: linear-gradient(
-      90deg,
-      var(--bg-elevated) 25%,
-      var(--bg-sunken) 50%,
-      var(--bg-elevated) 75%
-    );
-    background-size: 200% 100%;
-    animation: skeleton-shimmer 1.5s infinite;
-    border-radius: var(--radius-md);
+@keyframes boot-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@keyframes skeleton-shimmer {
-  0% {
-    background-position: -200% 0;
+@keyframes boot-loader-enter {
+  from {
+    opacity: 0;
   }
-  100% {
-    background-position: 200% 0;
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes boot-shell-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes boot-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes boot-stage-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

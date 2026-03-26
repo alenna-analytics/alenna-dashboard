@@ -11,6 +11,7 @@ import { useLanguage } from '@/components/providers/language-provider'
 import {
   convertAmountForDisplay,
   formatMoneyAmount,
+  formatMoneyAmountWithoutCurrency,
   parseAccountCurrency,
   safeFxMxnPerUsd,
   type AccountCurrency,
@@ -26,6 +27,8 @@ type CurrencyContextValue = {
   setDisplayCurrency: (c: DisplayCurrency) => void
   formatCurrency: (value: string | number) => string
   formatCurrencyCompact: (value: string | number) => string
+  /** Same conversion as `formatCurrency` but digits only (no MX$/USD in the string). */
+  formatCurrencyValue: (value: string | number) => string
 }
 
 const CurrencyContext = createContext<CurrencyContextValue | null>(null)
@@ -82,6 +85,19 @@ export function CurrencyProvider({
     [baseCurrency, displayCurrency, fxMxnPerUsd, lang],
   )
 
+  const formatCurrencyValue = useCallback(
+    (value: string | number) => {
+      const n = convertAmountForDisplay(
+        Number(value),
+        baseCurrency,
+        displayCurrency,
+        fxMxnPerUsd,
+      )
+      return formatMoneyAmountWithoutCurrency(n, lang, false)
+    },
+    [baseCurrency, displayCurrency, fxMxnPerUsd, lang],
+  )
+
   const value = useMemo(
     () => ({
       baseCurrency,
@@ -90,6 +106,7 @@ export function CurrencyProvider({
       setDisplayCurrency,
       formatCurrency,
       formatCurrencyCompact,
+      formatCurrencyValue,
     }),
     [
       baseCurrency,
@@ -97,6 +114,7 @@ export function CurrencyProvider({
       fxMxnPerUsd,
       formatCurrency,
       formatCurrencyCompact,
+      formatCurrencyValue,
       setDisplayCurrency,
     ],
   )

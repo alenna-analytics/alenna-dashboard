@@ -46,7 +46,7 @@ export function ChannelsCombobox({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         className={cn(
-          'inline-flex h-9 min-w-[168px] max-w-[260px] items-center justify-between gap-2 rounded-[10px] border border-border-subtle bg-white/[0.03] px-3 text-xs font-medium text-text-secondary outline-none transition-colors hover:border-border-default hover:bg-white/[0.05] focus-visible:border-border-default focus-visible:ring-2 focus-visible:ring-white/10 dark:border-border-default dark:bg-white/[0.04] dark:hover:border-border-strong dark:hover:bg-white/[0.06]',
+          'inline-flex h-9 min-w-[168px] max-w-[260px] items-center justify-between gap-2 rounded-[12px] border border-border-subtle bg-white/[0.03] px-3 text-xs font-medium text-text-secondary outline-none transition-colors duration-200 hover:border-accent/35 hover:bg-accent/[0.06] focus-visible:border-accent/50 focus-visible:ring-2 focus-visible:ring-accent/25 dark:border-border-default dark:bg-white/[0.04] dark:hover:border-accent/40',
           className
         )}
       >

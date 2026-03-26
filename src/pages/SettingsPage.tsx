@@ -1,8 +1,8 @@
 import { useAuth } from '@clerk/react'
 import { useCallback, useEffect, useState } from 'react'
 
-import { PageHeader } from '@/components/composed/page-header'
 import { useLanguage } from '@/components/providers/language-provider'
+import { usePageChrome } from '@/components/providers/page-chrome-context'
 import { useWorkspace } from '@/components/providers/workspace-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -27,11 +27,17 @@ export function SettingsPage() {
   const { getToken } = useAuth()
   const { lang } = useLanguage()
   const { me, refetchMe } = useWorkspace()
+  const { setPageMeta } = usePageChrome()
 
   const t = useCallback(
     (key: keyof typeof STRINGS.en) => STRINGS[lang][key],
     [lang],
   )
+
+  useEffect(() => {
+    setPageMeta({ title: t('settingsTitle') })
+    return () => setPageMeta({ title: '' })
+  }, [t, setPageMeta])
 
   const [baseCurrency, setBaseCurrency] = useState<AccountCurrency>('MXN')
   const [fxStr, setFxStr] = useState('18.5')
@@ -82,8 +88,6 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('settingsTitle')} description={t('settingsDesc')} />
-
       <Card className="max-w-lg border-border-default bg-bg-surface">
         <CardHeader>
           <CardTitle className="text-base text-text-primary">

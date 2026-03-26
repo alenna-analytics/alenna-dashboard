@@ -21,7 +21,7 @@ function App() {
       <Route element={<AppAuthBoundary />}>
         <Route path="/dashboard" element={<AppShellLayout />}>
           <Route index element={<DashboardPage />} />
-          <Route path="connectors" element={<ConnectorsPage />} />
+          <Route path="connections" element={<ConnectorsPage />} />
           <Route path="expenses" element={<ExpensesPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="billing" element={<BillingPage />} />

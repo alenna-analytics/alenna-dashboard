@@ -54,7 +54,7 @@ export function BarChartPanel({
               fill={CHART_COLORS[i % CHART_COLORS.length]}
               stackId={b.stackId}
               radius={[3, 3, 0, 0]}
-              fillOpacity={0.88}
+              fillOpacity={0.72}
             />
           ))}
         </BarChart>

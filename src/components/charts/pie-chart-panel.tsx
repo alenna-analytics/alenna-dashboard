@@ -8,6 +8,8 @@ export type PieChartDatum = { name: string; value: number }
 
 type PieChartPanelProps = {
   data: PieChartDatum[]
+  /** Map legend name → hex (e.g. channel colors). */
+  colorByName?: Record<string, string>
   heightClassName?: string
   className?: string
   innerRadius?: number
@@ -86,10 +88,11 @@ function DonutPercentLabel(props: PieLabelRenderProps) {
 
 export function PieChartPanel({
   data,
+  colorByName,
   heightClassName = 'h-72',
   className,
-  innerRadius = 48,
-  outerRadius = 72,
+  innerRadius = 58,
+  outerRadius = 70,
 }: PieChartPanelProps) {
   return (
     <div className={cn('w-full min-h-0', heightClassName, className)}>
@@ -103,19 +106,22 @@ export function PieChartPanel({
             cy="46%"
             innerRadius={innerRadius}
             outerRadius={outerRadius}
-            paddingAngle={1.5}
-            stroke="var(--bg-surface)"
-            strokeWidth={2}
+            paddingAngle={2}
+            stroke="var(--card)"
+            strokeWidth={1.5}
             label={DonutPercentLabel}
             labelLine={false}
           >
             {data.map((entry, i) => (
               <Cell
                 key={entry.name}
-                fill={CHART_COLORS[i % CHART_COLORS.length]}
-                fillOpacity={0.92}
-                stroke="var(--bg-surface)"
-                strokeWidth={2}
+                fill={
+                  colorByName?.[entry.name] ??
+                  CHART_COLORS[i % CHART_COLORS.length]
+                }
+                fillOpacity={0.88}
+                stroke="var(--card)"
+                strokeWidth={1.5}
               />
             ))}
           </Pie>

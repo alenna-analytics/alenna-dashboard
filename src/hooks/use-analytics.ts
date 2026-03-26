@@ -11,6 +11,9 @@ import type {
   ProductsCostEditorResponse,
   ProductsInsightsResponse,
   ProductsSkuTableResponse,
+  ReportsStatementResponse,
+  SalesBrandsResponse,
+  SalesDetailedTableResponse,
   ProjectionResponse,
   SummaryResponse,
   TopProductsResponse,
@@ -123,6 +126,75 @@ export function useAnalyticsProjections(filters: AnalyticsFilters) {
     queryFn: () => fetchJson(`/analytics/projections?${params}`, (a) => getToken(a)),
     enabled: !!tenantId,
     staleTime: 60_000,
+  })
+}
+
+export function useAnalyticsReportStatement(filters: AnalyticsFilters) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const params = buildParams(filters)
+
+  return useQuery<ReportsStatementResponse>({
+    queryKey: [
+      'analytics',
+      'reports-statement',
+      filters.start_date,
+      filters.end_date,
+      filters.platform,
+    ],
+    queryFn: () => fetchJson(`/analytics/reports/statement?${params}`, (a) => getToken(a)),
+    enabled: !!tenantId,
+    staleTime: 60_000,
+  })
+}
+
+export function useSalesByBrand(filters: AnalyticsFilters) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const params = buildParams(filters)
+  return useQuery<SalesBrandsResponse>({
+    queryKey: ['analytics', 'sales-by-brand', filters.start_date, filters.end_date, filters.platform],
+    queryFn: () => fetchJson(`/analytics/sales/brands?${params}`, (a) => getToken(a)),
+    enabled: !!tenantId,
+    staleTime: 60_000,
+  })
+}
+
+type SalesDetailedTableFilters = AnalyticsFilters & {
+  search?: string
+  page: number
+  page_size: number
+  sort_by?: string
+  sort_dir?: 'asc' | 'desc'
+}
+
+export function useSalesDetailedTable(filters: SalesDetailedTableFilters) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const params = buildParams(filters)
+  if (filters.search?.trim()) params.set('search', filters.search.trim())
+  params.set('page', String(filters.page))
+  params.set('page_size', String(filters.page_size))
+  if (filters.sort_by) params.set('sort_by', filters.sort_by)
+  if (filters.sort_dir) params.set('sort_dir', filters.sort_dir)
+
+  return useQuery<SalesDetailedTableResponse>({
+    queryKey: [
+      'analytics',
+      'sales-detailed-table',
+      filters.start_date,
+      filters.end_date,
+      filters.platform,
+      filters.search,
+      filters.page,
+      filters.page_size,
+      filters.sort_by,
+      filters.sort_dir,
+    ],
+    queryFn: () => fetchJson(`/analytics/sales/detailed-table?${params}`, (a) => getToken(a)),
+    enabled: !!tenantId,
+    staleTime: 60_000,
+    placeholderData: keepPreviousData,
   })
 }
 

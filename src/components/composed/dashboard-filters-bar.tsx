@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { ChannelsCombobox } from '@/components/composed/channels-combobox'
 import { DatePickerField } from '@/components/composed/date-picker-field'
@@ -46,6 +46,7 @@ export type DashboardFiltersBarProps = {
   onSelectAllPlatforms: () => void
   granularity: string
   onGranularityChange: (v: string) => void
+  sticky?: boolean
 }
 
 export function DashboardFiltersBar({
@@ -68,8 +69,13 @@ export function DashboardFiltersBar({
   onSelectAllPlatforms,
   granularity,
   onGranularityChange,
+  sticky = false,
 }: DashboardFiltersBarProps) {
   const [moreOpen, setMoreOpen] = useState(false)
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+  const barRef = useRef<HTMLDivElement | null>(null)
+  const [docked, setDocked] = useState(false)
+  const [barHeight, setBarHeight] = useState(0)
 
   const monthItems = useMemo(
     () => monthOptionsForYear(referenceYearForMonth, locale),
@@ -82,11 +88,45 @@ export function DashboardFiltersBar({
   const granularityTabClass =
     'h-[calc(100%-2px)] rounded-md px-3 text-xs font-medium data-active:bg-accent/15 data-active:text-accent-light data-active:shadow-[0_0_12px_rgba(91,140,255,0.2)]'
 
-  return (
+  useLayoutEffect(() => {
+    if (!sticky) return
+    const el = barRef.current
+    if (!el) return
+
+    const ro = new ResizeObserver(() => {
+      const next = Math.ceil(el.getBoundingClientRect().height)
+      setBarHeight(next)
+    })
+    ro.observe(el)
+    setBarHeight(Math.ceil(el.getBoundingClientRect().height))
+    return () => ro.disconnect()
+  }, [sticky])
+
+  useEffect(() => {
+    if (!sticky) return
+    const el = sentinelRef.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0]
+        setDocked(!entry.isIntersecting)
+      },
+      { root: null, threshold: 1 }
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [sticky])
+
+  const Container = (
     <div
+      ref={barRef}
       className={cn(
-        'rounded-xl border border-border-subtle/90 bg-bg-elevated/80 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_1px_0_rgba(91,140,255,0.06)]',
-        'backdrop-blur-sm dark:bg-bg-elevated/90'
+        'rounded-xl border border-border-subtle/90 bg-bg-elevated/80 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_1px_0_rgba(91,140,255,0.06)] backdrop-blur-sm transition-[transform,box-shadow,background-color,border-color] duration-200 ease-out dark:bg-bg-elevated/90',
+        docked &&
+          'border-accent/20 bg-bg-elevated/92 shadow-[0_16px_40px_rgba(0,0,0,0.35),0_0_0_1px_rgba(91,140,255,0.15)] dark:bg-bg-elevated/92',
+        docked ? 'translate-y-0 scale-[0.99]' : 'translate-y-0 scale-100'
       )}
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5">
@@ -112,12 +152,12 @@ export function DashboardFiltersBar({
           onSelectAll={onSelectAllPlatforms}
         />
 
-        <div className="min-w-[1rem] flex-1" />
+        <div className="min-w-4 flex-1" />
 
         <Popover open={moreOpen} onOpenChange={setMoreOpen}>
           <PopoverTrigger
             className={cn(
-              'inline-flex h-9 items-center gap-1.5 rounded-[12px] border border-border-subtle bg-white/[0.03] px-3 text-xs font-medium text-text-secondary shadow-none transition-colors hover:border-accent/40 hover:bg-accent/[0.08] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30'
+              'inline-flex h-9 items-center gap-1.5 rounded-lg border border-border-subtle bg-white/3 px-3 text-xs font-medium text-text-secondary shadow-none transition-colors hover:border-accent/40 hover:bg-accent/8 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30'
             )}
           >
             <SlidersHorizontalIcon className="size-3.5 opacity-80" aria-hidden />
@@ -192,7 +232,7 @@ export function DashboardFiltersBar({
               <div className="space-y-1.5">
                 <span className="text-[11px] text-text-tertiary">{t('filterGranularity')}</span>
                 <Tabs value={granularity} onValueChange={onGranularityChange}>
-                  <TabsList className="h-9 w-full gap-0.5 rounded-[12px] border border-border-subtle bg-white/[0.03] p-1">
+                  <TabsList className="h-9 w-full gap-0.5 rounded-lg border border-border-subtle bg-white/3 p-1">
                     <TabsTrigger value="daily" className={cn(granularityTabClass, 'flex-1')}>
                       {t('granularityDaily')}
                     </TabsTrigger>
@@ -210,5 +250,25 @@ export function DashboardFiltersBar({
         </Popover>
       </div>
     </div>
+  )
+
+  return (
+    sticky ? (
+      <div>
+        <div ref={sentinelRef} className="h-px w-full" />
+        {docked ? <div style={{ height: barHeight }} /> : null}
+        {docked ? (
+          <div className="fixed right-0 top-12 z-50 bg-bg-base/70 backdrop-blur-sm left-[var(--app-sidebar-offset,0px)]">
+            <div className="mx-auto max-w-[1600px] px-6 py-3 lg:px-10">
+              {Container}
+            </div>
+          </div>
+        ) : (
+          <div className="-mx-6 -mt-6 px-6 pt-6 lg:-mx-10 lg:-mt-8 lg:px-10 lg:pt-8">{Container}</div>
+        )}
+      </div>
+    ) : (
+      Container
+    )
   )
 }

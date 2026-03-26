@@ -5,14 +5,24 @@ import { cn } from "@/lib/utils"
 function Card({
   className,
   size = "default",
+  variant = "default",
   ...props
-}: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
+}: React.ComponentProps<"div"> & {
+  size?: "default" | "sm"
+  /** Same flat `--card` / KPI surface (#151a21 dark); no gradient or inset gloss. */
+  variant?: "default" | "solid"
+}) {
   return (
     <div
       data-slot="card"
       data-size={size}
+      data-variant={variant}
       className={cn(
-        "group/card flex flex-col gap-4 overflow-hidden rounded-[12px] border border-border-subtle bg-card bg-gradient-to-b from-white/[0.02] to-transparent py-6 text-sm text-card-foreground shadow-[0_1px_2px_rgba(0,0,0,0.06)] transition-[box-shadow,border-color,transform] duration-200 ease-out dark:from-white/[0.03] dark:shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_4px_24px_rgba(0,0,0,0.35)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 hover:-translate-y-px hover:border-border-default hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:hover:border-accent/25 dark:hover:shadow-[0_0_0_1px_rgba(91,140,255,0.12),0_12px_40px_-8px_rgba(0,0,0,0.55)] data-[size=sm]:gap-3 data-[size=sm]:py-4 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-[12px] *:[img:last-child]:rounded-b-[12px]",
+        "group/card flex flex-col gap-4 overflow-hidden rounded-[12px] border border-border-subtle bg-card py-6 text-sm text-card-foreground transition-[box-shadow,border-color] duration-200 ease-out has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 hover:border-border-default hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:hover:border-accent/25 dark:hover:shadow-[0_0_0_1px_rgba(91,140,255,0.12),0_12px_40px_-8px_rgba(0,0,0,0.55)] data-[size=sm]:gap-3 data-[size=sm]:py-4 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-[12px] *:[img:last-child]:rounded-b-[12px]",
+        variant === "default" &&
+          "bg-gradient-to-b from-white/[0.02] to-transparent shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:from-white/[0.03] dark:shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_4px_24px_rgba(0,0,0,0.35)]",
+        variant === "solid" &&
+          "shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.35)]",
         className
       )}
       {...props}

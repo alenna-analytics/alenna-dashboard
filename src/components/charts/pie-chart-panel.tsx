@@ -1,7 +1,7 @@
 import type { PieLabelRenderProps } from 'recharts'
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
-import { CHART_COLORS } from '@/components/charts/chart-theme'
+import { CHART_COLORS, chartPlotSurfaceClassName } from '@/components/charts/chart-theme'
 import { cn } from '@/lib/utils'
 
 export type PieChartDatum = { name: string; value: number }
@@ -95,7 +95,7 @@ export function PieChartPanel({
   outerRadius = 70,
 }: PieChartPanelProps) {
   return (
-    <div className={cn('w-full min-h-0', heightClassName, className)}>
+    <div className={cn('w-full min-h-0', chartPlotSurfaceClassName, heightClassName, className)}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart margin={{ top: 4, right: 8, bottom: 8, left: 8 }}>
           <Pie

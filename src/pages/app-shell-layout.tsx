@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
 
 import { useCurrentTenant, useTenantSwitcher } from '@/auth/hooks'
 import { AppBootLoader } from '@/components/layout/app-boot-loader'
@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils'
 
 export function AppShellLayout() {
   const { lang } = useLanguage()
+  const location = useLocation()
   const { tenantId } = useCurrentTenant()
   const { switchTenant } = useTenantSwitcher()
   const {
@@ -39,6 +40,7 @@ export function AppShellLayout() {
 
   const sidebarCollapsedUi = isLargeScreen && collapsed
   const drawerOpen = mobileNavOpen && !isLargeScreen
+  const mainRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     if (!drawerOpen) {
@@ -50,6 +52,18 @@ export function AppShellLayout() {
       document.body.style.overflow = previous
     }
   }, [drawerOpen])
+
+  useEffect(() => {
+    mainRef.current?.scrollTo(0, 0)
+  }, [location.pathname, location.search])
+
+  useEffect(() => {
+    const offset = !isLargeScreen ? '0px' : collapsed ? '4rem' : '15rem'
+    document.documentElement.style.setProperty('--app-sidebar-offset', offset)
+    return () => {
+      document.documentElement.style.removeProperty('--app-sidebar-offset')
+    }
+  }, [isLargeScreen, collapsed])
 
   const bootLoading =
     tenantsLoading || resolvingSingleTenant || (Boolean(tenantId) && meLoading)
@@ -98,7 +112,7 @@ export function AppShellLayout() {
             setMobileNavOpen(true)
           }}
         />
-        <main className="min-h-0 flex-1 overflow-y-auto bg-bg-base px-6 py-6 lg:px-10 lg:py-8">
+        <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto bg-bg-base px-6 py-6 lg:px-10 lg:py-8">
           {error ? (
             <div
               role="alert"

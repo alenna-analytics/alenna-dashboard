@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import {
   cartesianGridProps,
   chartMargins,
+  chartPlotSurfaceClassName,
   tooltipContentStyle,
   xAxisProps,
   yAxisProps,
@@ -40,7 +41,7 @@ export function MarginByChannelPanel({
   heightClassName = 'h-[300px]',
 }: MarginByChannelPanelProps) {
   return (
-    <div className={cn('w-full min-h-0', heightClassName)}>
+    <div className={cn('w-full min-h-0', chartPlotSurfaceClassName, heightClassName)}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={chartMargins}>
           <CartesianGrid {...cartesianGridProps} />

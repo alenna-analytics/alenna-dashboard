@@ -48,6 +48,7 @@ import {
   toTopProductChartRows,
   type CostEditorDraft,
 } from '@/lib/products-page-utils'
+import { chartPlotSurfaceClassName } from '@/components/charts/chart-theme'
 import { cn } from '@/lib/utils'
 
 export function ProductsPage() {
@@ -65,7 +66,7 @@ export function ProductsPage() {
         x === 'shopify' || x === 'amazon' || x === 'mercadolibre',
     )
   }, [params])
-  const granularity = params.get('granularity') ?? 'daily'
+  const granularity = params.get('granularity') ?? 'monthly'
   const platforms = selectedPlatforms ?? DASHBOARD_PLATFORMS
 
   const t = useMemo(() => {
@@ -166,36 +167,36 @@ export function ProductsPage() {
   const skuColumns = useMemo<DataTableColumn<ProductInsight>[]>(
     () => [
       {
-        key: 'product',
+        key: 'title',
         header: t('productsTableProduct'),
         cell: (row) => row.title,
       },
       {
-        key: 'sku',
+        key: 'internal_sku',
         header: t('productsTableSku'),
         mono: true,
         cell: (row) => row.internal_sku ?? '—',
       },
       {
-        key: 'revenue',
+        key: 'total_revenue',
         header: t('productsRevenue'),
         align: 'right',
         cell: (row) => formatCurrency(row.total_revenue),
       },
       {
-        key: 'units',
+        key: 'total_units',
         header: t('productsUnits'),
         align: 'right',
         cell: (row) => row.total_units.toLocaleString(),
       },
       {
-        key: 'cogs',
+        key: 'cogs_total',
         header: t('productsCogs'),
         align: 'right',
         cell: (row) => formatCurrency(row.cogs_total),
       },
       {
-        key: 'margin',
+        key: 'margin_pct',
         header: t('productsMargin'),
         align: 'right',
         cell: (row) => `${Number(row.margin_pct ?? 0).toFixed(1)}%`,
@@ -207,18 +208,18 @@ export function ProductsPage() {
   const costColumns = useMemo<DataTableColumn<ProductCostEditorRow>[]>(
     () => [
       {
-        key: 'product',
+        key: 'title',
         header: t('productsTableProduct'),
         cell: (row) => row.title,
       },
       {
-        key: 'original',
+        key: 'original_cost',
         header: t('productsTableCostOriginal'),
         align: 'right',
         cell: (row) => formatCurrency(row.original_cost),
       },
       {
-        key: 'current',
+        key: 'current_cost',
         header: t('productsTableCostCurrent'),
         align: 'right',
         cell: (row) => (
@@ -236,13 +237,13 @@ export function ProductsPage() {
         ),
       },
       {
-        key: 'units',
+        key: 'total_units',
         header: t('productsUnits'),
         align: 'right',
         cell: (row) => row.total_units.toLocaleString(),
       },
       {
-        key: 'delta',
+        key: 'delta_cogs',
         header: t('productsTableDeltaCogs'),
         align: 'right',
         cell: (row) => {
@@ -261,8 +262,7 @@ export function ProductsPage() {
     [costDraft, formatCurrency, t],
   )
 
-  const staticCardClassName =
-    'bg-card hover:translate-y-0'
+  const staticCardClassName = 'hover:translate-y-0'
   const hasQueryError = Boolean(insightsQuery.error)
 
   return (
@@ -278,6 +278,7 @@ export function ProductsPage() {
       <DashboardFiltersBar
         t={t}
         locale={dashboardLocale}
+        sticky
         startDate={startDate}
         endDate={endDate}
         onStartChange={(d) => {
@@ -347,7 +348,7 @@ export function ProductsPage() {
           <Skeleton className="h-[320px] w-full rounded-xl" />
         </div>
       ) : hasQueryError ? (
-        <Card className={staticCardClassName}>
+        <Card variant="solid" className={staticCardClassName}>
           <CardContent className="space-y-4 py-8">
             <div className="space-y-1">
               <h2 className="text-base font-semibold text-text-primary">
@@ -372,7 +373,7 @@ export function ProductsPage() {
         </Card>
       ) : (
         <>
-          <Card className={staticCardClassName}>
+          <Card variant="solid" className={staticCardClassName}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-text-primary">
                 {t('productsTopTitle')}
@@ -380,7 +381,7 @@ export function ProductsPage() {
               <p className="text-[11px] text-text-tertiary">{t('productsTopSubtitle')}</p>
             </CardHeader>
             <CardContent className="pb-4 pt-0">
-              <div className="h-[500px]">
+              <div className={cn('h-[500px]', chartPlotSurfaceClassName)}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={topRows} layout="vertical" margin={{ top: 8, right: 10, left: 8, bottom: 8 }}>
                     <CartesianGrid strokeDasharray="3 8" stroke="var(--chart-grid)" strokeOpacity={0.45} />
@@ -410,6 +411,7 @@ export function ProductsPage() {
                     />
                     <Bar
                       dataKey="shopify"
+                      name={PLATFORM_LABELS.shopify}
                       stackId="sales"
                       fill={COLORS_BY_CHANNEL.shopify}
                       radius={[0, 3, 3, 0]}
@@ -418,6 +420,7 @@ export function ProductsPage() {
                     />
                     <Bar
                       dataKey="amazon"
+                      name={PLATFORM_LABELS.amazon}
                       stackId="sales"
                       fill={COLORS_BY_CHANNEL.amazon}
                       radius={[0, 3, 3, 0]}
@@ -426,6 +429,7 @@ export function ProductsPage() {
                     />
                     <Bar
                       dataKey="mercadolibre"
+                      name={PLATFORM_LABELS.mercadolibre}
                       stackId="sales"
                       fill={COLORS_BY_CHANNEL.mercadolibre}
                       radius={[0, 3, 3, 0]}
@@ -439,7 +443,7 @@ export function ProductsPage() {
           </Card>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <Card className={staticCardClassName}>
+            <Card variant="solid" className={staticCardClassName}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-text-primary">
                   {t('productsTopMarginTitle')}
@@ -449,7 +453,7 @@ export function ProductsPage() {
                 <ProductsMarginBarChart rows={topMarginRows} color="#66bb6a" />
               </CardContent>
             </Card>
-            <Card className={staticCardClassName}>
+            <Card variant="solid" className={staticCardClassName}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-text-primary">
                   {t('productsBottomMarginTitle')}
@@ -461,7 +465,7 @@ export function ProductsPage() {
             </Card>
           </div>
 
-          <Card className={staticCardClassName}>
+          <Card variant="solid" className={staticCardClassName}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-text-primary">
                 {t('productsHeatmapTitle')}
@@ -565,7 +569,7 @@ export function ProductsPage() {
             </CardContent>
           </Card>
 
-          <Card className={staticCardClassName}>
+          <Card variant="solid" className={staticCardClassName}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-text-primary">
                 {t('productsSkuTableTitle')}
@@ -600,8 +604,8 @@ export function ProductsPage() {
                 columns={skuColumns}
                 rows={skuQuery.data?.items ?? []}
                 getRowKey={(row) => row.product_id}
-                page={skuQuery.data?.pagination.page ?? skuPage}
-                pageSize={skuQuery.data?.pagination.page_size ?? pageSize}
+                page={skuPage}
+                pageSize={pageSize}
                 total={skuQuery.data?.pagination.total ?? 0}
                 onPageChange={setSkuPage}
                 emptyContent={t('productsNoData')}
@@ -621,7 +625,7 @@ export function ProductsPage() {
             </CardContent>
           </Card>
 
-          <Card className={staticCardClassName}>
+          <Card variant="solid" className={staticCardClassName}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-text-primary">
                 {t('productsCostEditorTitle')}
@@ -679,8 +683,8 @@ export function ProductsPage() {
                 columns={costColumns}
                 rows={costQuery.data?.items ?? []}
                 getRowKey={(row) => row.product_id}
-                page={costQuery.data?.pagination.page ?? costPage}
-                pageSize={costQuery.data?.pagination.page_size ?? pageSize}
+                page={costPage}
+                pageSize={pageSize}
                 total={costQuery.data?.pagination.total ?? 0}
                 onPageChange={setCostPage}
                 emptyContent={t('productsNoData')}
@@ -772,7 +776,7 @@ function ProductsMarginBarChart({
   color: string
 }) {
   return (
-    <div className="h-[235px]">
+    <div className={cn('h-[235px]', chartPlotSurfaceClassName)}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={rows} layout="vertical" margin={{ top: 8, right: 12, left: 16, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 8" stroke="var(--chart-grid)" strokeOpacity={0.45} />

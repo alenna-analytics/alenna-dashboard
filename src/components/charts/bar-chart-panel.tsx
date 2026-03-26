@@ -12,6 +12,7 @@ import {
   cartesianGridProps,
   CHART_COLORS,
   chartMargins,
+  chartPlotSurfaceClassName,
   tooltipContentStyle,
   xAxisProps,
   yAxisProps,
@@ -36,7 +37,7 @@ export function BarChartPanel({
   className,
 }: BarChartPanelProps) {
   return (
-    <div className={cn('w-full min-h-0', heightClassName, className)}>
+    <div className={cn('w-full min-h-0', chartPlotSurfaceClassName, heightClassName, className)}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={chartMargins}>
           <CartesianGrid {...cartesianGridProps} />

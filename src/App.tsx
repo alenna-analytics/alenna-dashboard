@@ -10,6 +10,7 @@ import { HomePage } from '@/pages/HomePage'
 import { LegacyAppRedirect } from '@/pages/legacy-app-redirect'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { ProductsPage } from '@/pages/ProductsPage'
+import { ReportsPage } from '@/pages/ReportsPage'
 import { ServerErrorPage } from '@/pages/ServerErrorPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 
@@ -23,6 +24,7 @@ function App() {
         <Route path="/dashboard" element={<AppShellLayout />}>
           <Route index element={<Navigate to="/dashboard/sales" replace />} />
           <Route path="sales" element={<DashboardPage />} />
+          <Route path="reports" element={<ReportsPage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="connections" element={<ConnectorsPage />} />
           <Route path="expenses" element={<ExpensesPage />} />

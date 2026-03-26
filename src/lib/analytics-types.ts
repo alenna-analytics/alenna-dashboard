@@ -168,3 +168,71 @@ export type ProductCandidate = {
 export type ProductCatalogResponse = {
   items: ProductCandidate[]
 }
+
+export type ReportsErLine = {
+  label: string
+  value: string
+  kind: string
+  unit: '$' | '%'
+}
+
+export type ReportsChannelBreakdown = {
+  channel: string
+  lines: ReportsErLine[]
+}
+
+export type ReportsExpenseCategory = {
+  category: string
+  amount: string
+}
+
+export type ReportsMonthlyPoint = {
+  period_start: string
+  net_revenue: string
+  gross_profit: string
+  expenses: string
+  ebitda: string
+  ebitda_margin_pct: string
+}
+
+export type ReportsStatementResponse = {
+  gross_revenue: string
+  net_revenue: string
+  gross_profit: string
+  cogs: string
+  channel_commission: string
+  shipping_cost: string
+  gross_margin_pct: string
+  operating_expenses: string
+  ebitda: string
+  ebitda_margin_pct: string
+  statement_lines: ReportsErLine[]
+  channels: ReportsChannelBreakdown[]
+  expense_categories: ReportsExpenseCategory[]
+  monthly: ReportsMonthlyPoint[]
+}
+
+export type SalesBrandPoint = {
+  brand: string
+  net_revenue: string
+}
+
+export type SalesBrandsResponse = {
+  items: SalesBrandPoint[]
+}
+
+export type SalesDetailedRow = {
+  period_start: string
+  channel: string
+  gross_revenue: string
+  net_revenue: string
+  order_count: number
+  units_sold: number
+  gross_profit: string
+  margin_pct: string
+}
+
+export type SalesDetailedTableResponse = {
+  items: SalesDetailedRow[]
+  pagination: PaginationMeta
+}

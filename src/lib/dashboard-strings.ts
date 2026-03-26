@@ -18,6 +18,7 @@ const STRINGS = {
   es: {
     pageTitle: 'Ventas',
     pageDesc: 'Analítica de ingresos y KPIs',
+    salesPageDesc: 'Analisis de ventas por canal y periodo',
 
     filterStart: 'Fecha inicio',
     filterEnd: 'Fecha fin',
@@ -93,9 +94,23 @@ const STRINGS = {
     modalShipping: 'Envios',
     modalAds: 'Ads',
     modalGrossProfit: 'Utilidad bruta',
+    salesUtilityMarginTitle: 'Utilidad Bruta + Margen %',
+    salesMomTitle: 'Crecimiento MoM (Ventas Netas)',
+    salesByBrandTitle: 'Ventas por Marca',
+    salesDetailedTableTitle: 'Tabla Detallada',
+    salesTablePeriod: 'Periodo',
+    salesTableOrders: 'Pedidos',
 
     legendGross: 'Ventas brutas (menos opacidad)',
     legendNet: 'Ventas netas (más opacidad)',
+    reportsPageTitle: 'Reportes',
+    reportsPageDesc: 'Estado de resultados y rentabilidad consolidada',
+    reportsOperatingExpenses: 'Gastos operativos',
+    reportsStatementTitle: 'Estado de resultados consolidado',
+    reportsByChannelTitle: 'Desglose por canal',
+    reportsSalesMixTitle: 'Mix ventas por canal',
+    reportsExpensesByCategoryTitle: 'Gastos por categoria',
+    reportsEbitdaMargin: 'Margen EBITDA %',
 
     productsPageTitle: 'Productos',
     productsTopTitle: 'Top 15 Productos',
@@ -145,6 +160,7 @@ const STRINGS = {
   en: {
     pageTitle: 'Sales',
     pageDesc: 'Revenue analytics and KPIs',
+    salesPageDesc: 'Sales analysis by channel and period',
 
     filterStart: 'Start date',
     filterEnd: 'End date',
@@ -220,9 +236,23 @@ const STRINGS = {
     modalShipping: 'Shipping',
     modalAds: 'Ads',
     modalGrossProfit: 'Gross profit',
+    salesUtilityMarginTitle: 'Gross Profit + Margin %',
+    salesMomTitle: 'MoM Growth (Net Sales)',
+    salesByBrandTitle: 'Sales by Brand',
+    salesDetailedTableTitle: 'Detailed Table',
+    salesTablePeriod: 'Period',
+    salesTableOrders: 'Orders',
 
     legendGross: 'Gross (lower opacity)',
     legendNet: 'Net (higher opacity)',
+    reportsPageTitle: 'Reports',
+    reportsPageDesc: 'Consolidated statement and profitability',
+    reportsOperatingExpenses: 'Operating expenses',
+    reportsStatementTitle: 'Consolidated statement',
+    reportsByChannelTitle: 'Breakdown by channel',
+    reportsSalesMixTitle: 'Sales mix by channel',
+    reportsExpensesByCategoryTitle: 'Expenses by category',
+    reportsEbitdaMargin: 'EBITDA Margin %',
 
     productsPageTitle: 'Products',
     productsTopTitle: 'Top 15 Products',

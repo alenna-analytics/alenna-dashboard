@@ -36,6 +36,9 @@ type PaginatedDataTableProps<TRow> = {
   loadingLabel?: string
   selectAllColumnsLabel?: string
   deselectAllColumnsLabel?: string
+  sortBy?: string
+  sortDir?: 'asc' | 'desc'
+  onSortChange?: (key: string) => void
 }
 
 export function PaginatedDataTable<TRow>({
@@ -58,6 +61,9 @@ export function PaginatedDataTable<TRow>({
   toggleColumnsLabel = 'Toggle columns',
   selectAllColumnsLabel = 'Select all',
   deselectAllColumnsLabel = 'Deselect all',
+  sortBy,
+  sortDir,
+  onSortChange,
 }: PaginatedDataTableProps<TRow>) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const canPrev = page > 1
@@ -149,7 +155,7 @@ export function PaginatedDataTable<TRow>({
       </div>
 
       <div className="relative">
-        {isLoading ? (
+        {isLoading && rows.length === 0 ? (
           <div className="rounded-md border border-border-subtle/60 bg-bg-surface/72 p-3">
             <div className="space-y-2">
               <div
@@ -174,12 +180,25 @@ export function PaginatedDataTable<TRow>({
             </div>
           </div>
         ) : (
-          <DataTable
-            columns={visibleColumns}
-            rows={rows}
-            getRowKey={getRowKey}
-            emptyContent={emptyContent}
-          />
+          <>
+            <DataTable
+              columns={visibleColumns}
+              rows={rows}
+              getRowKey={getRowKey}
+              emptyContent={emptyContent}
+              sortBy={sortBy}
+              sortDir={sortDir}
+              onSortChange={onSortChange}
+            />
+            {isLoading ? (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-black/18 backdrop-blur-[1px]">
+                <div
+                  className="size-7 animate-spin rounded-full border-2 border-accent/35 border-t-accent"
+                  aria-label="loading"
+                />
+              </div>
+            ) : null}
+          </>
         )}
       </div>
       <div className="flex items-center justify-between gap-2">
@@ -196,7 +215,7 @@ export function PaginatedDataTable<TRow>({
             className="h-8 w-20 text-center"
             inputMode="numeric"
           />
-          <Button type="button" variant="outline" size="sm" onClick={applyGoToPage} disabled={isLoading}>
+          <Button type="button" variant="outline" size="sm" onClick={applyGoToPage}>
             {goLabel}
           </Button>
         </div>
@@ -206,7 +225,7 @@ export function PaginatedDataTable<TRow>({
             variant="outline"
             size="sm"
             onClick={() => onPageChange(page - 1)}
-            disabled={!canPrev || isLoading}
+            disabled={!canPrev}
           >
             {prevLabel}
           </Button>
@@ -219,7 +238,7 @@ export function PaginatedDataTable<TRow>({
                 size="sm"
                 className={cn('min-w-9 px-2', item === page && 'pointer-events-none')}
                 onClick={() => onPageChange(item)}
-                disabled={isLoading}
+                disabled={false}
               >
                 {item}
               </Button>
@@ -234,7 +253,7 @@ export function PaginatedDataTable<TRow>({
             variant="outline"
             size="sm"
             onClick={() => onPageChange(page + 1)}
-            disabled={!canNext || isLoading}
+            disabled={!canNext}
           >
             {nextLabel}
           </Button>

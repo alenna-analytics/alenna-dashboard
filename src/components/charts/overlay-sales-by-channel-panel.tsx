@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 
+import { chartPlotSurfaceClassName } from '@/components/charts/chart-theme'
 import { useCurrency } from '@/components/providers/currency-provider'
 import { cn } from '@/lib/utils'
 
@@ -125,7 +126,12 @@ export function OverlaySalesByChannelPanel({
         ))}
       </div>
 
-      <div className="min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden rounded-lg border border-border-subtle/60 bg-transparent">
+      <div
+        className={cn(
+          'min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden rounded-lg border border-border-subtle/60',
+          chartPlotSurfaceClassName,
+        )}
+      >
         <svg
           viewBox={`0 0 ${W} ${H}`}
           preserveAspectRatio="xMinYMin meet"
@@ -173,6 +179,14 @@ export function OverlaySalesByChannelPanel({
             const xCenter = padL + pIdx * periodW + periodW / 2
             return (
               <g key={d.periodKey}>
+                <line
+                  x1={xCenter}
+                  x2={xCenter}
+                  y1={padT}
+                  y2={padT + plotH}
+                  stroke="var(--chart-grid)"
+                  strokeOpacity={0.35}
+                />
                 <text
                   x={xCenter}
                   y={H - 10}

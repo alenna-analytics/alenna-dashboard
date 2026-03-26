@@ -13,7 +13,14 @@ import {
 import { useCurrency } from '@/components/providers/currency-provider'
 import { fmtPct } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import { CHART_COLORS, cartesianGridProps, chartMargins, xAxisProps, yAxisProps } from './chart-theme'
+import {
+  CHART_COLORS,
+  cartesianGridProps,
+  chartMargins,
+  chartPlotSurfaceClassName,
+  xAxisProps,
+  yAxisProps,
+} from './chart-theme'
 
 const STACK_ID = 'monthly-income'
 
@@ -50,7 +57,7 @@ export function MonthlyEvolutionPanel({
   const { formatCurrency } = useCurrency()
 
   return (
-    <div className={cn('w-full min-h-0', heightClassName)}>
+    <div className={cn('w-full min-h-0', chartPlotSurfaceClassName, heightClassName)}>
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={data} margin={chartMargins}>
           <CartesianGrid {...cartesianGridProps} />
@@ -90,7 +97,7 @@ export function MonthlyEvolutionPanel({
             stackId={STACK_ID}
             fill={CHART_COLORS[2]}
             fillOpacity={0.92}
-            radius={[0, 0, 0, 0]}
+            radius={[5, 5, 0, 0]}
           />
           <Bar
             dataKey="stackUbOverEbitda"
@@ -98,7 +105,7 @@ export function MonthlyEvolutionPanel({
             stackId={STACK_ID}
             fill={CHART_COLORS[1]}
             fillOpacity={0.48}
-            radius={[0, 0, 0, 0]}
+            radius={[5, 5, 0, 0]}
           />
           <Bar
             dataKey="stackNetOverUb"
@@ -106,7 +113,7 @@ export function MonthlyEvolutionPanel({
             stackId={STACK_ID}
             fill="var(--chart-4)"
             fillOpacity={0.42}
-            radius={[0, 0, 0, 0]}
+            radius={[5, 5, 0, 0]}
           />
           <Bar
             dataKey="stackGrossOverNet"
@@ -114,7 +121,7 @@ export function MonthlyEvolutionPanel({
             stackId={STACK_ID}
             fill={CHART_COLORS[0]}
             fillOpacity={0.38}
-            radius={[3, 3, 0, 0]}
+            radius={[5, 5, 0, 0]}
           />
           <Line
             type="monotone"

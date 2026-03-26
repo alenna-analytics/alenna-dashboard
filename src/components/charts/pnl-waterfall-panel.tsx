@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 
+import { chartPlotSurfaceClassName } from '@/components/charts/chart-theme'
 import { useCurrency } from '@/components/providers/currency-provider'
 import { cn } from '@/lib/utils'
 
@@ -172,6 +173,7 @@ export function PnlWaterfallPanel({
       ref={containerRef}
       className={cn(
         'relative w-full min-h-0 text-text-primary [&_svg]:overflow-visible',
+        chartPlotSurfaceClassName,
         heightClassName
       )}
     >
@@ -193,8 +195,8 @@ export function PnlWaterfallPanel({
                 y1={yy}
                 y2={yy}
                 stroke="var(--chart-grid)"
-                strokeDasharray="4 8"
-                opacity={0.4}
+                strokeDasharray="3 6"
+                opacity={0.85}
               />
               <text
                 x={padL - 8}
@@ -216,8 +218,9 @@ export function PnlWaterfallPanel({
           x2={W - padR}
           y1={zeroY}
           y2={zeroY}
-          stroke="rgba(255,255,255,0.12)"
-          strokeWidth={1}
+          stroke="var(--chart-grid)"
+          opacity={0.95}
+          strokeWidth={1.25}
         />
 
         {bars.slice(0, -1).map((b, i) => {

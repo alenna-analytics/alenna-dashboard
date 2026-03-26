@@ -118,7 +118,7 @@
   --chart-3: #f59e0b;
   --chart-4: #3b82f6;
   --chart-5: #ec4899;
-  --chart-grid: rgba(0, 0, 0, 0.06);
+  --chart-grid: rgba(0, 0, 0, 0.14);
   --chart-waterfall-connector: rgba(0, 0, 0, 0.34);
   --chart-waterfall-negative: #c47a7a;
   --chart-line-secondary: #b45353;
@@ -189,7 +189,7 @@
   --chart-3: #5a9f7a;
   --chart-4: #7a9fd4;
   --chart-5: #b89b7a;
-  --chart-grid: rgba(255, 255, 255, 0.04);
+  --chart-grid: rgba(255, 255, 255, 0.11);
   --chart-waterfall-connector: rgba(91, 140, 255, 0.22);
   --chart-waterfall-negative: #9a6a6f;
   --chart-line-secondary: rgba(154, 170, 200, 0.45);

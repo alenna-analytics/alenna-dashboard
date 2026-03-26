@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import {
   CreditCardIcon,
+  FileTextIcon,
   LayoutDashboardIcon,
   PackageIcon,
   PanelLeftCloseIcon,
@@ -105,6 +106,11 @@ export function AppSidebar({
         to: '/dashboard/sales',
         label: shellT(lang, 'navDashboard'),
         icon: LayoutDashboardIcon,
+      },
+      {
+        to: '/dashboard/reports',
+        label: shellT(lang, 'navReports'),
+        icon: FileTextIcon,
       },
       {
         to: '/dashboard/products',

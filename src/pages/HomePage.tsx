@@ -1,113 +1,14 @@
-import {
-  Show,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from '@clerk/react'
-import { Link } from 'react-router-dom'
-import reactLogo from '../assets/react.svg'
-import viteLogo from '../assets/vite.svg'
-import heroImg from '../assets/hero.png'
-import '../App.css'
+import { Show } from '@clerk/react'
+import { Navigate } from 'react-router-dom'
+
+import { AuthLoginPage } from '@/components/auth/auth-login-page'
 
 export function HomePage() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Ecommerce Analytics</h1>
-          <p>
-            Sign in to open the dashboard. Local dev uses{' '}
-            <code>.env.local</code> with <code>VITE_CLERK_PUBLISHABLE_KEY</code>
-            .
-          </p>
-        </div>
-        <Show when="signed-out">
-          <div className="auth-actions">
-            <SignInButton mode="modal" />
-            <SignUpButton mode="modal" />
-          </div>
-        </Show>
-        <Show when="signed-in">
-          <div className="auth-actions">
-            <UserButton />
-            <Link className="counter" to="/dashboard">
-              Open dashboard
-            </Link>
-          </div>
-        </Show>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank" rel="noreferrer">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank" rel="noreferrer">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a
-                href="https://github.com/vitejs/vite"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank" rel="noreferrer">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <main className="grid min-h-dvh place-items-center bg-[#050b16] bg-[radial-gradient(ellipse_90%_70%_at_20%_10%,rgba(91,140,255,0.14),transparent_55%),radial-gradient(ellipse_70%_50%_at_80%_90%,rgba(91,140,255,0.08),transparent_60%)] p-6 text-white">
+      <Show when="signed-in" fallback={<AuthLoginPage />}>
+        <Navigate to="/dashboard" replace />
+      </Show>
+    </main>
   )
 }

@@ -154,15 +154,11 @@ export function ReportsPage() {
       const ebitda = Number(item.ebitda)
       return {
         period: fmtDateByLanguage(item.period_start, lang),
-        gross_revenue: net,
         net_revenue: net,
         gross_profit: grossProfit,
         ebitda,
         margin_pct: Number(item.ebitda_margin_pct),
-        stackEbitda: Math.max(0, ebitda),
-        stackUbOverEbitda: Math.max(0, grossProfit - ebitda),
-        stackNetOverUb: Math.max(0, net - grossProfit),
-        stackGrossOverNet: 0,
+        monthlyOverlayMax: Math.max(net, grossProfit, ebitda),
       }
     })
   }, [report, lang])
@@ -327,11 +323,10 @@ export function ReportsPage() {
                   data={monthlyData}
                   barLayout={monthlyBarLayout}
                   titleLabels={{
-                    stackEbitda: t('traceEbitda'),
-                    stackLayerUb: t('monthlyStackLayerUb'),
-                    stackLayerNet: t('monthlyStackLayerNet'),
-                    stackLayerGross: t('monthlyStackLayerGross'),
-                    marginPct: t('reportsEbitdaMargin'),
+                    netRevenue: t('monthlyChartNetIngresos'),
+                    grossProfit: t('traceGrossProfit'),
+                    ebitda: t('traceEbitda'),
+                    marginPct: t('monthlyChartMarginLine'),
                   }}
                 />
               </CardContent>

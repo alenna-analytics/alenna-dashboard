@@ -108,10 +108,8 @@ export function PaginatedDataTable<TRow>({
           {pageLabel} {page} of {totalPages} · {total} {rowsLabel}
         </p>
         <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Button type="button" variant="outline" size="sm">
-              {columnSelectorLabel}
-            </Button>
+          <DropdownMenuTrigger render={<Button type="button" variant="outline" size="sm" />}>
+            {columnSelectorLabel}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuGroup>

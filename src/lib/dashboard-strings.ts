@@ -78,10 +78,8 @@ const STRINGS = {
     traceEbitda: 'EBITDA',
     traceMarginPct: 'Margen %',
 
-    monthlyStackEbitda: 'EBITDA',
-    monthlyStackLayerUb: 'Utilidad bruta − EBITDA',
-    monthlyStackLayerNet: 'Ventas netas − utilidad bruta',
-    monthlyStackLayerGross: 'Ventas brutas − ventas netas',
+    monthlyChartNetIngresos: 'Ventas netas (Ingresos)',
+    monthlyChartMarginLine: 'Margen %',
 
     costCogs: 'COGS',
     costCommission: 'Comisiones',
@@ -226,10 +224,8 @@ const STRINGS = {
     traceEbitda: 'EBITDA',
     traceMarginPct: 'Margin %',
 
-    monthlyStackEbitda: 'EBITDA',
-    monthlyStackLayerUb: 'Gross profit − EBITDA',
-    monthlyStackLayerNet: 'Net sales − gross profit',
-    monthlyStackLayerGross: 'Gross sales − net sales',
+    monthlyChartNetIngresos: 'Net sales (revenue)',
+    monthlyChartMarginLine: 'Margin %',
 
     costCogs: 'COGS',
     costCommission: 'Commissions',

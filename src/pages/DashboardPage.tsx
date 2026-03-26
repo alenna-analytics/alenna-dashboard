@@ -565,29 +565,28 @@ export function DashboardPage() {
         </div>
       )}
 
-      {/* Graph row 1 */}
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
-        <Card className="flex flex-1 flex-col lg:flex-[1.6]">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-text-secondary">
-              {t('wfTitle')}
-            </CardTitle>
-            {waterfallReconcileFootnote ? (
-              <p className="mt-1.5 max-w-2xl text-[10px] leading-snug text-text-tertiary">
-                {t('wfReconcileFootnote')}
-              </p>
-            ) : null}
-          </CardHeader>
-          <CardContent className="pb-6 pt-0">
-            {summaryLoading ? (
-              <Skeleton className="h-[280px] w-full rounded-xl" />
-            ) : (
-              <PnlWaterfallPanel steps={waterfallSteps} />
-            )}
-          </CardContent>
-        </Card>
+      <Card className="w-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-text-secondary">
+            {t('wfTitle')}
+          </CardTitle>
+          {waterfallReconcileFootnote ? (
+            <p className="mt-1.5 max-w-2xl text-[10px] leading-snug text-text-tertiary">
+              {t('wfReconcileFootnote')}
+            </p>
+          ) : null}
+        </CardHeader>
+        <CardContent className="pb-6 pt-0">
+          {summaryLoading ? (
+            <Skeleton className="h-[280px] w-full rounded-xl" />
+          ) : (
+            <PnlWaterfallPanel steps={waterfallSteps} />
+          )}
+        </CardContent>
+      </Card>
 
-        <Card className="flex flex-1 flex-col lg:flex-[0.7]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
+        <Card className="flex min-h-0 min-w-0 flex-col">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-text-secondary">
               {t('donutTitle')}
@@ -604,7 +603,7 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="flex flex-1 flex-col lg:flex-[0.7]">
+        <Card className="flex min-h-0 min-w-0 flex-col">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-text-secondary">
               {t('costTitle')}
@@ -659,61 +658,58 @@ export function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Graph row 3: overlay + margin */}
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
-        <Card className="flex flex-1 flex-col">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-text-secondary">
-              {t('overlayTitle')}
-            </CardTitle>
-            <p className="mt-1 text-[10px] leading-snug text-text-tertiary">
-              {t('overlayMonthlyHint')}
-            </p>
-          </CardHeader>
-          <CardContent className="pb-6 pt-0">
-            {shopifyOverlaySeries.isLoading ||
-            amazonOverlaySeries.isLoading ||
-            mlOverlaySeries.isLoading ? (
-              <Skeleton className="h-[360px] w-full rounded-xl" />
-            ) : overlayDataAndMaps.overlayData.length ? (
-              <OverlaySalesByChannelPanel
-                data={overlayDataAndMaps.overlayData as OverlaySalesDatum[]}
-                channels={activePlatforms as OverlaySalesChannel[]}
-                channelLabels={PLATFORM_LABELS}
-                colorsByChannel={COLORS_BY_CHANNEL}
-                grossLabel={t('legendGross')}
-                netLabel={t('legendNet')}
-                onSelect={onOverlaySelect}
-              />
-            ) : (
-              <div className="text-sm text-text-secondary">No data</div>
-            )}
-          </CardContent>
-        </Card>
+      <Card className="w-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-text-secondary">
+            {t('overlayTitle')}
+          </CardTitle>
+          <p className="mt-1 text-[10px] leading-snug text-text-tertiary">
+            {t('overlayMonthlyHint')}
+          </p>
+        </CardHeader>
+        <CardContent className="pb-6 pt-0">
+          {shopifyOverlaySeries.isLoading ||
+          amazonOverlaySeries.isLoading ||
+          mlOverlaySeries.isLoading ? (
+            <Skeleton className="h-[360px] w-full rounded-xl" />
+          ) : overlayDataAndMaps.overlayData.length ? (
+            <OverlaySalesByChannelPanel
+              data={overlayDataAndMaps.overlayData as OverlaySalesDatum[]}
+              channels={activePlatforms as OverlaySalesChannel[]}
+              channelLabels={PLATFORM_LABELS}
+              colorsByChannel={COLORS_BY_CHANNEL}
+              grossLabel={t('legendGross')}
+              netLabel={t('legendNet')}
+              onSelect={onOverlaySelect}
+            />
+          ) : (
+            <div className="text-sm text-text-secondary">No data</div>
+          )}
+        </CardContent>
+      </Card>
 
-        <Card className="flex flex-1 flex-col">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-text-secondary">
-              {t('marginTitle')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pb-6 pt-0">
-            {shopifyOverlaySeries.isLoading ||
-            amazonOverlaySeries.isLoading ||
-            mlOverlaySeries.isLoading ? (
-              <Skeleton className="h-[300px] w-full rounded-xl" />
-            ) : marginByChannelData.length ? (
-              <MarginByChannelPanel
-                data={marginByChannelData}
-                xKey="period"
-                series={marginSeries}
-              />
-            ) : (
-              <div className="text-sm text-text-secondary">No data</div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="w-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-text-secondary">
+            {t('marginTitle')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pb-6 pt-0">
+          {shopifyOverlaySeries.isLoading ||
+          amazonOverlaySeries.isLoading ||
+          mlOverlaySeries.isLoading ? (
+            <Skeleton className="h-[300px] w-full rounded-xl" />
+          ) : marginByChannelData.length ? (
+            <MarginByChannelPanel
+              data={marginByChannelData}
+              xKey="period"
+              series={marginSeries}
+            />
+          ) : (
+            <div className="text-sm text-text-secondary">No data</div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Modal: breakdown for clicked bar */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>

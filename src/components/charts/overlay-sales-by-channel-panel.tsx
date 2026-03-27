@@ -50,6 +50,12 @@ type OverlaySalesByChannelPanelProps = {
   visibilityGrossNetOptionLabel: string
   visibilityChannelsSectionLabel: string
   onSelect: (sel: OverlaySalesSelection) => void
+  seriesVisible?: {
+    gross: boolean
+    net: boolean
+    profit: boolean
+    margin: boolean
+  }
   heightClassName?: string
 }
 
@@ -84,8 +90,10 @@ export function OverlaySalesByChannelPanel({
   visibilityGrossNetOptionLabel,
   visibilityChannelsSectionLabel,
   onSelect,
+  seriesVisible,
   heightClassName = 'h-[380px]',
 }: OverlaySalesByChannelPanelProps) {
+  const metrics = seriesVisible ?? { gross: true, net: true, profit: true, margin: true }
   const { formatCurrency, formatCurrencyCompact } = useCurrency()
   const wrapRef = useRef<HTMLDivElement>(null)
   const [hover, setHover] = useState<HoverTip | null>(null)
@@ -148,8 +156,8 @@ export function OverlaySalesByChannelPanel({
     let m = 0
     for (const d of data) {
       for (const c of visibleChannels) {
-        const g = d.grossByChannel[c] ?? 0
-        const n = d.netByChannel[c] ?? 0
+        const g = metrics.gross ? (d.grossByChannel[c] ?? 0) : 0
+        const n = metrics.net ? (d.netByChannel[c] ?? 0) : 0
         m = Math.max(m, g, n)
       }
     }
@@ -162,7 +170,7 @@ export function OverlaySalesByChannelPanel({
       maxV: maxVal,
       yTicks: ticks,
     }
-  }, [data, visibleChannels, periodsN, plotContainerWidth, padL, padR, padT, padB, plotH])
+  }, [data, visibleChannels, periodsN, plotContainerWidth, padL, padR, padT, padB, plotH, metrics.gross, metrics.net])
 
   const yScale = (v: number) => padT + plotH - (v / maxV) * plotH
   const zeroY = yScale(0)
@@ -388,8 +396,8 @@ export function OverlaySalesByChannelPanel({
                 </text>
 
                 {visibleChannels.map((c, cIdx) => {
-                  const gross = d.grossByChannel[c] ?? 0
-                  const net = d.netByChannel[c] ?? 0
+                  const gross = metrics.gross ? (d.grossByChannel[c] ?? 0) : 0
+                  const net = metrics.net ? (d.netByChannel[c] ?? 0) : 0
                   const profit = d.profitByChannel[c] ?? 0
                   const marginPct = d.marginPctByChannel[c] ?? 0
                   const grossY = yScale(gross)
@@ -416,6 +424,7 @@ export function OverlaySalesByChannelPanel({
                     })
 
                   if (barLayout === 'stacked') {
+                    if (!metrics.gross && !metrics.net) return null
                     const x0 = xBarStartStacked(pIdx, cIdx)
                     const wFull = pairW
                     let yBottom: number
@@ -425,7 +434,21 @@ export function OverlaySalesByChannelPanel({
                     let opBottom: number
                     let opTop: number
 
-                    if (gross >= net) {
+                    if (!metrics.gross && metrics.net) {
+                      yBottom = yScale(net)
+                      hBottom = zeroY - yBottom
+                      yTopSeg = yBottom
+                      hTop = 0
+                      opBottom = 1
+                      opTop = 0
+                    } else if (metrics.gross && !metrics.net) {
+                      yBottom = yScale(gross)
+                      hBottom = zeroY - yBottom
+                      yTopSeg = yBottom
+                      hTop = 0
+                      opBottom = 0.38
+                      opTop = 0
+                    } else if (gross >= net) {
                       yBottom = yScale(net)
                       hBottom = zeroY - yBottom
                       yTopSeg = yScale(gross)
@@ -485,24 +508,28 @@ export function OverlaySalesByChannelPanel({
                       onClick={onClick}
                       style={{ cursor: 'pointer' }}
                     >
-                      <rect
-                        x={xGross}
-                        y={grossY}
-                        width={barW}
-                        height={grossH}
-                        rx={3}
-                        fill={color}
-                        fillOpacity={0.38}
-                      />
-                      <rect
-                        x={xNet}
-                        y={netY}
-                        width={barW}
-                        height={netH}
-                        rx={3}
-                        fill={color}
-                        fillOpacity={1}
-                      />
+                      {metrics.gross ? (
+                        <rect
+                          x={xGross}
+                          y={grossY}
+                          width={barW}
+                          height={grossH}
+                          rx={3}
+                          fill={color}
+                          fillOpacity={0.38}
+                        />
+                      ) : null}
+                      {metrics.net ? (
+                        <rect
+                          x={xNet}
+                          y={netY}
+                          width={barW}
+                          height={netH}
+                          rx={3}
+                          fill={color}
+                          fillOpacity={1}
+                        />
+                      ) : null}
                     </g>
                   )
                 })}
@@ -542,24 +569,28 @@ export function OverlaySalesByChannelPanel({
                     label: tooltipRows.gross,
                     value: formatCurrency(hover.gross),
                     swatch: { kind: 'channel' as const, opacity: 0.38 },
+                    show: metrics.gross,
                   },
                   {
                     label: tooltipRows.net,
                     value: formatCurrency(hover.net),
                     swatch: { kind: 'channel' as const, opacity: 1 },
+                    show: metrics.net,
                   },
                   {
                     label: tooltipRows.profit,
                     value: formatCurrency(hover.profit),
                     swatch: { kind: 'fixed' as const, color: TOOLTIP_SWATCH_PROFIT },
+                    show: metrics.profit,
                   },
                   {
                     label: tooltipRows.margin,
                     value: `${hover.marginPct.toFixed(1)}%`,
                     swatch: { kind: 'fixed' as const, color: TOOLTIP_SWATCH_MARGIN },
+                    show: metrics.margin,
                   },
                 ] as const
-              ).map((row) => (
+              ).filter((row) => row.show).map((row) => (
                 <div key={row.label} className="flex justify-between gap-6 text-[12px] leading-snug">
                   <span className="flex min-w-0 items-center gap-2 text-text-secondary">
                     <span

@@ -7,6 +7,7 @@ import {
   CartesianGrid,
   Cell,
   ComposedChart,
+  Legend,
   Line,
   Rectangle,
   ReferenceLine,
@@ -21,6 +22,7 @@ import {
   type OverlaySalesDatum,
   type SalesChannel as OverlaySalesChannel,
 } from '@/components/charts/overlay-sales-by-channel-panel'
+import { PieChartPanel } from '@/components/charts/pie-chart-panel'
 import { BAR_TOP_RADIUS, chartPlotSurfaceClassName, tooltipContentStyle } from '@/components/charts/chart-theme'
 import { DashboardFiltersBar } from '@/components/composed/dashboard-filters-bar'
 import type { DataTableColumn } from '@/components/composed/data-table'
@@ -30,14 +32,16 @@ import { StateTag } from '@/components/composed/state-tag'
 import { useCurrency } from '@/components/providers/currency-provider'
 import { useLanguage } from '@/components/providers/language-provider'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useAnalyticsDaily, useAnalyticsSummary, useSalesByBrand, useSalesDetailedTable } from '@/hooks/use-analytics'
-import type { AnalyticsFilters } from '@/lib/analytics-types'
+import { useAnalyticsDaily, useAnalyticsProducts, useAnalyticsSummary, useProductsInsights, useProductsSkuTable, useSalesByBrand, useSalesDetailedTable } from '@/hooks/use-analytics'
+import type { AnalyticsFilters, ProductInsight } from '@/lib/analytics-types'
 import { buildYearShortcutOptions, fullCalendarMonthValue, isFullCalendarYearRange } from '@/lib/dashboard-date-shortcuts'
 import { COLORS_BY_CHANNEL, DASHBOARD_PLATFORMS, PLATFORM_LABELS, dashboardT, type DashboardSalesChannel, type DashboardStringKey } from '@/lib/dashboard-strings'
 import { fmtDateByLanguage, fmtPct, toIso, toLocalIsoDate } from '@/lib/format'
+import { maxHeatmapValue, toHeatmapRows, toMarginChartRows, toTopProductChartRows } from '@/lib/products-page-utils'
 import { cn } from '@/lib/utils'
 
 type SalesChannel = DashboardSalesChannel
@@ -55,16 +59,52 @@ function parseDate(s: string | null, fallback: Date): Date {
   return isNaN(d.getTime()) ? fallback : d
 }
 
+type DrilldownSelection = {
+  periodKey: string
+  periodLabel: string
+}
+
+function periodRangeFromGranularity(periodKey: string, granularity: string): { start: string; end: string } {
+  const base = new Date(periodKey + 'T00:00:00')
+  if (Number.isNaN(base.getTime())) {
+    return { start: periodKey, end: periodKey }
+  }
+  const start = new Date(base)
+  const end = new Date(base)
+  if (granularity === 'weekly') {
+    end.setDate(end.getDate() + 6)
+  } else if (granularity === 'monthly') {
+    end.setMonth(end.getMonth() + 1)
+    end.setDate(0)
+  }
+  return { start: toLocalIsoDate(start), end: toLocalIsoDate(end) }
+}
+
 type UtilityTrendDatum = {
+  period_key: string
   period: string
   gross_revenue: number
   net_revenue: number
   gross_profit: number
   margin_pct: number
-  utilityNestedMax: number
+  utilityNestedScale: number
+  utilityNestedMin: number
 }
 
 type UtilityNestedMetricId = 'gross' | 'net' | 'profit'
+type MetricVisibility = {
+  gross: boolean
+  net: boolean
+  profit: boolean
+  margin: boolean
+}
+
+type MetricToggleItem = {
+  key: keyof MetricVisibility
+  label: string
+  color: string
+  dashed?: boolean
+}
 
 const UTIL_NESTED_LAYERS: readonly {
   id: UtilityNestedMetricId
@@ -78,28 +118,32 @@ const UTIL_NESTED_LAYERS: readonly {
 
 const UTIL_NESTED_TIE_ORDER: Record<UtilityNestedMetricId, number> = { gross: 0, net: 1, profit: 2 }
 
-function utilNestedBarsShape(props: BarShapeProps) {
+function utilNestedBarsShape(props: BarShapeProps, visibility?: MetricVisibility) {
   const p = props.payload as UtilityTrendDatum
   const { x, y, width, height } = props
-  const g = Math.max(0, p.gross_revenue)
-  const n = Math.max(0, p.net_revenue)
-  const pr = Math.max(0, p.gross_profit)
-  const m = Math.max(g, n, pr)
-  if (m <= 0 || width <= 0 || height <= 0) return null
+  const v = visibility ?? { gross: true, net: true, profit: true, margin: true }
+  const g = v.gross ? p.gross_revenue : 0
+  const n = v.net ? p.net_revenue : 0
+  const pr = v.profit ? p.gross_profit : 0
+  const maxPositive = Math.max(0, g, n, pr)
+  const minNegative = Math.min(0, g, n, pr)
+  const scaleBase = Math.max(maxPositive, Math.abs(minNegative))
+  if (scaleBase <= 0 || width <= 0 || height <= 0) return null
   const zeroY = y + height
+  const pxPerUnit = height / scaleBase
   const triples = UTIL_NESTED_LAYERS.map((layer) => ({
     ...layer,
     value: layer.id === 'gross' ? g : layer.id === 'net' ? n : pr,
-  })).filter((t) => t.value > 0)
+  })).filter((t) => t.value !== 0)
   triples.sort((a, b) => {
-    if (b.value !== a.value) return b.value - a.value
+    if (Math.abs(b.value) !== Math.abs(a.value)) return Math.abs(b.value) - Math.abs(a.value)
     return UTIL_NESTED_TIE_ORDER[a.id] - UTIL_NESTED_TIE_ORDER[b.id]
   })
   return (
     <g>
       {triples.map((t) => {
-        const h = (t.value / m) * height
-        const yTop = zeroY - h
+        const h = Math.max(1, Math.abs(t.value) * pxPerUnit)
+        const yTop = t.value > 0 ? zeroY - h : zeroY
         return (
           <Rectangle
             key={t.id}
@@ -109,12 +153,16 @@ function utilNestedBarsShape(props: BarShapeProps) {
             height={h}
             fill={t.fill}
             fillOpacity={t.fillOpacity}
-            radius={BAR_TOP_RADIUS}
+            radius={t.value > 0 ? BAR_TOP_RADIUS : [0, 0, 5, 5]}
           />
         )
       })}
     </g>
   )
+}
+
+function utilGroupedSignedShape(props: BarShapeProps) {
+  return <Rectangle {...props} radius={BAR_TOP_RADIUS} />
 }
 
 const UTILITY_TOOLTIP_COLORS: Record<string, string> = {
@@ -149,7 +197,7 @@ function utilityTooltipEntry(
 
 function utilityTrendRowFromTooltipPayload(
   payload: readonly unknown[] | undefined,
-): Omit<UtilityTrendDatum, 'utilityNestedMax'> | undefined {
+): { period: string; gross_revenue: number; net_revenue: number; gross_profit: number; margin_pct: number } | undefined {
   if (!payload?.length) return undefined
   const raw = payload[0]
   if (raw === null || typeof raw !== 'object') return undefined
@@ -176,12 +224,14 @@ function UtilityMarginChartTooltip({
   label,
   formatCurrency,
   t,
+  metricsVisible,
 }: {
   active?: boolean
   payload?: readonly unknown[]
   label?: unknown
   formatCurrency: (n: number) => string
   t: (key: DashboardStringKey) => string
+  metricsVisible: MetricVisibility
 }) {
   if (!active || !payload?.length) return null
 
@@ -204,6 +254,15 @@ function UtilityMarginChartTooltip({
       <div className="flex flex-col gap-1.5">
         {rows.map(({ dataKey, pct }) => {
           const item = utilityTooltipEntry(payload, dataKey)
+          const visible =
+            dataKey === 'gross_revenue'
+              ? metricsVisible.gross
+              : dataKey === 'net_revenue'
+                ? metricsVisible.net
+                : dataKey === 'gross_profit'
+                  ? metricsVisible.profit
+                  : metricsVisible.margin
+          if (!visible) return null
           const v =
             item?.value ??
             (datum && dataKey === 'gross_revenue'
@@ -294,6 +353,28 @@ export function DashboardPage() {
   const detailsPageSize = 15
   const [utilityBarLayout, setUtilityBarLayout] = useState<'grouped' | 'stacked'>('stacked')
   const [overlayBarLayout, setOverlayBarLayout] = useState<'grouped' | 'stacked'>('stacked')
+  const [overlayMetricsVisible, setOverlayMetricsVisible] = useState<MetricVisibility>({
+    gross: true,
+    net: true,
+    profit: true,
+    margin: true,
+  })
+  const [utilityMetricsVisible, setUtilityMetricsVisible] = useState<MetricVisibility>({
+    gross: true,
+    net: true,
+    profit: true,
+    margin: true,
+  })
+  const [productsSkuSearch, setProductsSkuSearch] = useState('')
+  const [productsSkuPage, setProductsSkuPage] = useState(1)
+  const [drilldown, setDrilldown] = useState<DrilldownSelection | null>(null)
+  const [drillChannelMetricsVisible, setDrillChannelMetricsVisible] = useState<MetricVisibility>({
+    gross: true,
+    net: true,
+    profit: true,
+    margin: true,
+  })
+  const productsPageSize = 10
 
   const summaryQuery = useAnalyticsSummary(filters)
   const totalSeriesQuery = useAnalyticsDaily(filters)
@@ -302,6 +383,13 @@ export function DashboardPage() {
   const amazonSeriesQuery = useAnalyticsDaily({ ...filters, platform: ['amazon'] })
   const mlSeriesQuery = useAnalyticsDaily({ ...filters, platform: ['mercadolibre'] })
   const salesByBrandQuery = useSalesByBrand(filters)
+  const productsInsightsQuery = useProductsInsights({ ...filters, limit: 15 })
+  const productsSkuQuery = useProductsSkuTable({
+    ...filters,
+    search: productsSkuSearch,
+    page: productsSkuPage,
+    page_size: productsPageSize,
+  })
   const detailedQuery = useSalesDetailedTable({
     ...filters,
     search: detailsSearch,
@@ -310,6 +398,46 @@ export function DashboardPage() {
     sort_by: detailsSortBy,
     sort_dir: detailsSortDir,
   })
+
+  const drillFilters = useMemo(() => {
+    if (!drilldown) return null
+    const range = periodRangeFromGranularity(drilldown.periodKey, granularity)
+    return {
+      start_date: range.start,
+      end_date: range.end,
+      granularity,
+      platform: selectedPlatforms,
+    } satisfies AnalyticsFilters
+  }, [drilldown, granularity, selectedPlatforms])
+
+  const drillSummaryQuery = useAnalyticsSummary(
+    drillFilters ?? {
+      start_date: toIso(startDate),
+      end_date: toIso(endDate),
+      granularity,
+      platform: selectedPlatforms,
+    },
+  )
+  const drillShopifyQuery = useAnalyticsDaily(
+    drillFilters
+      ? { ...drillFilters, platform: ['shopify'] }
+      : { start_date: toIso(startDate), end_date: toIso(endDate), granularity, platform: ['shopify'] },
+  )
+  const drillAmazonQuery = useAnalyticsDaily(
+    drillFilters
+      ? { ...drillFilters, platform: ['amazon'] }
+      : { start_date: toIso(startDate), end_date: toIso(endDate), granularity, platform: ['amazon'] },
+  )
+  const drillMlQuery = useAnalyticsDaily(
+    drillFilters
+      ? { ...drillFilters, platform: ['mercadolibre'] }
+      : { start_date: toIso(startDate), end_date: toIso(endDate), granularity, platform: ['mercadolibre'] },
+  )
+  const drillTopProductsQuery = useAnalyticsProducts(
+    drillFilters
+      ? { start_date: drillFilters.start_date, end_date: drillFilters.end_date, granularity: drillFilters.granularity, limit: 5 }
+      : { start_date: toIso(startDate), end_date: toIso(endDate), granularity, limit: 5 },
+  )
 
   const platformSeries = useMemo(() => ({
     shopify: shopifySeriesQuery.data?.series ?? [],
@@ -351,16 +479,36 @@ export function DashboardPage() {
         const gross_revenue = Number(pt.gross_revenue)
         const net_revenue = Number(pt.net_revenue)
         const gross_profit = Number(pt.gross_profit)
+        const maxPositive = Math.max(0, gross_revenue, net_revenue, gross_profit)
+        const minNegative = Math.min(0, gross_revenue, net_revenue, gross_profit)
         return {
+          period_key: pt.period_start,
           period: fmtDateByLanguage(pt.period_start, lang),
           gross_revenue,
           net_revenue,
           gross_profit,
           margin_pct: Number(pt.margin_pct),
-          utilityNestedMax: Math.max(gross_revenue, net_revenue, gross_profit),
+          utilityNestedScale: Math.max(maxPositive, Math.abs(minNegative)),
+          utilityNestedMin: minNegative,
         }
       }),
     [totalSeriesQuery.data, lang],
+  )
+  const utilityTrendRows = useMemo(
+    () =>
+      trendRows.map((row) => {
+        const g = utilityMetricsVisible.gross ? row.gross_revenue : 0
+        const n = utilityMetricsVisible.net ? row.net_revenue : 0
+        const p = utilityMetricsVisible.profit ? row.gross_profit : 0
+        const maxPositive = Math.max(0, g, n, p)
+        const minNegative = Math.min(0, g, n, p)
+        return {
+          ...row,
+          utilityNestedScale: Math.max(maxPositive, Math.abs(minNegative)),
+          utilityNestedMin: minNegative,
+        }
+      }),
+    [trendRows, utilityMetricsVisible],
   )
 
   const momRows = useMemo(() => {
@@ -379,6 +527,119 @@ export function DashboardPage() {
     brand: item.brand,
     net_revenue: Number(item.net_revenue),
   })), [salesByBrandQuery.data])
+
+  const productsTopRows = useMemo(
+    () => toTopProductChartRows(productsInsightsQuery.data?.top_products ?? []).slice(0, 15),
+    [productsInsightsQuery.data],
+  )
+  const productsTopMarginRows = useMemo(
+    () => toMarginChartRows(productsInsightsQuery.data?.top_margin ?? []).reverse(),
+    [productsInsightsQuery.data],
+  )
+  const productsBottomMarginRows = useMemo(
+    () => toMarginChartRows(productsInsightsQuery.data?.bottom_margin ?? []).reverse(),
+    [productsInsightsQuery.data],
+  )
+  const productsChannels = useMemo<string[]>(
+    () => productsInsightsQuery.data?.channels ?? [...activePlatforms],
+    [productsInsightsQuery.data, activePlatforms],
+  )
+  const productsHeatmapRows = useMemo(
+    () => toHeatmapRows(productsInsightsQuery.data?.heatmap ?? [], productsChannels),
+    [productsInsightsQuery.data, productsChannels],
+  )
+  const productsHeatmapMax = useMemo(
+    () => maxHeatmapValue(productsHeatmapRows, productsChannels),
+    [productsHeatmapRows, productsChannels],
+  )
+
+  const productsSkuColumns = useMemo<DataTableColumn<ProductInsight>[]>(
+    () => [
+      { key: 'title', header: t('productsTableProduct'), cell: (row) => row.title },
+      { key: 'internal_sku', header: t('productsTableSku'), mono: true, cell: (row) => row.internal_sku ?? '—' },
+      { key: 'total_revenue', header: t('productsRevenue'), align: 'right', cell: (row) => formatCurrency(row.total_revenue) },
+      { key: 'total_units', header: t('productsUnits'), align: 'right', cell: (row) => row.total_units.toLocaleString() },
+      { key: 'cogs_total', header: t('productsCogs'), align: 'right', cell: (row) => formatCurrency(row.cogs_total) },
+      {
+        key: 'margin_pct',
+        header: t('productsMargin'),
+        align: 'right',
+        cell: (row) => `${Number(row.margin_pct ?? 0).toFixed(1)}%`,
+      },
+    ],
+    [formatCurrency, t],
+  )
+
+  const drillSummary = drillSummaryQuery.data?.current
+  const drillKpis = useMemo(() => {
+    if (!drillSummary) return []
+    return [
+      { label: t('kpiGross'), value: formatCurrency(drillSummary.gross_revenue), color: '#9CCBFF' },
+      { label: t('kpiNet'), value: formatCurrency(drillSummary.net_revenue), color: '#5b8cff' },
+      { label: t('kpiGrossProfit'), value: formatCurrency(drillSummary.gross_profit), color: '#66bb6a' },
+      { label: t('kpiMargin'), value: fmtPct(drillSummary.margin_pct), color: '#a78bfa' },
+      { label: t('costCogs'), value: formatCurrency(drillSummary.cogs), color: '#f87171' },
+      { label: t('costCommission'), value: formatCurrency(drillSummary.channel_commission), color: '#ffb74d' },
+      { label: t('salesTableOrders'), value: Number(drillSummary.order_count).toLocaleString(), color: '#f0f2f8' },
+      { label: t('kpiReceived'), value: formatCurrency(drillSummary.disbursement), color: '#66bb6a' },
+    ]
+  }, [drillSummary, t, formatCurrency])
+
+  const drillChannelRows = useMemo(() => {
+    const pointFor = (series: { series: { gross_revenue: string; net_revenue: string; gross_profit: string }[] } | undefined) => {
+      const row = series?.series?.[0]
+      return {
+        gross_revenue: row ? Number(row.gross_revenue) : 0,
+        net_revenue: row ? Number(row.net_revenue) : 0,
+        gross_profit: row ? Number(row.gross_profit) : 0,
+      }
+    }
+    const sh = pointFor(drillShopifyQuery.data)
+    const amz = pointFor(drillAmazonQuery.data)
+    const ml = pointFor(drillMlQuery.data)
+    return [
+      { channel: 'Shopify', ...sh },
+      { channel: 'Amazon', ...amz },
+      { channel: 'Mercado Libre', ...ml },
+    ].filter((row) => {
+      const ch = row.channel === 'Shopify' ? 'shopify' : row.channel === 'Amazon' ? 'amazon' : 'mercadolibre'
+      return activePlatforms.includes(ch as SalesChannel)
+    }).map((row) => ({
+      channel: row.channel,
+      gross_revenue: drillChannelMetricsVisible.gross ? row.gross_revenue : 0,
+      net_revenue: drillChannelMetricsVisible.net ? row.net_revenue : 0,
+      gross_profit: drillChannelMetricsVisible.profit ? row.gross_profit : 0,
+    }))
+  }, [drillShopifyQuery.data, drillAmazonQuery.data, drillMlQuery.data, activePlatforms, drillChannelMetricsVisible])
+
+  const drillMixData = useMemo(
+    () =>
+      [
+        { name: PLATFORM_LABELS.shopify, value: Number(drillShopifyQuery.data?.series?.[0]?.net_revenue ?? 0) },
+        { name: PLATFORM_LABELS.amazon, value: Number(drillAmazonQuery.data?.series?.[0]?.net_revenue ?? 0) },
+        { name: PLATFORM_LABELS.mercadolibre, value: Number(drillMlQuery.data?.series?.[0]?.net_revenue ?? 0) },
+      ].filter((r) => r.value > 0),
+    [drillShopifyQuery.data, drillAmazonQuery.data, drillMlQuery.data],
+  )
+  const drillTopProductsRows = useMemo(
+    () =>
+      (drillTopProductsQuery.data?.products ?? []).slice(0, 15).map((item) => ({
+        name: item.internal_sku ? `${item.title} (${item.internal_sku})` : item.title,
+        shopify: Number(item.revenue_by_platform.shopify ?? 0),
+        amazon: Number(item.revenue_by_platform.amazon ?? 0),
+        mercadolibre: Number(item.revenue_by_platform.mercadolibre ?? 0),
+      })).slice(0, 5),
+    [drillTopProductsQuery.data],
+  )
+  const drillCostMix = useMemo(() => {
+    if (!drillSummary) return []
+    return [
+      { name: t('costAds'), value: Math.abs(Number(drillSummary.ads_spend)) },
+      { name: t('costCommission'), value: Math.abs(Number(drillSummary.channel_commission)) },
+      { name: t('costCogs'), value: Math.abs(Number(drillSummary.cogs)) },
+      { name: t('costShipping'), value: Math.abs(Number(drillSummary.shipping_cost)) },
+    ].filter((row) => row.value > 0)
+  }, [drillSummary, t])
 
   const detailedRows = useMemo(() => {
     const channelLabel = (channel: string): string => {
@@ -456,6 +717,10 @@ export function DashboardPage() {
     shopifySeriesQuery.isLoading ||
     amazonSeriesQuery.isLoading ||
     mlSeriesQuery.isLoading
+
+  const openUtilityDrilldown = (row: UtilityTrendDatum) => {
+    setDrilldown({ periodKey: row.period_key, periodLabel: row.period })
+  }
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-8 pb-6">
@@ -559,9 +824,18 @@ export function DashboardPage() {
               visibilityMenuTitle={t('overlayVisibilityTitle')}
               visibilityGrossNetOptionLabel={t('overlayVisibilityGrossNet')}
               visibilityChannelsSectionLabel={t('overlayVisibilityChannels')}
+              seriesVisible={overlayMetricsVisible}
               onSelect={() => {}}
             />
           )}
+          <MetricToggleLegend
+            items={[
+              { key: 'gross', label: t('traceGrossRevenue'), color: '#9CCBFF' },
+              { key: 'net', label: t('traceNetRevenue'), color: '#5b8cff' },
+            ]}
+            visibility={overlayMetricsVisible}
+            onToggle={(key) => setOverlayMetricsVisible((prev) => ({ ...prev, [key]: !prev[key] }))}
+          />
         </CardContent>
       </Card>
 
@@ -593,7 +867,7 @@ export function DashboardPage() {
           ) : (
             <div className={cn('h-[320px]', chartPlotSurfaceClassName)}>
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={trendRows}>
+                <ComposedChart data={utilityTrendRows}>
                   <CartesianGrid strokeDasharray="0" stroke="var(--chart-grid)" strokeOpacity={0.65} vertical />
                   <XAxis dataKey="period" />
                   <YAxis tickFormatter={(v) => formatCurrency(v)} width={56} />
@@ -605,6 +879,7 @@ export function DashboardPage() {
                         {...props}
                         formatCurrency={formatCurrency}
                         t={t}
+                        metricsVisible={utilityMetricsVisible}
                       />
                     )}
                   />
@@ -615,36 +890,81 @@ export function DashboardPage() {
                         name={t('traceGrossRevenue')}
                         fill="#9CCBFF"
                         fillOpacity={0.9}
-                        radius={BAR_TOP_RADIUS}
+                        shape={utilGroupedSignedShape}
+                        isAnimationActive
+                        animationDuration={280}
+                        hide={!utilityMetricsVisible.gross}
+                        onClick={(_, idx) => {
+                          const row = utilityTrendRows[idx]
+                          if (row) openUtilityDrilldown(row)
+                        }}
                       />
                       <Bar
                         dataKey="net_revenue"
                         name={t('traceNetRevenue')}
                         fill="rgba(91,140,255,0.55)"
-                        radius={BAR_TOP_RADIUS}
+                        shape={utilGroupedSignedShape}
+                        isAnimationActive
+                        animationDuration={280}
+                        hide={!utilityMetricsVisible.net}
+                        onClick={(_, idx) => {
+                          const row = utilityTrendRows[idx]
+                          if (row) openUtilityDrilldown(row)
+                        }}
                       />
                       <Bar
                         dataKey="gross_profit"
                         name={t('traceGrossProfit')}
                         fill="#66bb6a"
-                        radius={BAR_TOP_RADIUS}
+                        shape={utilGroupedSignedShape}
+                        isAnimationActive
+                        animationDuration={280}
+                        hide={!utilityMetricsVisible.profit}
+                        onClick={(_, idx) => {
+                          const row = utilityTrendRows[idx]
+                          if (row) openUtilityDrilldown(row)
+                        }}
                       />
                     </>
                   ) : (
-                    <Bar
-                      dataKey="utilityNestedMax"
-                      legendType="none"
-                      fill="transparent"
-                      stroke="none"
-                      isAnimationActive={false}
-                      shape={utilNestedBarsShape}
-                    />
+                    <>
+                      <Bar
+                        dataKey="utilityNestedMin"
+                        legendType="none"
+                        fill="transparent"
+                        stroke="none"
+                        isAnimationActive={false}
+                      />
+                      <Bar
+                        dataKey="utilityNestedScale"
+                        legendType="none"
+                        fill="transparent"
+                        stroke="none"
+                        isAnimationActive
+                        animationDuration={280}
+                        shape={(props) => utilNestedBarsShape(props, utilityMetricsVisible)}
+                        onClick={(_, idx) => {
+                          const row = utilityTrendRows[idx]
+                          if (row) openUtilityDrilldown(row)
+                        }}
+                      />
+                    </>
                   )}
-                  <Line yAxisId="right" type="monotone" dataKey="margin_pct" name={t('traceMarginPct')} stroke="#f87171" strokeWidth={2} />
+                  <Line yAxisId="right" type="monotone" dataKey="margin_pct" name={t('traceMarginPct')} stroke="#f87171" strokeWidth={2} hide={!utilityMetricsVisible.margin} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
           )}
+          <MetricToggleLegend
+            items={[
+              { key: 'gross', label: t('traceGrossRevenue'), color: '#9CCBFF' },
+              { key: 'net', label: t('traceNetRevenue'), color: '#5b8cff' },
+              { key: 'profit', label: t('traceGrossProfit'), color: '#66bb6a' },
+              { key: 'margin', label: t('traceMarginPct'), color: '#f87171', dashed: true },
+            ]}
+            visibility={utilityMetricsVisible}
+            onToggle={(key) => setUtilityMetricsVisible((prev) => ({ ...prev, [key]: !prev[key] }))}
+          />
         </CardContent>
       </Card>
 
@@ -712,6 +1032,139 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <section className="space-y-6">
+        <h2 className="text-lg font-semibold text-text-primary">{t('productsPageTitle')}</h2>
+        <Card variant="solid">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">{t('productsTopTitle')}</CardTitle>
+            <p className="text-[11px] text-text-tertiary">{t('productsTopSubtitle')}</p>
+          </CardHeader>
+          <CardContent className="pb-4 pt-0">
+            {productsInsightsQuery.isLoading ? (
+              <Skeleton className="h-[500px] w-full rounded-xl" />
+            ) : (
+              <div className={cn('h-[500px]', chartPlotSurfaceClassName)}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={productsTopRows} layout="vertical" margin={{ top: 8, right: 10, left: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 8" stroke="var(--chart-grid)" strokeOpacity={0.45} />
+                    <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} tick={{ fontSize: 11 }} minTickGap={24} />
+                    <YAxis type="category" dataKey="name" width={210} tick={{ fontSize: 11 }} interval={0} />
+                    <Tooltip
+                      contentStyle={{ ...tooltipContentStyle, border: '1px solid var(--border-subtle)' }}
+                      formatter={(value) => formatCurrency(Number(value))}
+                      cursor={{ fill: 'transparent' }}
+                    />
+                    <Bar dataKey="shopify" name={PLATFORM_LABELS.shopify} stackId="sales" fill={COLORS_BY_CHANNEL.shopify} radius={[0, 3, 3, 0]} fillOpacity={0.9} />
+                    <Bar dataKey="amazon" name={PLATFORM_LABELS.amazon} stackId="sales" fill={COLORS_BY_CHANNEL.amazon} radius={[0, 3, 3, 0]} fillOpacity={0.9} />
+                    <Bar dataKey="mercadolibre" name={PLATFORM_LABELS.mercadolibre} stackId="sales" fill={COLORS_BY_CHANNEL.mercadolibre} radius={[0, 3, 3, 0]} fillOpacity={0.9} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <Card variant="solid">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">{t('productsTopMarginTitle')}</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <ProductsMarginBarChart rows={productsTopMarginRows} color="#66bb6a" />
+            </CardContent>
+          </Card>
+          <Card variant="solid">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">{t('productsBottomMarginTitle')}</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <ProductsMarginBarChart rows={productsBottomMarginRows} color="#f87171" />
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card variant="solid">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">{t('productsHeatmapTitle')}</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="max-h-[420px] overflow-auto rounded-lg border border-border-subtle/60">
+              <table className="w-full min-w-[640px] border-separate border-spacing-0 text-sm">
+                <thead className="sticky top-0 z-10 bg-card">
+                  <tr>
+                    <th className="sticky left-0 z-20 min-w-[320px] border-b border-border-subtle bg-card px-3 py-2 text-left text-xs text-text-tertiary uppercase">
+                      {t('productsTableProduct')}
+                    </th>
+                    {productsChannels.map((channel) => (
+                      <th key={channel} className="border-b border-border-subtle bg-card px-3 py-2 text-center text-xs text-text-tertiary uppercase">
+                        {PLATFORM_LABELS[channel as keyof typeof PLATFORM_LABELS] ?? channel}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {productsHeatmapRows.map((row) => (
+                    <tr key={row.product_id} className="group border-b border-border-subtle/40 hover:bg-accent/5">
+                      <td className="sticky left-0 z-10 max-w-[320px] truncate border-b border-border-subtle/40 bg-card px-3 py-2 text-text-secondary group-hover:bg-accent/5">
+                        {row.title}
+                      </td>
+                      {productsChannels.map((channel) => {
+                        const value = row.values[channel] ?? 0
+                        const intensity = productsHeatmapMax > 0 ? Math.pow(value / productsHeatmapMax, 0.6) : 0
+                        const bgAlpha = 0.08 + intensity * 0.72
+                        return (
+                          <td key={`${row.product_id}-${channel}`} className="border-b border-border-subtle/40 px-2 py-1.5 group-hover:bg-accent/5">
+                            <div
+                              className="rounded-sm px-2 py-2 text-center font-mono text-[11px]"
+                              style={{
+                                backgroundColor: `rgba(91,140,255,${bgAlpha})`,
+                                color: intensity > 0.6 ? '#f8fafc' : 'var(--text-primary)',
+                              }}
+                            >
+                              {formatCurrency(value)}
+                            </div>
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card variant="solid">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">{t('productsSkuTableTitle')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-0">
+            <div className="max-w-sm">
+              <Input
+                value={productsSkuSearch}
+                onChange={(event) => {
+                  setProductsSkuSearch(event.target.value)
+                  setProductsSkuPage(1)
+                }}
+                placeholder={t('productsFilterSkuPlaceholder')}
+                className="h-9"
+              />
+            </div>
+            <PaginatedDataTable
+              columns={productsSkuColumns}
+              rows={productsSkuQuery.data?.items ?? []}
+              getRowKey={(row) => row.product_id}
+              page={productsSkuPage}
+              pageSize={productsPageSize}
+              total={productsSkuQuery.data?.pagination.total ?? 0}
+              onPageChange={setProductsSkuPage}
+              emptyContent={t('productsNoData')}
+              isLoading={productsSkuQuery.isFetching}
+            />
+          </CardContent>
+        </Card>
+      </section>
 
       <Card variant="solid">
         <CardHeader className="pb-3">
@@ -781,6 +1234,223 @@ export function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={Boolean(drilldown)} onOpenChange={(open) => {
+        if (!open) setDrilldown(null)
+      }}>
+        <DialogContent className="h-[90vh] w-[96vw] max-w-[1600px]! sm:max-w-[1600px]! overflow-y-auto bg-card p-5 text-text-primary" showCloseButton>
+          <DialogHeader>
+            <DialogTitle>{drilldown ? `Desglose: ${drilldown.periodLabel}` : ''}</DialogTitle>
+          </DialogHeader>
+          {drillSummaryQuery.isLoading ? (
+            <Skeleton className="h-[260px] w-full rounded-xl" />
+          ) : (
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                {drillKpis.map((kpi) => (
+                  <div key={kpi.label} className="rounded-lg border border-border-subtle bg-white/2 p-3">
+                    <div className="text-[11px] text-text-tertiary">{kpi.label}</div>
+                    <div className="mt-1 text-sm font-semibold" style={{ color: kpi.color }}>{kpi.value}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                <div className="lg:col-span-2">
+                  <Card variant="solid">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <CardTitle className="text-xs">Ventas por canal</CardTitle>
+                        <MetricToggleLegend
+                          items={[
+                            { key: 'gross', label: t('traceGrossRevenue'), color: '#9CCBFF' },
+                            { key: 'net', label: t('traceNetRevenue'), color: '#5b8cff' },
+                            { key: 'profit', label: t('traceGrossProfit'), color: '#66bb6a' },
+                          ]}
+                          visibility={drillChannelMetricsVisible}
+                          onToggle={(key) =>
+                            setDrillChannelMetricsVisible((prev) => ({ ...prev, [key]: !prev[key] }))
+                          }
+                        />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className={cn('h-[300px]', chartPlotSurfaceClassName)}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={drillChannelRows}>
+                            <CartesianGrid strokeDasharray="3 8" stroke="var(--chart-grid)" strokeOpacity={0.45} />
+                            <XAxis dataKey="channel" />
+                            <YAxis tickFormatter={(v) => formatCurrency(v)} />
+                            <Tooltip
+                              contentStyle={{ ...tooltipContentStyle, border: '1px solid var(--border-subtle)' }}
+                              cursor={{ fill: 'transparent' }}
+                              formatter={(v) => formatCurrency(Number(v))}
+                            />
+                            <ReferenceLine y={0} stroke="rgba(255,255,255,0.35)" />
+                            <Bar
+                              dataKey="gross_revenue"
+                              name={t('traceGrossRevenue')}
+                              fill="#9CCBFF"
+                              fillOpacity={0.45}
+                              shape={utilGroupedSignedShape}
+                            />
+                            <Bar
+                              dataKey="net_revenue"
+                              name={t('traceNetRevenue')}
+                              fill="#5b8cff"
+                              fillOpacity={0.75}
+                              shape={utilGroupedSignedShape}
+                            />
+                            <Bar
+                              dataKey="gross_profit"
+                              name={t('traceGrossProfit')}
+                              fill="#66bb6a"
+                              fillOpacity={0.9}
+                              shape={utilGroupedSignedShape}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                <Card variant="solid">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs">{t('reportsSalesMixTitle')}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <PieChartPanel
+                      data={drillMixData}
+                      colorByName={{
+                        [PLATFORM_LABELS.shopify]: COLORS_BY_CHANNEL.shopify,
+                        [PLATFORM_LABELS.amazon]: COLORS_BY_CHANNEL.amazon,
+                        [PLATFORM_LABELS.mercadolibre]: COLORS_BY_CHANNEL.mercadolibre,
+                      }}
+                      heightClassName="h-[250px]"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                <Card variant="solid" className="lg:col-span-2">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs">{t('productsTopTitle')}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    {drillTopProductsQuery.isLoading ? (
+                      <Skeleton className="h-[280px] w-full rounded-xl" />
+                    ) : drillTopProductsRows.length === 0 ? (
+                      <div className="flex h-[280px] items-center justify-center text-sm text-text-secondary">{t('productsNoData')}</div>
+                    ) : (
+                      <div className={cn('h-[280px]', chartPlotSurfaceClassName)}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={drillTopProductsRows} layout="vertical" margin={{ top: 8, right: 10, left: 8, bottom: 8 }}>
+                            <CartesianGrid strokeDasharray="3 8" stroke="var(--chart-grid)" strokeOpacity={0.45} />
+                            <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} tick={{ fontSize: 11 }} minTickGap={24} />
+                            <YAxis type="category" dataKey="name" width={220} tick={{ fontSize: 11 }} interval={0} />
+                            <Tooltip
+                              contentStyle={{ ...tooltipContentStyle, border: '1px solid var(--border-subtle)' }}
+                              formatter={(value) => formatCurrency(Number(value))}
+                              cursor={{ fill: 'transparent' }}
+                            />
+                            <Bar dataKey="mercadolibre" name={PLATFORM_LABELS.mercadolibre} stackId="sales" fill={COLORS_BY_CHANNEL.mercadolibre} radius={[0, 3, 3, 0]} fillOpacity={0.9} />
+                            <Bar dataKey="amazon" name={PLATFORM_LABELS.amazon} stackId="sales" fill={COLORS_BY_CHANNEL.amazon} radius={[0, 3, 3, 0]} fillOpacity={0.9} />
+                            <Bar dataKey="shopify" name={PLATFORM_LABELS.shopify} stackId="sales" fill={COLORS_BY_CHANNEL.shopify} radius={[0, 3, 3, 0]} fillOpacity={0.9} />
+                            <Legend
+                              verticalAlign="bottom"
+                              align="center"
+                              iconType="square"
+                              iconSize={9}
+                              wrapperStyle={{ fontSize: 11, fontFamily: 'var(--font-mono)', paddingTop: 8 }}
+                              formatter={(value) => <span className="text-text-secondary">{value}</span>}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                <Card variant="solid">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs">Estructura de costos por canal y categoria</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <PieChartPanel data={drillCostMix} heightClassName="h-[250px]" />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+function ProductsMarginBarChart({
+  rows,
+  color,
+}: {
+  rows: { name: string; margin_pct: number }[]
+  color: string
+}) {
+  return (
+    <div className={cn('h-[235px]', chartPlotSurfaceClassName)}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={rows} layout="vertical" margin={{ top: 8, right: 12, left: 16, bottom: 8 }}>
+          <CartesianGrid strokeDasharray="3 8" stroke="var(--chart-grid)" strokeOpacity={0.45} />
+          <XAxis type="number" tickFormatter={(v) => `${Number(v).toFixed(1)}%`} tick={{ fontSize: 11 }} />
+          <YAxis type="category" dataKey="name" width={170} tick={{ fontSize: 11 }} interval={0} />
+          <Tooltip
+            contentStyle={{ ...tooltipContentStyle, border: '1px solid var(--border-subtle)' }}
+            formatter={(value) => `${Number(value).toFixed(1)}%`}
+            cursor={{ fill: 'transparent' }}
+          />
+          <Bar dataKey="margin_pct" fill={color} radius={[0, 3, 3, 0]} fillOpacity={0.92} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+function MetricToggleLegend({
+  items,
+  visibility,
+  onToggle,
+}: {
+  items: MetricToggleItem[]
+  visibility: MetricVisibility
+  onToggle: (key: keyof MetricVisibility) => void
+}) {
+  return (
+    <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 px-1 text-[10px]">
+      {items.map((item) => {
+        const on = visibility[item.key]
+        return (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => onToggle(item.key)}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-md border border-transparent px-1.5 py-0.5 font-mono transition-colors',
+              'hover:border-border-subtle hover:bg-white/5',
+              on ? 'text-text-secondary' : 'text-text-tertiary opacity-45',
+            )}
+            aria-pressed={on}
+          >
+            {item.dashed ? (
+              <svg width={16} height={10} viewBox="0 0 16 10" aria-hidden className="shrink-0">
+                <line x1={1} y1={5} x2={15} y2={5} stroke={item.color} strokeWidth={2} strokeDasharray="4 3 2 3" opacity={on ? 1 : 0.35} />
+              </svg>
+            ) : (
+              <span
+                className="inline-block size-2.5 shrink-0 rounded-sm border border-white/10"
+                style={{ background: item.color, opacity: on ? 1 : 0.35 }}
+              />
+            )}
+            {item.label}
+          </button>
+        )
+      })}
     </div>
   )
 }

@@ -621,16 +621,20 @@ export function DashboardPage() {
       ].filter((r) => r.value > 0),
     [drillShopifyQuery.data, drillAmazonQuery.data, drillMlQuery.data],
   )
-  const drillTopProductsRows = useMemo(
-    () =>
-      (drillTopProductsQuery.data?.products ?? []).slice(0, 15).map((item) => ({
-        name: item.internal_sku ? `${item.title} (${item.internal_sku})` : item.title,
-        shopify: Number(item.revenue_by_platform.shopify ?? 0),
-        amazon: Number(item.revenue_by_platform.amazon ?? 0),
-        mercadolibre: Number(item.revenue_by_platform.mercadolibre ?? 0),
-      })).slice(0, 5),
-    [drillTopProductsQuery.data],
-  )
+  const drillTopProductsRows = useMemo(() => {
+    const rev = (rbp: Record<string, string>, key: string) => {
+      const direct = rbp[key]
+      if (direct !== undefined && direct !== '') return Number(direct)
+      const k = Object.keys(rbp).find((x) => x.toLowerCase() === key)
+      return k ? Number(rbp[k]) : 0
+    }
+    return (drillTopProductsQuery.data?.products ?? []).map((item) => ({
+      name: item.internal_sku ? `${item.title} (${item.internal_sku})` : item.title,
+      shopify: rev(item.revenue_by_platform, 'shopify'),
+      amazon: rev(item.revenue_by_platform, 'amazon'),
+      mercadolibre: rev(item.revenue_by_platform, 'mercadolibre'),
+    }))
+  }, [drillTopProductsQuery.data])
   const drillCostMix = useMemo(() => {
     if (!drillSummary) return []
     return [
@@ -1333,7 +1337,7 @@ export function DashboardPage() {
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <Card variant="solid" className="lg:col-span-2">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-xs">{t('productsTopTitle')}</CardTitle>
+                    <CardTitle className="text-xs">{t('utilityDrilldownTopProductsTitle')}</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
                     {drillTopProductsQuery.isLoading ? (

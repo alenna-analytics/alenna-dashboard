@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+root="$(git rev-parse --show-toplevel)"
+# shellcheck disable=SC1090
+. "$root/scripts/git/validate-branch-name.sh"
+cd "$root" || exit 1
+pnpm lint
+pnpm run typecheck

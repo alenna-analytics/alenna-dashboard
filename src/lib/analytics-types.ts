@@ -202,6 +202,8 @@ export type ReportsStatementResponse = {
   cogs: string
   channel_commission: string
   shipping_cost: string
+  ads_spend: string
+  platform_variable_costs: string
   gross_margin_pct: string
   operating_expenses: string
   ebitda: string

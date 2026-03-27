@@ -123,7 +123,10 @@ export function ReportsPage() {
       { label: t('costShipping'), value: -Math.abs(Number(report.shipping_cost)), measure: 'relative' },
       { label: t('traceNetRevenue'), value: Number(report.net_revenue), measure: 'total' },
       { label: t('costCogs'), value: -Math.abs(Number(report.cogs)), measure: 'relative' },
-      { label: t('traceGrossProfit'), value: Number(report.gross_profit), measure: 'total' },
+      ...(Number(report.platform_variable_costs) !== 0
+        ? [{ label: t('costPlatformVariable'), value: -Math.abs(Number(report.platform_variable_costs)), measure: 'relative' as const }]
+        : []),
+      { label: t('traceContributionMargin'), value: Number(report.gross_profit), measure: 'total' },
       { label: t('reportsOperatingExpenses'), value: -Math.abs(Number(report.operating_expenses)), measure: 'relative' },
       { label: t('traceEbitda'), value: Number(report.ebitda), measure: 'total' },
     ]
@@ -324,7 +327,7 @@ export function ReportsPage() {
                   barLayout={monthlyBarLayout}
                   titleLabels={{
                     netRevenue: t('monthlyChartNetIngresos'),
-                    grossProfit: t('traceGrossProfit'),
+                    grossProfit: t('traceContributionMargin'),
                     ebitda: t('traceEbitda'),
                     marginPct: t('monthlyChartMarginLine'),
                   }}

@@ -85,6 +85,8 @@ const STRINGS = {
     costCommission: 'Comisiones',
     costShipping: 'Envios',
     costAds: 'Ads',
+    costPlatformVariable: 'Costos variables canal',
+    traceContributionMargin: 'Contribucion marginal',
 
     modalTitle: 'Desglose por canal',
     modalPeriod: 'Periodo',
@@ -232,6 +234,8 @@ const STRINGS = {
     costCommission: 'Commissions',
     costShipping: 'Shipping',
     costAds: 'Ads',
+    costPlatformVariable: 'Platform variable costs',
+    traceContributionMargin: 'Contribution margin',
 
     modalTitle: 'Breakdown by channel',
     modalPeriod: 'Period',

@@ -34,6 +34,8 @@ const FULL_HEIGHT_LABELS = new Set([
   'net revenue',
   'utilidad bruta',
   'gross profit',
+  'contribucion marginal',
+  'contribution margin',
   'ebitda',
 ])
 

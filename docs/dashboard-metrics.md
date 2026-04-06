@@ -19,6 +19,18 @@ This document describes how each dashboard visualization gets its numbers: **com
 
 The dashboard does **not** recompute these formulas for summary or daily points; it displays API values (with display currency conversion — see below).
 
+### Shopify revenue rules (ETL)
+
+Revenue aggregates for Shopify follow platform-specific rules in `recompute_daily_aggregates_for_platform_range`:
+
+| Metric | Calculation |
+| --- | --- |
+| **Ventas brutas** (`gross_revenue`) | `subtotal + shipping + tax_total` for revenue-eligible orders (`paid`, `partially_refunded`). |
+| **Ventas netas** (`net_revenue`) | `total_amount` (from `totalPriceSet`) for `paid` orders; `current_total_price` (from `currentTotalPriceSet`) for `partially_refunded` orders; 0 for all others. |
+| **Discount** (`discount_total`) | Sum of `discount_total` (from `totalDiscountsSet`) for revenue-eligible orders. Stored separately — not subtracted from `subtotal` (Shopify's `subtotalPriceSet` is already post-discount). |
+| **Revenue eligibility** | Only `order_status IN ('paid', 'partially_refunded')`. Excluded: `refunded`, `cancelled` (voided/expired), `pending` (pending/authorized/partially_paid), `unknown`. |
+| **Test orders** | Filtered out at normalization — `node.test == true` yields `None`. |
+
 ## Per visualization
 
 ### Top metric cards (KPI tiles)

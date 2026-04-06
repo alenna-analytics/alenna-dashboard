@@ -1,9 +1,15 @@
 import { useAuth } from '@clerk/react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCurrentTenant } from '@/auth/hooks'
-import { apiFetch } from '@/lib/api'
+import { apiFetch, apiPatchJson } from '@/lib/api'
 import type {
   AnalyticsFilters,
+  CatalogAssignBody,
+  CatalogAssignResponse,
+  CatalogProductDetailResponse,
+  CatalogProductPatchBody,
+  CatalogProductPatchResponse,
+  CatalogProductsResponse,
   DailySeriesResponse,
   ProductCatalogResponse,
   ProductCostUpdateRequest,
@@ -17,6 +23,7 @@ import type {
   ProjectionResponse,
   SummaryResponse,
   TopProductsResponse,
+  UnmappedLinesResponse,
 } from '@/lib/analytics-types'
 
 function buildParams(filters: AnalyticsFilters): URLSearchParams {
@@ -39,8 +46,12 @@ function buildParams(filters: AnalyticsFilters): URLSearchParams {
   return params
 }
 
-async function fetchJson<T>(path: string, getToken: (a?: { skipCache?: boolean }) => Promise<string | null>): Promise<T> {
-  const res = await apiFetch(path, getToken)
+async function fetchJson<T>(
+  path: string,
+  getToken: (a?: { skipCache?: boolean }) => Promise<string | null>,
+  tenantId: string | null,
+): Promise<T> {
+  const res = await apiFetch(path, getToken, {}, tenantId)
   if (!res.ok) {
     const text = await res.text()
     throw new Error(text || res.statusText)
@@ -62,7 +73,7 @@ export function useAnalyticsSummary(filters: AnalyticsFilters) {
       filters.platform,
       filters.product_ids?.slice().sort().join(','),
     ],
-    queryFn: () => fetchJson(`/analytics/summary?${params}`, (a) => getToken(a)),
+    queryFn: () => fetchJson(`/analytics/summary?${params}`, (a) => getToken(a), tenantId),
     enabled: !!tenantId,
     staleTime: 60_000,
   })
@@ -83,7 +94,7 @@ export function useAnalyticsDaily(filters: AnalyticsFilters) {
       filters.granularity,
       filters.product_ids?.slice().sort().join(','),
     ],
-    queryFn: () => fetchJson(`/analytics/daily?${params}`, (a) => getToken(a)),
+    queryFn: () => fetchJson(`/analytics/daily?${params}`, (a) => getToken(a), tenantId),
     enabled: !!tenantId,
     staleTime: 60_000,
   })
@@ -96,7 +107,7 @@ export function useAnalyticsProducts(filters: AnalyticsFilters) {
 
   return useQuery<TopProductsResponse>({
     queryKey: ['analytics', 'products', filters.start_date, filters.end_date, filters.platform, filters.limit],
-    queryFn: () => fetchJson(`/analytics/products?${params}`, (a) => getToken(a)),
+    queryFn: () => fetchJson(`/analytics/products?${params}`, (a) => getToken(a), tenantId),
     enabled: !!tenantId,
     staleTime: 60_000,
   })
@@ -110,7 +121,7 @@ export function useProductCatalog(limit = 300) {
 
   return useQuery<ProductCatalogResponse>({
     queryKey: ['analytics', 'product-candidates', limit],
-    queryFn: () => fetchJson(`/analytics/product-candidates?${params}`, (a) => getToken(a)),
+    queryFn: () => fetchJson(`/analytics/product-candidates?${params}`, (a) => getToken(a), tenantId),
     enabled: !!tenantId,
     staleTime: 300_000,
   })
@@ -123,7 +134,7 @@ export function useAnalyticsProjections(filters: AnalyticsFilters) {
 
   return useQuery<ProjectionResponse>({
     queryKey: ['analytics', 'projections', filters.start_date, filters.end_date, filters.platform, filters.horizon_weeks],
-    queryFn: () => fetchJson(`/analytics/projections?${params}`, (a) => getToken(a)),
+    queryFn: () => fetchJson(`/analytics/projections?${params}`, (a) => getToken(a), tenantId),
     enabled: !!tenantId,
     staleTime: 60_000,
   })
@@ -142,7 +153,7 @@ export function useAnalyticsReportStatement(filters: AnalyticsFilters) {
       filters.end_date,
       filters.platform,
     ],
-    queryFn: () => fetchJson(`/analytics/reports/statement?${params}`, (a) => getToken(a)),
+    queryFn: () => fetchJson(`/analytics/reports/statement?${params}`, (a) => getToken(a), tenantId),
     enabled: !!tenantId,
     staleTime: 60_000,
   })
@@ -154,7 +165,7 @@ export function useSalesByBrand(filters: AnalyticsFilters) {
   const params = buildParams(filters)
   return useQuery<SalesBrandsResponse>({
     queryKey: ['analytics', 'sales-by-brand', filters.start_date, filters.end_date, filters.platform],
-    queryFn: () => fetchJson(`/analytics/sales/brands?${params}`, (a) => getToken(a)),
+    queryFn: () => fetchJson(`/analytics/sales/brands?${params}`, (a) => getToken(a), tenantId),
     enabled: !!tenantId,
     staleTime: 60_000,
   })
@@ -191,7 +202,7 @@ export function useSalesDetailedTable(filters: SalesDetailedTableFilters) {
       filters.sort_by,
       filters.sort_dir,
     ],
-    queryFn: () => fetchJson(`/analytics/sales/detailed-table?${params}`, (a) => getToken(a)),
+    queryFn: () => fetchJson(`/analytics/sales/detailed-table?${params}`, (a) => getToken(a), tenantId),
     enabled: !!tenantId,
     staleTime: 60_000,
     placeholderData: keepPreviousData,
@@ -211,8 +222,9 @@ export function useProductsInsights(filters: AnalyticsFilters) {
       filters.end_date,
       filters.platform,
       filters.limit,
+      filters.product_ids?.slice().sort().join(','),
     ],
-    queryFn: () => fetchJson(`/analytics/products/insights?${params}`, (a) => getToken(a)),
+    queryFn: () => fetchJson(`/analytics/products/insights?${params}`, (a) => getToken(a), tenantId),
     enabled: !!tenantId,
     staleTime: 60_000,
   })
@@ -220,6 +232,7 @@ export function useProductsInsights(filters: AnalyticsFilters) {
 
 export function useUpdateProductCosts() {
   const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
   const queryClient = useQueryClient()
 
   return useMutation<ProductCostUpdateResponse, Error, ProductCostUpdateRequest>({
@@ -228,7 +241,7 @@ export function useUpdateProductCosts() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-      })
+      }, tenantId)
       if (!res.ok) {
         const text = await res.text()
         throw new Error(text || res.statusText)
@@ -270,10 +283,136 @@ export function useProductsSkuTable(filters: ProductsPagedQueryFilters) {
       filters.page,
       filters.page_size,
     ],
-    queryFn: () => fetchJson(`/analytics/products/sku-table?${params}`, (a) => getToken(a)),
+    queryFn: () => fetchJson(`/analytics/products/sku-table?${params}`, (a) => getToken(a), tenantId),
     enabled: !!tenantId,
     staleTime: 60_000,
     placeholderData: keepPreviousData,
+  })
+}
+
+type CatalogListParams = {
+  search?: string
+  page: number
+  page_size: number
+  sort_by?: string
+  sort_dir?: string
+}
+
+export function useCatalogProducts(params: CatalogListParams) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const sp = new URLSearchParams()
+  sp.set('page', String(params.page))
+  sp.set('page_size', String(params.page_size))
+  if (params.search?.trim()) sp.set('search', params.search.trim())
+  if (params.sort_by) sp.set('sort_by', params.sort_by)
+  if (params.sort_dir) sp.set('sort_dir', params.sort_dir)
+
+  return useQuery<CatalogProductsResponse>({
+    queryKey: ['analytics', 'catalog', 'products', params],
+    queryFn: () => fetchJson(`/analytics/catalog/products?${sp}`, (a) => getToken(a), tenantId),
+    enabled: !!tenantId,
+    staleTime: 60_000,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useCatalogProductDetail(productId: string | undefined) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+
+  return useQuery<CatalogProductDetailResponse>({
+    queryKey: ['analytics', 'catalog', 'product', productId],
+    queryFn: () => fetchJson(`/analytics/catalog/products/${productId}`, (a) => getToken(a), tenantId),
+    enabled: !!tenantId && !!productId,
+    staleTime: 60_000,
+  })
+}
+
+type UnmappedParams = {
+  start_date: string
+  end_date: string
+  platform?: string[]
+  page: number
+  page_size: number
+}
+
+export function useCatalogUnmapped(params: UnmappedParams) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const sp = new URLSearchParams()
+  sp.set('start_date', params.start_date)
+  sp.set('end_date', params.end_date)
+  sp.set('page', String(params.page))
+  sp.set('page_size', String(params.page_size))
+  if (params.platform) {
+    for (const p of params.platform) {
+      sp.append('platform', p)
+    }
+  }
+
+  return useQuery<UnmappedLinesResponse>({
+    queryKey: ['analytics', 'catalog', 'unmapped', params],
+    queryFn: () => fetchJson(`/analytics/catalog/unmapped?${sp}`, (a) => getToken(a), tenantId),
+    enabled: !!tenantId,
+    staleTime: 60_000,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useCatalogPatchProduct() {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const queryClient = useQueryClient()
+
+  return useMutation<CatalogProductPatchResponse, Error, { productId: string; body: CatalogProductPatchBody }>({
+    mutationFn: async ({ productId, body }) => {
+      const res = await apiPatchJson(`/analytics/catalog/products/${productId}`, (a) => getToken(a), body, {}, tenantId)
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || res.statusText)
+      }
+      return res.json() as Promise<CatalogProductPatchResponse>
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['analytics', 'catalog'] })
+      await queryClient.invalidateQueries({ queryKey: ['analytics', 'summary'] })
+      await queryClient.invalidateQueries({ queryKey: ['analytics', 'daily'] })
+      await queryClient.invalidateQueries({ queryKey: ['analytics', 'products-insights'] })
+    },
+  })
+}
+
+export function useCatalogAssign() {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const queryClient = useQueryClient()
+
+  return useMutation<CatalogAssignResponse, Error, CatalogAssignBody>({
+    mutationFn: async (body) => {
+      const res = await apiFetch('/analytics/catalog/assign', (a) => getToken(a), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: body.product_id,
+          platform: body.platform,
+          platform_sku: body.platform_sku,
+          line_title: body.line_title ?? null,
+          line_item_ids: body.line_item_ids ?? null,
+        }),
+      }, tenantId)
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || res.statusText)
+      }
+      return res.json() as Promise<CatalogAssignResponse>
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['analytics', 'catalog'] })
+      await queryClient.invalidateQueries({ queryKey: ['analytics', 'products-insights'] })
+      await queryClient.invalidateQueries({ queryKey: ['analytics', 'daily'] })
+      await queryClient.invalidateQueries({ queryKey: ['analytics', 'summary'] })
+    },
   })
 }
 
@@ -298,7 +437,7 @@ export function useProductsCostEditor(filters: ProductsPagedQueryFilters) {
       filters.page,
       filters.page_size,
     ],
-    queryFn: () => fetchJson(`/analytics/products/cost-editor?${params}`, (a) => getToken(a)),
+    queryFn: () => fetchJson(`/analytics/products/cost-editor?${params}`, (a) => getToken(a), tenantId),
     enabled: !!tenantId,
     staleTime: 60_000,
     placeholderData: keepPreviousData,

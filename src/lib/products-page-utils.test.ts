@@ -29,6 +29,9 @@ describe('products-page-utils', () => {
     cogs_total: '80',
     margin_pct: '54.3',
     unit_cost: '20',
+    cogs_by_platform: { shopify: '40', amazon: '30', mercadolibre: '10' },
+    fees_by_platform: { shopify: '0', amazon: '0', mercadolibre: '0' },
+    lowest_unit_cost: '10',
   }
 
   it('builds top-product chart rows from API insights', () => {

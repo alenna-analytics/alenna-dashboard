@@ -413,3 +413,16 @@
     var(--scrollbar-thumb-hover)
   );
 }
+
+@keyframes connector-sync-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+.connector-sync-indeterminate-bar {
+  animation: connector-sync-indeterminate 1.25s ease-in-out infinite;
+}

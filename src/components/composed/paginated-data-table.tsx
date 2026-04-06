@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { DataTable, type DataTableColumn } from '@/components/composed/data-table'
@@ -19,6 +20,10 @@ type PaginatedDataTableProps<TRow> = {
   columns: DataTableColumn<TRow>[]
   rows: TRow[]
   getRowKey: (row: TRow, index: number) => string
+  /** When set, renders a custom row list instead of a table (pagination unchanged). */
+  renderRow?: (row: TRow, index: number) => ReactNode
+  /** Applied to the scrollable list body in list mode (e.g. max height + overflow). */
+  listBodyClassName?: string
   page: number
   pageSize: number
   total: number
@@ -45,6 +50,8 @@ export function PaginatedDataTable<TRow>({
   columns,
   rows,
   getRowKey,
+  renderRow,
+  listBodyClassName,
   page,
   pageSize,
   total,
@@ -91,6 +98,7 @@ export function PaginatedDataTable<TRow>({
     return columns.filter((column) => allowed.has(column.key))
   }, [columns, visibleColumnKeys])
   const allColumnsSelected = visibleColumnKeys.length === columns.length
+  const listMode = Boolean(renderRow)
 
   const skeletonRows = Math.min(Math.max(rows.length || pageSize, 6), 10)
 
@@ -107,6 +115,7 @@ export function PaginatedDataTable<TRow>({
         <p className="text-xs text-text-tertiary">
           {pageLabel} {page} of {totalPages} · {total} {rowsLabel}
         </p>
+        {listMode ? null : (
         <DropdownMenu>
           <DropdownMenuTrigger render={<Button type="button" variant="outline" size="sm" />}>
             {columnSelectorLabel}
@@ -150,11 +159,31 @@ export function PaginatedDataTable<TRow>({
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
+        )}
       </div>
 
       <div className="relative">
         {isLoading && rows.length === 0 ? (
-          <div className="rounded-md border border-border-subtle/60 bg-bg-surface/72 p-3">
+          <div className="rounded-xl border border-border-subtle/60 bg-bg-surface/72 p-2">
+            {listMode ? (
+              <div
+                className={cn(
+                  'divide-y divide-border-subtle/50',
+                  listBodyClassName,
+                )}
+              >
+                {Array.from({ length: skeletonRows }).map((_, rowIndex) => (
+                  <div key={`sk-${rowIndex}`} className="flex items-center gap-4 px-3 py-4">
+                    <div className="size-12 shrink-0 animate-pulse rounded-xl bg-white/10" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="h-4 w-2/5 max-w-xs animate-pulse rounded bg-white/10" />
+                      <div className="h-3 w-1/4 animate-pulse rounded bg-white/8" />
+                    </div>
+                    <div className="hidden h-4 w-16 animate-pulse rounded bg-white/8 sm:block" />
+                  </div>
+                ))}
+              </div>
+            ) : (
             <div className="space-y-2">
               <div
                 className="grid gap-2"
@@ -176,7 +205,37 @@ export function PaginatedDataTable<TRow>({
                 </div>
               ))}
             </div>
+            )}
           </div>
+        ) : rows.length === 0 && emptyContent ? (
+          <div className="rounded-xl border border-border-subtle/60 bg-bg-surface/40 px-4 py-12 text-center text-sm text-text-secondary">
+            {emptyContent}
+          </div>
+        ) : listMode && renderRow ? (
+          <>
+            <div className="overflow-hidden rounded-xl border border-border-subtle/70 bg-muted/15 shadow-sm">
+              <div
+                className={cn('divide-y divide-border-subtle/60', listBodyClassName)}
+              >
+                {rows.map((row, index) => (
+                  <div
+                    key={getRowKey(row, index)}
+                    className="transition-[background-color] duration-150 hover:bg-muted/45"
+                  >
+                    {renderRow(row, index)}
+                  </div>
+                ))}
+              </div>
+            </div>
+            {isLoading ? (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-black/18 backdrop-blur-[1px]">
+                <div
+                  className="size-7 animate-spin rounded-full border-2 border-accent/35 border-t-accent"
+                  aria-label="loading"
+                />
+              </div>
+            ) : null}
+          </>
         ) : (
           <>
             <DataTable
@@ -221,11 +280,14 @@ export function PaginatedDataTable<TRow>({
           <Button
             type="button"
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={() => onPageChange(page - 1)}
             disabled={!canPrev}
+            aria-label={prevLabel}
+            title={prevLabel}
           >
-            {prevLabel}
+            <ChevronLeft className="size-4" />
+            <span className="sr-only">{prevLabel}</span>
           </Button>
           {pageNumbers.map((item, index) =>
             typeof item === 'number' ? (
@@ -249,11 +311,14 @@ export function PaginatedDataTable<TRow>({
           <Button
             type="button"
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={() => onPageChange(page + 1)}
             disabled={!canNext}
+            aria-label={nextLabel}
+            title={nextLabel}
           >
-            {nextLabel}
+            <ChevronRight className="size-4" />
+            <span className="sr-only">{nextLabel}</span>
           </Button>
         </div>
       </div>

@@ -43,6 +43,18 @@ export function AppShellLayout() {
   const mainRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
+    const html = document.documentElement
+    const prevHtml = html.style.overflow
+    const prevBody = document.body.style.overflow
+    html.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+    return () => {
+      html.style.overflow = prevHtml
+      document.body.style.overflow = prevBody
+    }
+  }, [])
+
+  useEffect(() => {
     if (!drawerOpen) {
       return
     }
@@ -79,57 +91,60 @@ export function AppShellLayout() {
         fxMxnPerUsdRaw={me?.fx_mxn_per_usd}
       >
         <PageChromeProvider>
-        <div className="flex h-svh overflow-hidden bg-bg-base motion-safe:animate-[boot-shell-enter_0.4s_ease-out]">
-      <button
-        type="button"
-        className={cn(
-          'fixed inset-0 z-40 bg-bg-overlay transition-opacity lg:hidden',
-          drawerOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-        )}
-        aria-hidden={!drawerOpen}
-        aria-label={shellT(lang, 'ariaCloseNavBackdrop')}
-        tabIndex={drawerOpen ? 0 : -1}
-        onClick={() => {
-          setMobileNavOpen(false)
-        }}
-      />
-      <AppSidebar
-        collapsed={sidebarCollapsedUi}
-        onToggleCollapsed={toggleCollapsed}
-        tenants={tenants}
-        tenantId={tenantId}
-        onTenantSelect={(id) => {
-          void switchTenant(id).catch(() => {})
-        }}
-        mobileOpen={drawerOpen}
-        onMobileClose={() => {
-          setMobileNavOpen(false)
-        }}
-      />
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <AppHeader
-          onMenuClick={() => {
-            setMobileNavOpen(true)
-          }}
-        />
-        <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto bg-bg-base px-6 py-6 lg:px-10 lg:py-8">
-          {error ? (
-            <div
-              role="alert"
-              className="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger"
-            >
-              {error}
+          <div className="flex h-svh overflow-hidden bg-bg-base motion-safe:animate-[boot-shell-enter_0.4s_ease-out]">
+            <button
+              type="button"
+              className={cn(
+                'fixed inset-0 z-40 bg-bg-overlay transition-opacity lg:hidden',
+                drawerOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+              )}
+              aria-hidden={!drawerOpen}
+              aria-label={shellT(lang, 'ariaCloseNavBackdrop')}
+              tabIndex={drawerOpen ? 0 : -1}
+              onClick={() => {
+                setMobileNavOpen(false)
+              }}
+            />
+            <AppSidebar
+              collapsed={sidebarCollapsedUi}
+              onToggleCollapsed={toggleCollapsed}
+              tenants={tenants}
+              tenantId={tenantId}
+              onTenantSelect={(id) => {
+                void switchTenant(id).catch(() => { })
+              }}
+              mobileOpen={drawerOpen}
+              onMobileClose={() => {
+                setMobileNavOpen(false)
+              }}
+            />
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+              <AppHeader
+                onMenuClick={() => {
+                  setMobileNavOpen(true)
+                }}
+              />
+              <main
+                ref={mainRef}
+                className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain bg-bg-base px-6 py-6 lg:px-10 lg:py-8"
+              >
+                {error ? (
+                  <div
+                    role="alert"
+                    className="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger"
+                  >
+                    {error}
+                  </div>
+                ) : null}
+                {!tenantId && tenants.length > 1 ? (
+                  <p className="text-sm text-text-secondary">
+                    {shellT(lang, 'shellSelectCompanyPrompt')}
+                  </p>
+                ) : null}
+                <Outlet />
+              </main>
             </div>
-          ) : null}
-          {!tenantId && tenants.length > 1 ? (
-            <p className="text-sm text-text-secondary">
-              {shellT(lang, 'shellSelectCompanyPrompt')}
-            </p>
-          ) : null}
-          <Outlet />
-        </main>
-      </div>
-    </div>
+          </div>
         </PageChromeProvider>
       </CurrencyProvider>
     </WorkspaceProvider>

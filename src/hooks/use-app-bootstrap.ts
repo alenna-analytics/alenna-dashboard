@@ -62,7 +62,7 @@ export function useAppBootstrap(): {
     }
     setMeLoading(true)
     try {
-      const res = await apiFetch('/me', (a) => getToken(a))
+      const res = await apiFetch('/me', (a) => getToken(a), {}, tenantId)
       if (!res.ok) {
         const text = await res.text()
         throw new Error(text || res.statusText)

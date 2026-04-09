@@ -1,19 +1,35 @@
+import { useCurrentTenant } from '@/auth/hooks'
+import { useLanguage } from '@/components/providers/language-provider'
 import { usePageChrome } from '@/components/providers/page-chrome-context'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useCurrentTenant } from '@/auth/hooks'
+import type { ConnectorDefinition } from '@/features/connectors/connector-definitions'
+import { CONNECTOR_DEFINITIONS } from '@/features/connectors/connector-definitions'
+import { ConnectorIntegrationCard } from '@/features/connectors/ConnectorIntegrationCard'
+import { ConnectorsPageSkeleton } from '@/features/connectors/ConnectorsPageSkeleton'
 import {
   useConnectorsList,
   useShopifyAuthorizationUrl,
   useShopifyDisconnect,
   useShopifySync,
 } from '@/hooks/use-connectors'
+import {
+  connectionsLastRunSummary,
+  connectionsT,
+  connectorCardCopy,
+} from '@/lib/connections-strings'
 import { PlugIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { enUS, es } from 'date-fns/locale'
+import { useEffect, useMemo, useState } from 'react'
+
+function definitionById(id: ConnectorDefinition['id']): ConnectorDefinition {
+  const d = CONNECTOR_DEFINITIONS.find((c) => c.id === id)
+  if (!d) throw new Error(`Unknown connector: ${id}`)
+  return d
+}
 
 export function ConnectorsPage() {
+  const { lang } = useLanguage()
   const { setPageMeta } = usePageChrome()
   const { role } = useCurrentTenant()
   const listQuery = useConnectorsList()
@@ -27,13 +43,18 @@ export function ConnectorsPage() {
 
   const canManage = role === 'admin' || role === 'owner'
   const shopify = listQuery.data?.find((c) => c.platform === 'shopify')
+  const isSyncing = syncMutation.isPending
+  const dateLocale = lang === 'es' ? es : enUS
+
+  const shopifyDef = useMemo(() => definitionById('shopify'), [])
+  const shopifyCopy = useMemo(() => connectorCardCopy(lang, 'shopify'), [lang])
 
   useEffect(() => {
-    setPageMeta({ title: 'Connectors' })
+    setPageMeta({ title: connectionsT(lang, 'pageTitle') })
     return () => setPageMeta({ title: '' })
-  }, [setPageMeta])
+  }, [lang, setPageMeta])
 
-  const onConnect = () => {
+  const onConnectShopify = () => {
     if (!shopInput.trim()) return
     authUrlMutation.mutate(shopInput, {
       onSuccess: (data) => {
@@ -50,149 +71,169 @@ export function ConnectorsPage() {
     })
   }
 
+  const lastRunLine =
+    syncMutation.isSuccess && syncMutation.data
+      ? connectionsLastRunSummary(
+          lang,
+          syncMutation.data.catalog_products_upserted,
+          syncMutation.data.records_synced,
+        )
+      : null
+
+  const otherAvailable = CONNECTOR_DEFINITIONS.filter((c) => c.id !== 'shopify')
+
+  if (listQuery.isLoading) {
+    return <ConnectorsPageSkeleton />
+  }
+
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div className="flex items-center gap-2">
-        <PlugIcon className="size-6 text-text-secondary" />
-        <h1 className="text-lg font-semibold tracking-tight">Connectors</h1>
-      </div>
+    <div className="mx-auto max-w-4xl space-y-10 px-1 pb-12">
+      <header className="space-y-1">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <PlugIcon className="size-5" aria-hidden />
+          <span className="text-xs font-medium uppercase tracking-wider">
+            {connectionsT(lang, 'pageEyebrow')}
+          </span>
+        </div>
+        <h1 className="text-2xl font-semibold tracking-tight">{connectionsT(lang, 'pageTitle')}</h1>
+        <p className="max-w-2xl text-sm text-muted-foreground">
+          {connectionsT(lang, 'pageSubtitle')}
+        </p>
+      </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Shopify</CardTitle>
-          <CardDescription>
-            Connect your store with OAuth, then sync orders into analytics. Admin API (GraphQL).
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {listQuery.isLoading && (
-            <p className="text-sm text-muted-foreground">Loading connection status…</p>
-          )}
-          {listQuery.isError && (
-            <p className="text-sm text-destructive">
-              {listQuery.error instanceof Error ? listQuery.error.message : 'Failed to load'}
-            </p>
-          )}
-          {shopify && (
-            <div className="space-y-1 rounded-md border border-border bg-muted/30 p-3 text-sm">
-              <p>
-                <span className="text-muted-foreground">Shop: </span>
-                {shopify.shop_domain ?? '—'}
-              </p>
-              <p>
-                <span className="text-muted-foreground">Status: </span>
-                {shopify.connection_status}
-                {shopify.last_error ? (
-                  <span className="ml-2 text-destructive">({shopify.last_error})</span>
-                ) : null}
-              </p>
-              {shopify.last_synced_at && (
-                <p>
-                  <span className="text-muted-foreground">Last sync: </span>
-                  {new Date(shopify.last_synced_at).toLocaleString()}
-                </p>
-              )}
-            </div>
-          )}
+      {listQuery.isError && (
+        <p className="text-sm text-destructive">
+          {listQuery.error instanceof Error ? listQuery.error.message : connectionsT(lang, 'loadError')}
+        </p>
+      )}
 
-          {!canManage && (
-            <p className="text-sm text-muted-foreground">
-              Only workspace admins can connect or sync stores.
-            </p>
-          )}
-
-          {canManage && !shopify && (
-            <div className="space-y-2">
-              <Label htmlFor="shop-domain">Shop domain</Label>
-              <Input
-                id="shop-domain"
-                placeholder="your-store or your-store.myshopify.com"
-                value={shopInput}
-                onChange={(e) => setShopInput(e.target.value)}
-              />
-              <Button
-                type="button"
-                disabled={authUrlMutation.isPending || !shopInput.trim()}
-                onClick={() => onConnect()}
-              >
-                {authUrlMutation.isPending ? 'Redirecting…' : 'Connect Shopify'}
-              </Button>
-              {authUrlMutation.isError && (
-                <p className="text-sm text-destructive">
-                  {authUrlMutation.error instanceof Error
-                    ? authUrlMutation.error.message
-                    : 'Could not start OAuth'}
-                </p>
-              )}
-            </div>
-          )}
-
-          {canManage && shopify && (
-            <div className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="sync-start">Start date (optional)</Label>
-                  <Input
-                    id="sync-start"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="sync-end">End date (optional)</Label>
-                  <Input
-                    id="sync-end"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </div>
-              </div>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={fullSync}
-                  onChange={(e) => setFullSync(e.target.checked)}
+      {!listQuery.isError && (
+        <div className="space-y-12">
+          {shopify ? (
+            <section className="space-y-4">
+              <h2 className="text-sm font-semibold tracking-tight text-foreground">
+                {connectionsT(lang, 'sectionConnected')}
+              </h2>
+              <div className="space-y-4">
+                <ConnectorIntegrationCard
+                  definition={shopifyDef}
+                  copy={shopifyCopy}
+                  dateLocale={dateLocale}
+                  mode="connected"
+                  canManage={canManage}
+                  isSyncing={isSyncing}
+                  storeName={shopify.shop_domain}
+                  lastSyncAt={shopify.last_synced_at}
+                  statusText={
+                    shopify.connection_status
+                      ? `${connectionsT(lang, 'apiStatusPrefix')} ${shopify.connection_status}`
+                      : null
+                  }
+                  lastError={shopify.last_error}
+                  onSync={onSync}
+                  onDisconnect={() => disconnectMutation.mutate()}
+                  disconnectPending={disconnectMutation.isPending}
+                  syncError={
+                    syncMutation.isError && syncMutation.error instanceof Error
+                      ? syncMutation.error.message
+                      : null
+                  }
+                  disconnectError={
+                    disconnectMutation.isError && disconnectMutation.error instanceof Error
+                      ? disconnectMutation.error.message
+                      : null
+                  }
+                  lastRunSummaryLine={lastRunLine}
+                  advancedContent={
+                    <div className="grid max-w-xl gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="sync-start">{connectionsT(lang, 'startDateOptional')}</Label>
+                        <Input
+                          id="sync-start"
+                          type="date"
+                          value={startDate}
+                          disabled={isSyncing}
+                          onChange={(e) => setStartDate(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="sync-end">{connectionsT(lang, 'endDateOptional')}</Label>
+                        <Input
+                          id="sync-end"
+                          type="date"
+                          value={endDate}
+                          disabled={isSyncing}
+                          onChange={(e) => setEndDate(e.target.value)}
+                        />
+                      </div>
+                      <label className="flex items-start gap-2 text-sm sm:col-span-2">
+                        <input
+                          type="checkbox"
+                          className="mt-1"
+                          checked={fullSync}
+                          disabled={isSyncing}
+                          onChange={(e) => setFullSync(e.target.checked)}
+                        />
+                        <span>{connectionsT(lang, 'backfillLabel')}</span>
+                      </label>
+                    </div>
+                  }
                 />
-                Wide backfill (~2 years, created_at)
-              </label>
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" disabled={syncMutation.isPending} onClick={() => onSync()}>
-                  {syncMutation.isPending ? 'Syncing…' : 'Sync now'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={disconnectMutation.isPending}
-                  onClick={() => disconnectMutation.mutate()}
-                >
-                  Disconnect
-                </Button>
               </div>
-              {syncMutation.isSuccess && (
-                <p className="text-sm text-muted-foreground">
-                  Synced {syncMutation.data.records_synced} order(s).
-                </p>
-              )}
-              {syncMutation.isError && (
-                <p className="text-sm text-destructive">
-                  {syncMutation.error instanceof Error
-                    ? syncMutation.error.message
-                    : 'Sync failed'}
-                </p>
-              )}
-              {disconnectMutation.isError && (
-                <p className="text-sm text-destructive">
-                  {disconnectMutation.error instanceof Error
-                    ? disconnectMutation.error.message
-                    : 'Disconnect failed'}
-                </p>
-              )}
+            </section>
+          ) : null}
+
+          <section className="space-y-4">
+            <h2 className="text-sm font-semibold tracking-tight text-foreground">
+              {connectionsT(lang, 'sectionAvailable')}
+            </h2>
+            <div className="space-y-4">
+              {!shopify ? (
+                <ConnectorIntegrationCard
+                  definition={shopifyDef}
+                  copy={shopifyCopy}
+                  dateLocale={dateLocale}
+                  mode="disconnected"
+                  canManage={canManage}
+                  connectDisabled={!shopInput.trim()}
+                  connectPending={authUrlMutation.isPending}
+                  connectError={
+                    authUrlMutation.isError && authUrlMutation.error instanceof Error
+                      ? authUrlMutation.error.message
+                      : null
+                  }
+                  onConnect={onConnectShopify}
+                  setupContent={
+                    <div className="space-y-2">
+                      <Label htmlFor="shop-domain" className="text-muted-foreground">
+                        {connectionsT(lang, 'storeDomainLabel')}
+                      </Label>
+                      <Input
+                        id="shop-domain"
+                        placeholder={connectionsT(lang, 'storeDomainPlaceholder')}
+                        value={shopInput}
+                        onChange={(e) => setShopInput(e.target.value)}
+                        className="max-w-md"
+                      />
+                    </div>
+                  }
+                />
+              ) : null}
+
+              {otherAvailable.map((def) => (
+                <ConnectorIntegrationCard
+                  key={def.id}
+                  definition={def}
+                  copy={connectorCardCopy(lang, def.id)}
+                  dateLocale={dateLocale}
+                  mode="coming_soon"
+                  canManage={canManage}
+                />
+              ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </section>
+        </div>
+      )}
     </div>
   )
 }

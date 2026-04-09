@@ -7,10 +7,14 @@ export async function apiFetch(
   path: string,
   getToken: GetTokenFn,
   init: RequestInit = {},
+  tenantId?: string | null,
 ): Promise<Response> {
   const url = `${baseUrl()}${path.startsWith('/') ? path : `/${path}`}`
   const headers = new Headers(init.headers)
-  // Clerk caches tokens; org_id/role come from the session template after active-tenant metadata sync.
+  const tid = typeof tenantId === 'string' ? tenantId.trim() : ''
+  if (tid) {
+    headers.set('X-Tenant-ID', tid)
+  }
   const token = await getToken({ skipCache: true })
   if (token) {
     headers.set('Authorization', `Bearer ${token}`)
@@ -23,9 +27,11 @@ export async function apiPostJson(
   getToken: GetTokenFn,
   body: unknown,
   init: RequestInit = {},
+  tenantId?: string | null,
 ): Promise<Response> {
   const headers = new Headers(init.headers)
   headers.set('Content-Type', 'application/json')
+  const payload = body === undefined || body === null ? {} : body
   return apiFetch(
     path,
     getToken,
@@ -33,8 +39,9 @@ export async function apiPostJson(
       ...init,
       method: 'POST',
       headers,
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
     },
+    tenantId,
   )
 }
 
@@ -43,6 +50,7 @@ export async function apiPatchJson(
   getToken: GetTokenFn,
   body: unknown,
   init: RequestInit = {},
+  tenantId?: string | null,
 ): Promise<Response> {
   const headers = new Headers(init.headers)
   headers.set('Content-Type', 'application/json')
@@ -51,5 +59,5 @@ export async function apiPatchJson(
     method: 'PATCH',
     headers,
     body: JSON.stringify(body),
-  })
+  }, tenantId)
 }

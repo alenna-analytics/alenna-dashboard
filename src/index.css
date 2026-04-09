@@ -223,7 +223,7 @@
 }
 
 #root {
-  min-height: 100dvh;
+  min-height: 100svh;
 }
 
 .dark #root {
@@ -412,4 +412,17 @@
     color-mix(in srgb, var(--scrollbar-thumb-hover) 90%, white 10%),
     var(--scrollbar-thumb-hover)
   );
+}
+
+@keyframes connector-sync-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+.connector-sync-indeterminate-bar {
+  animation: connector-sync-indeterminate 1.25s ease-in-out infinite;
 }

@@ -82,6 +82,9 @@ export type ProductInsight = {
   cogs_total: string
   margin_pct: string | null
   unit_cost: string
+  cogs_by_platform: Record<string, string>
+  fees_by_platform: Record<string, string>
+  lowest_unit_cost: string
 }
 
 export type ProductCostEditorRow = {
@@ -221,6 +224,7 @@ export type SalesBrandPoint = {
 
 export type SalesBrandsResponse = {
   items: SalesBrandPoint[]
+  pagination: PaginationMeta
 }
 
 export type SalesDetailedRow = {
@@ -237,4 +241,85 @@ export type SalesDetailedRow = {
 export type SalesDetailedTableResponse = {
   items: SalesDetailedRow[]
   pagination: PaginationMeta
+}
+
+export type CatalogProduct = {
+  id: string
+  title: string
+  internal_sku: string | null
+  brand: string | null
+  cost: number | null
+  currency: string | null
+  active: boolean
+  image_url: string | null
+  listing_count: number
+}
+
+export type CatalogProductsResponse = {
+  items: CatalogProduct[]
+  page: number
+  page_size: number
+  total: number
+}
+
+export type ProductListing = {
+  id: string
+  platform: string
+  platform_sku: string
+  platform_title: string | null
+  active: boolean
+  currency: string | null
+  sellout_price: number | null
+}
+
+export type CatalogProductDetailResponse = {
+  id: string
+  title: string
+  internal_sku: string | null
+  brand: string | null
+  cost: number | null
+  currency: string | null
+  active: boolean
+  image_url: string | null
+  listings: ProductListing[]
+}
+
+export type CatalogProductPatchBody = {
+  image_url: string | null
+}
+
+export type CatalogProductPatchResponse = {
+  ok: boolean
+}
+
+export type UnmappedGroup = {
+  platform: string
+  sku_key: string
+  line_title: string
+  line_count: number
+  total_revenue: string
+  total_units: number
+  first_order_date: string | null
+  last_order_date: string | null
+  line_item_ids: string[]
+}
+
+export type UnmappedLinesResponse = {
+  items: UnmappedGroup[]
+  page: number
+  page_size: number
+  total: number
+}
+
+export type CatalogAssignBody = {
+  product_id: string
+  platform: string
+  platform_sku: string
+  line_title?: string | null
+  line_item_ids?: string[] | null
+}
+
+export type CatalogAssignResponse = {
+  listings_upserted: number
+  lines_updated: number
 }

@@ -10,17 +10,17 @@ Web app for the ecommerce analytics SaaS: connect sales channels (Shopify, Merca
 
 ## Repository layout (target)
 
-| Area | Path | Responsibility |
-| --- | --- | --- |
-| Pages | `src/pages/` | Route-level screens; compose layout + features; minimal logic; wire route params and auth. |
-| Features / sections | `src/features/` or co-located under pages | Optional: group by domain (e.g. `analytics`, `connectors`) when the app grows. |
-| UI primitives | `src/components/ui/` | Single shadcn-generated file per primitive; customize tokens/variants in place — **no duplicate Button/Table primitives**. |
-| Composed | `src/components/composed/` | App-specific patterns built from `ui/` (`MetricCard`, `DataTable`, `EmptyState`, …). |
-| Charts | `src/components/charts/` | Recharts wrappers + `chart-theme.ts` (CSS variables only); no API calls inside. |
-| Layout | `src/components/layout/` | Shell, sidebar, header. |
-| Providers | `src/components/providers/` | Theme (class on `html`), TanStack `QueryClient`, etc. |
-| Hooks | `src/hooks/` | TanStack Query hooks and small composables; call API client / typed endpoints. |
-| API client | `src/lib/api.ts` (and related) | HTTP client, base URL, auth header (Clerk token), typed request/response shapes shared with backend contracts. |
+| Area                | Path                                      | Responsibility                                                                                                             |
+| ------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Pages               | `src/pages/`                              | Route-level screens; compose layout + features; minimal logic; wire route params and auth.                                 |
+| Features / sections | `src/features/` or co-located under pages | Optional: group by domain (e.g. `analytics`, `connectors`) when the app grows.                                             |
+| UI primitives       | `src/components/ui/`                      | Single shadcn-generated file per primitive; customize tokens/variants in place — **no duplicate Button/Table primitives**. |
+| Composed            | `src/components/composed/`                | App-specific patterns built from `ui/` (`MetricCard`, `DataTable`, `EmptyState`, …).                                       |
+| Charts              | `src/components/charts/`                  | Recharts wrappers + `chart-theme.ts` (CSS variables only); no API calls inside.                                            |
+| Layout              | `src/components/layout/`                  | Shell, sidebar, header.                                                                                                    |
+| Providers           | `src/components/providers/`               | Theme (class on `html`), TanStack `QueryClient`, etc.                                                                      |
+| Hooks               | `src/hooks/`                              | TanStack Query hooks and small composables; call API client / typed endpoints.                                             |
+| API client          | `src/lib/api.ts` (and related)            | HTTP client, base URL, auth header (Clerk token), typed request/response shapes shared with backend contracts.             |
 
 ## Clean architecture (frontend)
 

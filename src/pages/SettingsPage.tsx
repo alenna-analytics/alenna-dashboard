@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useCurrentTenant } from '@/auth/hooks'
 import { apiPatchJson } from '@/lib/api'
 import type { AccountCurrency } from '@/lib/currency-core'
 
@@ -25,6 +26,7 @@ type TenantSettingsResponse = {
 
 export function SettingsPage() {
   const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
   const { lang } = useLanguage()
   const { me, refetchMe } = useWorkspace()
   const { setPageMeta } = usePageChrome()
@@ -69,6 +71,8 @@ export function SettingsPage() {
           base_currency: baseCurrency,
           fx_mxn_per_usd: fx,
         },
+        {},
+        tenantId,
       )
       if (!res.ok) {
         const text = await res.text()

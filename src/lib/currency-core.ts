@@ -37,8 +37,8 @@ export function formatMoneyAmount(
     style: 'currency',
     currency,
     notation: compact ? 'compact' : 'standard',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: compact ? 1 : 0,
+    minimumFractionDigits: compact ? 0 : 2,
+    maximumFractionDigits: compact ? 1 : 2,
   }).format(amount)
 }
 
@@ -52,7 +52,7 @@ export function formatMoneyAmountWithoutCurrency(
   return new Intl.NumberFormat(locale, {
     style: 'decimal',
     notation: compact ? 'compact' : 'standard',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: compact ? 1 : 0,
+    minimumFractionDigits: compact ? 0 : 2,
+    maximumFractionDigits: compact ? 1 : 2,
   }).format(amount)
 }

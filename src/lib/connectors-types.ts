@@ -11,6 +11,7 @@ export type PlatformConnection = {
 
 export type ShopifySyncResponse = {
   records_synced: number
+  catalog_products_upserted: number
   search_query_used: string | null
   min_order_date: string | null
   max_order_date: string | null

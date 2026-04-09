@@ -223,7 +223,7 @@
 }
 
 #root {
-  min-height: 100dvh;
+  min-height: 100svh;
 }
 
 .dark #root {

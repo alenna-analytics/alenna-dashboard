@@ -81,8 +81,8 @@ export function ConnectorIntegrationCard({
   return (
     <div
       className={cn(
-        'group/card overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-all duration-200',
-        'hover:-translate-y-0.5 hover:shadow-md',
+        'group/card overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-shadow duration-200',
+        'hover:shadow-md',
         'border-l-4',
         accent.border,
       )}

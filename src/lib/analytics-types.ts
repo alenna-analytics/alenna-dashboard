@@ -224,6 +224,7 @@ export type SalesBrandPoint = {
 
 export type SalesBrandsResponse = {
   items: SalesBrandPoint[]
+  pagination: PaginationMeta
 }
 
 export type SalesDetailedRow = {

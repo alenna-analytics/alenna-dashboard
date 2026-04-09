@@ -43,6 +43,18 @@ export function AppShellLayout() {
   const mainRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
+    const html = document.documentElement
+    const prevHtml = html.style.overflow
+    const prevBody = document.body.style.overflow
+    html.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+    return () => {
+      html.style.overflow = prevHtml
+      document.body.style.overflow = prevBody
+    }
+  }, [])
+
+  useEffect(() => {
     if (!drawerOpen) {
       return
     }
@@ -112,7 +124,10 @@ export function AppShellLayout() {
                   setMobileNavOpen(true)
                 }}
               />
-              <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto bg-bg-base px-6 py-6 lg:px-10 lg:py-8">
+              <main
+                ref={mainRef}
+                className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain bg-bg-base px-6 py-6 lg:px-10 lg:py-8"
+              >
                 {error ? (
                   <div
                     role="alert"

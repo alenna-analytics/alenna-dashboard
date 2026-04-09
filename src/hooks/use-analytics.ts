@@ -165,7 +165,7 @@ export function useSalesByBrand(filters: AnalyticsFilters) {
   const params = buildParams(filters)
   return useQuery<SalesBrandsResponse>({
     queryKey: ['analytics', 'sales-by-brand', filters.start_date, filters.end_date, filters.platform],
-    queryFn: () => fetchJson(`/analytics/sales/brands?${params}`, (a) => getToken(a), tenantId),
+    queryFn: () => fetchJson(`/analytics/orders/brands?${params}`, (a) => getToken(a), tenantId),
     enabled: !!tenantId,
     staleTime: 60_000,
   })
@@ -202,7 +202,7 @@ export function useSalesDetailedTable(filters: SalesDetailedTableFilters) {
       filters.sort_by,
       filters.sort_dir,
     ],
-    queryFn: () => fetchJson(`/analytics/sales/detailed-table?${params}`, (a) => getToken(a), tenantId),
+    queryFn: () => fetchJson(`/analytics/orders/detailed-table?${params}`, (a) => getToken(a), tenantId),
     enabled: !!tenantId,
     staleTime: 60_000,
     placeholderData: keepPreviousData,

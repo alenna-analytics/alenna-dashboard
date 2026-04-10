@@ -1,10 +1,12 @@
 # alenna-analytics-dashboard — AI & developer guide
 
-**Stack:** Vite, React, TypeScript, Tailwind v4, shadcn-style primitives under `src/components/ui/`, Clerk, TanStack Query, Recharts.
+**Stack:** Vite, React, TypeScript, Tailwind v4, shadcn-style primitives under `src/ui/`, Clerk, TanStack Query, Recharts.
+
+**Layout manifest:** [`src/README.md`](src/README.md) — `ui` (design system), `shell` (app chrome + providers), `pages` (routes, grouped by area).
 
 **API:** Calls go through **`src/lib/api.ts`** (and hooks) to **alenna-analytics-api**; no direct database access.
 
-**Routing:** `src/App.tsx` — public `/`, `/500`; authenticated `/dashboard` under `AppAuthBoundary` with **`AppShellLayout`** (`src/pages/app-shell-layout.tsx`: sidebar `app-sidebar`, header `app-header`, scrollable main).
+**Routing:** `src/App.tsx` — public `/`, `/500`; authenticated `/dashboard` under `AppAuthBoundary` with **`AppShellLayout`** from `src/shell/layout/app-shell-layout.tsx`. Integrations: list `/dashboard/integrations` (`pages/integrations/dashboard/IntegrationsListPage`), detail `/dashboard/integrations/:slug` (`pages/integrations/details/IntegrationDetailPage`); `/dashboard/connections` redirects to `/dashboard/integrations`.
 
 **Copy & i18n:** User-visible strings use **`src/lib/shell-strings.ts`** (`shellT(lang, key)`) with parallel `en` / `es` entries.
 

@@ -29,7 +29,6 @@ export default defineConfig([
             'buttonVariants',
             'tabsListVariants',
             'useTheme',
-            'usePageChrome',
           ],
         },
       ],

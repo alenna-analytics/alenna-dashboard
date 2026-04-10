@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 
 type IntegrationLogoProps = {
-  src: string
+  src?: string
   alt: string
   size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
@@ -20,6 +20,7 @@ export function IntegrationLogo({
   size = 'md',
   className,
 }: IntegrationLogoProps) {
+  const initial = alt.trim().slice(0, 1).toUpperCase() || '?'
   return (
     <div
       className={cn(
@@ -27,12 +28,24 @@ export function IntegrationLogo({
         className,
       )}
     >
-      <img
-        src={src}
-        alt=""
-        className={cn('object-contain', imgSize[size])}
-        aria-hidden
-      />
+      {src ? (
+        <img
+          src={src}
+          alt=""
+          className={cn('object-contain', imgSize[size])}
+          aria-hidden
+        />
+      ) : (
+        <span
+          className={cn(
+            'flex items-center justify-center font-semibold text-text-secondary',
+            imgSize[size],
+          )}
+          aria-hidden
+        >
+          {initial}
+        </span>
+      )}
       <span className="sr-only">{alt}</span>
     </div>
   )

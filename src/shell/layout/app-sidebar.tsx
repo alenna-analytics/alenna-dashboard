@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 
 import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'
-import { shellT } from '@/lib/shell-strings'
+import { shellT } from '@/lib/i18n/shell-strings'
 
 export function AppSidebar() {
   const { lang } = useLanguage()

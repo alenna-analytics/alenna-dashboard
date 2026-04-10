@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
-@import '@fontsource-variable/geist';
+@import '@fontsource-variable/inter';
 @import '@fontsource/geist-mono/400.css';
 
 @custom-variant dark (&:is(.dark *));
@@ -51,7 +51,7 @@
   --color-chart-waterfall-connector: var(--chart-waterfall-connector);
   --color-chart-line-secondary: var(--chart-line-secondary);
 
-  --font-sans: 'Geist Variable', 'Geist', system-ui, sans-serif;
+  --font-sans: 'Inter Variable', 'Inter', system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);

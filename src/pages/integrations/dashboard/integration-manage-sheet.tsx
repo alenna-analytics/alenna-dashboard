@@ -2,9 +2,13 @@ import { Loader2 } from 'lucide-react'
 
 import { IntegrationLogo } from '@/pages/integrations/details/integration-logo'
 import type { ShopifyIntegrationHook } from '@/pages/integrations/details/use-shopify-integration'
-import type { IntegrationDefinition } from '@/lib/integrations-catalog'
+import type { ManagedIntegration } from '@/lib/integrations/catalog'
+import {
+  normalizeShopifySubdomainInput,
+  SHOPIFY_MYSHOPIFY_SUFFIX,
+} from '@/lib/integrations/shopify-format'
 import { useLanguage } from '@/shell/providers/language-provider'
-import { shellT } from '@/lib/shell-strings'
+import { shellT } from '@/lib/i18n/shell-strings'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
@@ -16,7 +20,7 @@ import {
 } from '@/ui/sheet'
 
 type IntegrationManageSheetProps = {
-  definition: IntegrationDefinition
+  definition: ManagedIntegration
   open: boolean
   onOpenChange: (open: boolean) => void
   shopify?: ShopifyIntegrationHook
@@ -45,7 +49,7 @@ function SheetHeaderWithLogo({
   definition,
   title,
 }: {
-  definition: IntegrationDefinition
+  definition: ManagedIntegration
   title: string
 }) {
   return (
@@ -58,9 +62,19 @@ function SheetHeaderWithLogo({
   )
 }
 
-function PlaceholderManageBody({ definition }: { definition: IntegrationDefinition }) {
+function ShopifyIntroCopy({ lang }: { lang: string }) {
+  return (
+    <p className="text-sm text-muted-foreground">
+      {shellT(lang, 'integrationSheetShopifyConnectIntro')}
+    </p>
+  )
+}
+
+function PlaceholderManageBody({ definition }: { definition: ManagedIntegration }) {
   const { lang } = useLanguage()
-  const name = shellT(lang, definition.nameKey)
+  const name = definition.nameKey
+    ? shellT(lang, definition.nameKey)
+    : definition.catalogName
   return (
     <SheetHeaderWithLogo
       definition={definition}
@@ -73,7 +87,7 @@ function ShopifyManageBody({
   definition,
   shopify,
 }: {
-  definition: IntegrationDefinition
+  definition: ManagedIntegration
   shopify: ShopifyIntegrationHook
 }) {
   const { lang } = useLanguage()
@@ -83,16 +97,23 @@ function ShopifyManageBody({
     shopInput,
     setShopInput,
     startOAuth,
+    oauthStarting,
     isLoading,
     error,
     activeConnection,
     connected,
     activeConnectionId,
     disconnectMutation,
+    previewMessage,
   } = shopify
 
-  const name = shellT(lang, definition.nameKey)
+  const name = definition.nameKey
+    ? shellT(lang, definition.nameKey)
+    : definition.catalogName
   const storeId = 'integration-shop-domain-sheet'
+  const shopSubdomain = normalizeShopifySubdomainInput(
+    activeConnection?.shop_domain ?? '',
+  )
 
   return (
     <>
@@ -112,40 +133,81 @@ function ShopifyManageBody({
           </p>
         ) : !connected ? (
           <div className="space-y-4">
+            <ShopifyIntroCopy lang={lang} />
             <div className="space-y-2">
               <Label htmlFor={storeId}>{shellT(lang, 'connectionsConnectShopLabel')}</Label>
-              <Input
-                id={storeId}
-                placeholder={shellT(lang, 'connectionsConnectShopPlaceholder')}
-                value={shopInput}
-                onChange={(e) => setShopInput(e.target.value)}
-                autoComplete="off"
-              />
+              <div
+                className="flex h-10 min-h-10 min-w-0 items-stretch overflow-hidden rounded-md border border-input bg-background shadow-xs ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+                role="group"
+                aria-label={shellT(lang, 'connectionsConnectShopLabel')}
+              >
+                <Input
+                  id={storeId}
+                  placeholder={shellT(lang, 'connectionsConnectShopPlaceholder')}
+                  value={shopInput}
+                  onChange={(e) =>
+                    setShopInput(normalizeShopifySubdomainInput(e.target.value))
+                  }
+                  autoComplete="off"
+                  className="h-full min-h-0 min-w-0 flex-1 rounded-none border-0 bg-transparent px-2.5 py-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+                <span
+                  className="flex shrink-0 items-center border-l border-input bg-muted px-3 text-sm text-muted-foreground"
+                  aria-hidden
+                >
+                  {SHOPIFY_MYSHOPIFY_SUFFIX}
+                </span>
+              </div>
             </div>
             <Button
               type="button"
-              className="w-full sm:w-auto"
-              disabled={!shopInput.trim() || !tenantId}
+              className="inline-flex w-full items-center justify-center gap-2 sm:w-auto"
+              size="lg"
+              disabled={
+                oauthStarting ||
+                !normalizeShopifySubdomainInput(shopInput) ||
+                !tenantId
+              }
               onClick={() => void startOAuth()}
             >
+              {oauthStarting ? (
+                <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+              ) : null}
               {shellT(lang, 'integrationConnectWithShopify')}
             </Button>
+            {previewMessage && !oauthStarting ? (
+              <p className="text-sm text-destructive" role="alert">
+                {previewMessage}
+              </p>
+            ) : null}
             <p className="text-xs text-muted-foreground">{shellT(lang, 'integrationDetailHeroHelper')}</p>
           </div>
         ) : (
           <div className="space-y-4">
+            <ShopifyIntroCopy lang={lang} />
             <div className="space-y-2">
               <Label htmlFor={`${storeId}-ro`}>{shellT(lang, 'connectionsConnectShopLabel')}</Label>
-              <Input
-                id={`${storeId}-ro`}
-                readOnly
-                value={activeConnection?.shop_domain ?? activeConnection?.id ?? ''}
-              />
+              <div
+                className="flex h-10 min-h-10 min-w-0 items-stretch overflow-hidden rounded-md border border-input bg-muted/60 text-sm text-foreground shadow-xs"
+                role="group"
+                aria-label={shellT(lang, 'connectionsConnectShopLabel')}
+              >
+                <div id={`${storeId}-ro`} className="min-w-0 flex-1 truncate px-2.5 py-2 text-muted-foreground">
+                  {shopSubdomain}
+                </div>
+                <span
+                  className="flex shrink-0 items-center border-l border-input bg-muted px-3 text-sm text-muted-foreground"
+                  aria-hidden
+                >
+                  {SHOPIFY_MYSHOPIFY_SUFFIX}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">{shellT(lang, 'integrationDetailHeroHelper')}</p>
             </div>
             <Button
               type="button"
-              variant="destructive"
-              className="inline-flex w-full items-center justify-center gap-2 sm:w-auto"
+              variant="outline"
+              className="inline-flex w-full items-center justify-center gap-2 border-destructive/35 text-destructive hover:bg-destructive/10 hover:text-destructive sm:w-auto"
               disabled={disconnectMutation.isPending || !activeConnectionId}
               onClick={() => disconnectMutation.mutate()}
             >

@@ -2,7 +2,7 @@ import { ChevronRight } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { useLanguage } from '@/shell/providers/language-provider'
-import { shellT } from '@/lib/shell-strings'
+import { shellT } from '@/lib/i18n/shell-strings'
 import { cn } from '@/lib/utils'
 
 type Crumb = {

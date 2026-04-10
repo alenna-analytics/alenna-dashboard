@@ -7,7 +7,7 @@ import {
   type TenantSummary,
 } from '@/auth/hooks'
 import { apiFetch } from '@/lib/api'
-import type { MeResponse } from '@/lib/me-types'
+import type { MeResponse } from '@/lib/types/me-types'
 
 export function useAppBootstrap(): {
   tenants: TenantSummary[]

@@ -6,9 +6,9 @@ import { useCurrentTenant } from '@/auth/hooks'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { apiFetch, apiPostJson } from '@/lib/api'
-import type { PlatformConnection, ShopifyOrdersPreviewResponse } from '@/lib/connectors-types'
-import { formatShopifyLastSync, toYmd } from '@/lib/shopify-format'
-import { shellT } from '@/lib/shell-strings'
+import type { PlatformConnection, ShopifyOrdersPreviewResponse } from '@/lib/types/connectors'
+import { formatShopifyLastSync, normalizeShopifySubdomainInput, toYmd } from '@/lib/integrations/shopify-format'
+import { shellT } from '@/lib/i18n/shell-strings'
 
 export type ShopifyIntegrationHook = ReturnType<typeof useShopifyIntegration>
 
@@ -34,6 +34,7 @@ export function useShopifyIntegration() {
   const [fullHistory, setFullHistory] = useState(false)
   const [previewMessage, setPreviewMessage] = useState<string | null>(null)
   const [syncMessage, setSyncMessage] = useState<string | null>(null)
+  const [oauthStarting, setOauthStarting] = useState(false)
 
   const {
     data: connections,
@@ -72,26 +73,33 @@ export function useShopifyIntegration() {
   )
 
   const startOAuth = useCallback(async () => {
-    const shop = shopInput.trim()
+    const shop = normalizeShopifySubdomainInput(shopInput)
     if (!shop || !tenantId) return
     setPreviewMessage(null)
-    const res = await apiFetch(
-      `/connectors/shopify/authorization-url?shop=${encodeURIComponent(shop)}`,
-      (a) => getToken(a),
-      {},
-      tenantId,
-    )
-    if (!res.ok) {
-      const t = await res.text()
-      setPreviewMessage(t || res.statusText)
-      return
+    setOauthStarting(true)
+    try {
+      const res = await apiFetch(
+        `/connectors/shopify/authorization-url?shop=${encodeURIComponent(shop)}`,
+        (a) => getToken(a),
+        {},
+        tenantId,
+      )
+      if (!res.ok) {
+        const t = await res.text()
+        setPreviewMessage(t || res.statusText)
+        setOauthStarting(false)
+        return
+      }
+      const data = (await res.json()) as { url: string }
+      window.location.href = data.url
+    } catch (e) {
+      setPreviewMessage(e instanceof Error ? e.message : String(e))
+      setOauthStarting(false)
     }
-    const data = (await res.json()) as { url: string }
-    window.location.href = data.url
   }, [getToken, shopInput, tenantId])
 
   const onConnectClick = useCallback(() => {
-    const shop = shopInput.trim()
+    const shop = normalizeShopifySubdomainInput(shopInput)
     if (!shop) {
       document.getElementById('shop-domain-detail')?.focus()
       return
@@ -227,6 +235,7 @@ export function useShopifyIntegration() {
     primary,
     activeConnection,
     connected,
+    oauthStarting,
     startOAuth,
     onConnectClick,
     previewMutation,

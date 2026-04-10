@@ -1,3 +1,10 @@
+export type IntegrationPlatformRow = {
+  slug: string
+  name: string
+  is_available: boolean
+  sort_order: number
+}
+
 export type PlatformConnection = {
   id: string
   platform: string

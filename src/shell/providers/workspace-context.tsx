@@ -1,6 +1,6 @@
 import { createContext, useContext, type ReactNode } from 'react'
 
-import type { MeResponse } from '@/lib/me-types'
+import type { MeResponse } from '@/lib/types/me-types'
 
 type WorkspaceContextValue = {
   me: MeResponse | null

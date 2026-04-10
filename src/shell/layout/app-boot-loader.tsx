@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { useLanguage } from '@/shell/providers/language-provider'
-import { shellT } from '@/lib/shell-strings'
+import { shellT } from '@/lib/i18n/shell-strings'
 import { cn } from '@/lib/utils'
 
 const STAGE_KEYS = ['bootStage1', 'bootStage2', 'bootStage3'] as const

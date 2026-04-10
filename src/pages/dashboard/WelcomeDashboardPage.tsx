@@ -1,6 +1,6 @@
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
-import { shellT } from '@/lib/shell-strings'
+import { shellT } from '@/lib/i18n/shell-strings'
 
 export function WelcomeDashboardPage() {
   const { lang } = useLanguage()

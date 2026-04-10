@@ -5,7 +5,7 @@ import { AppBreadcrumbs } from '@/shell/layout/app-breadcrumbs'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useTheme } from '@/shell/providers/theme-provider'
 import { Button } from '@/ui/button'
-import { shellT } from '@/lib/shell-strings'
+import { shellT } from '@/lib/i18n/shell-strings'
 
 export function AppHeader() {
   const { theme, toggleTheme } = useTheme()

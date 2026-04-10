@@ -10,11 +10,16 @@ import {
   type ManagedIntegration,
 } from '@/lib/integrations/catalog'
 
-export function useIntegrationsListQueries(): {
+export type IntegrationsListState = {
   integrations: ManagedIntegration[]
   pageLoading: boolean
   pageError: unknown
-} {
+  isFetching: boolean
+  dataUpdatedAt: number
+  refetch: () => void
+}
+
+export function useIntegrationsListQueries(): IntegrationsListState {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
 
@@ -56,10 +61,20 @@ export function useIntegrationsListQueries(): {
 
   const pageLoading = platformsQuery.isLoading || connectorsQuery.isLoading
   const pageError = platformsQuery.error ?? connectorsQuery.error
+  const isFetching = platformsQuery.isFetching || connectorsQuery.isFetching
+  const dataUpdatedAt = Math.max(platformsQuery.dataUpdatedAt, connectorsQuery.dataUpdatedAt)
+
+  const refetch = () => {
+    void platformsQuery.refetch()
+    void connectorsQuery.refetch()
+  }
 
   return {
     integrations,
     pageLoading,
     pageError,
+    isFetching,
+    dataUpdatedAt,
+    refetch,
   }
 }

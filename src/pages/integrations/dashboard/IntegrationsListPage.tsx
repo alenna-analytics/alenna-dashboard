@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { formatDistanceToNow } from 'date-fns'
+import { es as dateFnsEs } from 'date-fns/locale'
 
 import { IntegrationManageSheet } from '@/pages/integrations/dashboard/integration-manage-sheet'
 import {
@@ -10,11 +12,19 @@ import { IntegrationCardSkeleton } from '@/pages/integrations/dashboard/integrat
 import { IntegrationListCard } from '@/pages/integrations/dashboard/integration-list-card'
 import { IntegrationsDisconnectDialog } from '@/pages/integrations/dashboard/integrations-disconnect-dialog'
 import { IntegrationsSearchField } from '@/pages/integrations/dashboard/integrations-search-field'
+import { IntegrationsErrorState } from '@/pages/integrations/dashboard/integrations-error-state'
+import { IntegrationsEmptyState } from '@/pages/integrations/dashboard/integrations-empty-state'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
 import { useShopifyIntegration } from '@/pages/integrations/details/use-shopify-integration'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { shellT } from '@/lib/i18n/shell-strings'
+
+function formatUpdatedAt(ts: number, lang: string): string {
+  if (!ts) return ''
+  const locale = lang === 'en' ? undefined : dateFnsEs
+  return formatDistanceToNow(new Date(ts), { addSuffix: true, locale })
+}
 
 export function IntegrationsListPage() {
   const { lang } = useLanguage()
@@ -26,7 +36,8 @@ export function IntegrationsListPage() {
   const { isAdmin, connected: shopifyConnected, disconnectMutation } =
     shopifyIntegration
 
-  const { integrations, pageLoading, pageError } = useIntegrationsListQueries()
+  const { integrations, pageLoading, pageError, isFetching, dataUpdatedAt, refetch } =
+    useIntegrationsListQueries()
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase()
@@ -48,55 +59,89 @@ export function IntegrationsListPage() {
     ? integrations.find((x) => x.slug === managedSlug)
     : undefined
 
+  const hasData = integrations.length > 0
+  const isSearching = q.trim().length > 0
+  const updatedLabel =
+    dataUpdatedAt > 0 ? formatUpdatedAt(dataUpdatedAt, lang) : null
+
   return (
     <DashboardPage className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">
-          {shellT(lang, 'integrationsHeroTitle')}
-        </h1>
-        <p className="mt-1.5 max-w-xl text-sm text-text-secondary">
-          {shellT(lang, 'integrationsHeroSubtitle')}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">
+            {shellT(lang, 'integrationsHeroTitle')}
+          </h1>
+          <p className="mt-1.5 max-w-xl text-sm text-text-secondary">
+            {shellT(lang, 'integrationsHeroSubtitle')}
+          </p>
+        </div>
+        {updatedLabel && !pageLoading ? (
+          <p className="shrink-0 pt-1 text-xs text-muted-foreground">
+            {shellT(lang, 'integrationsLastUpdated')} {updatedLabel}
+          </p>
+        ) : null}
       </div>
 
       <IntegrationsSearchField lang={lang} value={q} onChange={setQ} />
 
       {pageLoading ? (
-        <ul className="grid list-none gap-4 sm:grid-cols-2" aria-busy="true" aria-label={shellT(lang, 'connectionsLoading')}>
+        <ul
+          className="grid list-none gap-4 sm:grid-cols-2"
+          aria-busy="true"
+          aria-label={shellT(lang, 'connectionsLoading')}
+        >
           {Array.from({ length: 4 }).map((_, i) => (
             <IntegrationCardSkeleton key={i} />
           ))}
         </ul>
-      ) : pageError ? (
-        <p className="text-sm text-destructive" role="alert">
-          {pageError instanceof Error ? pageError.message : String(pageError)}
-        </p>
+      ) : pageError && !hasData ? (
+        <IntegrationsErrorState
+          lang={lang}
+          error={pageError}
+          isRetrying={isFetching}
+          onRetry={refetch}
+        />
+      ) : !hasData && !isSearching ? (
+        <IntegrationsEmptyState
+          lang={lang}
+          onExplore={() => setManagedSlug('shopify')}
+        />
       ) : filtered.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">
           {shellT(lang, 'integrationsEmptySearch')}
         </p>
       ) : (
-        <ul className="grid list-none gap-4 sm:grid-cols-2">
-          {filtered.map((integration) => (
-            <IntegrationListCard
-              key={integration.slug}
-              integration={integration}
+        <>
+          {pageError ? (
+            <IntegrationsErrorState
               lang={lang}
-              shopifyConnected={shopifyConnected}
-              isAdmin={isAdmin}
-              disconnectPending={disconnectMutation.isPending}
-              onManage={() => setManagedSlug(integration.slug)}
-              onConnectToggle={(on) => {
-                if (on) {
-                  setManagedSlug('shopify')
-                  return
-                }
-                if (!shopifyConnected) return
-                setDisconnectDialogOpen(true)
-              }}
+              error={pageError}
+              isRetrying={isFetching}
+              onRetry={refetch}
             />
-          ))}
-        </ul>
+          ) : null}
+          <ul className="grid list-none gap-4 sm:grid-cols-2">
+            {filtered.map((integration) => (
+              <IntegrationListCard
+                key={integration.slug}
+                integration={integration}
+                lang={lang}
+                shopifyConnected={shopifyConnected}
+                isAdmin={isAdmin}
+                disconnectPending={disconnectMutation.isPending}
+                onManage={() => setManagedSlug(integration.slug)}
+                onConnectToggle={(on) => {
+                  if (on) {
+                    setManagedSlug('shopify')
+                    return
+                  }
+                  if (!shopifyConnected) return
+                  setDisconnectDialogOpen(true)
+                }}
+              />
+            ))}
+          </ul>
+        </>
       )}
 
       {managed ? (

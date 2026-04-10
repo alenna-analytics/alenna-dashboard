@@ -6,7 +6,7 @@ import { useCurrentTenant } from '@/auth/hooks'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { apiFetch, apiPostJson } from '@/lib/api'
-import type { PlatformConnection, ShopifyOrdersPreviewResponse } from '@/lib/types/connectors'
+import type { PlatformConnection, ShopifyOrdersPreviewResponse, ShopifySyncResponse } from '@/lib/types/connectors'
 import { formatShopifyLastSync, normalizeShopifySubdomainInput, toYmd } from '@/lib/integrations/shopify-format'
 import { shellT } from '@/lib/i18n/shell-strings'
 
@@ -150,9 +150,17 @@ export function useShopifyIntegration() {
   })
 
   const syncMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (): Promise<ShopifySyncResponse> => {
       if (!tenantId) throw new Error('No workspace')
-      const body: { platform_connection_id?: string; full?: boolean } = {}
+      const body: {
+        start_date?: string
+        end_date?: string
+        platform_connection_id?: string
+        full?: boolean
+      } = {
+        start_date: dateFrom,
+        end_date: dateTo,
+      }
       if (shopifyRows.length > 1 && activeConnectionId) {
         body.platform_connection_id = activeConnectionId
       }
@@ -170,7 +178,7 @@ export function useShopifyIntegration() {
         const t = await res.text()
         throw new Error(t || res.statusText)
       }
-      return (await res.json()) as { records_synced: number }
+      return (await res.json()) as ShopifySyncResponse
     },
     onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })

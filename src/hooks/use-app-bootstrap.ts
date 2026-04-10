@@ -17,6 +17,7 @@ export function useAppBootstrap(): {
   tenantsLoading: boolean
   meLoading: boolean
   resolvingSingleTenant: boolean
+  retry: () => void
 } {
   const { getToken, isLoaded, isSignedIn } = useAuth()
   const { tenantId, role } = useCurrentTenant()
@@ -26,6 +27,7 @@ export function useAppBootstrap(): {
   const [error, setError] = useState<string | null>(null)
   const [tenantsLoading, setTenantsLoading] = useState(false)
   const [meLoading, setMeLoading] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return
@@ -45,7 +47,9 @@ export function useAppBootstrap(): {
     return () => {
       cancelled = true
     }
-  }, [getToken, isLoaded, isSignedIn])
+    // retryCount triggers re-fetch on manual retry
+     
+  }, [getToken, isLoaded, isSignedIn, retryCount])
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn || tenants.length !== 1 || tenantId) return
@@ -84,6 +88,11 @@ export function useAppBootstrap(): {
     await loadMe()
   }, [loadMe])
 
+  const retry = useCallback(() => {
+    setError(null)
+    setRetryCount((c) => c + 1)
+  }, [])
+
   const resolvingSingleTenant =
     Boolean(isSignedIn) &&
     !tenantsLoading &&
@@ -99,5 +108,6 @@ export function useAppBootstrap(): {
     tenantsLoading,
     meLoading,
     resolvingSingleTenant,
+    retry,
   }
 }

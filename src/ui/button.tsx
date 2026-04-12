@@ -4,16 +4,16 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-[background-color,border-color,box-shadow,color] outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/25 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:cursor-pointer",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-[background-color,border-color,box-shadow,color,transform] outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/25 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 hover:cursor-pointer",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-[0_2px_14px_rgba(var(--brand-rgb),0.35)] hover:bg-[color:var(--brand-hover)] hover:shadow-[0_4px_20px_rgba(var(--brand-rgb),0.4)]",
+          "bg-primary text-primary-foreground shadow-[0_14px_24px_rgba(var(--brand-rgb),0.16)] hover:bg-[color:var(--brand-hover)] hover:shadow-[0_18px_28px_rgba(var(--brand-rgb),0.18)]",
         outline:
-          "border-border-subtle bg-bg-section text-foreground shadow-[var(--glass-shadow)] backdrop-blur-xl hover:bg-bg-surface hover:border-border-emphasis aria-expanded:bg-glass-fill-medium",
+          "border-border-default bg-bg-elevated text-foreground shadow-[var(--shadow-ink-sm)] hover:bg-bg-surface hover:border-border-emphasis",
         secondary:
-          "border-border-subtle bg-glass-fill-muted text-foreground shadow-[var(--shadow-ink-sm)] backdrop-blur-md hover:bg-glass-fill-raised hover:border-border-subtle aria-expanded:bg-bg-section",
+          "border-border-subtle bg-glass-fill-muted text-foreground shadow-[var(--shadow-ink-xs)] hover:bg-glass-fill-raised hover:border-border-default",
         ghost:
           "hover:bg-[color:var(--brand-ghost)] hover:text-foreground aria-expanded:bg-brand-dim aria-expanded:text-foreground",
         destructive:
@@ -22,9 +22,9 @@ const buttonVariants = cva(
       },
       size: {
         default:
-          "h-10 gap-1.5 px-5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+          "h-11 gap-1.5 px-5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
         xs: "h-8 gap-1 px-3 text-xs in-data-[slot=button-group]:rounded-full has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-9 gap-1 px-4 text-[0.8rem] in-data-[slot=button-group]:rounded-full has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        sm: "h-10 gap-1 px-4 text-[0.8rem] in-data-[slot=button-group]:rounded-full has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-12 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
         icon: "size-8",
         "icon-xs":

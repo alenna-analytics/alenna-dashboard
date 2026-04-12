@@ -174,109 +174,115 @@ export function ReportsPage() {
 
   return (
     <TooltipProvider delayDuration={200}>
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight text-text-primary">
-          {t('reportsPageTitle')}
-        </h1>
-        <div className="flex flex-wrap items-center gap-2">
-          {showConnectionSelector && (
-            <Select
-              value={activeConnectionId}
-              onValueChange={(v) => setFilters({ connectionId: v ?? '' })}
-            >
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder={t('reportsConnection')} />
-              </SelectTrigger>
-              <SelectContent>
-                {connections.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.shop_domain ?? c.platform}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          <div className="w-72">
-            <DateRangePicker
-              strings={pickerStrings}
-              startValue={startDate}
-              endValue={endDate}
-              onStartChange={(v) => v && setFilters({ startDate: v })}
-              onEndChange={(v) => v && setFilters({ endDate: v })}
+      <div className="flex flex-col gap-8">
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+          <div className="max-w-[36rem]">
+            <h1 className="max-w-[10ch] text-4xl font-semibold tracking-[-0.045em] text-text-primary sm:text-5xl lg:text-[4.25rem]">
+              {t('reportsPageTitle')}
+            </h1>
+          </div>
+          <div className="surface-glass flex flex-wrap items-center justify-end gap-2 rounded-[1.75rem] p-2.5">
+            {showConnectionSelector && (
+              <Select
+                value={activeConnectionId}
+                onValueChange={(v) => setFilters({ connectionId: v ?? '' })}
+              >
+                <SelectTrigger className="w-48 border-border-default bg-bg-elevated shadow-none">
+                  <SelectValue placeholder={t('reportsConnection')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {connections.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.shop_domain ?? c.platform}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <div className="w-[19rem]">
+              <DateRangePicker
+                strings={pickerStrings}
+                startValue={startDate}
+                endValue={endDate}
+                onStartChange={(v) => v && setFilters({ startDate: v })}
+                onEndChange={(v) => v && setFilters({ endDate: v })}
+              />
+            </div>
+            <Button variant="default" size="sm" onClick={() => setExpensesOpen(true)}>
+              {t('expensesAddBtn')}
+            </Button>
+            <ExpensesSheet
+              open={expensesOpen}
+              onOpenChange={setExpensesOpen}
+              expenses={expenses}
+              platforms={platforms}
+              onCreate={async (body: ExpenseCreate) => { await createMutation.mutateAsync(body) }}
+              onUpdate={async (id, body) => { await updateMutation.mutateAsync({ id, ...body }) }}
+              onDelete={async (id) => { await deleteMutation.mutateAsync(id) }}
+              isBusy={isBusy}
             />
           </div>
-          <Button variant="outline" size="sm" onClick={() => setExpensesOpen(true)}>
-            {t('expensesAddBtn')}
-          </Button>
-          <ExpensesSheet
-            open={expensesOpen}
-            onOpenChange={setExpensesOpen}
-            expenses={expenses}
-            platforms={platforms}
-            onCreate={async (body: ExpenseCreate) => { await createMutation.mutateAsync(body) }}
-            onUpdate={async (id, body) => { await updateMutation.mutateAsync({ id, ...body }) }}
-            onDelete={async (id) => { await deleteMutation.mutateAsync(id) }}
-            isBusy={isBusy}
-          />
-        </div>
+        </section>
+
+        {!activeConnectionId ? (
+          <div className="surface-glass rounded-[2rem] px-6 py-8 text-sm text-text-secondary">
+            {t('reportsSelectConnection')}
+          </div>
+        ) : kpiLoading ? (
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-12">
+              <Skeleton className="h-36 rounded-[1.75rem] xl:col-span-6" />
+              <Skeleton className="h-36 rounded-[1.75rem] xl:col-span-2" />
+              <Skeleton className="h-36 rounded-[1.75rem] xl:col-span-2" />
+              <Skeleton className="h-36 rounded-[1.75rem] xl:col-span-2" />
+            </div>
+            <Skeleton className="h-20 rounded-[1.75rem]" />
+            <Skeleton className="h-[26rem] rounded-[2rem]" />
+          </div>
+        ) : kpi ? (
+          <div className="flex flex-col gap-6 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 motion-safe:fill-mode-both">
+            <section>
+              <ReportsSummaryCards
+                kpi={kpi}
+                kpiPrev={kpiPrev}
+                currency={currency}
+                previousReady={previousReady}
+                lastUpdatedLabel={lastUpdatedLabel}
+                kpiFetching={kpiFetching}
+                vsPrior={vsPrior}
+                comparisonUnavailable={comparisonUnavailable}
+                t={t}
+              />
+            </section>
+
+            <section>
+              <Card className="overflow-hidden rounded-[2rem] border-0 bg-transparent py-4 shadow-none hover:shadow-none">
+                <CardHeader className="space-y-1 px-1 pb-4 pt-0 sm:px-1">
+                  <CardTitle className="text-2xl tracking-[-0.03em] text-text-primary">
+                    {t('reportsSectionRevenueBreakdown')}
+                  </CardTitle>
+                  <CardDescription className="max-w-[30rem] text-sm text-text-secondary">
+                    {t('reportsWaterfallSubtitle')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="px-0 pt-0">
+                  <WaterfallChart
+                    segments={waterfallSegments}
+                    currency={currency}
+                    grossRevenue={kpi.gross_revenue}
+                    formatPctOfGross={(pct) => t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))}
+                    finalBarCaption={t('reportsWaterfallFinalHint')}
+                  />
+                </CardContent>
+              </Card>
+            </section>
+          </div>
+        ) : (
+          <div className="surface-glass rounded-[2rem] px-6 py-8 text-sm text-text-secondary">
+            {t('reportsNoData')}
+          </div>
+        )}
       </div>
-
-      {!activeConnectionId ? (
-        <p className="text-sm text-text-secondary">{t('reportsSelectConnection')}</p>
-      ) : kpiLoading ? (
-        <div className="flex flex-col gap-3">
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-            <Skeleton className="h-[5.25rem] rounded-xl" />
-            <Skeleton className="h-[5.25rem] rounded-xl" />
-            <Skeleton className="h-[5.25rem] rounded-xl" />
-            <Skeleton className="h-[5.25rem] rounded-xl" />
-          </div>
-          <Skeleton className="h-16 rounded-xl" />
-          <Skeleton className="h-96 rounded-xl" />
-        </div>
-      ) : kpi ? (
-        <div className="flex flex-col gap-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 motion-safe:fill-mode-both">
-          <section>
-            <ReportsSummaryCards
-              kpi={kpi}
-              kpiPrev={kpiPrev}
-              currency={currency}
-              previousReady={previousReady}
-              lastUpdatedLabel={lastUpdatedLabel}
-              kpiFetching={kpiFetching}
-              vsPrior={vsPrior}
-              comparisonUnavailable={comparisonUnavailable}
-              t={t}
-            />
-          </section>
-
-          <section>
-            <Card className="overflow-hidden border-0 bg-transparent py-2 shadow-none backdrop-blur-none hover:border-transparent hover:shadow-none">
-              <CardHeader className="space-y-0.5 px-0 pb-1.5 pt-0">
-                <CardTitle className="text-lg font-semibold tracking-tight text-text-primary">
-                  {t('reportsSectionRevenueBreakdown')}
-                </CardTitle>
-                <CardDescription className="text-xs leading-relaxed text-text-tertiary">
-                  {t('reportsWaterfallSubtitle')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="px-0 pt-0">
-                <WaterfallChart
-                  segments={waterfallSegments}
-                  currency={currency}
-                  grossRevenue={kpi.gross_revenue}
-                  formatPctOfGross={(pct) => t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))}
-                  finalBarCaption={t('reportsWaterfallFinalHint')}
-                />
-              </CardContent>
-            </Card>
-          </section>
-        </div>
-      ) : (
-        <p className="text-sm text-text-secondary">{t('reportsNoData')}</p>
-      )}
-    </div>
     </TooltipProvider>
   )
 }

@@ -16,6 +16,9 @@ function crumbsForPath(pathname: string, lang: string): Crumb[] {
   if (normalized === '/dashboard') {
     return [{ label: shellT(lang, 'navDashboard') }]
   }
+  if (normalized === '/dashboard/reports') {
+    return [{ label: shellT(lang, 'navReports') }]
+  }
   if (normalized === '/dashboard/integrations') {
     return [{ label: shellT(lang, 'navIntegrations') }]
   }

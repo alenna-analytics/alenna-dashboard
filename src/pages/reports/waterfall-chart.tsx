@@ -188,7 +188,7 @@ function barFillSolid(payload: WaterfallBar): string {
   if (payload.isNegative) {
     return 'var(--danger)'
   }
-  return 'var(--brand-light)'
+  return 'var(--chart-3)'
 }
 
 function labelFillForBar(row: WaterfallBar | undefined): string {
@@ -218,7 +218,7 @@ function SpacerHatchShape(props: BarShapeProps) {
       ry={rx}
       stroke="var(--card-solid-border)"
       strokeWidth={1}
-      strokeOpacity={0.45}
+      strokeOpacity={0.3}
     />
   )
 }
@@ -272,11 +272,11 @@ function StackedWaterfallBarShape({
             y={yCursor}
             width={w}
             height={hi}
-            fill="var(--danger)"
-            fillOpacity={Math.max(0.52, 1 - shadeIndex * 0.11)}
+        fill="var(--danger)"
+        fillOpacity={Math.max(0.5, 0.92 - shadeIndex * 0.12)}
             rx={r}
             ry={r}
-            stroke="var(--card)"
+        stroke="var(--bg-elevated)"
             strokeWidth={1}
           />
         )
@@ -355,7 +355,7 @@ function BarLabel({ x, y, width, height, value, isNegative, fill }: BarLabelProp
   const cx = x + width / 2
   const cy = y + h / 2
   const display = fmt(value)
-  const fs = h < 22 ? 9 : 10
+  const fs = h < 22 ? 9 : 11
   return (
     <text
       x={cx}
@@ -363,7 +363,7 @@ function BarLabel({ x, y, width, height, value, isNegative, fill }: BarLabelProp
       textAnchor="middle"
       dominantBaseline="middle"
       fontSize={fs}
-      fontWeight={600}
+      fontWeight={700}
       fill={fill}
     >
       {isNegative && value !== 0 ? `-${display}` : display}
@@ -393,9 +393,9 @@ function WaterfallConnectors({ bars }: { bars: WaterfallBar[] }) {
         x2={x2}
         y2={y}
         stroke="var(--chart-waterfall-connector)"
-        strokeWidth={1.25}
-        strokeDasharray="4 4"
-        opacity={0.92}
+        strokeWidth={1}
+        strokeDasharray="5 5"
+        opacity={0.72}
       />,
     )
   }
@@ -423,14 +423,14 @@ function CustomTooltip({
 
   if (d.stackedParts && d.stackedParts.length > 0) {
     return (
-      <div className="rounded-2xl border border-border-subtle bg-card/95 px-3 py-2 text-xs shadow-[var(--glass-shadow)] backdrop-blur-xl">
+      <div className="rounded-[1.5rem] border border-border-default bg-bg-elevated/96 px-3.5 py-3 text-xs shadow-[var(--shadow-ink-md)]">
         <p className="font-medium text-text-primary">{d.name}</p>
         <p className="mt-0.5 text-text-secondary">
           {sign}
           {val}
         </p>
         {impact ? (
-          <p className="mt-1 border-t border-border-subtle pt-1 text-[11px] text-text-tertiary">
+          <p className="mt-1 border-t border-border-subtle pt-1.5 text-[11px] text-text-tertiary">
             {impact}
           </p>
         ) : null}
@@ -449,14 +449,14 @@ function CustomTooltip({
   }
 
   return (
-    <div className="rounded-2xl border border-border-subtle bg-card/95 px-3 py-2 text-xs shadow-[var(--glass-shadow)] backdrop-blur-xl">
+    <div className="rounded-[1.5rem] border border-border-default bg-bg-elevated/96 px-3.5 py-3 text-xs shadow-[var(--shadow-ink-md)]">
       <p className="font-medium text-text-primary">{d.name}</p>
       <p className="mt-0.5 text-text-secondary">
         {sign}
         {val}
       </p>
       {impact ? (
-        <p className="mt-1 border-t border-border-subtle pt-1 text-[11px] text-text-tertiary">
+        <p className="mt-1 border-t border-border-subtle pt-1.5 text-[11px] text-text-tertiary">
           {impact}
         </p>
       ) : null}
@@ -479,14 +479,14 @@ export function WaterfallChart({
 
   return (
     <div className="w-full">
-      <div className="surface-chart-card relative overflow-hidden rounded-[1.75rem] p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
+      <div className="surface-chart-card relative overflow-hidden rounded-[2rem] p-5 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
         <div className="relative z-1">
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={340}>
             <ComposedChart
               data={bars}
-              margin={{ top: 12, right: 10, bottom: 28, left: 4 }}
-              maxBarSize={56}
-              barCategoryGap="12%"
+              margin={{ top: 14, right: 10, bottom: 30, left: 8 }}
+              maxBarSize={60}
+              barCategoryGap="10%"
             >
               <defs>
                 <pattern
@@ -505,12 +505,12 @@ export function WaterfallChart({
               </defs>
               <CartesianGrid
                 vertical={false}
-                strokeDasharray="3 6"
+                strokeDasharray="3 8"
                 stroke="var(--chart-grid)"
               />
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 10, fill: 'var(--color-text-secondary)' }}
+                tick={{ fontSize: 11, fill: 'var(--color-text-secondary)' }}
                 axisLine={false}
                 tickLine={false}
                 interval={0}
@@ -522,11 +522,11 @@ export function WaterfallChart({
               />
               <YAxis
                 domain={[0, domainMax]}
-                tick={{ fontSize: 10, fill: 'var(--color-text-secondary)' }}
+                tick={{ fontSize: 11, fill: 'var(--color-text-secondary)' }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(v: number) => fmt(v)}
-                width={44}
+                width={48}
               />
               <Tooltip
                 content={
@@ -554,7 +554,7 @@ export function WaterfallChart({
               <Bar
                 dataKey="bar"
                 stackId="wf"
-                radius={[12, 12, 0, 0]}
+                radius={[14, 14, 0, 0]}
                 fill="var(--chart-1)"
                 shape={WaterfallBarShape}
                 isAnimationActive

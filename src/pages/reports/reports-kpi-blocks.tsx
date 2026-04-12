@@ -101,6 +101,7 @@ function CompactKpiCard({
   vsPriorLabel,
   comparisonUnavailable,
   negative,
+  featured,
 }: {
   label: string
   helpText: string
@@ -112,6 +113,7 @@ function CompactKpiCard({
   vsPriorLabel: string
   comparisonUnavailable: string
   negative?: boolean
+  featured?: boolean
 }) {
   const display =
     format === 'currency'
@@ -123,8 +125,9 @@ function CompactKpiCard({
   return (
     <div
       className={cn(
-        'flex min-h-[5.25rem] flex-col justify-between rounded-[1.75rem] border border-border-subtle bg-card p-4 shadow-[var(--glass-shadow)] backdrop-blur-xl',
-        'transition-shadow hover:shadow-[var(--glass-shadow-hover)]',
+        'flex min-h-[5.25rem] flex-col justify-between rounded-[1.75rem] p-4 backdrop-blur-xl',
+        featured ? 'surface-kpi-featured' : 'surface-kpi-card',
+        'transition-[box-shadow,transform] duration-200 hover:shadow-[var(--glass-shadow-hover)] motion-safe:hover:-translate-y-px',
       )}
     >
       <div className="flex items-start justify-between gap-1">
@@ -205,7 +208,7 @@ export function ReportsSummaryCards({
     'inline-flex items-center gap-1 rounded-full border border-border-default bg-glass-fill-soft px-2.5 py-0.5 text-[10px] font-medium tabular-nums text-text-primary backdrop-blur-md'
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {lastUpdatedLabel ? (
         <p className="text-right text-[11px] text-text-tertiary tabular-nums">
           {t('reportsLastUpdated')}: {lastUpdatedLabel}
@@ -213,7 +216,7 @@ export function ReportsSummaryCards({
         </p>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-1.5 sm:gap-2 lg:grid-cols-4 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-400 motion-safe:fill-mode-both">
         <CompactKpiCard
           label={t('reportsGrossRevenue')}
           helpText={t('reportsKpiHelpGrossRevenue')}
@@ -224,6 +227,7 @@ export function ReportsSummaryCards({
           previousReady={previousReady}
           vsPriorLabel={vsPrior}
           comparisonUnavailable={comparisonUnavailable}
+          featured
         />
         <CompactKpiCard
           label={t('reportsNetRevenue')}
@@ -261,7 +265,7 @@ export function ReportsSummaryCards({
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[1.75rem] border border-border-subtle bg-card px-4 py-3 shadow-[var(--glass-shadow)] backdrop-blur-xl">
+      <div className="surface-metrics-strip flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-[1.75rem] px-3 py-2.5 backdrop-blur-xl">
         <span className="flex items-center gap-1.5 text-[12px] text-text-secondary">
           {t('reportsGrossMargin')}
           <Tooltip>

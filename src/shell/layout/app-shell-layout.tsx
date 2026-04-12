@@ -65,7 +65,12 @@ export function AppShellLayout() {
                 Select a workspace in your account menu if prompted.
               </p>
             ) : null}
-            <Outlet />
+            <div
+              key={location.pathname}
+              className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-300"
+            >
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

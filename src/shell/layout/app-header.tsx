@@ -12,16 +12,18 @@ export function AppHeader() {
     lang === 'es' ? shellT(lang, 'ariaSwitchToEnglish') : shellT(lang, 'ariaSwitchToSpanish')
 
   return (
-    <header className="flex h-14 min-w-0 shrink-0 items-center gap-4 bg-transparent px-6 backdrop-blur-xl lg:px-10">
-      <AppBreadcrumbs className="min-w-0 flex-1" />
-      <div className="flex shrink-0 items-center gap-2">
+    <header className="flex h-14 min-w-0 shrink-0 items-center justify-between gap-4 bg-transparent px-6 lg:px-10">
+      <div className="header-crystal-pill min-w-0 max-w-[min(100%,32rem)]">
+        <AppBreadcrumbs className="min-w-0" />
+      </div>
+      <div className="header-crystal-pill shrink-0 gap-1.5 py-1 pr-1 pl-2">
         <Button
           type="button"
           variant="ghost"
-          size="sm"
+          size="xs"
           aria-label={ariaLang}
           onClick={toggleLang}
-          className="h-8"
+          className="h-7 font-semibold text-text-secondary hover:text-text-primary"
         >
           {lang === 'es' ? 'EN' : 'ES'}
         </Button>

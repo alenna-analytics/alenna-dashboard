@@ -132,12 +132,20 @@ export function ReportsPage() {
   const waterfallSegments = kpi
     ? [
         { name: t('reportsWfGrossRevenue'), value: kpi.gross_revenue, isSubtotal: true, isNegative: false },
-        { name: t('reportsWfDiscounts'), value: kpi.discounts, isSubtotal: false, isNegative: true },
-        { name: t('reportsWfReturns'), value: kpi.returns, isSubtotal: false, isNegative: true },
-        { name: t('reportsWfCommissions'), value: kpi.referral_commissions, isSubtotal: false, isNegative: true },
-        { name: t('reportsWfShipping'), value: kpi.shipping, isSubtotal: false, isNegative: true },
-        { name: t('reportsWfTaxes'), value: kpi.taxes, isSubtotal: false, isNegative: true },
-        { name: t('reportsWfFees'), value: kpi.per_transaction_fees, isSubtotal: false, isNegative: true },
+        {
+          name: t('reportsWfAdjustmentsToNet'),
+          value: Math.max(0, kpi.gross_revenue - kpi.net_revenue),
+          isSubtotal: false,
+          isNegative: true,
+          stackedParts: [
+            { name: t('reportsWfDiscounts'), value: kpi.discounts, isNegative: true },
+            { name: t('reportsWfReturns'), value: kpi.returns, isNegative: true },
+            { name: t('reportsWfCommissions'), value: kpi.referral_commissions, isNegative: true },
+            { name: t('reportsWfShipping'), value: kpi.shipping, isNegative: true },
+            { name: t('reportsWfTaxes'), value: kpi.taxes, isNegative: true },
+            { name: t('reportsWfFees'), value: kpi.per_transaction_fees, isNegative: true },
+          ],
+        },
         { name: t('reportsWfNetRevenue'), value: kpi.net_revenue, isSubtotal: true, isNegative: false },
         { name: t('reportsWfCogs'), value: kpi.cogs, isSubtotal: false, isNegative: true },
         { name: t('reportsWfGrossProfit'), value: kpi.gross_profit, isSubtotal: true, isNegative: false },
@@ -166,7 +174,7 @@ export function ReportsPage() {
 
   return (
     <TooltipProvider delayDuration={200}>
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight text-text-primary">
           {t('reportsPageTitle')}
@@ -228,7 +236,7 @@ export function ReportsPage() {
           <Skeleton className="h-96 rounded-xl" />
         </div>
       ) : kpi ? (
-        <>
+        <div className="flex flex-col gap-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 motion-safe:fill-mode-both">
           <section>
             <ReportsSummaryCards
               kpi={kpi}
@@ -244,8 +252,8 @@ export function ReportsPage() {
           </section>
 
           <section>
-            <Card className="overflow-hidden">
-              <CardHeader className="space-y-1 pb-2">
+            <Card className="overflow-hidden border-0 bg-transparent py-2 shadow-none backdrop-blur-none hover:border-transparent hover:shadow-none">
+              <CardHeader className="space-y-0.5 px-0 pb-1.5 pt-0">
                 <CardTitle className="text-lg font-semibold tracking-tight text-text-primary">
                   {t('reportsSectionRevenueBreakdown')}
                 </CardTitle>
@@ -253,24 +261,18 @@ export function ReportsPage() {
                   {t('reportsWaterfallSubtitle')}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="px-0 pt-0">
                 <WaterfallChart
                   segments={waterfallSegments}
                   currency={currency}
                   grossRevenue={kpi.gross_revenue}
                   formatPctOfGross={(pct) => t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))}
                   finalBarCaption={t('reportsWaterfallFinalHint')}
-                  legendLabels={{
-                    total: t('reportsWaterfallLegendTotal'),
-                    deduction: t('reportsWaterfallLegendDeduction'),
-                    additive: t('reportsWaterfallLegendAdditive'),
-                    final: t('reportsWaterfallLegendFinal'),
-                  }}
                 />
               </CardContent>
             </Card>
           </section>
-        </>
+        </div>
       ) : (
         <p className="text-sm text-text-secondary">{t('reportsNoData')}</p>
       )}

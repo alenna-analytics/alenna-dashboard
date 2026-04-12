@@ -262,7 +262,7 @@ export function ExpensesSheet({
                 <Label>{t('expensesPlatformField')}</Label>
                 <Select
                   value={form.platform}
-                  onValueChange={(v) => setForm((f) => ({ ...f, platform: v }))}
+                  onValueChange={(v) => setForm((f) => ({ ...f, platform: v ?? '' }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={t('expensesGlobalPlatform')} />

@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react'
 import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
+import { formatDistanceToNow } from 'date-fns'
+import { enUS, es as esLocale } from 'date-fns/locale'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { shellT } from '@/lib/i18n/shell-strings'
@@ -10,9 +12,9 @@ import { apiFetch } from '@/lib/api'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { ExpenseCreate } from '@/lib/types/expenses'
 import { useLanguage } from '@/shell/providers/language-provider'
-import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card'
+import { TooltipProvider } from '@/ui/tooltip'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import { Skeleton } from '@/ui/skeleton'
 import {
   Select,
@@ -23,43 +25,11 @@ import {
 } from '@/ui/select'
 import { DateRangePicker } from '@/ui/date-range-picker'
 import { ExpensesSheet } from './expenses-sheet'
+import { ReportsSummaryCards } from './reports-kpi-blocks'
+import { computePreviousPeriod, toYmd } from './reports-ui-helpers'
 import { WaterfallChart } from './waterfall-chart'
 import { useReports } from './use-reports'
 import { useExpenses } from './use-expenses'
-
-function toYmd(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
-
-function fmtCurrency(value: number, currency: string): string {
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value)
-}
-
-const STATUS_BADGE_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  PAID: 'default',
-  PARTIALLY_PAID: 'secondary',
-  REFUNDED: 'destructive',
-  PARTIALLY_REFUNDED: 'destructive',
-  VOIDED: 'outline',
-  EXPIRED: 'outline',
-}
-
-const STATUS_LABEL_KEYS: Record<string, Parameters<typeof shellT>[1]> = {
-  PAID: 'orderStatusPaid',
-  PARTIALLY_PAID: 'orderStatusPartiallyPaid',
-  REFUNDED: 'orderStatusRefunded',
-  PARTIALLY_REFUNDED: 'orderStatusPartiallyRefunded',
-  VOIDED: 'orderStatusVoided',
-  EXPIRED: 'orderStatusExpired',
-}
 
 type ReportsFiltersState = {
   startDate: string
@@ -81,6 +51,7 @@ export function ReportsPage() {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const t = (k: Parameters<typeof shellT>[1]) => shellT(lang, k)
+  const dateLocale = lang === 'en' ? enUS : esLocale
 
   const defaultFilters = useMemo((): ReportsFiltersState => {
     const today = new Date()
@@ -116,10 +87,24 @@ export function ReportsPage() {
 
   const showConnectionSelector = connections.length > 1
 
-  const { data: kpi, isLoading: kpiLoading } = useReports({
+  const prevPeriod = useMemo(() => computePreviousPeriod(startDate, endDate), [startDate, endDate])
+
+  const {
+    data: kpi,
+    isLoading: kpiLoading,
+    dataUpdatedAt,
+    isFetching: kpiFetching,
+  } = useReports({
     connectionId: activeConnectionId || null,
     startDate,
     endDate,
+  })
+
+  const { data: kpiPrev, isLoading: kpiPrevLoading } = useReports({
+    connectionId: activeConnectionId || null,
+    startDate: prevPeriod?.start ?? '',
+    endDate: prevPeriod?.end ?? '',
+    enabled: Boolean(prevPeriod && activeConnectionId),
   })
 
   const { query: expensesQuery, createMutation, updateMutation, deleteMutation } = useExpenses()
@@ -138,6 +123,11 @@ export function ReportsPage() {
   }, [connections])
 
   const currency = kpi?.currency ?? 'USD'
+
+  const lastUpdatedLabel = useMemo(() => {
+    if (!dataUpdatedAt) return null
+    return formatDistanceToNow(new Date(dataUpdatedAt), { addSuffix: true, locale: dateLocale })
+  }, [dataUpdatedAt, dateLocale])
 
   const waterfallSegments = kpi
     ? [
@@ -170,9 +160,13 @@ export function ReportsPage() {
     presetYtd: t('datePickerYtd'),
   }
 
+  const previousReady = Boolean(prevPeriod) && !kpiPrevLoading
+  const vsPrior = t('reportsVsPreviousPeriod')
+  const comparisonUnavailable = t('reportsComparisonUnavailable')
+
   return (
-    <div className="flex flex-col gap-6 px-6 py-6">
-      {/* Header row */}
+    <TooltipProvider delayDuration={200}>
+    <div className="flex flex-col gap-8 px-6 py-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight text-text-primary">
           {t('reportsPageTitle')}
@@ -181,7 +175,7 @@ export function ReportsPage() {
           {showConnectionSelector && (
             <Select
               value={activeConnectionId}
-              onValueChange={(v) => setFilters({ connectionId: v })}
+              onValueChange={(v) => setFilters({ connectionId: v ?? '' })}
             >
               <SelectTrigger className="w-44">
                 <SelectValue placeholder={t('reportsConnection')} />
@@ -220,111 +214,66 @@ export function ReportsPage() {
         </div>
       </div>
 
-      {/* KPI Cards */}
       {!activeConnectionId ? (
         <p className="text-sm text-text-secondary">{t('reportsSelectConnection')}</p>
       ) : kpiLoading ? (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 rounded-xl" />
-          ))}
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <Skeleton className="h-72 rounded-xl" />
+            <Skeleton className="h-72 rounded-xl" />
+            <Skeleton className="h-72 rounded-xl" />
+            <Skeleton className="h-72 rounded-xl" />
+          </div>
+          <Skeleton className="h-96 rounded-xl" />
         </div>
       ) : kpi ? (
         <>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <KpiCard
-              title={t('reportsGrossRevenue')}
-              value={fmtCurrency(kpi.gross_revenue, currency)}
+          <section>
+            <ReportsSummaryCards
+              kpi={kpi}
+              kpiPrev={kpiPrev}
+              currency={currency}
+              previousReady={previousReady}
+              lastUpdatedLabel={lastUpdatedLabel}
+              kpiFetching={kpiFetching}
+              vsPrior={vsPrior}
+              comparisonUnavailable={comparisonUnavailable}
+              t={t}
             />
-            <KpiCard
-              title={t('reportsNetRevenue')}
-              value={fmtCurrency(kpi.net_revenue, currency)}
-            />
-            <KpiCard
-              title={t('reportsGrossProfit')}
-              value={fmtCurrency(kpi.gross_profit, currency)}
-              badge={`${kpi.gross_margin_pct.toFixed(1)}%`}
-              badgeLabel={t('reportsGrossMargin')}
-            />
-            <KpiCard
-              title={t('reportsNetProfit')}
-              value={fmtCurrency(kpi.net_profit, currency)}
-              negative={kpi.net_profit < 0}
-            />
-          </div>
+          </section>
 
-          {/* Order status row */}
-          <div className="flex flex-wrap items-center gap-2 text-sm text-text-secondary">
-            <span className="font-medium text-text-primary">{t('reportsOrders')}:</span>
-            <span className="font-semibold text-text-primary">{kpi.order_count.toLocaleString()}</span>
-            {Object.entries(kpi.order_status_counts)
-              .filter(([, count]) => count > 0)
-              .map(([status, count]) => (
-                <Badge key={status} variant={STATUS_BADGE_VARIANT[status] ?? 'secondary'}>
-                  {count} {STATUS_LABEL_KEYS[status] ? t(STATUS_LABEL_KEYS[status]) : status.toLowerCase()}
-                </Badge>
-              ))}
-            <span className="ml-2">
-              {t('reportsUnits')}: {kpi.units_sold.toLocaleString()}
-            </span>
-          </div>
-
-          {/* Waterfall chart */}
-          <Card className="bg-white dark:bg-white">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-text-secondary">
-                {t('reportsWaterfallTitle')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <WaterfallChart segments={waterfallSegments} currency={currency} />
-            </CardContent>
-          </Card>
+          <section>
+            <Card className="overflow-hidden border bg-white shadow-sm transition-shadow duration-300 hover:shadow-md dark:bg-white">
+              <CardHeader className="space-y-1 pb-2">
+                <CardTitle className="text-lg font-semibold tracking-tight text-text-primary">
+                  {t('reportsSectionRevenueBreakdown')}
+                </CardTitle>
+                <CardDescription className="text-xs leading-relaxed text-text-tertiary">
+                  {t('reportsWaterfallSubtitle')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <WaterfallChart
+                  segments={waterfallSegments}
+                  currency={currency}
+                  grossRevenue={kpi.gross_revenue}
+                  formatPctOfGross={(pct) => t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))}
+                  finalBarCaption={t('reportsWaterfallFinalHint')}
+                  legendLabels={{
+                    total: t('reportsWaterfallLegendTotal'),
+                    deduction: t('reportsWaterfallLegendDeduction'),
+                    additive: t('reportsWaterfallLegendAdditive'),
+                    final: t('reportsWaterfallLegendFinal'),
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </section>
         </>
       ) : (
         <p className="text-sm text-text-secondary">{t('reportsNoData')}</p>
       )}
     </div>
-  )
-}
-
-function KpiCard({
-  title,
-  value,
-  badge,
-  badgeLabel,
-  negative,
-}: {
-  title: string
-  value: string
-  badge?: string
-  badgeLabel?: string
-  negative?: boolean
-}) {
-  return (
-    <Card className="bg-white dark:bg-white">
-      <CardHeader className="pb-1">
-        <CardTitle className="text-xs font-medium uppercase tracking-wide text-text-secondary">
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p
-          className={`text-2xl font-semibold tabular-nums ${negative ? 'text-destructive' : 'text-text-primary'}`}
-        >
-          {value}
-        </p>
-        {badge && (
-          <div className="mt-1 flex items-center gap-1">
-            <Badge variant="secondary" className="text-xs">
-              {badge}
-            </Badge>
-            {badgeLabel && (
-              <span className="text-xs text-text-tertiary">{badgeLabel}</span>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    </TooltipProvider>
   )
 }

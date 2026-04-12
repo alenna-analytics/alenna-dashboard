@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CloudOff, RefreshCw } from 'lucide-react'
 
 import { shellT } from '@/lib/i18n/shell-strings'
-import { Button } from '@/ui/button'
+import { Button, buttonVariants } from '@/ui/button'
 import { cn } from '@/lib/utils'
 
 type IntegrationsErrorStateProps = {
@@ -57,11 +57,12 @@ export function IntegrationsErrorState({
             ? shellT(lang, 'integrationsRetrying')
             : shellT(lang, 'integrationsRetry')}
         </Button>
-        <Button variant="ghost" size="sm" asChild>
-          <a href="mailto:soporte@alenna.io">
-            {shellT(lang, 'integrationsContactSupport')}
-          </a>
-        </Button>
+        <a
+          href="mailto:soporte@alenna.io"
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
+        >
+          {shellT(lang, 'integrationsContactSupport')}
+        </a>
       </div>
 
       <div className="mt-3 sm:ml-14">

@@ -9,15 +9,16 @@ type UseReportsParams = {
   connectionId: string | null
   startDate: string
   endDate: string
+  enabled?: boolean
 }
 
-export function useReports({ connectionId, startDate, endDate }: UseReportsParams) {
+export function useReports({ connectionId, startDate, endDate, enabled = true }: UseReportsParams) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
 
   return useQuery({
     queryKey: ['reports', 'kpis', tenantId, connectionId, startDate, endDate],
-    enabled: Boolean(tenantId && connectionId && startDate && endDate),
+    enabled: Boolean(enabled && tenantId && connectionId && startDate && endDate),
     queryFn: async (): Promise<KpiResponse> => {
       const params = new URLSearchParams({
         connection_id: connectionId!,

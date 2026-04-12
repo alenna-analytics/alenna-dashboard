@@ -52,13 +52,13 @@ export function AppShellLayout() {
 
   return (
     <WorkspaceProvider value={workspaceValue}>
-      <div className="flex h-svh overflow-hidden bg-bg-base motion-safe:animate-[boot-shell-enter_0.4s_ease-out]">
+      <div className="flex h-svh overflow-hidden bg-transparent motion-safe:animate-[boot-shell-enter_0.4s_ease-out]">
         <AppSidebar />
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-transparent">
           <AppHeader />
           <main
             ref={mainRef}
-            className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain bg-bg-base px-6 py-6 lg:px-10 lg:py-8"
+            className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain bg-transparent px-6 py-6 lg:px-10 lg:py-8"
           >
             {!tenantId && tenants.length > 1 ? (
               <p className="mb-4 text-sm text-text-secondary">

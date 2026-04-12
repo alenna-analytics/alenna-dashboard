@@ -3,18 +3,32 @@ import { HelpCircle } from 'lucide-react'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { KpiResponse } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
-import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 import { fmtCurrency, pctVersusPrevious } from './reports-ui-helpers'
 
-function DeltaRow({
+const PAID_STATUS_KEYS = ['PAID', 'PARTIALLY_PAID'] as const
+const REFUNDED_STATUS_KEYS = ['REFUNDED', 'PARTIALLY_REFUNDED'] as const
+const EXPIRED_STATUS_KEYS = ['EXPIRED'] as const
+
+function sumOrderStatuses(
+  map: Record<string, number> | undefined,
+  keys: readonly string[],
+): number {
+  if (!map) return 0
+  let s = 0
+  for (const k of keys) s += map[k] ?? 0
+  return s
+}
+
+function DeltaPill({
   current,
   previous,
   previousReady,
   negative,
   vsPriorLabel,
   comparisonUnavailable,
+  compact = false,
 }: {
   current: number
   previous: number | undefined
@@ -22,68 +36,61 @@ function DeltaRow({
   negative?: boolean
   vsPriorLabel: string
   comparisonUnavailable: string
+  compact?: boolean
 }) {
   const delta = previous !== undefined ? pctVersusPrevious(current, previous) : null
   const invertGood = Boolean(negative)
 
   if (!previousReady || previous === undefined) {
     return (
-      <p className="text-[11px] leading-snug text-text-tertiary tabular-nums">
-        {comparisonUnavailable}
-      </p>
+      <span
+        className="rounded-md bg-white/20 px-1.5 py-0.5 text-[10px] text-text-tertiary"
+        title={comparisonUnavailable}
+      >
+        —
+      </span>
     )
   }
 
   if (delta === null) {
     return (
-      <p className="text-[11px] leading-snug text-text-tertiary tabular-nums">
-        <span className="font-medium text-text-secondary">{vsPriorLabel}</span>
-        <span className="text-text-tertiary"> · —</span>
-      </p>
+      <span className="text-[10px] text-text-tertiary" title={`${vsPriorLabel} · —`}>
+        —
+      </span>
     )
   }
 
   const { pct, trend } = delta
   const good = invertGood ? trend === 'down' : trend === 'up'
   const bad = invertGood ? trend === 'up' : trend === 'down'
-  const arrowGlyph = trend === 'flat' ? '→' : trend === 'up' ? '↑' : '↓'
-  const colorClass = good
-    ? 'text-emerald-600 dark:text-emerald-400'
-    : bad
-      ? 'text-red-600 dark:text-red-400'
-      : 'text-text-tertiary'
+  const arrow = trend === 'flat' ? '→' : trend === 'up' ? '↑' : '↓'
+  const pctStr = `${trend === 'up' && pct > 0 ? '+' : ''}${pct.toFixed(1)}%`
+  const title = `${vsPriorLabel}: ${pctStr}`
 
   return (
-    <p className={cn('flex flex-wrap items-center gap-1.5 text-[11px] font-semibold tabular-nums', colorClass)}>
-      <span className="font-mono text-xs" aria-hidden>
-        {arrowGlyph}
+    <div className="flex flex-col items-end gap-0.5">
+      <span
+        title={title}
+        className={cn(
+          'rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums',
+          good && 'bg-brand-dim text-brand',
+          bad && 'bg-danger-dim text-danger',
+          !good && !bad && 'bg-white/30 text-text-tertiary',
+        )}
+      >
+        <span className="font-mono text-[10px]" aria-hidden>
+          {arrow}
+        </span>
+        {pctStr}
       </span>
-      <span>
-        {trend === 'up' ? '+' : ''}
-        {pct.toFixed(1)}%
-      </span>
-      <span className="font-normal text-text-tertiary">{vsPriorLabel}</span>
-    </p>
+      {!compact ? (
+        <span className="max-w-[7rem] text-[9px] leading-tight text-text-tertiary">{vsPriorLabel}</span>
+      ) : null}
+    </div>
   )
 }
 
-type MetricLineProps = {
-  label: string
-  helpText: string
-  value: number
-  format: 'currency' | 'count'
-  currency: string
-  previous: number | undefined
-  previousReady: boolean
-  vsPriorLabel: string
-  comparisonUnavailable: string
-  negative?: boolean
-  badge?: string
-  badgeLabel?: string
-  emphasis: 'hero' | 'compact'
-}
-
-function MetricLine({
+function CompactKpiCard({
   label,
   helpText,
   value,
@@ -94,32 +101,42 @@ function MetricLine({
   vsPriorLabel,
   comparisonUnavailable,
   negative,
-  badge,
-  badgeLabel,
-  emphasis,
-}: MetricLineProps) {
+}: {
+  label: string
+  helpText: string
+  value: number
+  format: 'currency' | 'count' | 'percent'
+  currency: string
+  previous: number | undefined
+  previousReady: boolean
+  vsPriorLabel: string
+  comparisonUnavailable: string
+  negative?: boolean
+}) {
   const display =
-    format === 'currency' ? fmtCurrency(value, currency) : value.toLocaleString()
+    format === 'currency'
+      ? fmtCurrency(value, currency)
+      : format === 'percent'
+        ? `${value.toFixed(1)}%`
+        : value.toLocaleString()
 
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-start justify-between gap-2">
-        <p
-          className={cn(
-            'font-semibold uppercase tracking-wide text-text-secondary',
-            emphasis === 'hero' ? 'text-[11px]' : 'text-[10px]',
-          )}
-        >
-          {label}
-        </p>
+    <div
+      className={cn(
+        'flex min-h-[5.25rem] flex-col justify-between rounded-xl border border-white/40 bg-white/[0.32] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_4px_18px_rgba(65,74,97,0.06)] backdrop-blur-md',
+        'transition-shadow hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.32),0_6px_22px_rgba(65,74,97,0.08)]',
+      )}
+    >
+      <div className="flex items-start justify-between gap-1">
+        <span className="text-[11px] font-medium leading-snug text-text-secondary">{label}</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               type="button"
-              className="shrink-0 rounded-md p-0.5 text-text-tertiary transition-colors hover:text-text-secondary"
+              className="shrink-0 rounded p-0.5 text-text-tertiary hover:text-text-secondary"
               aria-label={helpText}
             >
-              <HelpCircle className="size-3.5" />
+              <HelpCircle className="size-3" />
             </button>
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-[220px] text-left font-normal leading-snug">
@@ -127,31 +144,24 @@ function MetricLine({
           </TooltipContent>
         </Tooltip>
       </div>
-      <p
-        className={cn(
-          'font-semibold tabular-nums tracking-tight',
-          emphasis === 'hero' ? 'text-3xl' : 'text-lg',
-          negative ? 'text-destructive' : 'text-text-primary',
-        )}
-      >
-        {display}
-      </p>
-      <DeltaRow
-        current={value}
-        previous={previous}
-        previousReady={previousReady}
-        negative={negative}
-        vsPriorLabel={vsPriorLabel}
-        comparisonUnavailable={comparisonUnavailable}
-      />
-      {badge ? (
-        <div className="pt-1">
-          <span className="inline-flex items-center gap-1 rounded-md bg-muted/70 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-text-primary">
-            {badge}
-            {badgeLabel ? <span className="font-medium text-text-tertiary">{badgeLabel}</span> : null}
-          </span>
-        </div>
-      ) : null}
+      <div className="mt-2 flex min-h-[2.5rem] items-end justify-between gap-2">
+        <p
+          className={cn(
+            'min-w-0 truncate text-lg font-semibold tracking-tight tabular-nums sm:text-xl',
+            negative ? 'text-danger' : 'text-text-primary',
+          )}
+        >
+          {display}
+        </p>
+        <DeltaPill
+          current={value}
+          previous={previous}
+          previousReady={previousReady}
+          negative={negative}
+          vsPriorLabel={vsPriorLabel}
+          comparisonUnavailable={comparisonUnavailable}
+        />
+      </div>
     </div>
   )
 }
@@ -183,6 +193,16 @@ export function ReportsSummaryCards({
   const units = kpi.units_sold
   const prevOrders = kpiPrev?.order_count
   const prevUnits = kpiPrev?.units_sold
+  const status = kpi.order_status_counts ?? {}
+
+  const paid = sumOrderStatuses(status, PAID_STATUS_KEYS)
+  const refunded = sumOrderStatuses(status, REFUNDED_STATUS_KEYS)
+  const expired = sumOrderStatuses(status, EXPIRED_STATUS_KEYS)
+
+  const pctOfOrders = (n: number) => (orders > 0 ? (n / orders) * 100 : 0)
+
+  const chipClass =
+    'inline-flex items-center gap-1 rounded-full border border-white/35 bg-white/[0.25] px-2 py-0.5 text-[10px] font-medium tabular-nums text-text-primary backdrop-blur-sm'
 
   return (
     <div className="space-y-3">
@@ -193,125 +213,127 @@ export function ReportsSummaryCards({
         </p>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="flex flex-col border bg-white shadow-sm transition-shadow duration-300 hover:shadow-md dark:bg-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold text-text-primary">
-              {t('reportsCardRevenue')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-1 flex-col gap-6 pt-0">
-            <MetricLine
-              emphasis="hero"
-              label={t('reportsGrossRevenue')}
-              helpText={t('reportsKpiHelpGrossRevenue')}
-              value={kpi.gross_revenue}
-              format="currency"
-              currency={currency}
-              previous={kpiPrev?.gross_revenue}
-              previousReady={previousReady}
-              vsPriorLabel={vsPrior}
-              comparisonUnavailable={comparisonUnavailable}
-            />
-            <div className="border-t border-border-subtle pt-4">
-              <MetricLine
-                emphasis="compact"
-                label={t('reportsNetRevenue')}
-                helpText={t('reportsKpiHelpNetRevenue')}
-                value={kpi.net_revenue}
-                format="currency"
-                currency={currency}
-                previous={kpiPrev?.net_revenue}
-                previousReady={previousReady}
-                vsPriorLabel={vsPrior}
-                comparisonUnavailable={comparisonUnavailable}
-              />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+        <CompactKpiCard
+          label={t('reportsGrossRevenue')}
+          helpText={t('reportsKpiHelpGrossRevenue')}
+          value={kpi.gross_revenue}
+          format="currency"
+          currency={currency}
+          previous={kpiPrev?.gross_revenue}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+        />
+        <CompactKpiCard
+          label={t('reportsNetRevenue')}
+          helpText={t('reportsKpiHelpNetRevenue')}
+          value={kpi.net_revenue}
+          format="currency"
+          currency={currency}
+          previous={kpiPrev?.net_revenue}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+        />
+        <CompactKpiCard
+          label={t('reportsGrossProfit')}
+          helpText={t('reportsKpiHelpGrossProfit')}
+          value={kpi.gross_profit}
+          format="currency"
+          currency={currency}
+          previous={kpiPrev?.gross_profit}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+        />
+        <CompactKpiCard
+          label={t('reportsNetProfit')}
+          helpText={t('reportsKpiHelpNetProfit')}
+          value={kpi.net_profit}
+          format="currency"
+          currency={currency}
+          previous={kpiPrev?.net_profit}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          negative={kpi.net_profit < 0}
+        />
+      </div>
 
-        <Card className="flex flex-col border bg-white shadow-sm transition-shadow duration-300 hover:shadow-md dark:bg-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold text-text-primary">
-              {t('reportsCardProfit')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-1 flex-col gap-6 pt-0">
-            <MetricLine
-              emphasis="hero"
-              label={t('reportsGrossProfit')}
-              helpText={t('reportsKpiHelpGrossProfit')}
-              value={kpi.gross_profit}
-              format="currency"
-              currency={currency}
-              previous={kpiPrev?.gross_profit}
-              previousReady={previousReady}
-              vsPriorLabel={vsPrior}
-              comparisonUnavailable={comparisonUnavailable}
-              badge={`${kpi.gross_margin_pct.toFixed(1)}%`}
-              badgeLabel={t('reportsGrossMargin')}
-            />
-            <div className="border-t border-border-subtle pt-4">
-              <MetricLine
-                emphasis="compact"
-                label={t('reportsNetProfit')}
-                helpText={t('reportsKpiHelpNetProfit')}
-                value={kpi.net_profit}
-                format="currency"
-                currency={currency}
-                previous={kpiPrev?.net_profit}
-                previousReady={previousReady}
-                negative={kpi.net_profit < 0}
-                vsPriorLabel={vsPrior}
-                comparisonUnavailable={comparisonUnavailable}
-              />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-white/35 bg-white/[0.2] px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_4px_16px_rgba(65,74,97,0.05)] backdrop-blur-md">
+        <span className="flex items-center gap-1.5 text-[12px] text-text-secondary">
+          {t('reportsGrossMargin')}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className="rounded p-0.5 text-text-tertiary hover:text-text-secondary"
+                aria-label={t('reportsKpiHelpGrossMargin')}
+              >
+                <HelpCircle className="size-3" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[220px] text-left text-xs font-normal">
+              {t('reportsKpiHelpGrossMargin')}
+            </TooltipContent>
+          </Tooltip>
+          <span className="font-semibold tabular-nums text-text-primary">
+            {kpi.gross_margin_pct.toFixed(1)}%
+          </span>
+          <DeltaPill
+            current={kpi.gross_margin_pct}
+            previous={kpiPrev?.gross_margin_pct}
+            previousReady={previousReady}
+            vsPriorLabel={vsPrior}
+            comparisonUnavailable={comparisonUnavailable}
+            compact
+          />
+        </span>
 
-        <Card className="flex flex-col border bg-white shadow-sm transition-shadow duration-300 hover:shadow-md dark:bg-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold text-text-primary">
-              {t('reportsCardOrders')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-1 flex-col justify-center pt-0">
-            <MetricLine
-              emphasis="hero"
-              label={t('reportsOrdersTotal')}
-              helpText={t('reportsKpiHelpOrders')}
-              value={orders}
-              format="count"
-              currency={currency}
+        <span className="hidden h-3 w-px bg-white/35 sm:block" aria-hidden />
+
+        <span className="flex items-center gap-2 text-[12px]">
+          <span className="text-text-secondary">{t('reportsUnitsSoldLabel')}</span>
+          <span className="font-semibold tabular-nums text-text-primary">{units.toLocaleString()}</span>
+          <DeltaPill
+            current={units}
+            previous={prevUnits}
+            previousReady={previousReady}
+            vsPriorLabel={vsPrior}
+            comparisonUnavailable={comparisonUnavailable}
+            compact
+          />
+        </span>
+
+        <span className="hidden h-3 w-px bg-white/35 sm:block" aria-hidden />
+
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          <span className="flex items-center gap-2 text-[12px]">
+            <span className="text-text-secondary">{t('reportsOrdersTotal')}</span>
+            <span className="font-semibold tabular-nums text-text-primary">{orders.toLocaleString()}</span>
+            <DeltaPill
+              current={orders}
               previous={prevOrders}
               previousReady={previousReady}
               vsPriorLabel={vsPrior}
               comparisonUnavailable={comparisonUnavailable}
+              compact
             />
-          </CardContent>
-        </Card>
-
-        <Card className="flex flex-col border bg-white shadow-sm transition-shadow duration-300 hover:shadow-md dark:bg-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold text-text-primary">
-              {t('reportsCardVolume')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-1 flex-col justify-center pt-0">
-            <MetricLine
-              emphasis="hero"
-              label={t('reportsUnitsSoldLabel')}
-              helpText={t('reportsKpiHelpUnits')}
-              value={units}
-              format="count"
-              currency={currency}
-              previous={prevUnits}
-              previousReady={previousReady}
-              vsPriorLabel={vsPrior}
-              comparisonUnavailable={comparisonUnavailable}
-            />
-          </CardContent>
-        </Card>
+          </span>
+          <span className={chipClass}>
+            {t('reportsOrdersPaid')}: {paid.toLocaleString()}
+            <span className="font-normal text-text-tertiary"> ({pctOfOrders(paid).toFixed(0)}%)</span>
+          </span>
+          <span className={chipClass}>
+            {t('reportsOrdersRefunded')}: {refunded.toLocaleString()}
+            <span className="font-normal text-text-tertiary"> ({pctOfOrders(refunded).toFixed(0)}%)</span>
+          </span>
+          <span className={chipClass}>
+            {t('reportsOrdersExpired')}: {expired.toLocaleString()}
+            <span className="font-normal text-text-tertiary"> ({pctOfOrders(expired).toFixed(0)}%)</span>
+          </span>
+        </div>
       </div>
     </div>
   )

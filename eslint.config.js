@@ -28,7 +28,6 @@ export default defineConfig([
             'badgeVariants',
             'buttonVariants',
             'tabsListVariants',
-            'useTheme',
           ],
         },
       ],

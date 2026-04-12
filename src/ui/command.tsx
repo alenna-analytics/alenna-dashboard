@@ -32,7 +32,7 @@ const CommandInputWrapper = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandInput>
 >(({ className, ...props }, ref) => (
   <div
-    className="flex shrink-0 items-center border-b border-border-default/80 bg-bg-surface/40 px-3 dark:border-border-strong dark:bg-bg-sunken/50"
+    className="flex shrink-0 items-center border-b border-border-default/80 bg-bg-sunken/40 px-3"
     cmdk-input-wrapper=""
   >
     <Search className="mr-2 size-4 shrink-0 text-text-tertiary" aria-hidden />
@@ -56,8 +56,7 @@ const CommandItem = React.forwardRef<
     ref={ref}
     className={cn(
       'flex w-full cursor-default items-center gap-2 rounded-none px-3 py-2 text-left text-xs text-text-primary outline-none select-none',
-      'aria-selected:bg-white/[0.06] aria-selected:text-text-primary',
-      'dark:aria-selected:bg-white/[0.08]',
+      'aria-selected:bg-brand-dim/70 aria-selected:text-text-primary',
       '[&_svg]:pointer-events-none [&_svg]:shrink-0',
       className
     )}
@@ -73,7 +72,7 @@ const CommandListStyled = React.forwardRef<
   <CommandList
     ref={ref}
     className={cn(
-      'min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-0 dark:[scrollbar-color:rgba(255,255,255,0.12)_transparent]',
+      'min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-0 [scrollbar-color:rgba(123,92,110,0.2)_transparent]',
       className
     )}
     {...props}

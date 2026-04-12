@@ -35,7 +35,7 @@ function BootSpinner() {
           cx="26"
           cy="26"
           r={SPINNER_R}
-          stroke="var(--accent)"
+          stroke="var(--brand)"
           strokeWidth="3"
           strokeLinecap="round"
           strokeDasharray={`${SPINNER_ARC} ${SPINNER_C - SPINNER_ARC}`}
@@ -68,7 +68,7 @@ export function AppBootLoader() {
 
   return (
     <div
-      className="relative h-svh overflow-hidden bg-bg-base motion-safe:animate-[boot-loader-enter_0.35s_ease-out]"
+      className="relative h-svh overflow-hidden bg-transparent motion-safe:animate-[boot-loader-enter_0.35s_ease-out]"
       role="status"
       aria-live="polite"
     >
@@ -94,7 +94,7 @@ export function AppBootLoader() {
                 key={i}
                 className={cn(
                   'h-1 w-6 rounded-full transition-colors duration-300',
-                  i === stageIndex ? 'bg-accent/90' : 'bg-border-subtle/80'
+                  i === stageIndex ? 'bg-primary/90' : 'bg-border-subtle/80'
                 )}
               />
             ))}

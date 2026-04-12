@@ -217,13 +217,14 @@ export function ReportsPage() {
       {!activeConnectionId ? (
         <p className="text-sm text-text-secondary">{t('reportsSelectConnection')}</p>
       ) : kpiLoading ? (
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <Skeleton className="h-72 rounded-xl" />
-            <Skeleton className="h-72 rounded-xl" />
-            <Skeleton className="h-72 rounded-xl" />
-            <Skeleton className="h-72 rounded-xl" />
+        <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+            <Skeleton className="h-[5.25rem] rounded-xl" />
+            <Skeleton className="h-[5.25rem] rounded-xl" />
+            <Skeleton className="h-[5.25rem] rounded-xl" />
+            <Skeleton className="h-[5.25rem] rounded-xl" />
           </div>
+          <Skeleton className="h-16 rounded-xl" />
           <Skeleton className="h-96 rounded-xl" />
         </div>
       ) : kpi ? (
@@ -243,7 +244,7 @@ export function ReportsPage() {
           </section>
 
           <section>
-            <Card className="overflow-hidden border bg-white shadow-sm transition-shadow duration-300 hover:shadow-md dark:bg-white">
+            <Card className="overflow-hidden">
               <CardHeader className="space-y-1 pb-2">
                 <CardTitle className="text-lg font-semibold tracking-tight text-text-primary">
                   {t('reportsSectionRevenueBreakdown')}

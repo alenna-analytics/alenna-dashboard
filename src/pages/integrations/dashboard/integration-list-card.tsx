@@ -52,10 +52,8 @@ export function IntegrationListCard({
     <li>
       <Card
         size="sm"
-        variant="solid"
         className={cn(
-          'h-full border-border-subtle shadow-sm transition-shadow hover:border-border-default hover:shadow-md',
-          'hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)]',
+          'h-full transition-shadow hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.38),0_12px_32px_rgba(65,74,97,0.1)]',
         )}
       >
         <CardHeader className="flex flex-col items-start gap-3 border-0 pb-0">

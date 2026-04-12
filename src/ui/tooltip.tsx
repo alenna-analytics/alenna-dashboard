@@ -34,7 +34,7 @@ function TooltipContent({
       <TooltipPrimitive.Content
         sideOffset={sideOffset}
         className={cn(
-          'z-50 max-w-xs overflow-hidden rounded-md border border-white/45 bg-white/[0.72] px-2.5 py-1.5 text-xs font-medium text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_8px_28px_rgba(65,74,97,0.1)] backdrop-blur-md transition-all duration-150',
+          'z-50 max-w-xs overflow-hidden rounded-md border border-border-subtle bg-popover px-2.5 py-1.5 text-xs font-medium text-text-primary shadow-[var(--shadow-tooltip)] backdrop-blur-md transition-all duration-150',
           className
         )}
         {...props}

@@ -16,7 +16,7 @@ function Switch({ className, ...props }: SwitchParts.Root.Props) {
     >
       <SwitchParts.Thumb
         data-slot="switch-thumb"
-        className="pointer-events-none block size-4 rounded-full bg-white/90 shadow-sm ring-0 transition-transform data-checked:translate-x-4 data-unchecked:translate-x-0"
+        className="pointer-events-none block size-4 rounded-full bg-glass-fill-knob shadow-sm ring-0 transition-transform data-checked:translate-x-4 data-unchecked:translate-x-0"
       />
     </SwitchParts.Root>
   )

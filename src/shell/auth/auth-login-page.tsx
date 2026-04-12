@@ -4,47 +4,50 @@ import { Card, CardContent } from '@/ui/card'
 
 const signInAppearance = {
   variables: {
-    colorBackground: '#2c3140',
-    colorInputBackground: '#363b4d',
-    colorInputText: 'rgba(255, 255, 255, 0.9)',
-    colorText: 'rgba(255, 255, 255, 0.9)',
-    colorTextSecondary: 'rgba(255, 255, 255, 0.55)',
-    colorPrimary: '#da9790',
-    colorDanger: '#b76e6a',
-    colorSuccess: '#da9790',
+    colorBackground: 'var(--clerk-bg)',
+    colorInputBackground: 'var(--clerk-input-bg)',
+    colorInputText: 'var(--clerk-text)',
+    colorText: 'var(--clerk-text)',
+    colorTextSecondary: 'var(--clerk-text-muted)',
+    colorPrimary: 'var(--brand)',
+    colorDanger: 'var(--clerk-danger)',
+    colorSuccess: 'var(--clerk-success)',
     borderRadius: '10px',
   },
   elements: {
     rootBox: 'w-full clerk-signin-dark',
-    card: 'shadow-none border border-[rgba(255,255,255,0.12)] bg-[#2c3140]/96 backdrop-blur-md',
-    headerTitle: 'text-[rgba(255,255,255,0.92)]',
-    headerSubtitle: 'text-[rgba(255,255,255,0.55)]',
-    socialButtonsBlockButtonText: 'text-[rgba(255,255,255,0.9)]',
+    card:
+      'shadow-none border border-[color:var(--clerk-border-subtle)] bg-[color:var(--clerk-bg)]/96 backdrop-blur-md',
+    headerTitle: 'text-[color:var(--clerk-text-strong)]',
+    headerSubtitle: 'text-[color:var(--clerk-text-muted)]',
+    socialButtonsBlockButtonText: 'text-[color:var(--clerk-text)]',
     socialButtonsBlockButton:
-      'border border-[rgba(255,255,255,0.14)] bg-[#363b4d] text-[rgba(255,255,255,0.9)] hover:bg-[#414a61]',
-    socialButtonsBlockButtonArrow: 'text-[rgba(255,255,255,0.65)]',
-    dividerLine: 'bg-[rgba(255,255,255,0.12)]',
-    dividerText: 'text-[rgba(255,255,255,0.5)]',
-    formFieldLabel: 'text-[rgba(255,255,255,0.82)]',
+      'border border-[color:var(--clerk-border)] bg-[color:var(--clerk-input-bg)] text-[color:var(--clerk-text)] hover:bg-[color:var(--clerk-hover-elevated)]',
+    socialButtonsBlockButtonArrow: 'text-[color:var(--clerk-text-muted)]',
+    dividerLine: 'bg-[color:var(--clerk-border-subtle)]',
+    dividerText: 'text-[color:var(--clerk-text-dim)]',
+    formFieldLabel: 'text-[color:var(--clerk-text-label)]',
     formButtonPrimary:
-      'bg-[#da9790] text-[#fff6f2] hover:bg-[#c88982] focus-visible:ring-[#da9790]',
+      'bg-[color:var(--brand)] text-[color:var(--primary-foreground)] hover:bg-[color:var(--clerk-primary-hover)] focus-visible:ring-[color:var(--brand)]',
     formFieldInput:
-      'border border-[rgba(255,255,255,0.14)] bg-[#363b4d] text-[rgba(255,255,255,0.9)] placeholder:text-[rgba(255,255,255,0.4)]',
-    formFieldInputShowPasswordButton: 'text-[rgba(255,255,255,0.55)] hover:text-[rgba(255,255,255,0.9)]',
-    formResendCodeLink: 'text-[#e8b4ae] hover:text-[#fff6f2]',
-    footerActionText: 'text-[rgba(255,255,255,0.5)]',
-    footerActionLink: 'text-[#e8b4ae] hover:text-[#fff6f2]',
-    identityPreviewText: 'text-[rgba(255,255,255,0.9)]',
-    identityPreviewEditButton: 'text-[#e8b4ae] hover:text-[#fff6f2]',
+      'border border-[color:var(--clerk-border)] bg-[color:var(--clerk-input-bg)] text-[color:var(--clerk-text)] placeholder:text-[color:var(--clerk-placeholder)]',
+    formFieldInputShowPasswordButton:
+      'text-[color:var(--clerk-text-muted)] hover:text-[color:var(--clerk-text)]',
+    formResendCodeLink: 'text-[color:var(--clerk-link)] hover:text-[color:var(--primary-foreground)]',
+    footerActionText: 'text-[color:var(--clerk-text-dim)]',
+    footerActionLink: 'text-[color:var(--clerk-link)] hover:text-[color:var(--primary-foreground)]',
+    identityPreviewText: 'text-[color:var(--clerk-text)]',
+    identityPreviewEditButton:
+      'text-[color:var(--clerk-link)] hover:text-[color:var(--primary-foreground)]',
   },
 }
 
 export function AuthLoginPage() {
   return (
     <section className="w-full max-w-6xl">
-      <Card className="border-transparent bg-transparent shadow-none backdrop-blur-none md:border-white/45 md:bg-white/[0.38] md:shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_8px_32px_rgba(65,74,97,0.1)] md:backdrop-blur-[12px]">
+      <Card className="border-transparent bg-transparent shadow-none backdrop-blur-none md:border-border md:bg-card md:shadow-[var(--glass-shadow)]">
         <CardContent className="grid items-center border-none gap-8 px-0 py-2 md:grid-cols-2 md:p-8">
-          <div className="space-y-3 md:pr-6 md:border-r md:border-border-default/70">
+          <div className="space-y-3 md:pr-6 md:border-r md:border-border">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-brand">
               Alenna Analytics
             </p>

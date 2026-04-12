@@ -187,8 +187,8 @@ export function DateRangePicker({
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger
         className={cn(
-          'flex w-full items-center gap-2 rounded-md border border-input bg-background px-3 py-2.5 text-sm',
-          'text-left transition-colors hover:bg-muted/50',
+          'flex w-full items-center gap-2 rounded-full border border-border-subtle bg-bg-section px-4 py-2.5 text-sm',
+          'text-left shadow-[var(--shadow-ink-xs)] backdrop-blur-xl transition-colors hover:bg-bg-surface',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           className,
         )}
@@ -211,7 +211,7 @@ export function DateRangePicker({
           {/* Preset sidebar */}
           <nav
             aria-label="Date presets"
-            className="flex w-full shrink-0 flex-col gap-0.5 border-b border-border-subtle/70 p-1.5 sm:w-40 sm:border-b-0 sm:border-r"
+            className="flex w-full shrink-0 flex-col gap-0.5 border-b border-border-subtle/70 p-1.5 sm:w-40 sm:border-b-0 sm:border-r sm:rounded-l-2xl"
           >
             {presets.map((p) => (
               <React.Fragment key={p.id}>
@@ -220,10 +220,10 @@ export function DateRangePicker({
                   type="button"
                   onClick={() => applyPreset(p.id)}
                   className={cn(
-                    'flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors',
+                    'flex w-full items-center gap-1.5 rounded-full px-2 py-1.5 text-left text-xs transition-colors',
                     preset === p.id
-                      ? 'bg-muted font-medium text-text-primary'
-                      : 'text-text-secondary hover:bg-muted/60 hover:text-text-primary',
+                      ? 'bg-bg-surface font-medium text-text-primary shadow-sm backdrop-blur-sm'
+                      : 'text-text-secondary hover:bg-glass-fill-muted hover:text-text-primary',
                   )}
                 >
                   <span className="flex size-3 shrink-0 items-center justify-center">

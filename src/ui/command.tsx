@@ -72,7 +72,7 @@ const CommandListStyled = React.forwardRef<
   <CommandList
     ref={ref}
     className={cn(
-      'min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-0 [scrollbar-color:rgba(123,92,110,0.2)_transparent]',
+      'min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-0 [scrollbar-color:var(--border-strong)_transparent]',
       className
     )}
     {...props}

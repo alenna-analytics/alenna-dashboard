@@ -12,7 +12,7 @@ export function AppHeader() {
     lang === 'es' ? shellT(lang, 'ariaSwitchToEnglish') : shellT(lang, 'ariaSwitchToSpanish')
 
   return (
-    <header className="flex h-12 min-w-0 shrink-0 items-center gap-4 border-b border-white/40 bg-[rgba(255,255,255,0.28)] px-6 backdrop-blur-xl lg:px-10">
+    <header className="flex h-14 min-w-0 shrink-0 items-center gap-4 bg-transparent px-6 backdrop-blur-xl lg:px-10">
       <AppBreadcrumbs className="min-w-0 flex-1" />
       <div className="flex shrink-0 items-center gap-2">
         <Button

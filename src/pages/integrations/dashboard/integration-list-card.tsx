@@ -53,7 +53,7 @@ export function IntegrationListCard({
       <Card
         size="sm"
         className={cn(
-          'h-full transition-shadow hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.38),0_12px_32px_rgba(65,74,97,0.1)]',
+          'h-full transition-shadow hover:shadow-[var(--glass-shadow-hover)]',
         )}
       >
         <CardHeader className="flex flex-col items-start gap-3 border-0 pb-0">

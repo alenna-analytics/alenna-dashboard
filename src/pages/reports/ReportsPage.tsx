@@ -166,7 +166,7 @@ export function ReportsPage() {
 
   return (
     <TooltipProvider delayDuration={200}>
-    <div className="flex flex-col gap-8 px-6 py-6">
+    <div className="flex flex-col gap-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight text-text-primary">
           {t('reportsPageTitle')}

@@ -44,7 +44,7 @@ function DeltaPill({
   if (!previousReady || previous === undefined) {
     return (
       <span
-        className="rounded-md bg-white/20 px-1.5 py-0.5 text-[10px] text-text-tertiary"
+        className="rounded-full bg-glass-fill-soft px-2 py-0.5 text-[10px] text-text-tertiary backdrop-blur-sm"
         title={comparisonUnavailable}
       >
         —
@@ -75,7 +75,7 @@ function DeltaPill({
           'rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums',
           good && 'bg-brand-dim text-brand',
           bad && 'bg-danger-dim text-danger',
-          !good && !bad && 'bg-white/30 text-text-tertiary',
+          !good && !bad && 'bg-muted text-text-tertiary',
         )}
       >
         <span className="font-mono text-[10px]" aria-hidden>
@@ -123,8 +123,8 @@ function CompactKpiCard({
   return (
     <div
       className={cn(
-        'flex min-h-[5.25rem] flex-col justify-between rounded-xl border border-white/40 bg-white/[0.32] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_4px_18px_rgba(65,74,97,0.06)] backdrop-blur-md',
-        'transition-shadow hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.32),0_6px_22px_rgba(65,74,97,0.08)]',
+        'flex min-h-[5.25rem] flex-col justify-between rounded-[1.75rem] border border-border-subtle bg-card p-4 shadow-[var(--glass-shadow)] backdrop-blur-xl',
+        'transition-shadow hover:shadow-[var(--glass-shadow-hover)]',
       )}
     >
       <div className="flex items-start justify-between gap-1">
@@ -202,7 +202,7 @@ export function ReportsSummaryCards({
   const pctOfOrders = (n: number) => (orders > 0 ? (n / orders) * 100 : 0)
 
   const chipClass =
-    'inline-flex items-center gap-1 rounded-full border border-white/35 bg-white/[0.25] px-2 py-0.5 text-[10px] font-medium tabular-nums text-text-primary backdrop-blur-sm'
+    'inline-flex items-center gap-1 rounded-full border border-border-default bg-glass-fill-soft px-2.5 py-0.5 text-[10px] font-medium tabular-nums text-text-primary backdrop-blur-md'
 
   return (
     <div className="space-y-3">
@@ -261,7 +261,7 @@ export function ReportsSummaryCards({
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-white/35 bg-white/[0.2] px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_4px_16px_rgba(65,74,97,0.05)] backdrop-blur-md">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[1.75rem] border border-border-subtle bg-card px-4 py-3 shadow-[var(--glass-shadow)] backdrop-blur-xl">
         <span className="flex items-center gap-1.5 text-[12px] text-text-secondary">
           {t('reportsGrossMargin')}
           <Tooltip>
@@ -291,7 +291,7 @@ export function ReportsSummaryCards({
           />
         </span>
 
-        <span className="hidden h-3 w-px bg-white/35 sm:block" aria-hidden />
+        <span className="hidden h-3 w-px bg-border-default sm:block" aria-hidden />
 
         <span className="flex items-center gap-2 text-[12px]">
           <span className="text-text-secondary">{t('reportsUnitsSoldLabel')}</span>
@@ -306,7 +306,7 @@ export function ReportsSummaryCards({
           />
         </span>
 
-        <span className="hidden h-3 w-px bg-white/35 sm:block" aria-hidden />
+        <span className="hidden h-3 w-px bg-border-default sm:block" aria-hidden />
 
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
           <span className="flex items-center gap-2 text-[12px]">

@@ -64,9 +64,11 @@ type CustomTooltipProps = {
   finalBarCaption?: string
 }
 
-const SLATE = '#414A61'
-const ROSE = '#DA9790'
-const RED = '#B76E6A'
+type LegendItem = {
+  kind: 'solid' | 'final'
+  colorVar: string
+  text: string
+}
 
 function fmt(value: number): string {
   if (Math.abs(value) >= 1_000_000) {
@@ -141,7 +143,7 @@ function WaterfallBarShape(props: BarShapeProps) {
 
   const fill = barFillUrl(payload)
   const isFinal = payload.isLast && payload.isSubtotal
-  const rx = Math.min(8, w / 2)
+  const rx = Math.min(12, w / 2)
 
   return (
     <g>
@@ -154,9 +156,7 @@ function WaterfallBarShape(props: BarShapeProps) {
         rx={rx}
         ry={rx}
         style={{
-          filter: isFinal
-            ? 'drop-shadow(0 2px 8px rgba(65, 74, 97, 0.12)) drop-shadow(0 0 12px rgba(218, 151, 144, 0.25))'
-            : 'drop-shadow(0 2px 6px rgba(65, 74, 97, 0.08))',
+          filter: isFinal ? 'var(--wf-bar-filter-final)' : 'var(--wf-bar-filter-default)',
         }}
       />
       {isFinal ? (
@@ -166,7 +166,7 @@ function WaterfallBarShape(props: BarShapeProps) {
           width={w - 2}
           height={h - 2}
           fill="none"
-          stroke="rgba(218, 151, 144, 0.85)"
+          stroke="var(--chart-wf-stroke-brand)"
           strokeWidth={2}
           rx={Math.max(0, rx - 1)}
           ry={Math.max(0, rx - 1)}
@@ -216,14 +216,14 @@ function CustomTooltip({
       ? formatPctOfGross(d.pctOfGross)
       : null
   return (
-    <div className="rounded-xl border border-white/50 bg-white/[0.82] px-3 py-2 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_10px_32px_rgba(65,74,97,0.12)] backdrop-blur-lg">
+    <div className="rounded-2xl border border-border-subtle bg-card/95 px-3 py-2 text-xs shadow-[var(--glass-shadow)] backdrop-blur-xl">
       <p className="font-medium text-text-primary">{d.name}</p>
       <p className="mt-0.5 text-text-secondary">
         {sign}
         {val}
       </p>
       {impact ? (
-        <p className="mt-1 border-t border-white/35 pt-1 text-[11px] text-text-tertiary">
+        <p className="mt-1 border-t border-border-subtle pt-1 text-[11px] text-text-tertiary">
           {impact}
         </p>
       ) : null}
@@ -235,30 +235,25 @@ function CustomTooltip({
 }
 
 function WaterfallLegend({ labels }: { labels: WaterfallLegendLabels }) {
-  const items: Array<{ kind: 'solid' | 'final'; color: string; text: string }> = [
-    { kind: 'solid', color: SLATE, text: labels.total },
-    { kind: 'solid', color: RED, text: labels.deduction },
-    { kind: 'solid', color: ROSE, text: labels.additive },
-    { kind: 'final', color: SLATE, text: labels.final },
+  const items: LegendItem[] = [
+    { kind: 'solid', colorVar: '--chart-1', text: labels.total },
+    { kind: 'solid', colorVar: '--danger', text: labels.deduction },
+    { kind: 'solid', colorVar: '--brand', text: labels.additive },
+    { kind: 'final', colorVar: '--chart-1', text: labels.final },
   ]
   return (
-    <div className="mb-3 flex flex-wrap gap-x-5 gap-y-2 border-b border-white/30 pb-3 text-[11px] text-text-secondary">
+    <div className="mb-3 flex flex-wrap gap-x-5 gap-y-2 border-b border-border-subtle pb-3 text-[11px] text-text-secondary">
       {items.map((item) => (
         <span key={item.text} className="inline-flex items-center gap-2">
           {item.kind === 'final' ? (
             <span
-              className="size-3 shrink-0 rounded-sm border-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]"
-              style={{
-                borderColor: ROSE,
-                backgroundColor: SLATE,
-                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.2), 0 0 0 1px rgba(218,151,144,0.2)`,
-              }}
+              className="size-3 shrink-0 rounded-sm border-2 border-brand bg-[color:var(--chart-1)] shadow-[inset_0_1px_0_var(--chart-wf-inset-legend),0_0_0_1px_var(--chart-wf-legend-ring)]"
               aria-hidden
             />
           ) : (
             <span
-              className="size-2.5 shrink-0 rounded-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
-              style={{ backgroundColor: item.color }}
+              className="size-2.5 shrink-0 rounded-sm shadow-[inset_0_1px_0_var(--chart-wf-inset-soft)]"
+              style={{ backgroundColor: `var(${item.colorVar})` }}
               aria-hidden
             />
           )}
@@ -283,16 +278,16 @@ export function WaterfallChart({
     <div className="w-full">
       {legendLabels ? <WaterfallLegend labels={legendLabels} /> : null}
 
-      <div className="relative overflow-hidden rounded-xl border border-white/40 bg-white/[0.18] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.32),0_8px_32px_rgba(65,74,97,0.06)] backdrop-blur-md">
+      <div className="relative overflow-hidden rounded-[1.75rem] border border-border-subtle bg-card p-4 shadow-[var(--glass-shadow)] backdrop-blur-xl">
         <div
-          className="pointer-events-none absolute inset-0 rounded-xl opacity-[0.45]"
+          className="pointer-events-none absolute inset-0 rounded-[1.75rem] opacity-[0.55]"
           style={{
             backgroundImage: `repeating-linear-gradient(
               -45deg,
               transparent,
               transparent 6px,
-              rgba(65, 74, 97, 0.04) 6px,
-              rgba(65, 74, 97, 0.04) 7px
+              var(--chart-wf-stripe) 6px,
+              var(--chart-wf-stripe) 7px
             )`,
           }}
           aria-hidden
@@ -302,29 +297,29 @@ export function WaterfallChart({
             <ComposedChart data={bars} margin={{ top: 40, right: 10, bottom: 4, left: 4 }}>
               <defs>
                 <linearGradient id="wfFillTotal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#5a6378" stopOpacity={1} />
-                  <stop offset="55%" stopColor={SLATE} stopOpacity={1} />
-                  <stop offset="100%" stopColor="#353c4f" stopOpacity={1} />
+                  <stop offset="0%" stopColor="var(--chart-wf-zinc-500)" stopOpacity={1} />
+                  <stop offset="55%" stopColor="var(--chart-1)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="var(--chart-wf-zinc-950)" stopOpacity={1} />
                 </linearGradient>
                 <linearGradient id="wfFillFinal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#5c667d" stopOpacity={1} />
-                  <stop offset="50%" stopColor={SLATE} stopOpacity={1} />
-                  <stop offset="100%" stopColor="#363d52" stopOpacity={1} />
+                  <stop offset="0%" stopColor="var(--chart-wf-zinc-500)" stopOpacity={1} />
+                  <stop offset="50%" stopColor="var(--chart-1)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="var(--chart-wf-zinc-950)" stopOpacity={1} />
                 </linearGradient>
                 <linearGradient id="wfFillDed" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#c98984" stopOpacity={1} />
-                  <stop offset="100%" stopColor={RED} stopOpacity={1} />
+                  <stop offset="0%" stopColor="var(--chart-wf-danger-light)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="var(--chart-wf-danger-deep)" stopOpacity={1} />
                 </linearGradient>
                 <linearGradient id="wfFillAdd" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#e8b4ae" stopOpacity={1} />
-                  <stop offset="100%" stopColor={ROSE} stopOpacity={1} />
+                  <stop offset="0%" stopColor="var(--brand-light)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="var(--brand)" stopOpacity={1} />
                 </linearGradient>
               </defs>
 
               <CartesianGrid
                 vertical={false}
                 strokeDasharray="3 6"
-                stroke="rgba(65, 74, 97, 0.1)"
+                stroke="var(--chart-grid)"
               />
               <XAxis
                 dataKey="name"
@@ -351,7 +346,7 @@ export function WaterfallChart({
                     finalBarCaption={finalBarCaption}
                   />
                 }
-                cursor={{ fill: 'rgba(218, 151, 144, 0.08)' }}
+                cursor={{ fill: 'var(--chart-wf-cursor-fill)' }}
               />
 
               <Bar dataKey="spacer" stackId="wf" fill="transparent" />
@@ -359,8 +354,8 @@ export function WaterfallChart({
               <Bar
                 dataKey="bar"
                 stackId="wf"
-                radius={[8, 8, 0, 0]}
-                fill={SLATE}
+                radius={[12, 12, 0, 0]}
+                fill="var(--chart-1)"
                 shape={WaterfallBarShape}
               >
                 <LabelList

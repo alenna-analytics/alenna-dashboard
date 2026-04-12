@@ -6,7 +6,7 @@ import { Sheet, SheetContent } from '@/ui/sheet'
 import {
   SheetHeaderWithLogo,
   ShopifyManageBody,
-} from './shopify-manage-body'
+} from './shopify/manage-body'
 
 type IntegrationManageSheetProps = {
   definition: ManagedIntegration

@@ -7,6 +7,7 @@ import { NotFoundPage } from '@/pages/errors/NotFoundPage'
 import { ServerErrorPage } from '@/pages/errors/ServerErrorPage'
 import { IntegrationsListPage } from '@/pages/integrations/dashboard/IntegrationsListPage'
 import { WelcomeDashboardPage } from '@/pages/dashboard/WelcomeDashboardPage'
+import { ReportsPage } from '@/pages/reports/ReportsPage'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <Route element={<AppAuthBoundary />}>
         <Route path="/dashboard" element={<AppShellLayout />}>
           <Route index element={<WelcomeDashboardPage />} />
+          <Route path="reports" element={<ReportsPage />} />
           <Route path="integrations" element={<IntegrationsListPage />} />
           <Route path="integrations/:slug" element={<Navigate to="/dashboard/integrations" replace />} />
           <Route path="connections" element={<Navigate to="/dashboard/integrations" replace />} />

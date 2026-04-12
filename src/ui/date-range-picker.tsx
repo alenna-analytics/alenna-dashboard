@@ -130,12 +130,24 @@ export function DateRangePicker({
     guessPreset(parseYmd(startValue), parseYmd(endValue)),
   )
 
+  const monthStart = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1)
+
+  const [visibleMonth, setVisibleMonth] = React.useState<Date>(() => {
+    const from = parseYmd(startValue)
+    if (from) return monthStart(from)
+    const to = parseYmd(endValue)
+    if (to) return monthStart(to)
+    return monthStart(new Date())
+  })
+
   const handleOpenChange = (next: boolean) => {
     if (next) {
       const from = parseYmd(startValue)
       const to = parseYmd(endValue)
       setDraft({ from, to })
       setPreset(guessPreset(from, to))
+      if (from) setVisibleMonth(monthStart(from))
+      else if (to) setVisibleMonth(monthStart(to))
     }
     setOpen(next)
   }
@@ -145,6 +157,7 @@ export function DateRangePicker({
     if (id === 'custom') return
     const r = rangeForPreset(id)
     setDraft({ from: r.from, to: r.to })
+    setVisibleMonth(monthStart(r.from))
   }
 
   const handleApply = () => {
@@ -192,7 +205,7 @@ export function DateRangePicker({
       <PopoverContent
         align="start"
         sideOffset={6}
-        className="w-[min(calc(100vw-24px),504px)] overflow-hidden p-0"
+        className="w-[min(calc(100vw-24px),740px)] overflow-hidden p-0"
       >
         <div className="flex flex-col sm:flex-row">
           {/* Preset sidebar */}
@@ -227,13 +240,16 @@ export function DateRangePicker({
             <div className="p-2">
               <Calendar
                 mode="range"
+                month={visibleMonth}
+                onMonthChange={setVisibleMonth}
+                showOutsideDays={false}
                 selected={draft}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 onSelect={(range: any) => {
                   setDraft((range as DateRange | undefined) ?? { from: undefined, to: undefined })
                   setPreset('custom')
                 }}
-                numberOfMonths={1}
+                numberOfMonths={2}
               />
             </div>
 

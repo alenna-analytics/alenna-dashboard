@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
 
 import { useCurrentTenant } from '@/auth/hooks'
+import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { apiFetch, apiPostJson } from '@/lib/api'
@@ -11,6 +12,28 @@ import { formatShopifyLastSync, normalizeShopifySubdomainInput, toYmd } from '@/
 import { shellT } from '@/lib/i18n/shell-strings'
 
 export type ShopifyIntegrationHook = ReturnType<typeof useShopifyIntegration>
+
+type ShopifySyncFiltersState = {
+  dateFrom: string
+  dateTo: string
+  storePicker: string
+  fullHistory: boolean
+}
+
+function parseShopifySyncFilters(raw: unknown): ShopifySyncFiltersState | null {
+  if (!raw || typeof raw !== 'object') return null
+  const o = raw as Record<string, unknown>
+  if (typeof o.dateFrom !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(o.dateFrom)) return null
+  if (typeof o.dateTo !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(o.dateTo)) return null
+  if (typeof o.storePicker !== 'string') return null
+  if (typeof o.fullHistory !== 'boolean') return null
+  return {
+    dateFrom: o.dateFrom,
+    dateTo: o.dateTo,
+    storePicker: o.storePicker,
+    fullHistory: o.fullHistory,
+  }
+}
 
 export function useShopifyIntegration() {
   const { getToken } = useAuth()
@@ -22,16 +45,51 @@ export function useShopifyIntegration() {
   const isAdmin = me?.role === 'admin' || me?.role === 'owner'
 
   const [shopInput, setShopInput] = useState('')
-  const [storePicker, setStorePicker] = useState('')
-  const endD = useMemo(() => new Date(), [])
-  const startD = useMemo(() => {
-    const s = new Date()
-    s.setDate(s.getDate() - 7)
-    return s
+
+  const defaultSyncFilters = useMemo((): ShopifySyncFiltersState => {
+    const endD = new Date()
+    const startD = new Date()
+    startD.setDate(startD.getDate() - 7)
+    return {
+      dateFrom: toYmd(startD),
+      dateTo: toYmd(endD),
+      storePicker: '',
+      fullHistory: false,
+    }
   }, [])
-  const [dateFrom, setDateFrom] = useState(() => toYmd(startD))
-  const [dateTo, setDateTo] = useState(() => toYmd(endD))
-  const [fullHistory, setFullHistory] = useState(false)
+
+  const [syncFilters, setSyncFilters] = useTenantPersistedJson(
+    tenantId,
+    'alenna.shopify.sync.filters',
+    defaultSyncFilters,
+    parseShopifySyncFilters,
+  )
+  const { dateFrom, dateTo, storePicker, fullHistory } = syncFilters
+
+  const setDateFrom = useCallback(
+    (v: string) => {
+      setSyncFilters({ dateFrom: v })
+    },
+    [setSyncFilters],
+  )
+  const setDateTo = useCallback(
+    (v: string) => {
+      setSyncFilters({ dateTo: v })
+    },
+    [setSyncFilters],
+  )
+  const setStorePicker = useCallback(
+    (v: string) => {
+      setSyncFilters({ storePicker: v })
+    },
+    [setSyncFilters],
+  )
+  const setFullHistory = useCallback(
+    (v: boolean) => {
+      setSyncFilters({ fullHistory: v })
+    },
+    [setSyncFilters],
+  )
   const [previewMessage, setPreviewMessage] = useState<string | null>(null)
   const [syncMessage, setSyncMessage] = useState<string | null>(null)
   const [oauthStarting, setOauthStarting] = useState(false)

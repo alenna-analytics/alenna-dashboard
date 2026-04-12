@@ -15,7 +15,6 @@ import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import { Separator } from '@/ui/separator'
 import { SheetHeader, SheetTitle } from '@/ui/sheet'
-
 // ── shared header ─────────────────────────────────────────────────────────────
 
 export function SheetHeaderWithLogo({

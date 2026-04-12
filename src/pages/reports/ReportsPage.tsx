@@ -270,7 +270,7 @@ export function ReportsPage() {
           </div>
 
           {/* Waterfall chart */}
-          <Card>
+          <Card className="bg-white dark:bg-white">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-text-secondary">
                 {t('reportsWaterfallTitle')}
@@ -302,7 +302,7 @@ function KpiCard({
   negative?: boolean
 }) {
   return (
-    <Card>
+    <Card className="bg-white dark:bg-white">
       <CardHeader className="pb-1">
         <CardTitle className="text-xs font-medium uppercase tracking-wide text-text-secondary">
           {title}

@@ -30,6 +30,32 @@ type WaterfallChartProps = {
   currency: string
 }
 
+type BarLabelProps = {
+  x?: number
+  y?: number
+  width?: number
+  value?: number
+  isNegative?: boolean
+}
+
+type TooltipPayloadItem = {
+  payload: WaterfallBar
+}
+
+type CustomTooltipProps = {
+  active?: boolean
+  payload?: TooltipPayloadItem[]
+  currency: string
+}
+
+type WaterfallBarShapeProps = {
+  x: number
+  y: number
+  width: number
+  height: number
+  payload: WaterfallBar
+}
+
 function fmt(value: number): string {
   if (Math.abs(value) >= 1_000_000) {
     return `${(value / 1_000_000).toFixed(1)}M`
@@ -74,17 +100,10 @@ function buildBars(segments: Segment[]): WaterfallBar[] {
   })
 }
 
-function BarLabel({ x, y, width, height, value, isNegative }: {
-  x?: number
-  y?: number
-  width?: number
-  height?: number
-  value?: number
-  isNegative?: boolean
-}) {
+function BarLabel({ x, y, width, value, isNegative }: BarLabelProps) {
   if (value === undefined || x === undefined || y === undefined || width === undefined) return null
   const cx = x + (width ?? 0) / 2
-  const cy = (isNegative || (height !== undefined && height < 0)) ? (y ?? 0) + (height ?? 0) - 4 : (y ?? 0) - 4
+  const cy = y - 8
   const display = fmt(value)
   return (
     <text
@@ -104,11 +123,7 @@ const CustomTooltip = ({
   active,
   payload,
   currency,
-}: {
-  active?: boolean
-  payload?: Array<{ payload: WaterfallBar }>
-  currency: string
-}) => {
+}: CustomTooltipProps) => {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   const sign = d.isNegative && !d.isSubtotal ? '-' : ''
@@ -130,10 +145,12 @@ const CustomTooltip = ({
 
 export function WaterfallChart({ segments, currency }: WaterfallChartProps) {
   const bars = buildBars(segments)
+  const mainBarColor = '#2d3a40'
+  const subtractionBarColor = '#dd9a94'
 
   return (
     <ResponsiveContainer width="100%" height={260}>
-      <ComposedChart data={bars} margin={{ top: 24, right: 8, bottom: 0, left: 8 }}>
+      <ComposedChart data={bars} margin={{ top: 32, right: 8, bottom: 0, left: 8 }}>
         <CartesianGrid
           vertical={false}
           strokeDasharray="3 3"
@@ -166,12 +183,10 @@ export function WaterfallChart({ segments, currency }: WaterfallChartProps) {
           dataKey="bar"
           stackId="wf"
           radius={[3, 3, 0, 0]}
-          fill="var(--color-chart-1)"
-          shape={(props: { x: number; y: number; width: number; height: number; payload: WaterfallBar }) => {
+          fill={mainBarColor}
+          shape={(props: WaterfallBarShapeProps) => {
             const { x, y, width, height, payload } = props
-            let color = 'var(--color-chart-1)'
-            if (payload.isSubtotal) color = 'var(--color-chart-2)'
-            else if (payload.isNegative) color = 'var(--color-chart-5)'
+            const color = payload.isNegative ? subtractionBarColor : mainBarColor
             return <rect x={x} y={y} width={width} height={height} fill={color} rx={3} />
           }}
         >

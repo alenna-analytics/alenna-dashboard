@@ -448,56 +448,63 @@
   }
 }
 
-.clerk-signin-dark .cl-card,
-.clerk-signin-dark .cl-cardBox,
-.clerk-signin-dark .cl-headerTitle,
-.clerk-signin-dark .cl-headerSubtitle,
-.clerk-signin-dark .cl-formFieldLabel,
-.clerk-signin-dark .cl-formFieldHintText,
-.clerk-signin-dark .cl-dividerText,
-.clerk-signin-dark .cl-footerActionText,
-.clerk-signin-dark .cl-socialButtonsBlockButtonText,
-.clerk-signin-dark .cl-identityPreviewText,
-.clerk-signin-dark .cl-internal-1dauvpw {
-  color: rgba(255, 255, 255, 0.9) !important;
+.clerk-signin-light .cl-card,
+.clerk-signin-light .cl-cardBox,
+.clerk-signin-light .cl-headerTitle,
+.clerk-signin-light .cl-headerSubtitle,
+.clerk-signin-light .cl-formFieldLabel,
+.clerk-signin-light .cl-formFieldHintText,
+.clerk-signin-light .cl-dividerText,
+.clerk-signin-light .cl-footerActionText,
+.clerk-signin-light .cl-socialButtonsBlockButtonText,
+.clerk-signin-light .cl-identityPreviewText,
+.clerk-signin-light .cl-internal-1dauvpw {
+  color: var(--text-primary) !important;
 }
 
-.clerk-signin-dark .cl-footerActionLink,
-.clerk-signin-dark .cl-formResendCodeLink,
-.clerk-signin-dark .cl-identityPreviewEditButton {
-  color: #a8b0c4 !important;
+.clerk-signin-light .cl-headerSubtitle,
+.clerk-signin-light .cl-dividerText,
+.clerk-signin-light .cl-footerActionText,
+.clerk-signin-light .cl-formFieldHintText {
+  color: var(--text-secondary) !important;
 }
 
-.clerk-signin-dark .cl-badge,
-.clerk-signin-dark [data-localization-key*='badge__default'],
-.clerk-signin-dark [data-localization-key*='lastUsed'] {
-  color: rgba(255, 255, 255, 0.9) !important;
-  background-color: rgba(var(--brand-rgb), 0.18) !important;
-  border-color: rgba(255, 255, 255, 0.18) !important;
+.clerk-signin-light .cl-footerActionLink,
+.clerk-signin-light .cl-formResendCodeLink,
+.clerk-signin-light .cl-identityPreviewEditButton {
+  color: var(--brand) !important;
 }
 
-.clerk-signin-dark .cl-badge *,
-.clerk-signin-dark [data-localization-key*='badge__default'] *,
-.clerk-signin-dark [data-localization-key*='lastUsed'] *,
-.clerk-signin-dark .cl-identityPreview .cl-badge,
-.clerk-signin-dark .cl-identityPreview .cl-badge * {
-  color: rgba(255, 255, 255, 0.9) !important;
+.clerk-signin-light .cl-badge,
+.clerk-signin-light [data-localization-key*='badge__default'],
+.clerk-signin-light [data-localization-key*='lastUsed'] {
+  color: var(--text-primary) !important;
+  background-color: rgba(var(--brand-rgb), 0.08) !important;
+  border-color: rgba(var(--ink-rgb), 0.12) !important;
 }
 
-.clerk-signin-dark .cl-lastAuthenticationStrategyBadge,
-.clerk-signin-dark .cl-lastAuthenticationStrategyBadge *,
-.clerk-signin-dark [data-localization-key='lastAuthenticationStrategy'],
-.clerk-signin-dark [data-localization-key='lastAuthenticationStrategy'] * {
-  color: rgba(255, 255, 255, 0.9) !important;
-  background-color: rgba(var(--brand-rgb), 0.18) !important;
-  border-color: rgba(255, 255, 255, 0.18) !important;
+.clerk-signin-light .cl-badge *,
+.clerk-signin-light [data-localization-key*='badge__default'] *,
+.clerk-signin-light [data-localization-key*='lastUsed'] *,
+.clerk-signin-light .cl-identityPreview .cl-badge,
+.clerk-signin-light .cl-identityPreview .cl-badge * {
+  color: var(--text-primary) !important;
 }
 
-.clerk-signin-dark .cl-socialButtonsBlockButton,
-.clerk-signin-dark .cl-socialButtonsBlockButton__google {
+.clerk-signin-light .cl-lastAuthenticationStrategyBadge,
+.clerk-signin-light .cl-lastAuthenticationStrategyBadge *,
+.clerk-signin-light [data-localization-key='lastAuthenticationStrategy'],
+.clerk-signin-light [data-localization-key='lastAuthenticationStrategy'] * {
+  color: var(--text-primary) !important;
+  background-color: rgba(var(--brand-rgb), 0.08) !important;
+  border-color: rgba(var(--ink-rgb), 0.12) !important;
+}
+
+.clerk-signin-light .cl-socialButtonsBlockButton,
+.clerk-signin-light .cl-socialButtonsBlockButton__google {
   border-width: 1.5px !important;
-  border-color: rgba(255, 255, 255, 0.16) !important;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  border-color: var(--border-default) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4) !important;
 }
 
 /* Global custom scrollbars (Firefox + WebKit) */

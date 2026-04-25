@@ -65,10 +65,10 @@ export function IntegrationsListPage() {
     dataUpdatedAt > 0 ? formatUpdatedAt(dataUpdatedAt, lang) : null
 
   return (
-    <DashboardPage className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">
+    <DashboardPage className="space-y-8">
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+        <div className="max-w-xl">
+          <h1 className="max-w-[12ch] text-4xl font-semibold tracking-[-0.045em] text-text-primary sm:text-5xl lg:text-[4.25rem]">
             {shellT(lang, 'integrationsHeroTitle')}
           </h1>
           <p className="mt-1.5 max-w-xl text-sm text-text-secondary">
@@ -80,7 +80,7 @@ export function IntegrationsListPage() {
             {shellT(lang, 'integrationsLastUpdated')} {updatedLabel}
           </p>
         ) : null}
-      </div>
+      </section>
 
       <IntegrationsSearchField lang={lang} value={q} onChange={setQ} />
 

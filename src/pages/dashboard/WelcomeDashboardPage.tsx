@@ -5,13 +5,15 @@ import { shellT } from '@/lib/i18n/shell-strings'
 export function WelcomeDashboardPage() {
   const { lang } = useLanguage()
   return (
-    <DashboardPage>
-      <div className="flex min-h-[40vh] flex-col justify-center">
-        <h1 className="text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">
-          {shellT(lang, 'welcomeTitle')}
-        </h1>
-        <p className="mt-2 text-sm text-text-secondary">{shellT(lang, 'welcomeSubtitle')}</p>
-      </div>
+    <DashboardPage className="space-y-8">
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+        <div className="max-w-xl">
+          <h1 className="max-w-[12ch] text-4xl font-semibold tracking-[-0.045em] text-text-primary sm:text-5xl lg:text-[4.25rem]">
+            {shellT(lang, 'welcomeTitle')}
+          </h1>
+        </div>
+      </section>
+      <p className="max-w-xl text-sm text-text-secondary">{shellT(lang, 'welcomeSubtitle')}</p>
     </DashboardPage>
   )
 }

@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 import { fmtCurrency, pctVersusPrevious } from './reports-ui-helpers'
 
-const PAID_STATUS_KEYS = ['PAID', 'PARTIALLY_PAID'] as const
+const PAID_STATUS_KEYS = ['PAID'] as const
 const REFUNDED_STATUS_KEYS = ['REFUNDED', 'PARTIALLY_REFUNDED'] as const
 const EXPIRED_STATUS_KEYS = ['EXPIRED'] as const
 
@@ -224,7 +224,7 @@ export function ReportsSummaryCards({
         </p>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-400 motion-safe:fill-mode-both">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-400 motion-safe:fill-mode-both">
         <CompactKpiCard
           label={t('reportsGrossRevenue')}
           helpText={t('reportsKpiHelpGrossRevenue')}
@@ -260,16 +260,28 @@ export function ReportsSummaryCards({
           comparisonUnavailable={comparisonUnavailable}
         />
         <CompactKpiCard
-          label={t('reportsNetProfit')}
-          helpText={t('reportsKpiHelpNetProfit')}
-          value={kpi.net_profit}
+          label={t('reportsContributionMargin')}
+          helpText={t('reportsKpiHelpContributionMargin')}
+          value={kpi.contribution_margin}
           format="currency"
           currency={currency}
-          previous={kpiPrev?.net_profit}
+          previous={kpiPrev?.contribution_margin}
           previousReady={previousReady}
           vsPriorLabel={vsPrior}
           comparisonUnavailable={comparisonUnavailable}
-          negative={kpi.net_profit < 0}
+          negative={kpi.contribution_margin < 0}
+        />
+        <CompactKpiCard
+          label={t('reportsEbitda')}
+          helpText={t('reportsKpiHelpEbitda')}
+          value={kpi.ebitda}
+          format="currency"
+          currency={currency}
+          previous={kpiPrev?.ebitda}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          negative={kpi.ebitda < 0}
         />
       </div>
 

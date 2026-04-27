@@ -132,25 +132,17 @@ export function ReportsPage() {
   const waterfallSegments = kpi
     ? [
         { name: t('reportsWfGrossRevenue'), value: kpi.gross_revenue, isSubtotal: true, isNegative: false },
-        {
-          name: t('reportsWfAdjustmentsToNet'),
-          value: Math.max(0, kpi.gross_revenue - kpi.net_revenue),
-          isSubtotal: false,
-          isNegative: true,
-          stackedParts: [
-            { name: t('reportsWfDiscounts'), value: kpi.discounts, isNegative: true },
-            { name: t('reportsWfReturns'), value: kpi.returns, isNegative: true },
-            { name: t('reportsWfCommissions'), value: kpi.referral_commissions, isNegative: true },
-            { name: t('reportsWfShipping'), value: kpi.shipping, isNegative: true },
-            { name: t('reportsWfTaxes'), value: kpi.taxes, isNegative: true },
-            { name: t('reportsWfFees'), value: kpi.per_transaction_fees, isNegative: true },
-          ],
-        },
+        { name: t('reportsWfDiscounts'), value: kpi.discounts, isSubtotal: false, isNegative: true },
+        { name: t('reportsWfReturns'), value: kpi.returns, isSubtotal: false, isNegative: true },
         { name: t('reportsWfNetRevenue'), value: kpi.net_revenue, isSubtotal: true, isNegative: false },
         { name: t('reportsWfCogs'), value: kpi.cogs, isSubtotal: false, isNegative: true },
         { name: t('reportsWfGrossProfit'), value: kpi.gross_profit, isSubtotal: true, isNegative: false },
-        { name: t('reportsWfOpex'), value: kpi.operating_expenses, isSubtotal: false, isNegative: true },
-        { name: t('reportsWfNetProfit'), value: kpi.net_profit, isSubtotal: true, isNegative: kpi.net_profit < 0 },
+        { name: t('reportsWfCommissions'), value: kpi.platform_fees_total, isSubtotal: false, isNegative: true },
+        { name: t('reportsWfShipping'), value: kpi.merchant_shipping_cost, isSubtotal: false, isNegative: true },
+        { name: t('reportsWfAdsSpend'), value: kpi.ads_spend, isSubtotal: false, isNegative: true },
+        { name: t('reportsWfContributionMargin'), value: kpi.contribution_margin, isSubtotal: true, isNegative: kpi.contribution_margin < 0 },
+        { name: t('reportsWfOpex'), value: kpi.fixed_operating_expenses, isSubtotal: false, isNegative: true },
+        { name: t('reportsWfEbitda'), value: kpi.ebitda, isSubtotal: true, isNegative: kpi.ebitda < 0 },
       ]
     : []
 
@@ -266,6 +258,11 @@ export function ReportsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="px-0 pt-0">
+                  {kpi.currency_mismatch_warning ? (
+                    <div className="mb-3 rounded-xl border border-border-default bg-bg-elevated px-4 py-2 text-xs text-text-secondary">
+                      {t('reportsCurrencyMismatchWarning')}
+                    </div>
+                  ) : null}
                   <WaterfallChart
                     segments={waterfallSegments}
                     currency={currency}

@@ -49,7 +49,7 @@ export function AuthLoginPage() {
         <CardContent className="grid items-center border-none gap-8 px-0 py-2 md:grid-cols-2 md:p-8">
           <div className="space-y-3 md:pr-6 md:border-r md:border-border">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-brand">
-              Alenna Analytics
+              alenna - analytics
             </p>
             <h1 className="text-3xl font-semibold tracking-tight text-text-primary md:text-4xl">
               Sign in to your analytics workspace

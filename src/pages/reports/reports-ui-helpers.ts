@@ -5,7 +5,7 @@ export function toYmd(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
-function parseLocalYmd(ymd: string): Date {
+export function parseLocalYmd(ymd: string): Date {
   const [y, m, d] = ymd.split('-').map(Number)
   return new Date(y, m - 1, d)
 }

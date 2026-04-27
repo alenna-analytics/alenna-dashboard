@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { HelpCircle } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -101,8 +102,10 @@ function CompactKpiCard({
   vsPriorLabel,
   comparisonUnavailable,
   negative,
-  featured,
   className,
+  showVsPrior = true,
+  displayValue,
+  footer,
 }: {
   label: string
   helpText: string
@@ -114,29 +117,31 @@ function CompactKpiCard({
   vsPriorLabel: string
   comparisonUnavailable: string
   negative?: boolean
-  featured?: boolean
   className?: string
+  showVsPrior?: boolean
+  displayValue?: string
+  footer?: ReactNode
 }) {
-  const display =
+  const computedDisplay =
     format === 'currency'
       ? fmtCurrency(value, currency)
       : format === 'percent'
         ? `${value.toFixed(1)}%`
         : value.toLocaleString()
 
+  const display = displayValue ?? computedDisplay
+
   return (
     <div
       className={cn(
-        'flex min-h-[11rem] flex-col justify-between rounded-[2rem] p-5',
-        featured ? 'surface-kpi-featured' : 'surface-kpi-card',
-        featured && 'xl:min-h-[14rem] xl:col-span-2',
-        !featured && 'xl:col-span-1',
+        'flex flex-col rounded-[2rem] p-5 surface-kpi-card xl:col-span-1',
+        footer ? 'min-h-[14rem] sm:min-h-[15rem]' : 'min-h-[11rem] justify-between',
         'transition-[box-shadow,transform] duration-200 hover:shadow-[var(--shadow-ink-lg)] motion-safe:hover:-translate-y-px',
         className,
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="max-w-[12rem] text-[11px] font-medium uppercase tracking-[0.18em] text-text-tertiary">
+        <span className="max-w-[14rem] text-[11px] font-medium uppercase tracking-[0.18em] text-text-tertiary">
           {label}
         </span>
         <Tooltip>
@@ -149,30 +154,52 @@ function CompactKpiCard({
               <HelpCircle className="size-3" />
             </button>
           </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-[220px] text-left font-normal leading-snug">
+          <TooltipContent side="top" className="max-w-[260px] text-left font-normal leading-snug">
             {helpText}
           </TooltipContent>
         </Tooltip>
       </div>
-      <div className="mt-3 flex min-h-[2.5rem] items-end justify-between gap-3">
+      <div
+        className={cn(
+          'mt-3 flex min-h-[2.5rem] items-end gap-3',
+          showVsPrior ? 'justify-between' : 'justify-start',
+        )}
+      >
         <p
           className={cn(
-            'min-w-0 font-semibold tracking-[-0.04em] tabular-nums leading-none',
-            featured ? 'text-[2rem] sm:text-[2.35rem]' : 'text-[1.8rem]',
+            'min-w-0 font-semibold tracking-[-0.04em] tabular-nums leading-none text-[1.8rem]',
             negative ? 'text-danger' : 'text-text-primary',
           )}
         >
           {display}
         </p>
-        <DeltaPill
-          current={value}
-          previous={previous}
-          previousReady={previousReady}
-          negative={negative}
-          vsPriorLabel={vsPriorLabel}
-          comparisonUnavailable={comparisonUnavailable}
-        />
+        {showVsPrior ? (
+          <DeltaPill
+            current={value}
+            previous={previous}
+            previousReady={previousReady}
+            negative={negative}
+            vsPriorLabel={vsPriorLabel}
+            comparisonUnavailable={comparisonUnavailable}
+          />
+        ) : null}
       </div>
+      {footer ? <div className="mt-4 flex flex-wrap gap-x-2 gap-y-2 border-t border-border-default/60 pt-4">{footer}</div> : null}
+    </div>
+  )
+}
+
+function KpiSection({
+  title,
+  children,
+}: {
+  title: string
+  children: ReactNode
+}) {
+  return (
+    <div className="space-y-3">
+      <h2 className="text-base font-semibold tracking-[-0.02em] text-text-primary sm:text-lg">{title}</h2>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">{children}</div>
     </div>
   )
 }
@@ -186,6 +213,10 @@ type ReportsSummaryCardsProps = {
   kpiFetching: boolean
   vsPrior: string
   comparisonUnavailable: string
+  momPct: number | null
+  momReady: boolean
+  yoyPct: number | null
+  yoyReady: boolean
   t: (k: ShellStringKey) => string
 }
 
@@ -198,6 +229,10 @@ export function ReportsSummaryCards({
   kpiFetching,
   vsPrior,
   comparisonUnavailable,
+  momPct,
+  momReady,
+  yoyPct,
+  yoyReady,
   t,
 }: ReportsSummaryCardsProps) {
   const orders = kpi.order_count || 0
@@ -212,11 +247,30 @@ export function ReportsSummaryCards({
 
   const pctOfOrders = (n: number) => (orders > 0 ? (n / orders) * 100 : 0)
 
+  const deductionsTotal = -(kpi.discounts + kpi.returns)
+  const prevDeductions =
+    kpiPrev !== undefined ? -(kpiPrev.discounts + kpiPrev.returns) : undefined
+
+  const aov = orders > 0 ? kpi.net_revenue / orders : null
+  const prevAov =
+    kpiPrev !== undefined && (kpiPrev.order_count || 0) > 0
+      ? kpiPrev.net_revenue / kpiPrev.order_count
+      : undefined
+
+  const cmDecimal = kpi.contribution_margin_pct / 100
+  const breakEvenRev =
+    cmDecimal > 0 ? kpi.fixed_operating_expenses / cmDecimal : null
+
   const chipClass =
     'inline-flex items-center gap-1.5 rounded-full border border-border-default bg-bg-elevated px-3 py-1.5 text-[11px] font-medium tabular-nums text-text-primary shadow-[var(--shadow-ink-xs)]'
 
+  const momDisplay =
+    momReady && momPct !== null ? `${momPct.toFixed(1)}%` : '—'
+  const yoyDisplay =
+    yoyReady && yoyPct !== null ? `${yoyPct.toFixed(1)}%` : '—'
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       {lastUpdatedLabel ? (
         <p className="text-right text-[11px] uppercase tracking-[0.16em] text-text-tertiary tabular-nums">
           {t('reportsLastUpdated')}: {lastUpdatedLabel}
@@ -224,7 +278,7 @@ export function ReportsSummaryCards({
         </p>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-400 motion-safe:fill-mode-both">
+      <KpiSection title={t('reportsSectionVentas')}>
         <CompactKpiCard
           label={t('reportsGrossRevenue')}
           helpText={t('reportsKpiHelpGrossRevenue')}
@@ -235,7 +289,6 @@ export function ReportsSummaryCards({
           previousReady={previousReady}
           vsPriorLabel={vsPrior}
           comparisonUnavailable={comparisonUnavailable}
-          featured
         />
         <CompactKpiCard
           label={t('reportsNetRevenue')}
@@ -249,6 +302,121 @@ export function ReportsSummaryCards({
           comparisonUnavailable={comparisonUnavailable}
         />
         <CompactKpiCard
+          label={t('reportsKpiDeductionsCombined')}
+          helpText={t('reportsKpiHelpDeductionsCombined')}
+          value={deductionsTotal}
+          format="currency"
+          currency={currency}
+          previous={prevDeductions}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          negative
+        />
+        <CompactKpiCard
+          label={t('reportsOrders')}
+          helpText={t('reportsKpiHelpOrders')}
+          value={orders}
+          format="count"
+          currency={currency}
+          previous={prevOrders}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          footer={
+            <>
+              <span className={chipClass}>
+                {t('reportsOrdersPaid')}: {paid.toLocaleString()}
+                <span className="font-normal text-text-tertiary">
+                  {' '}
+                  ({pctOfOrders(paid).toFixed(0)}%)
+                </span>
+              </span>
+              <span className={chipClass}>
+                {t('reportsOrdersRefunded')}: {refunded.toLocaleString()}
+                <span className="font-normal text-text-tertiary">
+                  {' '}
+                  ({pctOfOrders(refunded).toFixed(0)}%)
+                </span>
+              </span>
+              <span className={chipClass}>
+                {t('reportsOrdersExpired')}: {expired.toLocaleString()}
+                <span className="font-normal text-text-tertiary">
+                  {' '}
+                  ({pctOfOrders(expired).toFixed(0)}%)
+                </span>
+              </span>
+            </>
+          }
+        />
+        <CompactKpiCard
+          label={t('reportsUnitsSoldLabel')}
+          helpText={t('reportsKpiHelpUnits')}
+          value={units}
+          format="count"
+          currency={currency}
+          previous={prevUnits}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+        />
+        <CompactKpiCard
+          label={t('reportsKpiAov')}
+          helpText={t('reportsKpiHelpAov')}
+          value={aov ?? 0}
+          format="currency"
+          currency={currency}
+          previous={prevAov}
+          previousReady={previousReady && orders > 0}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          displayValue={aov !== null ? fmtCurrency(aov, currency) : '—'}
+          showVsPrior={orders > 0}
+        />
+        <CompactKpiCard
+          label={t('reportsKpiMomLabel')}
+          helpText={t('reportsKpiHelpMom')}
+          value={momPct ?? 0}
+          format="percent"
+          currency={currency}
+          previous={undefined}
+          previousReady={false}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          displayValue={momDisplay}
+          showVsPrior={false}
+          negative={momPct !== null && momPct < 0}
+        />
+        <CompactKpiCard
+          label={t('reportsKpiYoyLabel')}
+          helpText={t('reportsKpiHelpYoy')}
+          value={yoyPct ?? 0}
+          format="percent"
+          currency={currency}
+          previous={undefined}
+          previousReady={false}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          displayValue={yoyDisplay}
+          showVsPrior={false}
+          negative={yoyPct !== null && yoyPct < 0}
+        />
+      </KpiSection>
+
+      <KpiSection title={t('reportsSectionRentabilidad')}>
+        <CompactKpiCard
+          label={t('reportsKpiCogsLabel')}
+          helpText={t('reportsKpiHelpCogs')}
+          value={kpi.cogs}
+          format="currency"
+          currency={currency}
+          previous={kpiPrev?.cogs}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          negative
+        />
+        <CompactKpiCard
           label={t('reportsGrossProfit')}
           helpText={t('reportsKpiHelpGrossProfit')}
           value={kpi.gross_profit}
@@ -258,6 +426,41 @@ export function ReportsSummaryCards({
           previousReady={previousReady}
           vsPriorLabel={vsPrior}
           comparisonUnavailable={comparisonUnavailable}
+        />
+        <CompactKpiCard
+          label={t('reportsKpiMargenBrutoPct')}
+          helpText={t('reportsKpiHelpMargenBrutoPct')}
+          value={kpi.gross_margin_pct}
+          format="percent"
+          currency={currency}
+          previous={kpiPrev?.gross_margin_pct}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+        />
+        <CompactKpiCard
+          label={t('reportsKpiPlatformFees')}
+          helpText={t('reportsKpiHelpPlatformFees')}
+          value={kpi.platform_fees_total}
+          format="currency"
+          currency={currency}
+          previous={kpiPrev?.platform_fees_total}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          negative
+        />
+        <CompactKpiCard
+          label={t('reportsKpiFulfillmentCost')}
+          helpText={t('reportsKpiHelpFulfillmentCost')}
+          value={kpi.merchant_shipping_cost}
+          format="currency"
+          currency={currency}
+          previous={kpiPrev?.merchant_shipping_cost}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          negative
         />
         <CompactKpiCard
           label={t('reportsContributionMargin')}
@@ -272,6 +475,30 @@ export function ReportsSummaryCards({
           negative={kpi.contribution_margin < 0}
         />
         <CompactKpiCard
+          label={t('reportsKpiContributionMarginPctLabel')}
+          helpText={t('reportsKpiHelpContributionMarginPct')}
+          value={kpi.contribution_margin_pct}
+          format="percent"
+          currency={currency}
+          previous={kpiPrev?.contribution_margin_pct}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          negative={kpi.contribution_margin_pct < 0}
+        />
+        <CompactKpiCard
+          label={t('reportsKpiFixedOpex')}
+          helpText={t('reportsKpiHelpFixedOpex')}
+          value={kpi.fixed_operating_expenses}
+          format="currency"
+          currency={currency}
+          previous={kpiPrev?.fixed_operating_expenses}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          negative
+        />
+        <CompactKpiCard
           label={t('reportsEbitda')}
           helpText={t('reportsKpiHelpEbitda')}
           value={kpi.ebitda}
@@ -283,82 +510,34 @@ export function ReportsSummaryCards({
           comparisonUnavailable={comparisonUnavailable}
           negative={kpi.ebitda < 0}
         />
-      </div>
-
-      <div className="surface-metrics-strip flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[2rem] px-4 py-3.5">
-        <span className="flex items-center gap-1.5 text-[12px] text-text-secondary">
-          {t('reportsGrossMargin')}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                className="rounded-full border border-transparent p-1 text-text-tertiary hover:border-border-subtle hover:text-text-secondary"
-                aria-label={t('reportsKpiHelpGrossMargin')}
-              >
-                <HelpCircle className="size-3" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-[220px] text-left text-xs font-normal">
-              {t('reportsKpiHelpGrossMargin')}
-            </TooltipContent>
-          </Tooltip>
-          <span className="font-semibold tabular-nums text-text-primary">
-            {kpi.gross_margin_pct.toFixed(1)}%
-          </span>
-          <DeltaPill
-            current={kpi.gross_margin_pct}
-            previous={kpiPrev?.gross_margin_pct}
-            previousReady={previousReady}
-            vsPriorLabel={vsPrior}
-            comparisonUnavailable={comparisonUnavailable}
-            compact
-          />
-        </span>
-
-        <span className="hidden h-4 w-px bg-border-default/70 lg:block" aria-hidden />
-
-        <span className="flex items-center gap-2 text-[12px]">
-          <span className="text-text-secondary">{t('reportsUnitsSoldLabel')}</span>
-          <span className="font-semibold tabular-nums text-text-primary">{units.toLocaleString()}</span>
-          <DeltaPill
-            current={units}
-            previous={prevUnits}
-            previousReady={previousReady}
-            vsPriorLabel={vsPrior}
-            comparisonUnavailable={comparisonUnavailable}
-            compact
-          />
-        </span>
-
-        <span className="hidden h-4 w-px bg-border-default/70 lg:block" aria-hidden />
-
-        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
-          <span className="flex items-center gap-2 text-[12px]">
-            <span className="text-text-secondary">{t('reportsOrdersTotal')}</span>
-            <span className="font-semibold tabular-nums text-text-primary">{orders.toLocaleString()}</span>
-            <DeltaPill
-              current={orders}
-              previous={prevOrders}
-              previousReady={previousReady}
-              vsPriorLabel={vsPrior}
-              comparisonUnavailable={comparisonUnavailable}
-              compact
-            />
-          </span>
-          <span className={chipClass}>
-            {t('reportsOrdersPaid')}: {paid.toLocaleString()}
-            <span className="font-normal text-text-tertiary"> ({pctOfOrders(paid).toFixed(0)}%)</span>
-          </span>
-          <span className={chipClass}>
-            {t('reportsOrdersRefunded')}: {refunded.toLocaleString()}
-            <span className="font-normal text-text-tertiary"> ({pctOfOrders(refunded).toFixed(0)}%)</span>
-          </span>
-          <span className={chipClass}>
-            {t('reportsOrdersExpired')}: {expired.toLocaleString()}
-            <span className="font-normal text-text-tertiary"> ({pctOfOrders(expired).toFixed(0)}%)</span>
-          </span>
-        </div>
-      </div>
+        <CompactKpiCard
+          label={t('reportsKpiEbitdaMarginPct')}
+          helpText={t('reportsKpiHelpEbitdaMarginPct')}
+          value={kpi.ebitda_margin_pct}
+          format="percent"
+          currency={currency}
+          previous={kpiPrev?.ebitda_margin_pct}
+          previousReady={previousReady}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          negative={kpi.ebitda_margin_pct < 0}
+        />
+        <CompactKpiCard
+          label={t('reportsKpiBreakEven')}
+          helpText={t('reportsKpiHelpBreakEven')}
+          value={breakEvenRev ?? 0}
+          format="currency"
+          currency={currency}
+          previous={undefined}
+          previousReady={false}
+          vsPriorLabel={vsPrior}
+          comparisonUnavailable={comparisonUnavailable}
+          displayValue={
+            breakEvenRev !== null ? fmtCurrency(breakEvenRev, currency) : '—'
+          }
+          showVsPrior={false}
+        />
+      </KpiSection>
     </div>
   )
 }

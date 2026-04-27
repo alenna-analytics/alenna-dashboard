@@ -23,7 +23,7 @@ const SHELL_STRINGS = {
       'Abre el menú y selecciona una empresa para continuar.',
     bootLoadingWorkspace: 'Cargando espacio de trabajo',
     bootLoadingLabel: 'Cargando',
-    bootBrandName: 'Alenna Analytics',
+    bootBrandName: 'alenna',
     bootTagline: 'Preparando tu espacio',
     welcomeTitle: 'Bienvenido a Alenna',
     welcomeSubtitle: 'Tu panel de analítica Shopify.',
@@ -185,7 +185,7 @@ const SHELL_STRINGS = {
     reportsKpiHelpGrossProfit: 'Ventas netas menos el costo de bienes vendidos (CMV).',
     reportsKpiHelpGrossMargin: 'Utilidad bruta como porcentaje de las ventas netas.',
     reportsKpiHelpContributionMargin:
-      'Utilidad bruta menos comisiones de plataforma, costo de envío merchant y gasto en ads.',
+      'Utilidad bruta menos comisiones de plataforma, costo de envío merchant y gasto en ads. No uses ventas netas − COGS − … si las ventas netas ya llevan comisiones o envío deducidos (evita doble descuento).',
     reportsKpiHelpEbitda: 'Contribución marginal menos gastos operativos fijos.',
     reportsOrdersTotal: 'Pedidos totales',
     reportsOrdersPaid: 'Pagados',
@@ -216,6 +216,44 @@ const SHELL_STRINGS = {
       'Hay entradas manuales en otra moneda y se están sumando sin conversión.',
     reportsNoData: 'Sin datos para el período seleccionado.',
     reportsSelectConnection: 'Selecciona una conexión para ver reportes.',
+    reportsSectionVentas: 'Ventas',
+    reportsSectionRentabilidad: 'Rentabilidad',
+    reportsWfDiscountsReturns: 'Descuentos + Devoluciones',
+    reportsKpiDeductionsCombined: 'Descuentos + Devoluciones',
+    reportsKpiHelpDeductionsCombined:
+      'Total deducido por descuentos y devoluciones aplicados a ventas brutas.',
+    reportsKpiAov: 'AOV',
+    reportsKpiHelpAov: 'Valor promedio por orden: Ventas netas ÷ número de pedidos.',
+    reportsKpiMomLabel: 'Crecimiento MoM %',
+    reportsKpiHelpMom:
+      'Ventas netas del mes calendario que contiene la fecha fin seleccionada vs el mes natural anterior.',
+    reportsKpiYoyLabel: 'Crecimiento YoY %',
+    reportsKpiHelpYoy:
+      'Ventas netas del período seleccionado vs las mismas fechas del año anterior.',
+    reportsKpiCogsLabel: 'COGS',
+    reportsKpiHelpCogs:
+      'Costo de mercancía vendida: costo unitario × unidades vendidas (costos desde tu maestro de productos).',
+    reportsKpiMargenBrutoPct: 'Margen bruto %',
+    reportsKpiHelpMargenBrutoPct:
+      '(Utilidad bruta ÷ Ventas netas) × 100. Benchmark saludable por encima del 40%.',
+    reportsKpiPlatformFees: 'Comisiones de plataforma',
+    reportsKpiHelpPlatformFees:
+      'Fees cobrados por la plataforma de venta (Shopify Payments, Amazon, Mercado Libre, etc.).',
+    reportsKpiFulfillmentCost: 'Costo de envío',
+    reportsKpiHelpFulfillmentCost:
+      'Lo que la empresa paga por enviar el pedido al cliente (no lo que cobra el cliente por envío).',
+    reportsKpiContributionMarginPctLabel: 'Margen de contribución %',
+    reportsKpiHelpContributionMarginPct:
+      '(CM ÷ Ventas netas) × 100. Benchmark útil por encima del 20%; por debajo del 10% es zona de riesgo.',
+    reportsKpiFixedOpex: 'Gastos operativos fijos',
+    reportsKpiHelpFixedOpex:
+      'Sueldos, renta, software, agencias u otros gastos fijos configurados.',
+    reportsKpiEbitdaMarginPct: 'Margen EBITDA %',
+    reportsKpiHelpEbitdaMarginPct:
+      'EBITDA como porcentaje de ventas netas. Benchmark útil por encima del 10%.',
+    reportsKpiBreakEven: 'Punto de equilibrio',
+    reportsKpiHelpBreakEven:
+      'Ingresos necesarios para cubrir gastos fijos con tu margen de contribución actual: Gastos fijos ÷ CM (como decimal). Sin margen positivo no se calcula.',
     expensesSheetTitle: 'Gastos operativos',
     expensesSheetDescription: 'Agrega gastos fijos como suscripciones de plataforma, nómina, renta, etc.',
     expensesAddBtn: '+ Agregar gasto',
@@ -271,7 +309,7 @@ const SHELL_STRINGS = {
     shellSelectCompanyPrompt: 'Open the menu and select a company to continue.',
     bootLoadingWorkspace: 'Loading workspace',
     bootLoadingLabel: 'Loading',
-    bootBrandName: 'Alenna Analytics',
+    bootBrandName: 'alenna',
     bootTagline: 'Preparing your workspace',
     welcomeTitle: 'Welcome to Alenna',
     welcomeSubtitle: 'Your Shopify analytics home.',
@@ -432,7 +470,7 @@ const SHELL_STRINGS = {
     reportsKpiHelpGrossProfit: 'Net revenue minus cost of goods sold.',
     reportsKpiHelpGrossMargin: 'Gross profit as a percentage of net revenue.',
     reportsKpiHelpContributionMargin:
-      'Gross profit minus platform fees, merchant shipping cost, and ads spend.',
+      'Gross profit minus platform fees, merchant shipping cost, and ads spend. Avoid net revenue − COGS − … if net revenue already deducts fees/shipping (double-count risk).',
     reportsKpiHelpEbitda: 'Contribution margin minus fixed operating expenses.',
     reportsOrdersTotal: 'Total orders',
     reportsOrdersPaid: 'Paid',
@@ -463,6 +501,44 @@ const SHELL_STRINGS = {
       'Manual inputs include another currency and are summed without conversion.',
     reportsNoData: 'No data for the selected period.',
     reportsSelectConnection: 'Select a connection to view reports.',
+    reportsSectionVentas: 'Sales',
+    reportsSectionRentabilidad: 'Profitability',
+    reportsWfDiscountsReturns: 'Discounts + Returns',
+    reportsKpiDeductionsCombined: 'Discounts + Returns',
+    reportsKpiHelpDeductionsCombined:
+      'Total deducted by discounts and returns applied to gross sales.',
+    reportsKpiAov: 'AOV',
+    reportsKpiHelpAov: 'Average order value: Net revenue ÷ order count.',
+    reportsKpiMomLabel: 'MoM growth %',
+    reportsKpiHelpMom:
+      'Net revenue for the calendar month containing your selected end date vs the prior calendar month.',
+    reportsKpiYoyLabel: 'YoY growth %',
+    reportsKpiHelpYoy:
+      'Net revenue for the selected date range vs the same calendar dates one year earlier.',
+    reportsKpiCogsLabel: 'COGS',
+    reportsKpiHelpCogs:
+      'Cost of goods sold: unit cost × units sold (costs from your product master data).',
+    reportsKpiMargenBrutoPct: 'Gross margin %',
+    reportsKpiHelpMargenBrutoPct:
+      '(Gross profit ÷ Net revenue) × 100. Healthy benchmark above ~40%.',
+    reportsKpiPlatformFees: 'Platform fees',
+    reportsKpiHelpPlatformFees:
+      'Fees charged by the sales channel (Shopify Payments, Amazon, Mercado Libre, etc.).',
+    reportsKpiFulfillmentCost: 'Fulfillment cost',
+    reportsKpiHelpFulfillmentCost:
+      'What you pay to ship orders to customers (not shipping charged to the buyer).',
+    reportsKpiContributionMarginPctLabel: 'Contribution margin %',
+    reportsKpiHelpContributionMarginPct:
+      '(CM ÷ Net revenue) × 100. Useful benchmark above ~20%; below ~10% is risky.',
+    reportsKpiFixedOpex: 'Fixed operating expenses',
+    reportsKpiHelpFixedOpex:
+      'Payroll, rent, software, agencies, or other fixed costs you configured.',
+    reportsKpiEbitdaMarginPct: 'EBITDA margin %',
+    reportsKpiHelpEbitdaMarginPct:
+      'EBITDA as a percentage of net revenue. Useful benchmark above ~10%.',
+    reportsKpiBreakEven: 'Break-even revenue',
+    reportsKpiHelpBreakEven:
+      'Revenue needed to cover fixed costs at your current CM ratio: Fixed OpEx ÷ CM (decimal). Not computed without positive CM.',
     expensesSheetTitle: 'Operating Expenses',
     expensesSheetDescription: 'Add fixed costs like platform subscriptions, payroll, rent, etc.',
     expensesAddBtn: '+ Add Expense',

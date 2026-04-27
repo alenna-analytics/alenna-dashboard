@@ -97,6 +97,53 @@ function fmt(value: number): string {
   return value.toFixed(0)
 }
 
+function xAxisLabelLines(name: string): { line1: string; line2: string | null } {
+  const t = name.trim()
+  if (t.length <= 12) {
+    return { line1: t, line2: null }
+  }
+  const w = t.split(/\s+/)
+  if (w.length >= 2) {
+    const mid = Math.max(1, Math.ceil(w.length / 2))
+    return { line1: w.slice(0, mid).join(' '), line2: w.slice(mid).join(' ') }
+  }
+  if (t.length > 20) {
+    return { line1: `${t.slice(0, 16)}…`, line2: null }
+  }
+  return { line1: t, line2: null }
+}
+
+function WaterfallXAxisTick(
+  props: { x?: string | number; y?: string | number; payload?: { value?: string } } & Record<string, unknown>,
+) {
+  const x = Number(props.x ?? 0)
+  const y = Number(props.y ?? 0)
+  const text = String(props.payload?.value ?? '')
+  const { line1, line2 } = xAxisLabelLines(text)
+  return (
+    <g transform={`translate(${x},${y})`} className="recharts-cartesian-axis-tick">
+      <text
+        x={0}
+        y={0}
+        textAnchor="middle"
+        fill="var(--color-text-secondary)"
+        fontSize={9.5}
+        className="select-none"
+        style={{ textRendering: 'geometricPrecision' }}
+      >
+        <tspan x={0} dy={10} fontWeight={500}>
+          {line1}
+        </tspan>
+        {line2 ? (
+          <tspan x={0} dy={12.5} fontWeight={500}>
+            {line2}
+          </tspan>
+        ) : null}
+      </text>
+    </g>
+  )
+}
+
 function buildBars(segments: Segment[], grossRevenue: number): WaterfallBar[] {
   let running = 0
   const rows = segments.map((seg) => {
@@ -255,34 +302,38 @@ function StackedWaterfallBarShape({
   if (weight <= 0) {
     return null
   }
+  const segments: { p: WaterfallStackSlice; i: number; yTop: number; hi: number; shadeIndex: number }[] = []
   let yCursor = y
   let shadeIndex = 0
+  for (let i = 0; i < parts.length; i += 1) {
+    const p = parts[i]
+    const hi = (p.value / weight) * h
+    if (hi <= 0) {
+      continue
+    }
+    segments.push({ p, i, yTop: yCursor, hi, shadeIndex })
+    yCursor += hi
+    shadeIndex += 1
+  }
   return (
     <g>
-      {parts.map((p, i) => {
-        const hi = (p.value / weight) * h
-        if (hi <= 0) {
-          return null
-        }
+      {segments.map(({ p, i, yTop, hi, shadeIndex: si }) => {
         const r = Math.min(rxCap, w / 2, Math.max(hi / 2, 2))
-        const node = (
+        return (
           <rect
             key={`${p.name}-${i}`}
             x={x}
-            y={yCursor}
+            y={yTop}
             width={w}
             height={hi}
-        fill="var(--danger)"
-        fillOpacity={Math.max(0.5, 0.92 - shadeIndex * 0.12)}
+            fill="var(--danger)"
+            fillOpacity={Math.max(0.5, 0.92 - si * 0.12)}
             rx={r}
             ry={r}
-        stroke="var(--bg-elevated)"
+            stroke="var(--bg-elevated)"
             strokeWidth={1}
           />
         )
-        yCursor += hi
-        shadeIndex += 1
-        return node
       })}
     </g>
   )
@@ -478,15 +529,15 @@ export function WaterfallChart({
   const domainMax = bars[0]?.domainMax ?? 1
 
   return (
-    <div className="w-full">
-      <div className="surface-chart-card relative overflow-hidden rounded-[2rem] p-5 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
-        <div className="relative z-1">
-          <ResponsiveContainer width="100%" height={340}>
+    <div className="w-full min-w-0">
+      <div className="surface-chart-card relative overflow-x-auto overflow-y-visible rounded-[2rem] p-5 pb-7 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
+        <div className="relative z-[1] min-w-[min(100%,44rem)]">
+          <ResponsiveContainer width="100%" height={400}>
             <ComposedChart
               data={bars}
-              margin={{ top: 14, right: 10, bottom: 30, left: 8 }}
-              maxBarSize={60}
-              barCategoryGap="10%"
+              margin={{ top: 14, right: 8, bottom: 8, left: 4 }}
+              maxBarSize={64}
+              barCategoryGap="12%"
             >
               <defs>
                 <pattern
@@ -510,15 +561,13 @@ export function WaterfallChart({
               />
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 11, fill: 'var(--color-text-secondary)' }}
+                type="category"
                 axisLine={false}
                 tickLine={false}
                 interval={0}
-                angle={0}
-                textAnchor="middle"
-                tickMargin={6}
-                minTickGap={2}
-                height={34}
+                height={64}
+                tick={WaterfallXAxisTick}
+                tickMargin={4}
               />
               <YAxis
                 domain={[0, domainMax]}

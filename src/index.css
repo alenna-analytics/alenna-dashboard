@@ -65,6 +65,7 @@
   --color-chart-grid: var(--chart-grid);
   --color-chart-waterfall-connector: var(--chart-waterfall-connector);
   --color-chart-line-secondary: var(--chart-line-secondary);
+  --color-chart-monthly-gross-bar: var(--chart-monthly-gross-bar);
 
   --font-sans: 'Inter Variable', 'Inter', system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
@@ -181,6 +182,7 @@
   --chart-waterfall-connector-glow: rgba(255, 255, 255, 0.92);
   --chart-waterfall-negative: var(--danger);
   --chart-line-secondary: var(--brand);
+  --chart-monthly-gross-bar: var(--chart-1);
 
   --font-display: var(--font-sans);
   --font-mono: 'Geist Mono', ui-monospace, monospace;

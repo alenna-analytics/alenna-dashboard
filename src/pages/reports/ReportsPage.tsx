@@ -28,7 +28,9 @@ import {
   pctVersusPrevious,
   toYmd,
 } from './reports-ui-helpers'
+import { MonthlyRevenueChart } from './monthly-revenue-chart'
 import { WaterfallChart } from './waterfall-chart'
+import { useMonthlyRevenueSeries } from './use-monthly-revenue-series'
 import { useReports } from './use-reports'
 
 type ReportsFiltersState = {
@@ -162,6 +164,17 @@ export function ReportsPage() {
 
   const yoyReady = Boolean(kpi && kpiYoyPrior.data)
 
+  const {
+    data: monthlyRevenue,
+    isLoading: monthlyRevenueLoading,
+    isError: monthlyRevenueError,
+  } = useMonthlyRevenueSeries({
+    connectionId: activeConnectionId || null,
+    startDate,
+    endDate,
+    enabled: Boolean(activeConnectionId),
+  })
+
   const currency = kpi?.currency ?? 'USD'
 
   const lastUpdatedLabel = useMemo(() => {
@@ -270,6 +283,8 @@ export function ReportsPage() {
             </div>
             <Skeleton className="h-20 rounded-[1.75rem]" />
             <Skeleton className="h-[26rem] rounded-[2rem]" />
+            <Skeleton className="h-10 w-64 rounded-lg" />
+            <Skeleton className="h-80 rounded-[2rem]" />
           </div>
         ) : kpi ? (
           <div className="flex flex-col gap-6 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 motion-safe:fill-mode-both">
@@ -314,6 +329,37 @@ export function ReportsPage() {
                     formatPctOfGross={(pct) => t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))}
                     finalBarCaption={t('reportsWaterfallFinalHint')}
                   />
+                </CardContent>
+              </Card>
+            </section>
+
+            <section>
+              <Card className="overflow-visible rounded-[2rem] border-0 bg-transparent py-4 shadow-none hover:shadow-none">
+                <CardHeader className="space-y-1 px-1 pb-4 pt-0 sm:px-1">
+                  <CardTitle className="text-2xl tracking-[-0.03em] text-text-primary">
+                    {t('reportsMonthlyEvolutionTitle')}
+                  </CardTitle>
+                  <CardDescription className="max-w-[30rem] text-sm text-text-secondary">
+                    {t('reportsMonthlyEvolutionSubtitle')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="px-0 pt-0">
+                  {monthlyRevenueError ? (
+                    <p className="rounded-[2rem] px-4 py-8 text-sm text-text-secondary">
+                      {t('reportsMonthlyLoadError')}
+                    </p>
+                  ) : monthlyRevenueLoading ? (
+                    <Skeleton className="h-96 w-full rounded-[2rem]" />
+                  ) : (
+                    <MonthlyRevenueChart
+                      startDate={startDate}
+                      endDate={endDate}
+                      rows={monthlyRevenue?.months ?? []}
+                      currency={currency}
+                      dateLocale={dateLocale}
+                      t={t}
+                    />
+                  )}
                 </CardContent>
               </Card>
             </section>

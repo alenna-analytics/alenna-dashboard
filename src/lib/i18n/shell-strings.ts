@@ -254,6 +254,11 @@ const SHELL_STRINGS = {
     reportsKpiBreakEven: 'Punto de equilibrio',
     reportsKpiHelpBreakEven:
       'Ingresos necesarios para cubrir gastos fijos con tu margen de contribución actual: Gastos fijos ÷ CM (como decimal). Sin margen positivo no se calcula.',
+    reportsMonthlyEvolutionTitle: 'Evolución mensual — Ventas y margen bruto %',
+    reportsMonthlyEvolutionSubtitle:
+      'Tres barras del mismo ancho, superpuestas desde la misma base (bruta detrás, neta y utilidad encima). Línea: margen bruto %. Clic en la leyenda para ocultar.',
+    reportsMonthlyLegendGrossMarginPct: 'Margen bruto %',
+    reportsMonthlyLoadError: 'No se pudo cargar la evolución mensual.',
     expensesSheetTitle: 'Gastos operativos',
     expensesSheetDescription: 'Agrega gastos fijos como suscripciones de plataforma, nómina, renta, etc.',
     expensesAddBtn: '+ Agregar gasto',
@@ -539,6 +544,11 @@ const SHELL_STRINGS = {
     reportsKpiBreakEven: 'Break-even revenue',
     reportsKpiHelpBreakEven:
       'Revenue needed to cover fixed costs at your current CM ratio: Fixed OpEx ÷ CM (decimal). Not computed without positive CM.',
+    reportsMonthlyEvolutionTitle: 'Monthly evolution — Sales & gross margin %',
+    reportsMonthlyEvolutionSubtitle:
+      'Three same-width bars overlapped from one baseline (gross behind, net and profit on top). Line: gross margin %. Click legend to hide.',
+    reportsMonthlyLegendGrossMarginPct: 'Gross margin %',
+    reportsMonthlyLoadError: 'Could not load the monthly evolution chart.',
     expensesSheetTitle: 'Operating Expenses',
     expensesSheetDescription: 'Add fixed costs like platform subscriptions, payroll, rent, etc.',
     expensesAddBtn: '+ Add Expense',

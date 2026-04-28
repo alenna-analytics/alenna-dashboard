@@ -1,3 +1,15 @@
+export type MonthlyRevenueMonthRow = {
+  month_start: string
+  gross_revenue: number
+  net_revenue: number
+  gross_profit: number
+  gross_margin_pct: number
+}
+
+export type MonthlyRevenueSeriesResponse = {
+  months: MonthlyRevenueMonthRow[]
+}
+
 export type KpiResponse = {
   gross_revenue: number
   discounts: number

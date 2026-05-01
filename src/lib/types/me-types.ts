@@ -1,5 +1,7 @@
 export type MeResponse = {
   tenant_id: string
+  tenant_name: string
+  plan: string
   user_id: string
   clerk_user_id: string
   email: string

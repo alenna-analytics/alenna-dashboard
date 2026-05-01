@@ -9,6 +9,6 @@ type DashboardPageProps = {
 
 export function DashboardPage({ children, className }: DashboardPageProps) {
   return (
-    <div className={cn('mx-auto w-full max-w-[1440px]', className)}>{children}</div>
+    <div className={cn('w-full', className)}>{children}</div>
   )
 }

@@ -38,6 +38,8 @@ type WaterfallBar = {
   name: string
   spacer: number
   bar: number
+  /** spacer + bar; unstacked column height for Recharts. */
+  totalStack: number
   /** Cumulative value after this segment; used for connector Y position. */
   runningAfter: number
   domainMax: number
@@ -163,10 +165,12 @@ function buildBars(segments: Segment[], grossRevenue: number): WaterfallBar[] {
       } else {
         running += totalBridge
       }
+      const ts = spacer + totalBridge
       const bar: WaterfallBar = {
         name: seg.name,
         spacer,
         bar: totalBridge,
+        totalStack: ts,
         runningAfter: running,
         domainMax: 0,
         isSubtotal: false,
@@ -184,6 +188,7 @@ function buildBars(segments: Segment[], grossRevenue: number): WaterfallBar[] {
         name: seg.name,
         spacer: 0,
         bar: seg.value,
+        totalStack: seg.value,
         runningAfter: running,
         domainMax: 0,
         isSubtotal: true,
@@ -201,10 +206,12 @@ function buildBars(segments: Segment[], grossRevenue: number): WaterfallBar[] {
     } else {
       running += abs
     }
+    const ts = spacer + abs
     const bar: WaterfallBar = {
       name: seg.name,
       spacer,
       bar: abs,
+      totalStack: ts,
       runningAfter: running,
       domainMax: 0,
       isSubtotal: false,
@@ -228,44 +235,57 @@ function buildBars(segments: Segment[], grossRevenue: number): WaterfallBar[] {
   return withPct.map((b) => ({ ...b, domainMax }))
 }
 
+/** Full negative bar fill — KPI bad-delta palette (`kpi-card.tsx`). */
+const WF_NEG_BG = 'var(--kpi-pill-negative-bg)'
+const WF_NEG_TEXT = 'var(--kpi-pill-negative-text)'
+/** Gray only for floating spacer above the bridge (not the bar itself). */
+const WF_GAP_FILL = 'var(--chart-wf-negative-neutral-fill)'
+const WF_GAP_STROKE = 'var(--chart-wf-negative-neutral-stroke)'
+
 function barFillSolid(payload: WaterfallBar): string {
   if (payload.isSubtotal) {
     return 'var(--primary)'
   }
   if (payload.isNegative) {
-    return 'var(--danger)'
+    return WF_NEG_BG
   }
-  return 'var(--chart-3)'
+  return 'var(--primary)'
 }
 
 function labelFillForBar(row: WaterfallBar | undefined): string {
   if (!row) return 'var(--text-primary)'
   if (row.isSubtotal) return 'var(--primary-foreground)'
-  if (row.isNegative) return 'var(--primary-foreground)'
+  if (row.isNegative) return WF_NEG_TEXT
   if (row.stackedParts && row.stackedParts.length > 0) return 'var(--primary-foreground)'
   return 'var(--text-primary)'
 }
 
+function isNegativeSegmentPayload(payload: WaterfallBar | undefined): boolean {
+  return Boolean(payload && !payload.isSubtotal && payload.isNegative)
+}
+
 /** Hatched gap below floating bars (spacer segment only); one column with the solid bar. */
 function SpacerHatchShape(props: BarShapeProps) {
+  const payload = props.payload as WaterfallBar | undefined
   const x = props.x ?? 0
   const y = props.y ?? 0
   const w = props.width ?? 0
   const h = props.height ?? 0
   if (h <= 0 || w <= 0) return null
   const rx = Math.min(12, w / 2, h / 2)
+  const neg = isNegativeSegmentPayload(payload)
   return (
     <rect
       x={x}
       y={y}
       width={w}
       height={h}
-      fill="url(#wfUnfilledHatch)"
+      fill={neg ? WF_GAP_FILL : 'url(#wfUnfilledHatch)'}
       rx={rx}
       ry={rx}
-      stroke="var(--card-solid-border)"
+      stroke={neg ? WF_GAP_STROKE : 'var(--card-solid-border)'}
       strokeWidth={1}
-      strokeOpacity={0.3}
+      strokeOpacity={neg ? 1 : 0.3}
     />
   )
 }
@@ -292,10 +312,10 @@ function StackedWaterfallBarShape({
         y={y}
         width={w}
         height={h}
-        fill="var(--danger)"
+        fill={WF_NEG_BG}
         rx={rxCap}
         ry={rxCap}
-        fillOpacity={0.35}
+        fillOpacity={1}
       />
     )
   }
@@ -326,11 +346,12 @@ function StackedWaterfallBarShape({
             y={yTop}
             width={w}
             height={hi}
-            fill="var(--danger)"
-            fillOpacity={Math.max(0.5, 0.92 - si * 0.12)}
+            fill={WF_NEG_BG}
+            fillOpacity={Math.max(0.72, 0.96 - si * 0.06)}
             rx={r}
             ry={r}
-            stroke="var(--bg-elevated)"
+            stroke={WF_NEG_TEXT}
+            strokeOpacity={0.14}
             strokeWidth={1}
           />
         )
@@ -356,6 +377,8 @@ function WaterfallBarShape(props: BarShapeProps) {
   const fill = barFillSolid(payload)
   const isFinal = payload.isLast && payload.isSubtotal
   const rx = Math.min(12, w / 2, h / 2)
+  const fillOpacity =
+    payload.isSubtotal ? 1 : payload.isNegative ? 1 : 0.58
 
   return (
     <g>
@@ -365,6 +388,7 @@ function WaterfallBarShape(props: BarShapeProps) {
         width={w}
         height={h}
         fill={fill}
+        fillOpacity={fillOpacity}
         rx={rx}
         ry={rx}
         style={{
@@ -389,6 +413,35 @@ function WaterfallBarShape(props: BarShapeProps) {
   )
 }
 
+function WaterfallCombinedColumnShape(props: BarShapeProps) {
+  const payload = props.payload as WaterfallBar | undefined
+  const x = props.x ?? 0
+  const y = props.y ?? 0
+  const w = props.width ?? 0
+  const h = props.height ?? 0
+  if (payload === undefined || h <= 0 || w <= 0) {
+    return null
+  }
+  const total = payload.spacer + payload.bar
+  if (total <= 0) {
+    return null
+  }
+  const hVal = (payload.bar / total) * h
+  const hGray = (payload.spacer / total) * h
+  const yValTop = y
+  const yGrayTop = y + hVal
+  return (
+    <g>
+      {hGray > 0 ? (
+        <SpacerHatchShape {...props} x={x} y={yGrayTop} width={w} height={hGray} />
+      ) : null}
+      {hVal > 0 ? (
+        <WaterfallBarShape {...props} x={x} y={yValTop} width={w} height={hVal} />
+      ) : null}
+    </g>
+  )
+}
+
 function BarLabel({ x, y, width, height, value, isNegative, fill }: BarLabelProps) {
   if (
     value === undefined ||
@@ -405,8 +458,12 @@ function BarLabel({ x, y, width, height, value, isNegative, fill }: BarLabelProp
   }
   const cx = x + width / 2
   const cy = y + h / 2
-  const display = fmt(value)
+  const mag = Math.abs(value)
+  const displayAbs = fmt(mag)
+  const labelText = isNegative && value !== 0 ? `-${displayAbs}` : displayAbs
   const fs = h < 22 ? 9 : 11
+  const textFill =
+    isNegative && value !== 0 ? WF_NEG_TEXT : fill
   return (
     <text
       x={cx}
@@ -415,11 +472,39 @@ function BarLabel({ x, y, width, height, value, isNegative, fill }: BarLabelProp
       dominantBaseline="middle"
       fontSize={fs}
       fontWeight={700}
-      fill={fill}
+      fill={textFill}
     >
-      {isNegative && value !== 0 ? `-${display}` : display}
+      {labelText}
     </text>
   )
+}
+
+function bandGapXs(
+  xMap: NonNullable<ReturnType<typeof useXAxisScale>>,
+  bw: number | undefined,
+  leftCat: string,
+  rightCat: string,
+): { x1?: number; x2?: number } {
+  let x1 = xMap(leftCat, { position: 'end' })
+  let x2 = xMap(rightCat, { position: 'start' })
+  if ((x1 === undefined || x2 === undefined) && bw !== undefined && bw > 0) {
+    const sL = xMap(leftCat, { position: 'start' })
+    const sR = xMap(rightCat, { position: 'start' })
+    x1 = x1 ?? (sL !== undefined ? sL + bw : undefined)
+    x2 = x2 ?? sR
+  }
+  return { x1, x2 }
+}
+
+function bandWidthFromScale(
+  xMap: NonNullable<ReturnType<typeof useXAxisScale>>,
+  category: string,
+): number | undefined {
+  const s = xMap(category, { position: 'start' })
+  const e = xMap(category, { position: 'end' })
+  if (s === undefined || e === undefined) return undefined
+  const w = Math.abs(e - s)
+  return w > 0 ? w : undefined
 }
 
 function WaterfallConnectors({ bars }: { bars: WaterfallBar[] }) {
@@ -428,12 +513,19 @@ function WaterfallConnectors({ bars }: { bars: WaterfallBar[] }) {
   if (!xMap || !yMap || bars.length < 2) {
     return null
   }
+  const bw = bandWidthFromScale(xMap, bars[0]?.name ?? '')
+
   const lines: ReactElement[] = []
   for (let i = 0; i < bars.length - 1; i++) {
-    const x1 = xMap(bars[i].name, { position: 'end' })
-    const x2 = xMap(bars[i + 1].name, { position: 'start' })
+    const leftCat = bars[i]?.name
+    const rightCat = bars[i + 1]?.name
+    const { x1, x2 } = bandGapXs(xMap, bw, leftCat, rightCat)
     const y = yMap(bars[i].runningAfter)
     if (x1 === undefined || x2 === undefined || y === undefined) {
+      continue
+    }
+    const span = Math.abs(x2 - x1)
+    if (span < 1) {
       continue
     }
     lines.push(
@@ -443,17 +535,21 @@ function WaterfallConnectors({ bars }: { bars: WaterfallBar[] }) {
         y1={y}
         x2={x2}
         y2={y}
-        stroke="var(--chart-waterfall-connector)"
-        strokeWidth={1}
-        strokeDasharray="5 5"
-        opacity={0.72}
+        stroke="var(--chart-wf-bridge-stroke)"
+        strokeWidth={2}
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
       />,
     )
   }
   if (lines.length === 0) {
     return null
   }
-  return <g pointerEvents="none">{lines}</g>
+  return (
+    <g className="recharts-waterfall-connectors" pointerEvents="none">
+      {lines}
+    </g>
+  )
 }
 
 function CustomTooltip({
@@ -532,12 +628,12 @@ export function WaterfallChart({
     <div className="w-full min-w-0">
       <div className="surface-chart-card relative overflow-x-auto overflow-y-visible rounded-[2rem] p-5 pb-7 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
         <div className="relative z-[1] min-w-[min(100%,44rem)]">
-          <ResponsiveContainer width="100%" height={400}>
+          <ResponsiveContainer width="100%" height={288}>
             <ComposedChart
               data={bars}
-              margin={{ top: 14, right: 8, bottom: 8, left: 4 }}
-              maxBarSize={64}
-              barCategoryGap="12%"
+              margin={{ top: 12, right: 8, bottom: 6, left: 4 }}
+              maxBarSize={76}
+              barCategoryGap="7%"
             >
               <defs>
                 <pattern
@@ -565,7 +661,7 @@ export function WaterfallChart({
                 axisLine={false}
                 tickLine={false}
                 interval={0}
-                height={64}
+                height={56}
                 tick={WaterfallXAxisTick}
                 tickMargin={4}
               />
@@ -588,24 +684,10 @@ export function WaterfallChart({
                 cursor={{ fill: 'var(--chart-wf-cursor-fill)' }}
               />
 
-              <WaterfallConnectors bars={bars} />
-
               <Bar
-                dataKey="spacer"
-                stackId="wf"
-                fill="url(#wfUnfilledHatch)"
-                shape={SpacerHatchShape}
-                isAnimationActive
-                animationDuration={420}
-                animationEasing="ease-out"
-              />
-
-              <Bar
-                dataKey="bar"
-                stackId="wf"
-                radius={[14, 14, 0, 0]}
+                dataKey="totalStack"
                 fill="var(--chart-1)"
-                shape={WaterfallBarShape}
+                shape={WaterfallCombinedColumnShape}
                 isAnimationActive
                 animationDuration={480}
                 animationEasing="ease-out"
@@ -616,17 +698,20 @@ export function WaterfallChart({
                     const idx = Number(props.index ?? 0)
                     const row = bars[idx]
                     const x = typeof props.x === 'number' ? props.x : Number(props.x)
-                    const y = typeof props.y === 'number' ? props.y : Number(props.y)
+                    const yFull = typeof props.y === 'number' ? props.y : Number(props.y)
                     const width =
                       typeof props.width === 'number' ? props.width : Number(props.width)
-                    const height =
+                    const heightFull =
                       typeof props.height === 'number' ? props.height : Number(props.height)
+                    const t = row?.totalStack ?? 0
+                    const hVal =
+                      t > 0 && row ? (row.bar / t) * heightFull : 0
                     return (
                       <BarLabel
                         x={x}
-                        y={y}
+                        y={yFull}
                         width={width}
-                        height={height}
+                        height={hVal}
                         value={typeof props.value === 'number' ? props.value : undefined}
                         isNegative={row?.isNegative}
                         fill={labelFillForBar(row)}
@@ -635,6 +720,8 @@ export function WaterfallChart({
                   }}
                 />
               </Bar>
+
+              <WaterfallConnectors bars={bars} />
             </ComposedChart>
           </ResponsiveContainer>
         </div>

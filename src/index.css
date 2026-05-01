@@ -1,7 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
-@import '@fontsource-variable/inter';
 @import '@fontsource/geist-mono/400.css';
 
 @custom-variant dark (&:is(.dark *));
@@ -67,9 +66,10 @@
   --color-chart-line-secondary: var(--chart-line-secondary);
   --color-chart-monthly-gross-bar: var(--chart-monthly-gross-bar);
 
-  --font-sans: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
   --font-heading: var(--font-sans);
+  --font-numeric: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -102,10 +102,10 @@
 }
 
 :root {
-  --ink: #171911;
-  --ink-rgb: 23, 25, 17;
+  --ink: #000000;
+  --ink-rgb: 0, 0, 0;
 
-  --bg-base: #f3efdf;
+  --bg-base: #f3f0e8;
   --bg-section: rgba(255, 252, 245, 0.7);
   --bg-surface: rgba(255, 251, 244, 0.86);
   --bg-elevated: rgba(255, 253, 248, 0.96);
@@ -175,14 +175,41 @@
   --chart-grid: rgba(var(--ink-rgb), 0.09);
   --chart-wf-unfilled-bg: rgba(225, 219, 201, 0.75);
   --chart-wf-unfilled-line: rgba(var(--ink-rgb), 0.1);
+  /** Waterfall negative steps: gap + bar body (pill alone uses KPI negative pink). */
+  --chart-wf-negative-neutral-fill: rgba(var(--ink-rgb), 0.065);
+  --chart-wf-negative-neutral-stroke: rgba(var(--ink-rgb), 0.11);
   --card-solid: rgba(255, 252, 247, 0.94);
   --card-solid-border: rgba(83, 88, 61, 0.12);
   --card-solid-inset: inset 0 1px 0 rgba(255, 255, 255, 0.75);
   --chart-waterfall-connector: rgba(var(--ink-rgb), 0.24);
+  /** P&L waterfall step bridges (dotted; distinct from grid + connectors). */
+  --chart-wf-bridge-stroke: color-mix(in srgb, var(--color-accent-forest) 55%, rgba(var(--ink-rgb), 0.35) 45%);
   --chart-waterfall-connector-glow: rgba(255, 255, 255, 0.92);
   --chart-waterfall-negative: var(--danger);
   --chart-line-secondary: var(--brand);
   --chart-monthly-gross-bar: var(--chart-1);
+
+  --shadow-soft: var(--shadow-ink-md);
+
+  --color-bg-page: var(--bg-base);
+  --color-bg-section: color-mix(in srgb, var(--bg-section) 48%, #ffffff 52%);
+  --color-bg-card: color-mix(in srgb, var(--card-solid) 35%, #ffffff 65%);
+  --color-bg-card-strong: color-mix(in srgb, var(--card-solid) 12%, #ffffff 88%);
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-secondary);
+  --color-positive: var(--success);
+  --color-negative: var(--danger);
+  --color-border: var(--border-default);
+  --color-accent-forest: #203935;
+  /** Selected value text on filter pills (sync with accent forest green). */
+  --filter-pill-value-active: var(--color-accent-forest);
+  --shell-structure-border: color-mix(in srgb, var(--color-accent-forest) 26%, transparent);
+
+  --kpi-pill-positive-bg: #e8f7d3;
+  --kpi-pill-positive-text: #203935;
+  --kpi-pill-negative-bg: #f7d1d7;
+  --kpi-pill-negative-text: #ad3f5b;
+  --kpi-pill-neutral-bg: color-mix(in srgb, var(--text-secondary) 12%, transparent);
 
   --font-display: var(--font-sans);
   --font-mono: 'Geist Mono', ui-monospace, monospace;
@@ -193,8 +220,8 @@
   --card-foreground: var(--text-primary);
   --popover: rgba(255, 255, 255, 0.82);
   --popover-foreground: var(--text-primary);
-  --primary: var(--brand);
-  --primary-foreground: #f7f6ef;
+  --primary: var(--color-accent-forest);
+  --primary-foreground: #ffffff;
   --secondary: var(--bg-section);
   --secondary-foreground: var(--text-primary);
   --muted: var(--bg-muted);
@@ -292,34 +319,12 @@
   body {
     @apply antialiased text-foreground;
     font-family: var(--font-display);
-    background-color: #f3efdf;
-    background-image:
-      radial-gradient(
-        ellipse 110% 90% at 0% 0%,
-        rgba(240, 235, 208, 0.95) 0%,
-        transparent 58%
-      ),
-      radial-gradient(
-        ellipse 90% 75% at 100% 0%,
-        rgba(223, 233, 177, 0.55) 0%,
-        transparent 52%
-      ),
-      radial-gradient(
-        ellipse 90% 70% at 14% 100%,
-        rgba(232, 226, 205, 0.85) 0%,
-        transparent 58%
-      ),
-      radial-gradient(
-        ellipse 75% 52% at 88% 86%,
-        rgba(231, 240, 188, 0.28) 0%,
-        transparent 50%
-      ),
-      linear-gradient(
-        160deg,
-        #f8f5eb 0%,
-        #f1ecda 48%,
-        #f6f3e7 100%
-      );
+    background-color: var(--bg-base);
+    background-image: radial-gradient(
+      ellipse 120% 80% at 100% 0%,
+      rgba(232, 247, 211, 0.35) 0%,
+      transparent 55%
+    );
     background-attachment: fixed;
   }
 
@@ -329,6 +334,11 @@
 }
 
 @layer utilities {
+  .font-numeric {
+    font-family: var(--font-numeric);
+    font-variant-numeric: tabular-nums;
+  }
+
   .glass-panel {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
@@ -385,12 +395,12 @@
     max-width: 100%;
     align-items: center;
     gap: 0.375rem;
-    min-height: 2.5rem;
-    padding: 0.375rem 0.875rem;
+    min-height: 2rem;
+    padding: 0.125rem 0.5rem;
     border-radius: 9999px;
     border: 1px solid var(--header-pill-border);
     background: var(--header-pill-bg);
-    box-shadow: var(--shadow-ink-sm);
+    box-shadow: none;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }

@@ -101,23 +101,20 @@ function Calendar({
           defaultClassNames.week_number
         ),
         day: cn(
-          "group/day relative aspect-square h-full w-full rounded-(--cell-radius) p-0 text-center select-none [&:last-child[data-selected=true]_button]:rounded-r-(--cell-radius)",
-          props.showWeekNumber
-            ? "[&:nth-child(2)[data-selected=true]_button]:rounded-l-(--cell-radius)"
-            : "[&:first-child[data-selected=true]_button]:rounded-l-(--cell-radius)",
+          "group/day relative aspect-square h-full w-full rounded-none p-0 text-center select-none",
           defaultClassNames.day
         ),
         range_start: cn(
-          "relative isolate z-0 rounded-l-(--cell-radius) bg-primary/15 after:absolute after:inset-y-0 after:right-0 after:w-4 after:bg-primary/15",
+          "relative isolate z-0 rounded-l-full rounded-r-none bg-primary/15 after:absolute after:inset-y-0 after:right-0 after:w-4 after:bg-primary/15",
           defaultClassNames.range_start
         ),
         range_middle: cn("rounded-none bg-primary/15", defaultClassNames.range_middle),
         range_end: cn(
-          "relative isolate z-0 rounded-r-(--cell-radius) bg-primary/15 after:absolute after:inset-y-0 after:left-0 after:w-4 after:bg-primary/15",
+          "relative isolate z-0 rounded-l-none rounded-r-full bg-primary/15 after:absolute after:inset-y-0 after:left-0 after:w-4 after:bg-primary/15",
           defaultClassNames.range_end
         ),
         today: cn(
-          "rounded-(--cell-radius) bg-bg-section text-foreground data-[selected=true]:rounded-none",
+          "rounded-full bg-bg-section text-foreground",
           defaultClassNames.today
         ),
         outside: cn(
@@ -192,6 +189,12 @@ function CalendarDayButton({
     if (modifiers.focused) ref.current?.focus()
   }, [modifiers.focused])
 
+  const rangeCapsClass = modifiers.range_middle
+    ? "rounded-none bg-primary/15 text-foreground"
+    : modifiers.range_start || modifiers.range_end
+      ? "rounded-full bg-primary text-primary-foreground"
+      : ""
+
   return (
     <Button
       variant="ghost"
@@ -207,8 +210,9 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 border-0 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[range-end=true]:rounded-(--cell-radius) data-[range-end=true]:rounded-r-(--cell-radius) data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-primary/15 data-[range-middle=true]:text-foreground data-[range-start=true]:rounded-(--cell-radius) data-[range-start=true]:rounded-l-(--cell-radius) data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground [&>span]:text-xs [&>span]:opacity-70",
+        "relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 border-0 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[selected-single=true]:rounded-full data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground [&>span]:text-xs [&>span]:opacity-70",
         defaultClassNames.day,
+        rangeCapsClass,
         className
       )}
       {...props}

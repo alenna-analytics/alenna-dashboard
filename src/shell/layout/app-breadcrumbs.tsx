@@ -14,7 +14,13 @@ function crumbsForPath(pathname: string, lang: string): Crumb[] {
   const normalized = pathname.replace(/\/$/, '') || '/'
 
   if (normalized === '/dashboard') {
-    return [{ label: shellT(lang, 'navDashboard') }]
+    return [{ label: shellT(lang, 'navHome') }]
+  }
+  if (normalized === '/dashboard/components') {
+    return [
+      { label: shellT(lang, 'navHome'), to: '/dashboard' },
+      { label: shellT(lang, 'navComponents') },
+    ]
   }
   if (normalized === '/dashboard/reports') {
     return [{ label: shellT(lang, 'navReports') }]
@@ -24,7 +30,7 @@ function crumbsForPath(pathname: string, lang: string): Crumb[] {
   }
 
   if (normalized.startsWith('/dashboard')) {
-    return [{ label: shellT(lang, 'navDashboard'), to: '/dashboard' }]
+    return [{ label: shellT(lang, 'navHome'), to: '/dashboard' }]
   }
 
   return [{ label: shellT(lang, 'bootBrandName') }]

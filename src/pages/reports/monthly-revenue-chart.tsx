@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- mergeMonthlyRows shared with dashboard trend chart */
 import { useState } from 'react'
 import { eachMonthOfInterval, endOfMonth, format, startOfMonth } from 'date-fns'
 import type { Locale } from 'date-fns'
@@ -29,6 +30,8 @@ export type MonthlyChartRow = {
 
 type LayerKey = 'bruto' | 'neta' | 'utilidad' | 'margin'
 
+type EvolutionMetric = 'revenue' | 'profit' | 'orders'
+
 const CHART_MONTHLY_GROSS_BAR = 'var(--chart-monthly-gross-bar)'
 
 function toNum(v: unknown, fallback = 0): number {
@@ -40,7 +43,7 @@ function toNum(v: unknown, fallback = 0): number {
   return fallback
 }
 
-function mergeMonthlyRows(
+export function mergeMonthlyRows(
   startYmd: string,
   endYmd: string,
   rows: MonthlyRevenueMonthRow[],
@@ -121,6 +124,7 @@ function OverlappingKpiBarShape(
           rx={r}
           ry={r}
           fill={CHART_MONTHLY_GROSS_BAR}
+          fillOpacity={0.82}
         />
       )}
       {!hidden.neta && hNet > 0.5 && (
@@ -132,9 +136,9 @@ function OverlappingKpiBarShape(
           rx={r}
           ry={r}
           fill="var(--chart-3)"
-          fillOpacity={0.88}
+          fillOpacity={0.58}
           stroke="var(--chart-3)"
-          strokeOpacity={0.25}
+          strokeOpacity={0.22}
           strokeWidth={0.5}
         />
       )}
@@ -147,7 +151,7 @@ function OverlappingKpiBarShape(
           rx={r}
           ry={r}
           fill="var(--chart-4)"
-          fillOpacity={0.96}
+          fillOpacity={0.68}
         />
       )}
     </g>
@@ -194,6 +198,46 @@ function ChartTooltip({
           </span>
         </div>
       </div>
+    </div>
+  )
+}
+
+function EvolutionMetricToggle({
+  active,
+  onSelect,
+  t,
+}: {
+  active: EvolutionMetric
+  onSelect: (m: EvolutionMetric) => void
+  t: (k: ShellStringKey) => string
+}) {
+  const opts: { id: EvolutionMetric; label: ShellStringKey }[] = [
+    { id: 'revenue', label: 'reportsEvolutionToggleRevenue' },
+    { id: 'profit', label: 'reportsEvolutionToggleProfit' },
+    { id: 'orders', label: 'reportsEvolutionToggleOrders' },
+  ]
+  return (
+    <div
+      className="mb-4 flex flex-wrap items-center gap-2"
+      role="tablist"
+    >
+      {opts.map(({ id, label }) => (
+        <button
+          key={id}
+          type="button"
+          role="tab"
+          aria-selected={active === id}
+          onClick={() => onSelect(id)}
+          className={cn(
+            'rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors',
+            active === id
+              ? 'border-brand bg-brand-dim text-brand shadow-[var(--shadow-ink-xs)]'
+              : 'border-border-default bg-bg-elevated/90 text-text-secondary hover:border-border-emphasis hover:text-text-primary',
+          )}
+        >
+          {t(label)}
+        </button>
+      ))}
     </div>
   )
 }
@@ -289,6 +333,7 @@ export function MonthlyRevenueChart({
 }: MonthlyRevenueChartProps) {
   const chartData = mergeMonthlyRows(startDate, endDate, rows, dateLocale)
   const [hidden, setHidden] = useState<Partial<Record<LayerKey, boolean>>>({})
+  const [evolutionMetric, setEvolutionMetric] = useState<EvolutionMetric>('revenue')
 
   const toggle = (key: LayerKey) => {
     setHidden((h) => ({ ...h, [key]: !h[key] }))
@@ -303,6 +348,7 @@ export function MonthlyRevenueChart({
 
   return (
     <div className="w-full">
+      <EvolutionMetricToggle active={evolutionMetric} onSelect={setEvolutionMetric} t={t} />
       <ResponsiveContainer width="100%" height={380}>
         <ComposedChart data={chartData} margin={{ top: 12, right: 12, left: 4, bottom: 8 }}>
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
@@ -355,15 +401,15 @@ export function MonthlyRevenueChart({
               type="monotone"
               dataKey="gross_margin_pct"
               stroke="var(--warning)"
-              strokeWidth={2}
-              strokeDasharray="5 4"
+              strokeWidth={3.5}
+              strokeDasharray="6 4"
               dot={{
-                r: 4,
+                r: 5,
                 fill: 'var(--primary-foreground)',
                 stroke: 'var(--warning)',
-                strokeWidth: 1.5,
+                strokeWidth: 2,
               }}
-              activeDot={{ r: 5 }}
+              activeDot={{ r: 6 }}
               isAnimationActive={false}
             />
           ) : null}

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { useCurrentTenant } from '@/auth/hooks'
+import { shellT } from '@/lib/i18n/shell-strings'
+import { formatTenantPlan } from '@/lib/utils'
 import { AppBootLoader } from '@/shell/layout/app-boot-loader'
 import { AppHeader } from '@/shell/layout/app-header'
 import { AppSidebar } from '@/shell/layout/app-sidebar'
@@ -10,8 +12,15 @@ import { WorkspaceProvider } from '@/shell/providers/workspace-context'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { TooltipProvider } from '@/ui/tooltip'
+import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
+import { cn } from '@/lib/utils'
 
 const SIDEBAR_COLLAPSED_KEY = 'alenna.sidebar.collapsed'
+
+function tenantIdsEqual(a: string, b: string | null | undefined): boolean {
+  if (!a || !b) return false
+  return a.replace(/-/g, '').toLowerCase() === b.replace(/-/g, '').toLowerCase()
+}
 
 function readInitialSidebarCollapsed(): boolean {
   if (typeof window === 'undefined') {
@@ -54,6 +63,26 @@ export function AppShellLayout() {
   const workspaceValue = useMemo(() => ({ me, refetchMe }), [me, refetchMe])
   const mainRef = useRef<HTMLElement>(null)
 
+  const sidebarCompanyName = useMemo(() => {
+    const fromMe = me?.tenant_name?.trim()
+    if (fromMe) return fromMe
+    const row =
+      tenants.find((x) => tenantIdsEqual(x.tenant_id, tenantId)) ??
+      (tenants.length === 1 ? tenants[0] : undefined)
+    const raw = row?.name?.trim()
+    return raw && raw.length > 0 ? raw : shellT(lang, 'shellSidebarWorkspaceFallback')
+  }, [me?.tenant_name, tenants, tenantId, lang])
+
+  const sidebarCompanySubtitle = useMemo(() => {
+    const fromMe = me?.plan?.trim()
+    if (fromMe) return formatTenantPlan(fromMe)
+    const row =
+      tenants.find((x) => tenantIdsEqual(x.tenant_id, tenantId)) ??
+      (tenants.length === 1 ? tenants[0] : undefined)
+    const p = row?.plan?.trim()
+    return p ? formatTenantPlan(p) : ''
+  }, [me?.plan, tenants, tenantId])
+
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
   }, [location.pathname, location.search])
@@ -79,27 +108,39 @@ export function AppShellLayout() {
   return (
     <WorkspaceProvider value={workspaceValue}>
       <TooltipProvider delayDuration={200}>
-        <div className="flex h-svh gap-4 overflow-hidden bg-transparent px-4 py-4 motion-safe:animate-[boot-shell-enter_0.4s_ease-out] lg:gap-6 lg:px-6 lg:py-6">
-          <AppSidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-[2rem] border border-border-subtle bg-[rgba(255,251,245,0.26)] shadow-[0_18px_48px_rgba(84,89,61,0.06)] backdrop-blur-[2px]">
-            <AppHeader />
+        <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh gap-3 overflow-hidden bg-[var(--bg-base)] px-3 py-3 lg:gap-4 lg:px-4 lg:py-4">
+          <AppSidebar
+            collapsed={sidebarCollapsed}
+            onToggle={toggleSidebar}
+            companyName={sidebarCompanyName}
+            companySubtitle={sidebarCompanySubtitle}
+          />
+          <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--shell-structure-border)] bg-white">
+            <AppHeader className="border-b border-[var(--shell-structure-border)]" />
             <main
               ref={mainRef}
-              className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain bg-transparent px-5 py-5 lg:px-8 lg:py-8"
+              className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
             >
-              {!tenantId && tenants.length > 1 ? (
-                <p className="mb-4 text-sm text-text-secondary">
-                  Select a workspace in your account menu if prompted.
-                </p>
-              ) : null}
               <div
-                key={location.pathname}
-                className="mx-auto w-full max-w-[1440px] motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-300"
+                className={cn(
+                  WORKSPACE_SHELL_COLUMN_CLASS,
+                  'min-h-full py-4 lg:py-5',
+                )}
               >
-                <Outlet />
+                {!tenantId && tenants.length > 1 ? (
+                  <p className="mb-4 text-sm text-text-secondary">
+                    Select a workspace in your account menu if prompted.
+                  </p>
+                ) : null}
+                <div
+                  key={location.pathname}
+                  className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-300 motion-safe:fill-mode-both"
+                >
+                  <Outlet />
+                </div>
               </div>
             </main>
-          </div>
+          </section>
         </div>
       </TooltipProvider>
     </WorkspaceProvider>

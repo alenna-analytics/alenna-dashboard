@@ -1,3 +1,5 @@
+import { eachMonthOfInterval, endOfMonth, startOfMonth, subMonths } from 'date-fns'
+
 export function toYmd(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -10,19 +12,30 @@ export function parseLocalYmd(ymd: string): Date {
   return new Date(y, m - 1, d)
 }
 
+/**
+ * Previous period for dashboards / monthly charts: the same number of **calendar months**
+ * immediately before the selected range (aligned with `mergeMonthlyRows`).
+ *
+ * Example: Apr–Jun → Jan–Mar so Apr vs Jan, May vs Feb, Jun vs Mar.
+ */
 export function computePreviousPeriod(
   startYmd: string,
   endYmd: string,
 ): { start: string; end: string } | null {
-  const start = parseLocalYmd(startYmd)
-  const end = parseLocalYmd(endYmd)
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) return null
-  const days = Math.round((end.getTime() - start.getTime()) / 86400000) + 1
-  if (days < 1) return null
-  const prevEnd = new Date(start)
-  prevEnd.setDate(prevEnd.getDate() - 1)
-  const prevStart = new Date(prevEnd)
-  prevStart.setDate(prevStart.getDate() - (days - 1))
+  const rawStart = parseLocalYmd(startYmd)
+  const rawEnd = parseLocalYmd(endYmd)
+  if (Number.isNaN(rawStart.getTime()) || Number.isNaN(rawEnd.getTime()) || rawStart > rawEnd) return null
+
+  const rangeStart = startOfMonth(rawStart)
+  const rangeEnd = endOfMonth(rawEnd)
+  const monthsInRange = eachMonthOfInterval({ start: rangeStart, end: rangeEnd })
+  const monthCount = monthsInRange.length
+  if (monthCount < 1) return null
+
+  const prevStart = startOfMonth(subMonths(rangeStart, monthCount))
+  const prevEnd = endOfMonth(subMonths(rangeStart, 1))
+
+  if (prevStart > prevEnd) return null
   return { start: toYmd(prevStart), end: toYmd(prevEnd) }
 }
 

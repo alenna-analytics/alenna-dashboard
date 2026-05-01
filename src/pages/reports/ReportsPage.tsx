@@ -11,7 +11,6 @@ import { shellT } from '@/lib/i18n/shell-strings'
 import { apiFetch } from '@/lib/api'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import { useLanguage } from '@/shell/providers/language-provider'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import { Skeleton } from '@/ui/skeleton'
 import {
   Select,
@@ -28,7 +27,9 @@ import {
   pctVersusPrevious,
   toYmd,
 } from './reports-ui-helpers'
+import { SectionContainer, SectionHeader } from './report-ui'
 import { MonthlyRevenueChart } from './monthly-revenue-chart'
+import { buildWaterfallSegments } from './waterfall-segments'
 import { WaterfallChart } from './waterfall-chart'
 import { useMonthlyRevenueSeries } from './use-monthly-revenue-series'
 import { useReports } from './use-reports'
@@ -182,30 +183,7 @@ export function ReportsPage() {
     return formatDistanceToNow(new Date(dataUpdatedAt), { addSuffix: true, locale: dateLocale })
   }, [dataUpdatedAt, dateLocale])
 
-  const waterfallSegments = kpi
-    ? [
-        { name: t('reportsWfGrossRevenue'), value: kpi.gross_revenue, isSubtotal: true, isNegative: false },
-        {
-          name: t('reportsWfDiscountsReturns'),
-          value: kpi.discounts + kpi.returns,
-          isSubtotal: false,
-          isNegative: true,
-          stackedParts: [
-            { name: t('reportsWfDiscounts'), value: kpi.discounts, isNegative: true },
-            { name: t('reportsWfReturns'), value: kpi.returns, isNegative: true },
-          ],
-        },
-        { name: t('reportsWfNetRevenue'), value: kpi.net_revenue, isSubtotal: true, isNegative: false },
-        { name: t('reportsWfCogs'), value: kpi.cogs, isSubtotal: false, isNegative: true },
-        { name: t('reportsWfGrossProfit'), value: kpi.gross_profit, isSubtotal: true, isNegative: false },
-        { name: t('reportsWfCommissions'), value: kpi.platform_fees_total, isSubtotal: false, isNegative: true },
-        { name: t('reportsWfShipping'), value: kpi.merchant_shipping_cost, isSubtotal: false, isNegative: true },
-        { name: t('reportsWfAdsSpend'), value: kpi.ads_spend, isSubtotal: false, isNegative: true },
-        { name: t('reportsWfContributionMargin'), value: kpi.contribution_margin, isSubtotal: true, isNegative: kpi.contribution_margin < 0 },
-        { name: t('reportsWfOpex'), value: kpi.fixed_operating_expenses, isSubtotal: false, isNegative: true },
-        { name: t('reportsWfEbitda'), value: kpi.ebitda, isSubtotal: true, isNegative: kpi.ebitda < 0 },
-      ]
-    : []
+  const waterfallSegments = kpi ? buildWaterfallSegments(kpi, t) : []
 
   const pickerStrings = {
     startLabel: t('connectionsDateFrom'),
@@ -226,14 +204,21 @@ export function ReportsPage() {
   const comparisonUnavailable = t('reportsComparisonUnavailable')
 
   return (
-    <div className="flex flex-col gap-8">
-        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
-          <div className="max-w-[36rem]">
-            <h1 className="max-w-[10ch] text-4xl font-semibold tracking-[-0.045em] text-text-primary sm:text-5xl lg:text-[4.25rem]">
-              {t('reportsPageTitle')}
-            </h1>
-          </div>
-          <div className="surface-glass flex flex-wrap items-center justify-end gap-2 rounded-[1.75rem] p-2.5">
+    <div className="flex min-w-0 flex-col bg-[var(--color-bg-page)]">
+      <header className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
+        <div className="min-w-0 space-y-2">
+          <h1 className="text-4xl font-semibold tracking-[-0.045em] text-[var(--color-text-primary)] sm:text-5xl">
+            {t('reportsPageTitle')}
+          </h1>
+          {lastUpdatedLabel ? (
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--color-text-muted)] tabular-nums">
+              {t('reportsLastUpdated')}: {lastUpdatedLabel}
+              {kpiFetching ? ' · …' : ''}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex w-full flex-col items-stretch gap-3 sm:ml-auto sm:max-w-xl lg:max-w-none lg:flex-row lg:items-center lg:justify-end">
+          <div className="surface-glass flex flex-wrap items-center justify-end gap-2 rounded-[1.75rem] p-2.5 shadow-[var(--shadow-soft)]">
             {showConnectionSelector && (
               <Select
                 value={activeConnectionId}
@@ -251,124 +236,111 @@ export function ReportsPage() {
                 </SelectContent>
               </Select>
             )}
-            <div className="w-[19rem]">
+            <div className="w-full min-w-[16rem] sm:w-[19rem]">
               <DateRangePicker
                 strings={pickerStrings}
                 startValue={startDate}
                 endValue={endDate}
                 onStartChange={(v) => v && setFilters({ startDate: v })}
                 onEndChange={(v) => v && setFilters({ endDate: v })}
+                filterLabel={t('filterDateTimeLabel')}
+                clearAriaLabel={t('filterClear')}
+                onClear={() =>
+                  setFilters({
+                    startDate: defaultFilters.startDate,
+                    endDate: defaultFilters.endDate,
+                  })
+                }
               />
             </div>
           </div>
-        </section>
+        </div>
+      </header>
 
-        {!activeConnectionId ? (
-          <div className="surface-glass rounded-[2rem] px-6 py-8 text-sm text-text-secondary">
-            {t('reportsSelectConnection')}
+      {!activeConnectionId ? (
+        <div className="rounded-[1.75rem] border border-[var(--color-border)] bg-[var(--color-bg-card)]/90 px-6 py-8 text-sm text-text-secondary shadow-[var(--shadow-soft)] backdrop-blur-sm">
+          {t('reportsSelectConnection')}
+        </div>
+      ) : kpiLoading ? (
+        <div className="flex flex-col space-y-12">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={`h-${i}`} className="h-28 rounded-2xl" />
+            ))}
           </div>
-        ) : kpiLoading ? (
-          <div className="flex flex-col gap-4">
-            <Skeleton className="h-7 w-32 rounded-lg" />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={`v-${i}`} className="h-36 rounded-[1.75rem]" />
-              ))}
-            </div>
-            <Skeleton className="h-7 w-40 rounded-lg" />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {Array.from({ length: 11 }).map((_, i) => (
-                <Skeleton key={`r-${i}`} className="h-36 rounded-[1.75rem]" />
-              ))}
-            </div>
-            <Skeleton className="h-20 rounded-[1.75rem]" />
-            <Skeleton className="h-[26rem] rounded-[2rem]" />
-            <Skeleton className="h-10 w-64 rounded-lg" />
-            <Skeleton className="h-80 rounded-[2rem]" />
-          </div>
-        ) : kpi ? (
-          <div className="flex flex-col gap-6 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 motion-safe:fill-mode-both">
-            <section>
-              <ReportsSummaryCards
-                kpi={kpi}
-                kpiPrev={kpiPrev}
+          <Skeleton className="h-44 rounded-2xl" />
+          <Skeleton className="h-44 rounded-2xl" />
+          <Skeleton className="h-44 rounded-2xl" />
+          <Skeleton className="h-[22rem] rounded-2xl" />
+          <Skeleton className="h-96 rounded-2xl" />
+        </div>
+      ) : kpi ? (
+        <div className="flex flex-col space-y-12 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 motion-safe:fill-mode-both">
+          <section>
+            <ReportsSummaryCards
+              kpi={kpi}
+              kpiPrev={kpiPrev}
+              currency={currency}
+              previousReady={previousReady}
+              vsPrior={vsPrior}
+              comparisonUnavailable={comparisonUnavailable}
+              momPct={momPct}
+              momReady={momReady}
+              yoyPct={yoyPct}
+              yoyReady={yoyReady}
+              t={t}
+            />
+          </section>
+
+          <section>
+            <SectionContainer className="overflow-visible">
+              <SectionHeader
+                title={t('reportsSectionRevenueBreakdown')}
+                description={t('reportsWaterfallSubtitle')}
+              />
+              {kpi.currency_mismatch_warning ? (
+                <div className="mb-4 rounded-xl border border-border-default bg-bg-elevated px-4 py-2 text-xs text-text-secondary">
+                  {t('reportsCurrencyMismatchWarning')}
+                </div>
+              ) : null}
+              <WaterfallChart
+                segments={waterfallSegments}
                 currency={currency}
-                previousReady={previousReady}
-                lastUpdatedLabel={lastUpdatedLabel}
-                kpiFetching={kpiFetching}
-                vsPrior={vsPrior}
-                comparisonUnavailable={comparisonUnavailable}
-                momPct={momPct}
-                momReady={momReady}
-                yoyPct={yoyPct}
-                yoyReady={yoyReady}
-                t={t}
+                grossRevenue={kpi.gross_revenue}
+                formatPctOfGross={(pct) => t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))}
+                finalBarCaption={t('reportsWaterfallFinalHint')}
               />
-            </section>
+            </SectionContainer>
+          </section>
 
-            <section>
-              <Card className="overflow-visible rounded-[2rem] border-0 bg-transparent py-4 shadow-none hover:shadow-none">
-                <CardHeader className="space-y-1 px-1 pb-4 pt-0 sm:px-1">
-                  <CardTitle className="text-2xl tracking-[-0.03em] text-text-primary">
-                    {t('reportsSectionRevenueBreakdown')}
-                  </CardTitle>
-                  <CardDescription className="max-w-[30rem] text-sm text-text-secondary">
-                    {t('reportsWaterfallSubtitle')}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="px-0 pt-0">
-                  {kpi.currency_mismatch_warning ? (
-                    <div className="mb-3 rounded-xl border border-border-default bg-bg-elevated px-4 py-2 text-xs text-text-secondary">
-                      {t('reportsCurrencyMismatchWarning')}
-                    </div>
-                  ) : null}
-                  <WaterfallChart
-                    segments={waterfallSegments}
-                    currency={currency}
-                    grossRevenue={kpi.gross_revenue}
-                    formatPctOfGross={(pct) => t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))}
-                    finalBarCaption={t('reportsWaterfallFinalHint')}
-                  />
-                </CardContent>
-              </Card>
-            </section>
-
-            <section>
-              <Card className="overflow-visible rounded-[2rem] border-0 bg-transparent py-4 shadow-none hover:shadow-none">
-                <CardHeader className="space-y-1 px-1 pb-4 pt-0 sm:px-1">
-                  <CardTitle className="text-2xl tracking-[-0.03em] text-text-primary">
-                    {t('reportsMonthlyEvolutionTitle')}
-                  </CardTitle>
-                  <CardDescription className="max-w-[30rem] text-sm text-text-secondary">
-                    {t('reportsMonthlyEvolutionSubtitle')}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="px-0 pt-0">
-                  {monthlyRevenueError ? (
-                    <p className="rounded-[2rem] px-4 py-8 text-sm text-text-secondary">
-                      {t('reportsMonthlyLoadError')}
-                    </p>
-                  ) : monthlyRevenueLoading ? (
-                    <Skeleton className="h-96 w-full rounded-[2rem]" />
-                  ) : (
-                    <MonthlyRevenueChart
-                      startDate={startDate}
-                      endDate={endDate}
-                      rows={monthlyRevenue?.months ?? []}
-                      currency={currency}
-                      dateLocale={dateLocale}
-                      t={t}
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </section>
-          </div>
-        ) : (
-          <div className="surface-glass rounded-[2rem] px-6 py-8 text-sm text-text-secondary">
-            {t('reportsNoData')}
-          </div>
-        )}
+          <section>
+            <SectionContainer className="overflow-visible">
+              <SectionHeader
+                title={t('reportsMonthlyEvolutionTitle')}
+                description={t('reportsMonthlyEvolutionSubtitle')}
+              />
+              {monthlyRevenueError ? (
+                <p className="rounded-2xl px-4 py-8 text-sm text-text-secondary">{t('reportsMonthlyLoadError')}</p>
+              ) : monthlyRevenueLoading ? (
+                <Skeleton className="h-96 w-full rounded-2xl" />
+              ) : (
+                <MonthlyRevenueChart
+                  startDate={startDate}
+                  endDate={endDate}
+                  rows={monthlyRevenue?.months ?? []}
+                  currency={currency}
+                  dateLocale={dateLocale}
+                  t={t}
+                />
+              )}
+            </SectionContainer>
+          </section>
+        </div>
+      ) : (
+        <div className="rounded-[1.75rem] border border-[var(--color-border)] bg-[var(--color-bg-card)]/90 px-6 py-8 text-sm text-text-secondary shadow-[var(--shadow-soft)] backdrop-blur-sm">
+          {t('reportsNoData')}
+        </div>
+      )}
     </div>
   )
 }

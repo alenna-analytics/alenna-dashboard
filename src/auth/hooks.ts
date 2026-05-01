@@ -4,6 +4,7 @@ import { apiFetch, apiPostJson, type GetTokenFn } from '../lib/api'
 export type TenantSummary = {
   tenant_id: string
   name: string
+  plan: string
   role: string
   role_name: string
   base_currency: string

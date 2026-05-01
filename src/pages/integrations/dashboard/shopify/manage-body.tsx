@@ -9,6 +9,7 @@ import {
 } from '@/lib/integrations/shopify-format'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { toYmd } from '@/pages/reports/reports-ui-helpers'
 import { Button } from '@/ui/button'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Input } from '@/ui/input'
@@ -90,6 +91,15 @@ function ShopifySyncSection({
         endValue={dateTo}
         onStartChange={(v) => setDateFrom(v ?? '')}
         onEndChange={(v) => setDateTo(v ?? '')}
+        filterLabel={shellT(lang, 'filterDateTimeLabel')}
+        clearAriaLabel={shellT(lang, 'filterClear')}
+        onClear={() => {
+          const today = new Date()
+          const thirtyDaysAgo = new Date()
+          thirtyDaysAgo.setDate(today.getDate() - 29)
+          setDateFrom(toYmd(thirtyDaysAgo))
+          setDateTo(toYmd(today))
+        }}
       />
 
       <Button

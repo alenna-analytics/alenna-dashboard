@@ -336,6 +336,7 @@ const SHELL_STRINGS = {
     productsCostMissingBadge: 'Sin costo',
     productsDetailBack: 'Volver',
     productsDetailCostOverTimeTitle: 'Costo en el tiempo',
+    productsDetailCostVsPriceOverTimeTitle: 'Costo vs Precio en el tiempo',
     productsDetailHeaderMetaSku: 'SKU: {sku}',
     productsDetailHeaderMetaChannels: '{count} canales',
     productsDetailLastUpdatedDays: 'Actualizado hace {days} días',
@@ -381,6 +382,21 @@ const SHELL_STRINGS = {
     productsDetailHistoryColTo: 'Hasta',
     productsDetailHistoryColCost: 'Costo',
     productsDetailHistoryEmpty: 'Aún no hay tramos de costo.',
+    productsDetailPriceHistoryTitle: 'Historial de precio (por canal)',
+    productsDetailPriceHistoryColPrice: 'Precio',
+    productsDetailPriceHistoryGroupCurrency: 'Moneda: {currency}',
+    productsDetailPriceHistoryEmptyPending:
+      'Estamos generando el historial desde tus pedidos. Esto puede tardar unos minutos.',
+    productsDetailPriceHistoryEmptyNoOrders:
+      'Aún no hay historial de precios para este canal.',
+    productsDetailPriceHistoryBackfillCta: 'Reconstruir historial',
+    productsDetailPriceHistoryBackfillQueued:
+      'Reconstrucción del historial de precios encolada.',
+    productsDetailPriceHistoryBackfillFailed:
+      'No se pudo encolar la reconstrucción del historial de precios.',
+    productsDetailPriceHistoryCurrentBadge: 'Vigente',
+    productsDetailPriceHistoryOpenSegmentAria:
+      'Tramo abierto: el precio sigue activo hoy.',
     productsDetailListingsTitle: 'Publicaciones',
     productsDetailListingColPlatform: 'Plataforma',
     productsDetailListingColSku: 'SKU',
@@ -766,6 +782,7 @@ const SHELL_STRINGS = {
     productsCostMissingBadge: 'Missing cost',
     productsDetailBack: 'Back',
     productsDetailCostOverTimeTitle: 'Cost over time',
+    productsDetailCostVsPriceOverTimeTitle: 'Cost vs Price over time',
     productsDetailHeaderMetaSku: 'SKU: {sku}',
     productsDetailHeaderMetaChannels: '{count} channels',
     productsDetailLastUpdatedDays: 'Updated {days} days ago',
@@ -811,6 +828,21 @@ const SHELL_STRINGS = {
     productsDetailHistoryColTo: 'To',
     productsDetailHistoryColCost: 'Cost',
     productsDetailHistoryEmpty: 'No cost segments yet.',
+    productsDetailPriceHistoryTitle: 'Price history (by channel)',
+    productsDetailPriceHistoryColPrice: 'Price',
+    productsDetailPriceHistoryGroupCurrency: 'Currency: {currency}',
+    productsDetailPriceHistoryEmptyPending:
+      'We are building the history from your orders. This can take a few minutes.',
+    productsDetailPriceHistoryEmptyNoOrders:
+      'No price history yet for this channel.',
+    productsDetailPriceHistoryBackfillCta: 'Rebuild history',
+    productsDetailPriceHistoryBackfillQueued:
+      'Listing price history rebuild queued.',
+    productsDetailPriceHistoryBackfillFailed:
+      'Could not queue the listing price history rebuild.',
+    productsDetailPriceHistoryCurrentBadge: 'Current',
+    productsDetailPriceHistoryOpenSegmentAria:
+      'Open segment: the price is still active today.',
     productsDetailListingsTitle: 'Listings',
     productsDetailListingColPlatform: 'Platform',
     productsDetailListingColSku: 'SKU',

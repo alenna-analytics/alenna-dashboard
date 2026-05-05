@@ -117,6 +117,36 @@ export function useEnqueueCogsBackfillMutation(productId: string | undefined) {
   })
 }
 
+export function useEnqueueListingPriceHistoryBackfillMutation(
+  productId: string | undefined,
+) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const res = await apiPostJson(
+        `/catalog/listing-price-history/backfill`,
+        (a) => getToken(a),
+        {},
+        {},
+        tenantId,
+      )
+      if (!res.ok) throw new Error(await res.text())
+      return (await res.json()) as { job_id: string; status: string }
+    },
+    onSuccess: () => {
+      if (productId) {
+        void qc.invalidateQueries({
+          queryKey: ['catalog', 'product', tenantId, productId],
+        })
+      }
+      void qc.invalidateQueries({ queryKey: ['catalog', 'products', tenantId] })
+    },
+  })
+}
+
 export function useCatalogJobQuery(jobId: string | null, enabled: boolean) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()

@@ -3,7 +3,10 @@ import { ImageIcon, Loader2, Pencil } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 
 import { shellT } from '@/lib/i18n/shell-strings'
-import type { ProductCostHistorySegmentApi, ProductDetailApi } from '@/lib/types/catalog'
+import type {
+  ProductCostHistorySegmentApi,
+  ProductDetailApi,
+} from '@/lib/types/catalog'
 import { fmtCurrency, toYmd } from '@/pages/reports/reports-ui-helpers'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
@@ -41,7 +44,7 @@ import { toast } from 'sonner'
 
 import { useCurrentTenant } from '@/auth/hooks'
 
-import { buildProductCostChartPoints } from './product-cost-chart-points'
+import { buildProductCostPriceChartData } from './product-cost-chart-points'
 import { ProductCostOverTimeChart } from './product-cost-over-time-chart'
 import {
   useCatalogJobQuery,
@@ -84,12 +87,6 @@ function daysSinceUpdated(iso: string): number {
   const t = new Date()
   const today = new Date(t.getFullYear(), t.getMonth(), t.getDate())
   return Math.round((today.getTime() - start.getTime()) / 86400000)
-}
-
-function isHistoryRowCurrent(h: ProductCostHistorySegmentApi, today: string): boolean {
-  if (h.effective_from > today) return false
-  if (h.effective_to == null || h.effective_to === '') return true
-  return h.effective_to >= today
 }
 
 function avgCostFromHistory(
@@ -245,23 +242,14 @@ function ProductDetailBody({ productId }: { productId: string }) {
     setSheetOpen(true)
   }, [detail, resetSheetForm])
 
-  const chartPoints = useMemo(() => {
-    if (!detail) return []
+  const chartData = useMemo(() => {
+    if (!detail) return { points: [], series: [] }
     const t0 = todayYmd()
-    return buildProductCostChartPoints(detail.cost_history, {
+    return buildProductCostPriceChartData(detail.cost_history, detail.listing_price_history, {
       todayYmd: t0,
       baseCurrency,
     })
   }, [detail, baseCurrency])
-
-  const sortedHistoryDesc = useMemo(() => {
-    if (!detail?.cost_history.length) return []
-    return [...detail.cost_history].sort((a, b) => {
-      const cmp = b.effective_from.localeCompare(a.effective_from)
-      if (cmp !== 0) return cmp
-      return b.id.localeCompare(a.id)
-    })
-  }, [detail])
 
   const avgHistory = useMemo(
     () => (detail ? avgCostFromHistory(detail.cost_history, baseCurrency) : null),
@@ -279,6 +267,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
     )
     return active?.effective_from ?? sorted[sorted.length - 1]?.effective_from ?? '—'
   }, [detail])
+
 
   const futureSegment = useMemo(() => {
     if (!detail?.cost_history?.length) return null
@@ -549,59 +538,13 @@ function ProductDetailBody({ productId }: { productId: string }) {
         <div className="flex min-w-0 flex-col gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t('productsDetailCostOverTimeTitle')}</CardTitle>
+              <CardTitle>{t('productsDetailCostVsPriceOverTimeTitle')}</CardTitle>
               <CardDescription className="text-xs">
-                {t('productsColCost')} · {baseCurrency}
+                {t('productsColCost')} vs {t('productsDetailListingColPrice')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <ProductCostOverTimeChart data={chartPoints} t={t} />
-              <div>
-                <p className="mb-2 text-xs font-medium text-text-secondary">{t('productsDetailHistoryTitle')}</p>
-                <div className="overflow-x-auto rounded-md border border-border-subtle">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="hover:bg-transparent">
-                        <TableHead className="h-8 text-xs">{t('productsDetailHistoryColFrom')}</TableHead>
-                        <TableHead className="h-8 text-xs">{t('productsDetailHistoryColTo')}</TableHead>
-                        <TableHead className="h-8 text-right text-xs">{t('productsDetailHistoryColCost')}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sortedHistoryDesc.length === 0 ? (
-                        <TableRow className="hover:bg-transparent">
-                          <TableCell colSpan={3} className="py-6 text-center text-xs text-text-secondary">
-                            {t('productsDetailHistoryEmpty')}
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        sortedHistoryDesc.map((h) => {
-                          const current = isHistoryRowCurrent(h, today)
-                          return (
-                            <TableRow
-                              key={h.id}
-                              className={cn('hover:bg-muted/40', current && 'bg-muted/60')}
-                            >
-                              <TableCell className={cn('py-2 text-xs', NUM)}>{h.effective_from}</TableCell>
-                              <TableCell className={cn('py-2 text-xs', NUM)}>{h.effective_to ?? '—'}</TableCell>
-                              <TableCell className={cn('py-2 text-right text-xs', NUM)}>
-                                <span className="inline-flex items-center justify-end gap-2">
-                                  {fmtCurrency(h.cost, h.currency)}
-                                  {current ? (
-                                    <Badge variant="success" className="text-[10px]">
-                                      {t('productsDetailHistoryCurrentBadge')}
-                                    </Badge>
-                                  ) : null}
-                                </span>
-                              </TableCell>
-                            </TableRow>
-                          )
-                        })
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
+              <ProductCostOverTimeChart data={chartData.points} series={chartData.series} t={t} />
             </CardContent>
           </Card>
 
@@ -708,3 +651,4 @@ function ProductDetailBody({ productId }: { productId: string }) {
     </DashboardPage>
   )
 }
+

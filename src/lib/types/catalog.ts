@@ -7,6 +7,17 @@ export type ProductListingApi = {
   platform_fee_pct: number | null
   currency: string | null
   active: boolean
+  has_orders: boolean
+}
+
+export type ProductListingPriceSegmentApi = {
+  listing_id: string
+  platform: string
+  platform_sku: string
+  currency: string
+  effective_from: string
+  effective_to: string | null
+  price: number
 }
 
 export type ProductLifecycleStatus = 'active' | 'inactive' | 'archived' | 'deleted'
@@ -63,13 +74,20 @@ export type ProductDetailApi = {
   updated_at: string
   listings: ProductListingApi[]
   cost_history: ProductCostHistorySegmentApi[]
+  listing_price_history: ProductListingPriceSegmentApi[]
 }
 
 export type CatalogJobStatus = 'queued' | 'running' | 'succeeded' | 'failed'
 
+export type CatalogJobKind =
+  | 'cogs_backfill'
+  | 'product_import'
+  | 'platform_sync'
+  | 'listing_price_history_backfill'
+
 export type CatalogJobApi = {
   id: string
-  kind: 'cogs_backfill' | 'product_import' | 'platform_sync'
+  kind: CatalogJobKind
   status: CatalogJobStatus
   progress: Record<string, unknown> | null
   error_message: string | null

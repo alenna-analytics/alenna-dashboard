@@ -1,9 +1,21 @@
-import type { ProductCostHistorySegmentApi } from '@/lib/types/catalog'
+import type { ProductCostHistorySegmentApi, ProductListingPriceSegmentApi } from '@/lib/types/catalog'
 
-export type ProductCostChartPoint = {
+export type ProductCostPriceChartPoint = {
   dateKey: string
-  cost: number
+  values: Record<string, number>
+}
+
+export type ProductCostPriceChartSeries = {
+  key: string
+  label: string
   currency: string
+  color: string
+  kind: 'cost' | 'channel'
+}
+
+export type ProductCostPriceChartData = {
+  points: ProductCostPriceChartPoint[]
+  series: ProductCostPriceChartSeries[]
 }
 
 function addDaysYmd(ymd: string, deltaDays: number): string {
@@ -15,55 +27,123 @@ function addDaysYmd(ymd: string, deltaDays: number): string {
   return `${yy}-${mm}-${dd}`
 }
 
-function mergeSameDayPoints(pts: ProductCostChartPoint[]): ProductCostChartPoint[] {
-  pts.sort((a, b) => a.dateKey.localeCompare(b.dateKey))
-  const out: ProductCostChartPoint[] = []
-  for (const p of pts) {
-    if (out.length > 0 && out[out.length - 1].dateKey === p.dateKey) {
-      out[out.length - 1] = p
-    } else {
-      out.push(p)
-    }
-  }
-  return out
-}
-
-export function buildProductCostChartPoints(
-  segments: readonly ProductCostHistorySegmentApi[],
-  options: { todayYmd: string; baseCurrency: string },
-): ProductCostChartPoint[] {
+function expandSeriesPoints(
+  segments: ReadonlyArray<{ effective_from: string; effective_to: string | null; value: number }>,
+  todayYmd: string,
+  options?: { zeroFillGaps: boolean },
+): Map<string, number> {
+  const zeroFillGaps = options?.zeroFillGaps ?? true
   const sorted = [...segments].sort((a, b) => a.effective_from.localeCompare(b.effective_from))
-  if (sorted.length === 0) return []
-
-  const { todayYmd, baseCurrency } = options
-  const pts: ProductCostChartPoint[] = []
+  const out = new Map<string, number>()
+  if (sorted.length === 0) {
+    out.set(todayYmd, 0)
+    return out
+  }
 
   for (let i = 0; i < sorted.length; i++) {
     const seg = sorted[i]
     const next = sorted[i + 1]
-    pts.push({ dateKey: seg.effective_from, cost: seg.cost, currency: seg.currency })
+    out.set(seg.effective_from, seg.value)
+    if (!seg.effective_to) continue
 
-    const effTo = seg.effective_to
-    if (effTo == null || effTo === '') continue
-
-    const gapStart = addDaysYmd(effTo, 1)
+    const gapStart = addDaysYmd(seg.effective_to, 1)
     if (next) {
-      if (gapStart < next.effective_from) {
-        pts.push({ dateKey: gapStart, cost: 0, currency: baseCurrency })
-      }
+      if (zeroFillGaps && gapStart < next.effective_from) out.set(gapStart, 0)
     } else if (gapStart <= todayYmd) {
-      pts.push({ dateKey: gapStart, cost: 0, currency: baseCurrency })
-      if (todayYmd > gapStart) {
-        pts.push({ dateKey: todayYmd, cost: 0, currency: baseCurrency })
+      if (zeroFillGaps) {
+        out.set(gapStart, 0)
+        out.set(todayYmd, 0)
       }
     }
   }
 
   const last = sorted[sorted.length - 1]
-  const lastOpen = last.effective_to == null || last.effective_to === ''
-  if (lastOpen && last.effective_from < todayYmd) {
-    pts.push({ dateKey: todayYmd, cost: last.cost, currency: last.currency })
+  if (!last.effective_to && last.effective_from < todayYmd) {
+    out.set(todayYmd, last.value)
+  }
+  return out
+}
+
+function platformLabel(slug: string): string {
+  return slug
+    .split(/[_-]+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ')
+}
+
+const PRICE_COLORS = ['#2563eb', '#dc2626', '#16a34a', '#9333ea', '#ea580c', '#0891b2']
+
+export function buildProductCostPriceChartData(
+  costSegments: readonly ProductCostHistorySegmentApi[],
+  listingPriceSegments: readonly ProductListingPriceSegmentApi[],
+  options: { todayYmd: string; baseCurrency: string },
+): ProductCostPriceChartData {
+  const { todayYmd, baseCurrency } = options
+  const seriesPoints = new Map<string, Map<string, number>>()
+  const seriesMeta: ProductCostPriceChartSeries[] = []
+
+  seriesMeta.push({
+    key: 'cost',
+    label: 'Costo',
+    currency: baseCurrency,
+    color: '#111111',
+    kind: 'cost',
+  })
+  seriesPoints.set(
+    'cost',
+    expandSeriesPoints(
+      costSegments.map((s) => ({
+        effective_from: s.effective_from,
+        effective_to: s.effective_to,
+        value: s.cost,
+      })),
+      todayYmd,
+      { zeroFillGaps: true },
+    ),
+  )
+
+  const grouped = new Map<string, ProductListingPriceSegmentApi[]>()
+  for (const seg of listingPriceSegments) {
+    const key = `${seg.listing_id}:${seg.currency}`
+    const arr = grouped.get(key)
+    if (arr) arr.push(seg)
+    else grouped.set(key, [seg])
+  }
+  let colorIdx = 0
+  for (const [groupKey, rows] of grouped.entries()) {
+    const first = rows[0]
+    const key = `price:${groupKey}`
+    seriesMeta.push({
+      key,
+      label: platformLabel(first.platform),
+      currency: first.currency,
+      color: PRICE_COLORS[colorIdx % PRICE_COLORS.length],
+      kind: 'channel',
+    })
+    colorIdx += 1
+    seriesPoints.set(
+      key,
+      expandSeriesPoints(
+        rows.map((s) => ({
+          effective_from: s.effective_from,
+          effective_to: s.effective_to,
+          value: s.price,
+        })),
+        todayYmd,
+        { zeroFillGaps: false },
+      ),
+    )
   }
 
-  return mergeSameDayPoints(pts)
+  const dateKeys = new Set<string>([todayYmd])
+  for (const points of seriesPoints.values()) {
+    for (const d of points.keys()) dateKeys.add(d)
+  }
+  const sortedDates = [...dateKeys].sort((a, b) => a.localeCompare(b))
+  const points: ProductCostPriceChartPoint[] = sortedDates.map((d) => ({
+    dateKey: d,
+    values: Object.fromEntries(seriesMeta.map((s) => [s.key, seriesPoints.get(s.key)?.get(d) ?? 0])),
+  }))
+  return { points, series: seriesMeta }
 }

@@ -573,3 +573,27 @@
 .connector-sync-indeterminate-bar {
   animation: connector-sync-indeterminate 1.25s ease-in-out infinite;
 }
+
+/* Sonner (alenna): toast width (default lib value is 356px) */
+[data-sonner-toaster].alenna-sonner {
+  --width: min(calc(100vw - 2rem), 380px);
+}
+
+@media (min-width: 1024px) {
+  [data-sonner-toaster].alenna-sonner {
+    --width: min(calc(100vw - 3rem), 404px);
+  }
+}
+
+/* Sonner (alenna): white toasts, close control inside on the right */
+[data-sonner-toaster].alenna-sonner [data-sonner-toast][data-styled='true'] {
+  align-items: center;
+  padding-right: 2.75rem;
+}
+
+[data-sonner-toaster].alenna-sonner [data-sonner-toast][data-styled='true'] [data-close-button] {
+  left: auto;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+}

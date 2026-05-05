@@ -90,6 +90,7 @@ export function usePatchProductCostMutation(productId: string | undefined) {
 export function useEnqueueCogsBackfillMutation(productId: string | undefined) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const qc = useQueryClient()
 
   return useMutation({
     mutationFn: async (body: {
@@ -108,6 +109,10 @@ export function useEnqueueCogsBackfillMutation(productId: string | undefined) {
       )
       if (!res.ok) throw new Error(await res.text())
       return (await res.json()) as { job_id: string; status: string }
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
+      void qc.invalidateQueries({ queryKey: ['catalog', 'products', tenantId] })
     },
   })
 }

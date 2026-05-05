@@ -1,5 +1,4 @@
 import { flexRender, type Table as TableType } from "@tanstack/react-table"
-import { Loader2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/ui/skeleton"
@@ -38,13 +37,19 @@ export function DataTable<TData>({
   return (
     <div className="relative rounded-md border border-border-subtle bg-bg-section shadow-[var(--shadow-ink-xs)]">
       {showOverlay ? (
-        <div
-          className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-md bg-bg-section/55 backdrop-blur-[1px]"
-          aria-busy
-          aria-label="Loading"
-        >
-          <Loader2 className="size-8 animate-spin text-primary" />
-        </div>
+        <>
+          <div
+            className="pointer-events-none absolute inset-0 z-20 rounded-md bg-bg-section/55 backdrop-blur-[1px]"
+            aria-busy
+            aria-label="Loading"
+          />
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 z-30 h-[3px] overflow-hidden rounded-t-[inherit] bg-[color-mix(in_srgb,var(--color-accent-forest)_18%,var(--border-subtle))]"
+            aria-hidden
+          >
+            <div className="h-full w-[38%] rounded-full bg-[var(--color-accent-forest)] connector-sync-indeterminate-bar" />
+          </div>
+        </>
       ) : null}
 
       {toolbar ? (
@@ -77,7 +82,7 @@ export function DataTable<TData>({
                   <TableRow key={`sk-${i}`} className="hover:bg-transparent">
                     {table.getVisibleFlatColumns().map((col) => (
                       <TableCell key={col.id}>
-                        <Skeleton className="h-8 w-full max-w-48" />
+                        <Skeleton className="h-4 w-full max-w-48 rounded-full" />
                       </TableCell>
                     ))}
                   </TableRow>

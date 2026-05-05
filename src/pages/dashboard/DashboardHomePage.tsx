@@ -10,6 +10,7 @@ import { apiFetch } from '@/lib/api'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
+import { BootSpinner } from '@/ui/boot-spinner'
 import { Skeleton } from '@/ui/skeleton'
 import { DateRangePicker } from '@/ui/date-range-picker'
 import { KpiCard } from '@/ui/kpi-card'
@@ -40,6 +41,78 @@ function parseHomeFilters(raw: unknown): HomeFiltersState | null {
   if (typeof o.endDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(o.endDate)) return null
   if (typeof o.connectionId !== 'string') return null
   return { startDate: o.startDate, endDate: o.endDate, connectionId: o.connectionId }
+}
+
+function DashboardHomeLoadingSkeleton({ chartRegionLabel }: { chartRegionLabel: string }) {
+  return (
+    <>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div
+          className="flex min-w-0 flex-col gap-2.5 rounded-md border border-white/25 bg-[var(--color-accent-forest)] p-3.5 sm:p-4"
+          aria-hidden
+        >
+          <div className="flex w-full min-w-0 items-start justify-between gap-2">
+            <div className="h-5 w-28 max-w-[70%] animate-pulse rounded-md bg-white/25" />
+            <div className="size-5 shrink-0 animate-pulse rounded-full bg-white/15" />
+          </div>
+          <div className="h-[1.75rem] w-36 max-w-full animate-pulse rounded-md bg-white/30 sm:h-8" />
+          <div className="mt-1 space-y-2">
+            <div className="h-3 w-24 animate-pulse rounded-md bg-white/20" />
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <div className="h-6 w-20 animate-pulse rounded-md bg-white/25" />
+              <div className="h-6 w-14 animate-pulse rounded-md bg-white/20" />
+            </div>
+          </div>
+        </div>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex min-w-0 flex-col gap-2.5 rounded-md border border-[var(--shell-structure-border)] bg-white p-3.5 sm:p-4"
+            aria-hidden
+          >
+            <div className="flex w-full min-w-0 items-start justify-between gap-2">
+              <Skeleton className="h-5 w-24 max-w-[65%]" />
+              <Skeleton className="size-5 shrink-0 rounded-full" />
+            </div>
+            <Skeleton className="h-[1.75rem] w-32 max-w-full sm:h-8" />
+            <div className="mt-1 space-y-2">
+              <Skeleton className="h-3 w-20" />
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <Skeleton className="h-6 w-16" />
+                <Skeleton className="h-6 w-12 rounded-md" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div
+        className="mt-2 flex min-w-0 flex-1 flex-col gap-5"
+        aria-label={chartRegionLabel}
+        aria-busy="true"
+      >
+        <section>
+          <SectionContainer className="overflow-visible">
+            <div className="mb-4 space-y-2" aria-hidden>
+              <Skeleton className="h-6 w-56 max-w-[85%]" />
+              <Skeleton className="h-4 w-full max-w-2xl" />
+              <Skeleton className="h-4 w-full max-w-xl" />
+            </div>
+            <Skeleton className="h-80 w-full rounded-md" />
+          </SectionContainer>
+        </section>
+        <section>
+          <SectionContainer className="overflow-visible">
+            <div className="mb-4 space-y-2" aria-hidden>
+              <Skeleton className="h-6 w-52 max-w-[80%]" />
+              <Skeleton className="h-4 w-full max-w-2xl" />
+            </div>
+            <Skeleton className="h-72 w-full rounded-md" />
+          </SectionContainer>
+        </section>
+      </div>
+    </>
+  )
 }
 
 export function DashboardHomePage() {
@@ -76,6 +149,7 @@ export function DashboardHomePage() {
   })
 
   const connections = useMemo(() => connectionsQuery.data ?? [], [connectionsQuery.data])
+  const connectorsLoading = Boolean(tenantId) && connectionsQuery.isLoading
   const activeConnectionId = useMemo(() => {
     if (connectionId && connections.some((c) => c.id === connectionId)) return connectionId
     return connections[0]?.id ?? ''
@@ -138,6 +212,7 @@ export function DashboardHomePage() {
     presetCurrentMonth: t('datePickerCurrentMonth'),
     presetCurrentQuarter: t('datePickerCurrentQuarter'),
     presetYtd: t('datePickerYtd'),
+    presetLastYear: t('datePickerLastYear'),
   }
 
   const vsPrior = t('reportsVsPreviousPeriod')
@@ -201,16 +276,20 @@ export function DashboardHomePage() {
         </div>
       </header>
 
-      {!activeConnectionId ? (
+      {connectorsLoading ? (
+        <div
+          className="flex min-h-[12rem] items-center justify-center rounded-md border border-[var(--shell-structure-border)] bg-[var(--bg-base)]/35 px-6 py-8"
+          aria-busy
+          aria-label={t('bootLoadingLabel')}
+        >
+          <BootSpinner />
+        </div>
+      ) : !activeConnectionId ? (
         <div className="rounded-md border border-[var(--shell-structure-border)] bg-[var(--bg-base)]/35 px-6 py-8 text-sm text-text-secondary">
           {t('reportsSelectConnection')}
         </div>
       ) : kpiLoading ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={`sk-${i}`} className="h-36 rounded-md border border-[var(--shell-structure-border)]" />
-          ))}
-        </div>
+        <DashboardHomeLoadingSkeleton chartRegionLabel={t('shellHomeChartRegion')} />
       ) : kpi && net && ebitda && margin && ord ? (
         <>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">

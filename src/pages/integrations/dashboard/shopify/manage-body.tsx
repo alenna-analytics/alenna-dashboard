@@ -76,6 +76,7 @@ function ShopifySyncSection({
     presetCurrentMonth: shellT(lang, 'datePickerCurrentMonth'),
     presetCurrentQuarter: shellT(lang, 'datePickerCurrentQuarter'),
     presetYtd: shellT(lang, 'datePickerYtd'),
+    presetLastYear: shellT(lang, 'datePickerLastYear'),
   }
 
   return (

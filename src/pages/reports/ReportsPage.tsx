@@ -197,6 +197,7 @@ export function ReportsPage() {
     presetCurrentMonth: t('datePickerCurrentMonth'),
     presetCurrentQuarter: t('datePickerCurrentQuarter'),
     presetYtd: t('datePickerYtd'),
+    presetLastYear: t('datePickerLastYear'),
   }
 
   const previousReady = Boolean(prevPeriod) && !kpiPrevLoading

@@ -16,7 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/ui/card'
-import { Checkbox } from '@/ui/checkbox'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Input } from '@/ui/input'
 import {
@@ -38,6 +37,7 @@ import {
 } from '@/ui/table'
 import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 import { useCurrentTenant } from '@/auth/hooks'
 
@@ -67,6 +67,8 @@ function defaultBackfillRange(): { start: string; end: string } {
   start.setDate(start.getDate() - 29)
   return { start: toYmd(start), end: toYmd(end) }
 }
+
+type CostEditMode = 'forward' | 'history'
 
 function formatPlatformSlug(slug: string): string {
   return slug
@@ -197,7 +199,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
 
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editCost, setEditCost] = useState('')
-  const [recalcCogs, setRecalcCogs] = useState(false)
+  const [costEditMode, setCostEditMode] = useState<CostEditMode>('forward')
   const [rangeStart, setRangeStart] = useState(defaultBackfillRange().start)
   const [rangeEnd, setRangeEnd] = useState(defaultBackfillRange().end)
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
@@ -217,6 +219,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
       presetCurrentMonth: t('datePickerCurrentMonth'),
       presetCurrentQuarter: t('datePickerCurrentQuarter'),
       presetYtd: t('datePickerYtd'),
+      presetLastYear: t('datePickerLastYear'),
     }),
     [t],
   )
@@ -226,7 +229,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
     const d0 = defaultBackfillRange()
     setRangeStart(d0.start)
     setRangeEnd(d0.end)
-    setRecalcCogs(false)
+    setCostEditMode('forward')
   }, [])
 
   const handleSheetOpenChange = useCallback(
@@ -247,8 +250,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
     const t0 = todayYmd()
     return buildProductCostChartPoints(detail.cost_history, {
       todayYmd: t0,
-      tailCost: detail.cost,
-      tailCurrency: detail.currency ?? baseCurrency,
+      baseCurrency,
     })
   }, [detail, baseCurrency])
 
@@ -294,29 +296,28 @@ function ProductDetailBody({ productId }: { productId: string }) {
   const rangeOk = rangeStart <= rangeEnd
   const sheetCanSubmit =
     sheetCostValid &&
-    (!recalcCogs || rangeOk) &&
+    (costEditMode === 'forward' || rangeOk) &&
     !patchMutation.isPending &&
     !backfillMutation.isPending
 
   const handleSheetSave = async () => {
     if (!sheetCanSubmit || !detail) return
     try {
-      const saved = detail.cost != null ? String(detail.cost) : ''
-      const costChanged = editCost.trim() !== saved
-      if (costChanged) {
+      if (costEditMode === 'forward') {
         await patchMutation.mutateAsync({ cost: parsedSheetCost })
-      }
-      if (recalcCogs) {
+        toast.success(t('productsDetailToastCostSaved'))
+      } else {
         const res = await backfillMutation.mutateAsync({
           cost: parsedSheetCost,
           effective_from: rangeStart,
           effective_to: rangeEnd,
         })
         setActiveJobId(res.job_id)
+        toast.success(t('productsDetailToastRecalcQueued'))
       }
       handleSheetOpenChange(false)
     } catch {
-      /* mutation surfaces error via query client / UI */
+      toast.error(t('productsDetailToastSaveFailed'))
     }
   }
 
@@ -353,14 +354,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
     ? t('productsDetailHeaderMetaSku').replace('{sku}', detail.internal_sku)
     : t('productsDetailHeaderMetaChannels').replace('{count}', String(detail.listings.length))
 
-  const primaryListing = detail.listings[0]
   const sheetBusy = patchMutation.isPending || backfillMutation.isPending
-  const listingPriceReadOnly =
-    primaryListing?.platform_price != null && primaryListing.currency
-      ? fmtCurrency(primaryListing.platform_price, primaryListing.currency)
-      : primaryListing?.platform_price != null
-        ? String(primaryListing.platform_price)
-        : '—'
 
   return (
     <DashboardPage className="flex flex-1 flex-col gap-6 lg:gap-8">
@@ -382,37 +376,54 @@ function ProductDetailBody({ productId }: { productId: string }) {
                 className={cn('font-numeric', NUM)}
               />
             </label>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-text-secondary">
-                {t('productsDetailEditSellingPrice')}
-                {primaryListing ? (
-                  <span className="ml-1 text-text-tertiary">
-                    ({formatPlatformSlug(primaryListing.platform)})
-                  </span>
-                ) : null}
-              </label>
-              <Input
-                readOnly
-                tabIndex={-1}
-                value={listingPriceReadOnly}
+            <div className="space-y-2" role="radiogroup" aria-label={t('productsDetailCostModeGroupAria')}>
+              <p className="text-xs font-medium text-text-secondary">{t('productsDetailCostModeGroupLabel')}</p>
+              <label
                 className={cn(
-                  'cursor-default bg-muted/40 font-numeric text-text-primary',
-                  NUM,
+                  'flex cursor-pointer items-start gap-3 rounded-md border p-3 text-sm transition-colors',
+                  costEditMode === 'forward'
+                    ? 'border-border-default bg-muted/30'
+                    : 'border-border-subtle hover:bg-muted/20',
                 )}
-              />
-              <p className="text-[11px] leading-relaxed text-text-tertiary">
-                {t('productsDetailEditSellingPriceHint')}
-              </p>
+              >
+                <input
+                  type="radio"
+                  name="cost-edit-mode"
+                  className="mt-0.5"
+                  checked={costEditMode === 'forward'}
+                  onChange={() => setCostEditMode('forward')}
+                />
+                <span className="min-w-0">
+                  <span className="font-medium text-text-primary">{t('productsDetailCostModeForward')}</span>
+                  <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
+                    {t('productsDetailCostModeForwardHelp')}
+                  </span>
+                </span>
+              </label>
+              <label
+                className={cn(
+                  'flex cursor-pointer items-start gap-3 rounded-md border p-3 text-sm transition-colors',
+                  costEditMode === 'history'
+                    ? 'border-border-default bg-muted/30'
+                    : 'border-border-subtle hover:bg-muted/20',
+                )}
+              >
+                <input
+                  type="radio"
+                  name="cost-edit-mode"
+                  className="mt-0.5"
+                  checked={costEditMode === 'history'}
+                  onChange={() => setCostEditMode('history')}
+                />
+                <span className="min-w-0">
+                  <span className="font-medium text-text-primary">{t('productsDetailCostModeHistory')}</span>
+                  <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
+                    {t('productsDetailCostModeHistoryHelp')}
+                  </span>
+                </span>
+              </label>
             </div>
-            <label className="flex cursor-pointer items-start gap-2 text-sm text-text-primary">
-              <Checkbox
-                checked={recalcCogs}
-                onCheckedChange={(v) => setRecalcCogs(Boolean(v))}
-                className="mt-0.5"
-              />
-              <span>{t('productsDetailRecalcCogsCheckbox')}</span>
-            </label>
-            {recalcCogs ? (
+            {costEditMode === 'history' ? (
               <div className="space-y-2">
                 <p className="text-xs font-medium text-text-secondary">{t('productsDetailRecalcCogsRangeLabel')}</p>
                 <DateRangePicker

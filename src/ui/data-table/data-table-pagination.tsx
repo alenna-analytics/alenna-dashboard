@@ -50,6 +50,9 @@ export function DataTablePagination<TData>({
   const page = pageIndex + 1
   const pageItems = getPaginationPageItems(pageIndex, pageCount)
 
+  const segmentedBtn =
+    "size-9 min-w-9 shrink-0 rounded-none border-0 px-0 shadow-none first:rounded-l-md last:rounded-r-md focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&_svg]:pointer-events-none [&_svg]:size-4"
+
   return (
     <div
       className={cn(
@@ -58,23 +61,26 @@ export function DataTablePagination<TData>({
       )}
     >
       <p className="text-xs text-muted-foreground sm:text-sm">{labels.pageStatus(page, pageCount)}</p>
-      <div className="flex flex-wrap items-center justify-center gap-1">
+      <div className="inline-flex max-w-full flex-nowrap divide-x divide-border-subtle overflow-hidden rounded-md border border-border-default bg-bg-elevated">
         <Button
           type="button"
           variant="outline"
           size="icon-sm"
-          className="size-9 shrink-0"
+          className={cn(segmentedBtn, "bg-bg-elevated hover:bg-bg-surface")}
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
           aria-label={labels.ariaPrevious}
         >
-          <ChevronLeft className="size-4" />
+          <ChevronLeft />
         </Button>
         {pageItems.map((item, idx) =>
           item === "ellipsis" ? (
             <span
               key={`e-${idx}`}
-              className="flex size-9 items-center justify-center text-sm text-muted-foreground"
+              className={cn(
+                segmentedBtn,
+                "pointer-events-none flex items-center justify-center bg-bg-elevated font-medium tabular-nums text-muted-foreground"
+              )}
               aria-hidden
             >
               …
@@ -85,7 +91,11 @@ export function DataTablePagination<TData>({
               type="button"
               variant={item === pageIndex ? "default" : "outline"}
               size="icon-sm"
-              className="size-9 min-w-9 shrink-0 px-0 font-medium tabular-nums"
+              className={cn(
+                segmentedBtn,
+                "font-medium tabular-nums",
+                item === pageIndex ? null : "bg-bg-elevated hover:bg-bg-surface"
+              )}
               onClick={() => table.setPageIndex(item)}
               aria-label={labels.pageButtonAria(item + 1, pageCount)}
               aria-current={item === pageIndex ? "page" : undefined}
@@ -98,12 +108,12 @@ export function DataTablePagination<TData>({
           type="button"
           variant="outline"
           size="icon-sm"
-          className="size-9 shrink-0"
+          className={cn(segmentedBtn, "bg-bg-elevated hover:bg-bg-surface")}
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
           aria-label={labels.ariaNext}
         >
-          <ChevronRight className="size-4" />
+          <ChevronRight />
         </Button>
       </div>
     </div>

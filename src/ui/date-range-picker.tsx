@@ -21,6 +21,7 @@ export type DateRangePickerStrings = {
   presetCurrentMonth: string
   presetCurrentQuarter: string
   presetYtd: string
+  presetLastYear: string
 }
 
 export type DateRangePickerProps = {
@@ -45,6 +46,7 @@ type PresetId =
   | 'currentMonth'
   | 'currentQuarter'
   | 'ytd'
+  | 'lastYear'
   | 'custom'
 
 function sob(d: Date): Date {
@@ -105,6 +107,10 @@ function rangeForPreset(id: Exclude<PresetId, 'custom'>): { from: Date; to: Date
       return { from: soq, to: eoq }
     case 'ytd':
       return { from: new Date(today.getFullYear(), 0, 1), to: today }
+    case 'lastYear': {
+      const y = today.getFullYear() - 1
+      return { from: new Date(y, 0, 1), to: sob(new Date(y, 11, 31)) }
+    }
   }
 }
 
@@ -118,6 +124,7 @@ function guessPreset(from?: Date, to?: Date): PresetId {
     'currentMonth',
     'currentQuarter',
     'ytd',
+    'lastYear',
   ]
   for (const id of ids) {
     const r = rangeForPreset(id)
@@ -206,6 +213,7 @@ export function useDateRangePickerModel({
     { id: 'currentMonth', label: strings.presetCurrentMonth, divider: true },
     { id: 'currentQuarter', label: strings.presetCurrentQuarter },
     { id: 'ytd', label: strings.presetYtd },
+    { id: 'lastYear', label: strings.presetLastYear },
     { id: 'custom', label: strings.presetCustom, divider: true },
   ]
 

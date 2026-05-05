@@ -4,6 +4,11 @@ import { cn } from "@/lib/utils"
 import { Skeleton } from "@/ui/skeleton"
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 
+type ColumnMetaWithCellClass = {
+  cellClassName?: string
+  headerClassName?: string
+}
+
 type DataTableProps<TData> = {
   table: TableType<TData>
   isLoading: boolean
@@ -64,29 +69,35 @@ export function DataTable<TData>({
           <TableHeader className="[&_tr]:border-b">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                {headerGroup.headers.map((header) => (
+                {headerGroup.headers.map((header) => {
+                  const meta = header.column.columnDef.meta as ColumnMetaWithCellClass | undefined
+                  return (
                   <TableHead
                     key={header.id}
                     colSpan={header.colSpan}
-                    className="sticky top-0 z-10 bg-glass-fill-raised shadow-[0_1px_0_var(--border-subtle)]"
+                    className={cn(
+                      "sticky top-0 z-10 bg-glass-fill-raised shadow-[0_1px_0_var(--border-subtle)]",
+                      meta?.headerClassName,
+                    )}
                   >
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
-                ))}
+                  )
+                })}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
             {showSkeleton
               ? Array.from({ length: skeletonRowCount }).map((_, i) => (
-                  <TableRow key={`sk-${i}`} className="hover:bg-transparent">
-                    {table.getVisibleFlatColumns().map((col) => (
-                      <TableCell key={col.id}>
-                        <Skeleton className="h-4 w-full max-w-48 rounded-full" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
+                <TableRow key={`sk-${i}`} className="hover:bg-transparent">
+                  {table.getVisibleFlatColumns().map((col) => (
+                    <TableCell key={col.id}>
+                      <Skeleton className="h-4 w-full max-w-48 rounded-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
               : null}
             {!showSkeleton && showEmpty ? (
               <TableRow className="hover:bg-transparent">
@@ -97,12 +108,17 @@ export function DataTable<TData>({
             ) : null}
             {!showSkeleton && !showEmpty
               ? rows.map((row) => (
-                  <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                    ))}
-                  </TableRow>
-                ))
+                <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
+                  {row.getVisibleCells().map((cell) => {
+                    const meta = cell.column.columnDef.meta as ColumnMetaWithCellClass | undefined
+                    return (
+                      <TableCell key={cell.id} className={meta?.cellClassName}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    )
+                  })}
+                </TableRow>
+              ))
               : null}
           </TableBody>
         </table>

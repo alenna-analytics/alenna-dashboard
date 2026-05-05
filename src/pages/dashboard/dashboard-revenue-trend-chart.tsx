@@ -15,7 +15,6 @@ import {
 } from 'recharts'
 
 import { mergeMonthlyRows } from '@/pages/reports/monthly-revenue-chart'
-import { fmtCurrency } from '@/pages/reports/reports-ui-helpers'
 
 export type DashboardRevenueTrendChartProps = {
   startDate: string
@@ -25,7 +24,12 @@ export type DashboardRevenueTrendChartProps = {
   rowsCurrent: MonthlyRevenueMonthRow[]
   rowsPrev: MonthlyRevenueMonthRow[]
   comparePrevious: boolean
+  /** Currency used for axis-tick rendering (display currency in v1). */
   currency: string
+  /** Format a numeric value (already converted to display currency) for tooltips. */
+  formatValue: (value: number) => string
+  /** Convert a base-currency amount to display currency. */
+  convertValue: (value: number) => number
   dateLocale: Locale
   t: (key: ShellStringKey) => string
 }
@@ -87,13 +91,13 @@ function buildTrendRows(
 function TrendTooltip({
   active,
   payload,
-  currency,
+  formatValue,
   comparePrevious,
   t,
 }: {
   active?: boolean
   payload?: ReadonlyArray<{ payload?: TrendRow }>
-  currency: string
+  formatValue: (value: number) => string
   comparePrevious: boolean
   t: (key: ShellStringKey) => string
 }) {
@@ -107,14 +111,14 @@ function TrendTooltip({
           <span className="text-text-tertiary">
             {t('dashboardRevenueSeriesCurrent')} ({row.label}):
           </span>{' '}
-          <span className="font-medium text-text-primary">{fmtCurrency(row.current, currency)}</span>
+          <span className="font-medium text-text-primary">{formatValue(row.current)}</span>
         </p>
         {comparePrevious && row.previous !== null && row.previousBucketLabel ? (
           <p className="tabular-nums">
             <span className="text-text-tertiary">
               {t('dashboardRevenueSeriesPrevious')} ({row.previousBucketLabel}):
             </span>{' '}
-            <span className="font-medium text-text-primary">{fmtCurrency(row.previous, currency)}</span>
+            <span className="font-medium text-text-primary">{formatValue(row.previous)}</span>
           </p>
         ) : null}
       </div>
@@ -131,23 +135,38 @@ export function DashboardRevenueTrendChart({
   rowsPrev,
   comparePrevious,
   currency,
+  formatValue,
+  convertValue,
   dateLocale,
   t,
 }: DashboardRevenueTrendChartProps) {
-  const data = useMemo(
-    () =>
-      buildTrendRows(
-        startDate,
-        endDate,
-        prevStart,
-        prevEnd,
-        rowsCurrent,
-        rowsPrev,
-        dateLocale,
-        comparePrevious,
-      ),
-    [startDate, endDate, prevStart, prevEnd, rowsCurrent, rowsPrev, dateLocale, comparePrevious],
-  )
+  const data = useMemo(() => {
+    const rows = buildTrendRows(
+      startDate,
+      endDate,
+      prevStart,
+      prevEnd,
+      rowsCurrent,
+      rowsPrev,
+      dateLocale,
+      comparePrevious,
+    )
+    return rows.map((r) => ({
+      ...r,
+      current: convertValue(r.current),
+      previous: r.previous === null ? null : convertValue(r.previous),
+    }))
+  }, [
+    startDate,
+    endDate,
+    prevStart,
+    prevEnd,
+    rowsCurrent,
+    rowsPrev,
+    dateLocale,
+    comparePrevious,
+    convertValue,
+  ])
 
   return (
     <div className="w-full min-w-0">
@@ -168,7 +187,7 @@ export function DashboardRevenueTrendChart({
             tickLine={false}
           />
           <Tooltip
-            content={<TrendTooltip currency={currency} comparePrevious={comparePrevious} t={t} />}
+            content={<TrendTooltip formatValue={formatValue} comparePrevious={comparePrevious} t={t} />}
             wrapperStyle={{ outline: 'none' }}
             contentStyle={{
               margin: 0,

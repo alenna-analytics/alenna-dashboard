@@ -214,11 +214,12 @@ export function ShopifyManageBody({
             <div className="space-y-2">
               <Label htmlFor={storeId}>{shellT(lang, 'connectionsConnectShopLabel')}</Label>
               <div
-                className="flex h-10 min-h-10 min-w-0 items-stretch overflow-hidden rounded-md border border-input bg-background shadow-xs ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+                className="flex h-10 min-h-10 min-w-0 items-stretch overflow-hidden rounded-sm bg-background backdrop-blur-xl focus-within:ring-3 focus-within:ring-ring/45 focus-within:ring-offset-0"
                 role="group"
                 aria-label={shellT(lang, 'connectionsConnectShopLabel')}
               >
                 <Input
+                  variant="bare"
                   id={storeId}
                   placeholder={shellT(lang, 'connectionsConnectShopPlaceholder')}
                   value={shopInput}
@@ -226,10 +227,10 @@ export function ShopifyManageBody({
                     setShopInput(normalizeShopifySubdomainInput(e.target.value))
                   }
                   autoComplete="off"
-                  className="h-full min-h-0 min-w-0 flex-1 rounded-none border-0 bg-transparent px-2.5 py-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="h-full min-h-0 flex-1 rounded-none px-2.5 py-0"
                 />
                 <span
-                  className="flex shrink-0 items-center border-l border-input bg-muted px-3 text-sm text-muted-foreground"
+                  className="flex shrink-0 items-center border-l border-border-subtle/80 bg-muted px-3 text-sm text-muted-foreground"
                   aria-hidden
                 >
                   {SHOPIFY_MYSHOPIFY_SUFFIX}
@@ -270,7 +271,7 @@ export function ShopifyManageBody({
                   {shellT(lang, 'connectionsConnectShopLabel')}
                 </Label>
                 <div
-                  className="flex h-10 min-h-10 min-w-0 items-stretch overflow-hidden rounded-md border border-input bg-muted/60 text-sm text-foreground shadow-xs"
+                  className="flex h-10 min-h-10 min-w-0 items-stretch overflow-hidden rounded-sm border border-input bg-muted/60 text-sm text-foreground"
                   role="group"
                   aria-label={shellT(lang, 'connectionsConnectShopLabel')}
                 >

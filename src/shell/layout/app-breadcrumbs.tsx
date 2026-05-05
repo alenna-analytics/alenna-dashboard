@@ -71,11 +71,17 @@ export function AppBreadcrumbs({ className }: { className?: string }) {
 
   return (
     <nav aria-label={shellT(lang, 'ariaBreadcrumb')} className={cn('min-w-0', className)}>
-      <ol className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm text-text-secondary">
+      <ol className="flex min-w-0 flex-nowrap items-center gap-1.5 overflow-hidden text-sm text-text-secondary">
         {items.map((item, i) => {
           const isLast = i === items.length - 1
           return (
-            <li key={`${item.label}-${i}`} className="flex min-w-0 items-center gap-1.5">
+            <li
+              key={`${item.label}-${i}`}
+              className={cn(
+                'flex min-w-0 items-center gap-1.5',
+                isLast ? 'min-w-0 flex-1 overflow-hidden' : 'shrink-0',
+              )}
+            >
               {i > 0 ? (
                 <ChevronRight
                   className="size-3.5 shrink-0 text-text-tertiary"
@@ -86,15 +92,17 @@ export function AppBreadcrumbs({ className }: { className?: string }) {
                 <Link
                   to={item.to}
                   className="truncate font-medium text-text-secondary transition-colors hover:text-text-primary"
+                  title={item.label}
                 >
                   {item.label}
                 </Link>
               ) : (
                 <span
                   className={cn(
-                    'truncate font-medium',
+                    'min-w-0 truncate font-medium',
                     isLast ? 'text-text-primary' : 'text-text-secondary',
                   )}
+                  title={item.label}
                   aria-current={isLast ? 'page' : undefined}
                 >
                   {item.label}

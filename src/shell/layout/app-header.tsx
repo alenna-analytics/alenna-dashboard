@@ -1,6 +1,7 @@
 import { UserButton } from '@clerk/react'
 
 import { AppBreadcrumbs } from '@/shell/layout/app-breadcrumbs'
+import { CurrencyPicker } from '@/shell/layout/currency-picker'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
@@ -25,6 +26,7 @@ export function AppHeader({ className }: { className?: string }) {
           <AppBreadcrumbs className="min-w-0" />
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <CurrencyPicker />
           <Button
             type="button"
             variant="ghost"

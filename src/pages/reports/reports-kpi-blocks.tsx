@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { KpiResponse } from '@/lib/types/reports'
 
-import { fmtCurrency } from './reports-ui-helpers'
+import { useMoney } from '@/hooks/use-money'
 import { KpiCard, SectionContainer, SectionHeader } from './report-ui'
 
 const PAID_STATUS_KEYS = ['PAID'] as const
@@ -47,6 +47,8 @@ export function ReportsSummaryCards({
   yoyReady,
   t,
 }: ReportsSummaryCardsProps) {
+  const { format: formatMoney } = useMoney()
+  const fmt = (v: number) => formatMoney(v, { nativeCurrency: currency })
   const orders = kpi.order_count || 0
   const units = kpi.units_sold
   const prevOrders = kpiPrev?.order_count
@@ -156,7 +158,7 @@ export function ReportsSummaryCards({
           previousReady={previousReady && orders > 0}
           vsPriorLabel={vsPrior}
           comparisonUnavailable={comparisonUnavailable}
-          displayValue={aov !== null ? fmtCurrency(aov, currency) : '—'}
+          displayValue={aov !== null ? fmt(aov) : '—'}
           showVsPrior={orders > 0}
         />
       </div>
@@ -219,7 +221,7 @@ export function ReportsSummaryCards({
             previousReady={previousReady && orders > 0}
             vsPriorLabel={vsPrior}
             comparisonUnavailable={comparisonUnavailable}
-            displayValue={aov !== null ? fmtCurrency(aov, currency) : '—'}
+            displayValue={aov !== null ? fmt(aov) : '—'}
             showVsPrior={orders > 0}
           />
           <KpiCard
@@ -404,9 +406,7 @@ export function ReportsSummaryCards({
             previousReady={false}
             vsPriorLabel={vsPrior}
             comparisonUnavailable={comparisonUnavailable}
-            displayValue={
-              breakEvenRev !== null ? fmtCurrency(breakEvenRev, currency) : '—'
-            }
+            displayValue={breakEvenRev !== null ? fmt(breakEvenRev) : '—'}
             showVsPrior={false}
           />
         </div>

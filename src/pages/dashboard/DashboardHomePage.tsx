@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
@@ -16,17 +16,48 @@ import { DateRangePicker } from '@/ui/date-range-picker'
 import { KpiCard } from '@/ui/kpi-card'
 
 import { DashboardRevenueTrendChart } from './dashboard-revenue-trend-chart'
+import { MoneyDisclaimer } from '@/shell/components/money-disclaimer'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import {
   computePreviousPeriod,
-  fmtCurrency,
   pctVersusPrevious,
   toYmd,
 } from '@/pages/reports/reports-ui-helpers'
+import { useMoney } from '@/hooks/use-money'
 import { buildWaterfallSegments } from '@/pages/reports/waterfall-segments'
 import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 import { useReports } from '@/pages/reports/use-reports'
+import type { KpiResponse } from '@/lib/types/reports'
+
+function zeroKpiResponse(currency: string): KpiResponse {
+  return {
+    gross_revenue: 0,
+    discounts: 0,
+    returns: 0,
+    referral_commissions: 0,
+    shipping: 0,
+    taxes: 0,
+    per_transaction_fees: 0,
+    net_revenue: 0,
+    cogs: 0,
+    gross_profit: 0,
+    gross_margin_pct: 0,
+    platform_fees_total: 0,
+    merchant_shipping_cost: 0,
+    ads_spend: 0,
+    fixed_operating_expenses: 0,
+    contribution_margin: 0,
+    contribution_margin_pct: 0,
+    ebitda: 0,
+    ebitda_margin_pct: 0,
+    units_sold: 0,
+    order_count: 0,
+    currency,
+    cogs_incomplete: false,
+    order_status_counts: {},
+  }
+}
 
 type HomeFiltersState = {
   startDate: string
@@ -120,7 +151,10 @@ export function DashboardHomePage() {
   const dateLocale = lang === 'en' ? enUS : esLocale
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
-  const t = (k: Parameters<typeof shellT>[1]) => shellT(lang, k)
+  const t = useCallback(
+    (k: Parameters<typeof shellT>[1]) => shellT(lang, k),
+    [lang],
+  )
 
   const defaultFilters = useMemo((): HomeFiltersState => {
     const today = new Date()
@@ -194,9 +228,29 @@ export function DashboardHomePage() {
     enabled: Boolean(activeConnectionId && prevPeriod),
   })
 
-  const currency = kpi?.currency ?? 'USD'
-  const orders = kpi?.order_count ?? 0
-  const aov = orders > 0 && kpi ? kpi.net_revenue / orders : null
+  const { format: formatMoney, convert: convertMoney, effectiveDisplayCurrency, baseCurrency } =
+    useMoney()
+
+  const displayKpi = useMemo((): KpiResponse | null => {
+    if (connectorsLoading) return null
+    if (activeConnectionId && kpiLoading) return null
+    return kpi ?? zeroKpiResponse(baseCurrency)
+  }, [connectorsLoading, activeConnectionId, kpiLoading, kpi, baseCurrency])
+
+  const currency = displayKpi?.currency ?? baseCurrency
+  const convertFromBase = useMemo(
+    () => (n: number) => convertMoney(n, { nativeCurrency: currency }).amount,
+    [convertMoney, currency],
+  )
+  // For chart tooltips: number is *already* in display currency, so format
+  // with `nativeCurrency = display` to skip a second conversion.
+  const formatInDisplay = useMemo(
+    () => (n: number) =>
+      formatMoney(n, { nativeCurrency: effectiveDisplayCurrency }),
+    [formatMoney, effectiveDisplayCurrency],
+  )
+  const orders = displayKpi?.order_count ?? 0
+  const aov = orders > 0 && displayKpi ? displayKpi.net_revenue / orders : null
 
   const previousReady = Boolean(prevPeriod) && !kpiPrevLoading
 
@@ -223,7 +277,7 @@ export function DashboardHomePage() {
       priorUnavailable || previous === undefined
         ? null
         : fmt === 'currency'
-          ? fmtCurrency(previous, currency)
+          ? formatMoney(previous, { nativeCurrency: currency })
           : fmt === 'percent'
             ? `${previous.toFixed(1)}%`
             : previous.toLocaleString()
@@ -236,18 +290,33 @@ export function DashboardHomePage() {
     }
   }
 
-  const net = kpi ? deltaBlock(kpi.net_revenue, kpiPrev?.net_revenue, 'currency') : null
-  const ebitda = kpi ? deltaBlock(kpi.ebitda, kpiPrev?.ebitda, 'currency') : null
-  const margin = kpi ? deltaBlock(kpi.gross_margin_pct, kpiPrev?.gross_margin_pct, 'percent') : null
-  const ord = kpi ? deltaBlock(kpi.order_count, kpiPrev?.order_count, 'count') : null
+  const net = displayKpi ? deltaBlock(displayKpi.net_revenue, kpiPrev?.net_revenue, 'currency') : null
+  const ebitda = displayKpi ? deltaBlock(displayKpi.ebitda, kpiPrev?.ebitda, 'currency') : null
+  const margin = displayKpi
+    ? deltaBlock(displayKpi.gross_margin_pct, kpiPrev?.gross_margin_pct, 'percent')
+    : null
+  const ord = displayKpi ? deltaBlock(displayKpi.order_count, kpiPrev?.order_count, 'count') : null
   const aovCur = aov ?? 0
   const aovPrev =
     kpiPrev && kpiPrev.order_count > 0 ? kpiPrev.net_revenue / kpiPrev.order_count : undefined
   const aovDelta =
-    kpi && aov !== null ? deltaBlock(aovCur, aovPrev, 'currency') : null
+    displayKpi && aov !== null ? deltaBlock(aovCur, aovPrev, 'currency') : null
 
-  const waterfallSegments = kpi ? buildWaterfallSegments(kpi, t) : []
-  const chartsLoading = monthlyRevenueLoading || (Boolean(prevPeriod) && monthlyPrevLoading)
+  const waterfallSegments = useMemo(() => {
+    if (!displayKpi) return []
+    const segs = buildWaterfallSegments(displayKpi, t)
+    return segs.map((s) => ({
+      ...s,
+      value: convertFromBase(s.value),
+      stackedParts: s.stackedParts?.map((p) => ({
+        ...p,
+        value: convertFromBase(p.value),
+      })),
+    }))
+  }, [displayKpi, t, convertFromBase])
+  const chartsLoading =
+    Boolean(activeConnectionId) &&
+    (monthlyRevenueLoading || (Boolean(prevPeriod) && monthlyPrevLoading))
 
   return (
     <DashboardPage className="flex flex-1 flex-col gap-5">
@@ -284,20 +353,17 @@ export function DashboardHomePage() {
         >
           <BootSpinner />
         </div>
-      ) : !activeConnectionId ? (
-        <div className="rounded-md border border-[var(--shell-structure-border)] bg-[var(--bg-base)]/35 px-6 py-8 text-sm text-text-secondary">
-          {t('reportsSelectConnection')}
-        </div>
-      ) : kpiLoading ? (
+      ) : displayKpi === null ? (
         <DashboardHomeLoadingSkeleton chartRegionLabel={t('shellHomeChartRegion')} />
-      ) : kpi && net && ebitda && margin && ord ? (
+      ) : (
         <>
+        <MoneyDisclaimer />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <KpiCard
             variant="featured"
             label={t('reportsNetRevenue')}
             helpText={t('reportsKpiHelpNetRevenue')}
-            value={fmtCurrency(kpi.net_revenue, currency)}
+            value={formatMoney(displayKpi.net_revenue, { nativeCurrency: currency })}
             vsPriorLabel={vsPrior}
             priorValueDisplay={net.priorDisplay}
             pct={net.pct}
@@ -307,7 +373,7 @@ export function DashboardHomePage() {
           <KpiCard
             label={t('reportsEbitda')}
             helpText={t('reportsKpiHelpEbitda')}
-            value={fmtCurrency(kpi.ebitda, currency)}
+            value={formatMoney(displayKpi.ebitda, { nativeCurrency: currency })}
             vsPriorLabel={vsPrior}
             priorValueDisplay={ebitda.priorDisplay}
             pct={ebitda.pct}
@@ -317,7 +383,7 @@ export function DashboardHomePage() {
           <KpiCard
             label={t('reportsKpiMargenBrutoPct')}
             helpText={t('reportsKpiHelpMargenBrutoPct')}
-            value={`${kpi.gross_margin_pct.toFixed(1)}%`}
+            value={`${displayKpi.gross_margin_pct.toFixed(1)}%`}
             vsPriorLabel={vsPrior}
             priorValueDisplay={margin.priorDisplay}
             pct={margin.pct}
@@ -327,7 +393,7 @@ export function DashboardHomePage() {
           <KpiCard
             label={t('reportsOrders')}
             helpText={t('reportsKpiHelpOrders')}
-            value={kpi.order_count.toLocaleString()}
+            value={displayKpi.order_count.toLocaleString()}
             vsPriorLabel={vsPrior}
             priorValueDisplay={ord.priorDisplay}
             pct={ord.pct}
@@ -338,7 +404,7 @@ export function DashboardHomePage() {
           <KpiCard
             label={t('reportsKpiAov')}
             helpText={t('reportsKpiHelpAov')}
-            value={aov !== null ? fmtCurrency(aov, currency) : '—'}
+            value={aov !== null ? formatMoney(aov, { nativeCurrency: currency }) : '—'}
             vsPriorLabel={vsPrior}
             priorValueDisplay={aovDelta?.priorDisplay ?? null}
             pct={aovDelta?.pct ?? null}
@@ -372,7 +438,9 @@ export function DashboardHomePage() {
                   rowsCurrent={monthlyCurrent?.months ?? []}
                   rowsPrev={monthlyPrev?.months ?? []}
                   comparePrevious={Boolean(prevPeriod)}
-                  currency={currency}
+                  currency={effectiveDisplayCurrency}
+                  formatValue={formatInDisplay}
+                  convertValue={convertFromBase}
                   dateLocale={dateLocale}
                   t={t}
                 />
@@ -385,15 +453,10 @@ export function DashboardHomePage() {
                 title={t('reportsSectionRevenueBreakdown')}
                 description={t('reportsWaterfallSubtitle')}
               />
-              {kpi.currency_mismatch_warning ? (
-                <div className="mb-4 rounded-md border border-border-default bg-bg-elevated px-4 py-2 text-xs text-text-secondary">
-                  {t('reportsCurrencyMismatchWarning')}
-                </div>
-              ) : null}
               <WaterfallChart
                 segments={waterfallSegments}
-                currency={currency}
-                grossRevenue={kpi.gross_revenue}
+                currency={effectiveDisplayCurrency}
+                grossRevenue={convertFromBase(displayKpi.gross_revenue)}
                 formatPctOfGross={(pct) => t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))}
                 finalBarCaption={t('reportsWaterfallFinalHint')}
               />
@@ -401,10 +464,6 @@ export function DashboardHomePage() {
           </section>
         </div>
         </>
-      ) : (
-        <div className="rounded-md border border-[var(--shell-structure-border)] bg-[var(--bg-base)]/35 px-6 py-8 text-sm text-text-secondary">
-          {t('reportsNoData')}
-        </div>
       )}
     </DashboardPage>
   )

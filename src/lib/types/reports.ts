@@ -33,7 +33,6 @@ export type KpiResponse = {
   units_sold: number
   order_count: number
   currency: string
-  currency_mismatch_warning: boolean
   cogs_incomplete: boolean
   order_status_counts: Record<string, number>
 }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
 import { useAuth } from '@clerk/react'
@@ -33,6 +33,8 @@ import { buildWaterfallSegments } from './waterfall-segments'
 import { WaterfallChart } from './waterfall-chart'
 import { useMonthlyRevenueSeries } from './use-monthly-revenue-series'
 import { useReports } from './use-reports'
+import { useMoney } from '@/hooks/use-money'
+import { MoneyDisclaimer } from '@/shell/components/money-disclaimer'
 
 type ReportsFiltersState = {
   startDate: string
@@ -53,7 +55,10 @@ export function ReportsPage() {
   const { lang } = useLanguage()
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
-  const t = (k: Parameters<typeof shellT>[1]) => shellT(lang, k)
+  const t = useCallback(
+    (k: Parameters<typeof shellT>[1]) => shellT(lang, k),
+    [lang],
+  )
   const dateLocale = lang === 'en' ? enUS : esLocale
 
   const defaultFilters = useMemo((): ReportsFiltersState => {
@@ -177,13 +182,29 @@ export function ReportsPage() {
   })
 
   const currency = kpi?.currency ?? 'USD'
+  const { convert: convertMoney, effectiveDisplayCurrency } = useMoney()
+  const convertFromBase = useMemo(
+    () => (n: number) => convertMoney(n, { nativeCurrency: currency }).amount,
+    [convertMoney, currency],
+  )
 
   const lastUpdatedLabel = useMemo(() => {
     if (!dataUpdatedAt) return null
     return formatDistanceToNow(new Date(dataUpdatedAt), { addSuffix: true, locale: dateLocale })
   }, [dataUpdatedAt, dateLocale])
 
-  const waterfallSegments = kpi ? buildWaterfallSegments(kpi, t) : []
+  const waterfallSegments = useMemo(() => {
+    if (!kpi) return []
+    const segs = buildWaterfallSegments(kpi, t)
+    return segs.map((s) => ({
+      ...s,
+      value: convertFromBase(s.value),
+      stackedParts: s.stackedParts?.map((p) => ({
+        ...p,
+        value: convertFromBase(p.value),
+      })),
+    }))
+  }, [kpi, t, convertFromBase])
 
   const pickerStrings = {
     startLabel: t('connectionsDateFrom'),
@@ -277,6 +298,7 @@ export function ReportsPage() {
         </div>
       ) : kpi ? (
         <div className="flex flex-col space-y-12 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 motion-safe:fill-mode-both">
+          <MoneyDisclaimer />
           <section>
             <ReportsSummaryCards
               kpi={kpi}
@@ -299,11 +321,6 @@ export function ReportsPage() {
                 title={t('reportsSectionRevenueBreakdown')}
                 description={t('reportsWaterfallSubtitle')}
               />
-              {kpi.currency_mismatch_warning ? (
-                <div className="mb-4 rounded-md border border-border-default bg-bg-elevated px-4 py-2 text-xs text-text-secondary">
-                  {t('reportsCurrencyMismatchWarning')}
-                </div>
-              ) : null}
               {kpi.cogs_incomplete ? (
                 <div className="mb-4 space-y-2 rounded-md border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-xs text-amber-950 dark:text-amber-100">
                   <p>{t('reportsCogsIncompleteBanner')}</p>
@@ -312,8 +329,8 @@ export function ReportsPage() {
               ) : null}
               <WaterfallChart
                 segments={waterfallSegments}
-                currency={currency}
-                grossRevenue={kpi.gross_revenue}
+                currency={effectiveDisplayCurrency}
+                grossRevenue={convertFromBase(kpi.gross_revenue)}
                 formatPctOfGross={(pct) => t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))}
                 finalBarCaption={t('reportsWaterfallFinalHint')}
               />
@@ -334,8 +351,13 @@ export function ReportsPage() {
                 <MonthlyRevenueChart
                   startDate={startDate}
                   endDate={endDate}
-                  rows={monthlyRevenue?.months ?? []}
-                  currency={currency}
+                  rows={(monthlyRevenue?.months ?? []).map((m) => ({
+                    ...m,
+                    gross_revenue: convertFromBase(m.gross_revenue),
+                    net_revenue: convertFromBase(m.net_revenue),
+                    gross_profit: convertFromBase(m.gross_profit),
+                  }))}
+                  currency={effectiveDisplayCurrency}
                   dateLocale={dateLocale}
                   t={t}
                 />

@@ -1,3 +1,10 @@
+export type LatestFxForDisplay = {
+  rate: string
+  rate_date: string
+  from: string
+  to: string
+}
+
 export type MeResponse = {
   tenant_id: string
   tenant_name: string
@@ -9,8 +16,11 @@ export type MeResponse = {
   last_name: string | null
   role: string
   role_name: string
-  /** ISO 4217; analytics amounts are stored in this currency. */
   base_currency: string
-  /** MXN per 1 USD; used to convert between MXN and USD for display. */
-  fx_mxn_per_usd: string
+  display_currency: string | null
+  latest_fx_for_display: LatestFxForDisplay | null
+}
+
+export type UserPreferencesPatch = {
+  display_currency: 'MXN' | 'USD' | null
 }

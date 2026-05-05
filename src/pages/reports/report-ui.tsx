@@ -2,8 +2,9 @@ import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 import { KpiCard as KpiCardUi } from '@/ui/kpi-card'
+import { useMoney } from '@/hooks/use-money'
 
-import { fmtCurrency, pctVersusPrevious } from './reports-ui-helpers'
+import { pctVersusPrevious } from './reports-ui-helpers'
 
 export function SectionContainer({
   children,
@@ -95,9 +96,10 @@ export function KpiCard({
   footer?: ReactNode
   variant?: KpiVariant
 }) {
+  const { format: formatMoney } = useMoney()
   const computedDisplay =
     format === 'currency'
-      ? fmtCurrency(value, currency)
+      ? formatMoney(value, { nativeCurrency: currency })
       : format === 'percent'
         ? `${value.toFixed(1)}%`
         : value.toLocaleString()
@@ -109,7 +111,7 @@ export function KpiCard({
     priorUnavailable || previous === undefined
       ? null
       : format === 'currency'
-        ? fmtCurrency(previous, currency)
+        ? formatMoney(previous, { nativeCurrency: currency })
         : format === 'percent'
           ? `${previous.toFixed(1)}%`
           : previous.toLocaleString()

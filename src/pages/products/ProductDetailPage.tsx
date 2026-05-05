@@ -8,6 +8,7 @@ import type {
   ProductDetailApi,
 } from '@/lib/types/catalog'
 import { fmtCurrency, toYmd } from '@/pages/reports/reports-ui-helpers'
+import { useMoney } from '@/hooks/use-money'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { Badge } from '@/ui/badge'
@@ -192,7 +193,8 @@ function ProductDetailBody({ productId }: { productId: string }) {
 
   const detail = detailQuery.data
   const baseCurrency = detail?.base_currency ?? 'USD'
-  const today = todayYmd()
+  const { format: formatMoney } = useMoney()
+  const fmtBase = (v: number) => formatMoney(v, { nativeCurrency: baseCurrency })
 
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editCost, setEditCost] = useState('')
@@ -329,10 +331,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
   }
 
   const job = jobQuery.data
-  const bigCost =
-    detail.cost != null
-      ? fmtCurrency(detail.cost, detail.currency ?? baseCurrency)
-      : '—'
+  const bigCost = detail.cost != null ? fmtBase(detail.cost) : '—'
   const updatedDays = daysSinceUpdated(detail.updated_at)
   const updatedBadge =
     updatedDays <= 0
@@ -492,7 +491,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
           </CardHeader>
           <CardContent className="pt-0">
             <p className={cn('text-lg font-semibold text-text-primary sm:text-xl', NUM)}>
-              {detail.cost != null ? fmtCurrency(detail.cost, detail.currency ?? baseCurrency) : '—'}
+              {detail.cost != null ? fmtBase(detail.cost) : '—'}
             </p>
           </CardContent>
         </Card>
@@ -504,7 +503,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
           </CardHeader>
           <CardContent className="pt-0">
             <p className={cn('text-lg font-semibold text-text-primary sm:text-xl', NUM)}>
-              {avgHistory != null ? fmtCurrency(avgHistory, baseCurrency) : '—'}
+              {avgHistory != null ? fmtBase(avgHistory) : '—'}
             </p>
           </CardContent>
         </Card>

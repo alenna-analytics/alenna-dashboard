@@ -8,6 +8,7 @@ import { AppBootLoader } from '@/shell/layout/app-boot-loader'
 import { AppHeader } from '@/shell/layout/app-header'
 import { AppSidebar } from '@/shell/layout/app-sidebar'
 import { ShellBootstrapError } from '@/shell/layout/shell-bootstrap-error'
+import { DisplayCurrencyProvider } from '@/shell/providers/display-currency-provider'
 import { WorkspaceProvider } from '@/shell/providers/workspace-context'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -107,6 +108,7 @@ export function AppShellLayout() {
 
   return (
     <WorkspaceProvider value={workspaceValue}>
+      <DisplayCurrencyProvider me={me} refetchMe={refetchMe}>
       <TooltipProvider delayDuration={200}>
         <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh gap-3 overflow-hidden bg-[var(--bg-base)] px-3 py-3 lg:gap-4 lg:px-4 lg:py-4">
           <AppSidebar
@@ -143,6 +145,7 @@ export function AppShellLayout() {
           </section>
         </div>
       </TooltipProvider>
+      </DisplayCurrencyProvider>
     </WorkspaceProvider>
   )
 }

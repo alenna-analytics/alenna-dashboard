@@ -14,15 +14,7 @@ export function ProductsListPage() {
   const [q, setQ] = useState("")
   const [submittedQ, setSubmittedQ] = useState("")
 
-  const empty = (
-    <div className="space-y-2 text-sm text-text-secondary">
-      <p className="font-medium text-text-primary">{t("productsCatalogEmptyTitle")}</p>
-      <p>{t("productsCatalogEmptyHint")}</p>
-      {submittedQ.trim() ? (
-        <p className="text-xs text-text-tertiary">{t("productsCatalogEmptySearchHint")}</p>
-      ) : null}
-    </div>
-  )
+  const empty = <p className="text-sm text-text-secondary">{t("productsCatalogEmptyTitle")}</p>
 
   const errorContent = <p className="text-destructive">{t("productsCatalogLoadError")}</p>
 

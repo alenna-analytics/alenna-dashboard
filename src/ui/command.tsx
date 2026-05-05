@@ -39,7 +39,7 @@ const CommandInputWrapper = React.forwardRef<
     <CommandInput
       ref={ref}
       className={cn(
-        'flex h-10 w-full rounded-md bg-transparent py-3 text-sm text-text-primary outline-none placeholder:text-text-tertiary dark:placeholder:text-text-secondary/80 disabled:cursor-not-allowed disabled:opacity-50',
+        'flex h-10 w-full rounded-sm bg-transparent py-3 text-sm text-text-primary outline-none placeholder:text-text-tertiary dark:placeholder:text-text-secondary/80 disabled:cursor-not-allowed disabled:opacity-50',
         className
       )}
       {...props}

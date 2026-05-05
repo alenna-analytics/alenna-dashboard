@@ -4,6 +4,7 @@ import {
   CartesianGrid,
   Line,
   LineChart,
+  ReferenceArea,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -157,18 +158,23 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
   }
 
   return (
-    <div className={cn('min-h-[14rem] w-full', className)}>
+    <div
+      className={cn(
+        'min-h-[14rem] w-full [&_.recharts-surface:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-wrapper:focus]:outline-none [&_.recharts-brush-traveller:focus]:outline-none',
+        className,
+      )}
+    >
       <div className="mb-2 flex items-center justify-end gap-2">
         <button
           type="button"
-          className="rounded border border-border-subtle px-2 py-1 text-xs text-text-secondary hover:bg-muted/40"
+          className="rounded border border-border-subtle px-2 py-1 text-xs text-text-secondary outline-none hover:bg-muted/40 focus:outline-none"
           onClick={handleZoomOut}
         >
           -
         </button>
         <button
           type="button"
-          className="rounded border border-border-subtle px-2 py-1 text-xs text-text-secondary hover:bg-muted/40"
+          className="rounded border border-border-subtle px-2 py-1 text-xs text-text-secondary outline-none hover:bg-muted/40 focus:outline-none"
           onClick={handleZoomIn}
         >
           +
@@ -216,46 +222,58 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
           ))}
         </LineChart>
       </ResponsiveContainer>
-      <div className="mt-2 rounded border border-border-subtle/70 bg-muted/20 px-1 py-1">
-        <ResponsiveContainer width="100%" height={48}>
-          <LineChart data={dataWithIndex} margin={{ top: 4, right: 4, left: 4, bottom: 2 }}>
-            <XAxis dataKey="dateKey" hide />
-            <YAxis hide domain={['auto', 'auto']} />
-            {series.map((s) => (
-              <Line
-                key={`overview-${s.key}`}
-                type="stepAfter"
-                dataKey={`values.${s.key}`}
-                stroke={s.color}
-                strokeWidth={1.5}
-                strokeDasharray={s.kind === 'channel' ? '4 3' : undefined}
-                dot={false}
-                isAnimationActive={false}
-                opacity={hiddenKeys[s.key] ? 0.2 : 0.9}
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-        <div className="mt-1">
-          <ResponsiveContainer width="100%" height={24}>
-            <LineChart data={dataWithIndex} margin={{ top: 0, right: 4, left: 4, bottom: 0 }}>
-              <XAxis dataKey="__idx" hide />
-              <YAxis hide />
-              <Brush
-                dataKey="__idx"
-                height={20}
-                travellerWidth={8}
-                stroke="var(--color-border-default)"
-                fill="rgba(0,0,0,0.06)"
-                startIndex={zoomStart}
-                endIndex={zoomEnd}
-                onChange={(r) => {
-                  if (typeof r?.startIndex === 'number') setZoomStart(r.startIndex)
-                  if (typeof r?.endIndex === 'number') setZoomEnd(r.endIndex)
-                }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+      <div className="mt-2 rounded border border-border-subtle/70 bg-white px-1 py-1">
+        <div className="relative h-16 w-full">
+          <div className="absolute inset-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={dataWithIndex} margin={{ top: 4, right: 4, left: 4, bottom: 2 }}>
+                <XAxis dataKey="dateKey" hide />
+                <YAxis hide domain={['auto', 'auto']} />
+                <ReferenceArea
+                  x1={dataWithIndex[Math.max(0, Math.min(zoomStart, dataWithIndex.length - 1))]?.dateKey}
+                  x2={dataWithIndex[Math.max(0, Math.min(zoomEnd, dataWithIndex.length - 1))]?.dateKey}
+                  fill="rgba(0,0,0,0.18)"
+                  stroke="rgba(0,0,0,0.32)"
+                  strokeWidth={1}
+                  ifOverflow="extendDomain"
+                />
+                {series.map((s) => (
+                  <Line
+                    key={`overview-${s.key}`}
+                    type="stepAfter"
+                    dataKey={`values.${s.key}`}
+                    stroke={s.color}
+                    strokeWidth={1.5}
+                    strokeDasharray={s.kind === 'channel' ? '4 3' : undefined}
+                    dot={false}
+                    isAnimationActive={false}
+                    opacity={hiddenKeys[s.key] ? 0.2 : 0.9}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="absolute inset-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={dataWithIndex} margin={{ top: 0, right: 4, left: 4, bottom: 0 }}>
+                <XAxis dataKey="__idx" hide />
+                <YAxis hide />
+                <Brush
+                  dataKey="__idx"
+                  height={62}
+                  travellerWidth={8}
+                  stroke="var(--color-border-default)"
+                  fill="transparent"
+                  startIndex={zoomStart}
+                  endIndex={zoomEnd}
+                  onChange={(r) => {
+                    if (typeof r?.startIndex === 'number') setZoomStart(r.startIndex)
+                    if (typeof r?.endIndex === 'number') setZoomEnd(r.endIndex)
+                  }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
@@ -267,7 +285,7 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
               type="button"
               onClick={() => handleLegendClick({ id: s.key })}
               className={cn(
-                'inline-flex items-center gap-1.5 transition-opacity',
+                'inline-flex items-center gap-1.5 transition-opacity outline-none focus:outline-none',
                 hidden ? 'opacity-40' : 'opacity-100',
               )}
             >

@@ -26,6 +26,7 @@ import {
 
 import { createProductColumns } from "./products-columns"
 import { useProductListQuery } from "./use-catalog-queries"
+import { useMoney } from "@/hooks/use-money"
 
 const PAGE_SIZE = 10
 const WATCH_STORAGE_KEY = "alenna.catalog.productWatchIds.v1"
@@ -89,6 +90,11 @@ export function ProductsDataTable({ submittedQ, t, emptyContent, errorContent }:
   const total = listQuery.data?.total ?? 0
   const baseCurrency = listQuery.data?.base_currency ?? "USD"
   const pageCount = Math.max(1, Math.ceil(total / pagination.pageSize))
+  const { format: formatMoney } = useMoney()
+  const formatBaseMoney = useCallback(
+    (value: number) => formatMoney(value, { nativeCurrency: baseCurrency }),
+    [formatMoney, baseCurrency],
+  )
 
   const onToggleWatch = useCallback((productId: string) => {
     setWatchedIds((prev) => {
@@ -124,7 +130,7 @@ export function ProductsDataTable({ submittedQ, t, emptyContent, errorContent }:
     () =>
       createProductColumns({
         t,
-        baseCurrency,
+        formatBaseMoney,
         watchedIds,
         onToggleWatch,
         onCopySku,
@@ -133,7 +139,7 @@ export function ProductsDataTable({ submittedQ, t, emptyContent, errorContent }:
         },
         onGoDetail,
       }),
-    [t, baseCurrency, watchedIds, onToggleWatch, onCopySku, refetch, onGoDetail]
+    [t, formatBaseMoney, watchedIds, onToggleWatch, onCopySku, refetch, onGoDetail]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design

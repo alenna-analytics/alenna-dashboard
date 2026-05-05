@@ -29,6 +29,15 @@ const SHELL_STRINGS = {
     ariaExpandSidebar: 'Expandir barra lateral',
     ariaCollapseSidebar: 'Contraer barra lateral',
     ariaDisplayCurrency: 'Moneda de visualización',
+    displayCurrencyPickerLabel: 'Mostrar montos en',
+    displayCurrencyPickerNoFxRate:
+      'No hay tipo de cambio cargado para esta conversión. Pídele al administrador que sembrar fx_rates.',
+    displayCurrencyAggregateDisclaimer:
+      'Los totales se calculan en {base} usando el tipo de cambio histórico de cada transacción.',
+    displayCurrencyDisplayDisclaimer:
+      'Mostrado en {display} al tipo de cambio del {date} (no es histórico para periodos pasados).',
+    displayCurrencyNativeBadgeAria: 'Moneda original del canal',
+    displayCurrencyOptionBase: 'Predeterminado del workspace ({code})',
     shellSelectCompanyPrompt:
       'Abre el menú y selecciona una empresa para continuar.',
     bootLoadingWorkspace: 'Cargando espacio de trabajo',
@@ -477,6 +486,15 @@ const SHELL_STRINGS = {
     ariaExpandSidebar: 'Expand sidebar',
     ariaCollapseSidebar: 'Collapse sidebar',
     ariaDisplayCurrency: 'Display currency',
+    displayCurrencyPickerLabel: 'Show amounts in',
+    displayCurrencyPickerNoFxRate:
+      'No exchange rate is loaded for this conversion. Ask an admin to seed fx_rates.',
+    displayCurrencyAggregateDisclaimer:
+      'Totals are calculated in {base} using each transaction’s historical exchange rate.',
+    displayCurrencyDisplayDisclaimer:
+      'Shown in {display} at the {date} exchange rate (not historically accurate for past periods).',
+    displayCurrencyNativeBadgeAria: 'Channel’s native currency',
+    displayCurrencyOptionBase: 'Workspace default ({code})',
     shellSelectCompanyPrompt: 'Open the menu and select a company to continue.',
     bootLoadingWorkspace: 'Loading workspace',
     bootLoadingLabel: 'Loading',

@@ -1,11 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table"
+import type { ReactNode } from "react"
 import { Link } from "react-router-dom"
 import { MoreHorizontal } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { ShellStringKey } from "@/lib/i18n/shell-strings"
 import type { ProductSummaryApi } from "@/lib/types/catalog"
-import { fmtCurrency } from "@/pages/reports/reports-ui-helpers"
 import { Checkbox } from "@/ui/checkbox"
 import { DataTableColumnHeader } from "@/ui/data-table/data-table-column-header"
 import {
@@ -20,9 +20,16 @@ import {
 
 import { ProductTableThumb } from "./product-table-thumb"
 
+/** Same width for Marca + SKU so both columns line up. */
+const META_BRAND_SKU_COL = {
+  headerClassName: "w-44 min-w-44 max-w-44",
+  cellClassName: "w-44 min-w-44 max-w-44 overflow-hidden align-top whitespace-normal",
+} as const
+
 export type ProductTableColumnLabels = {
   t: (key: ShellStringKey) => string
-  baseCurrency: string
+  /** Format an amount that is denominated in `tenant.base_currency`. */
+  formatBaseMoney: (value: number) => string
   watchedIds: ReadonlySet<string>
   onToggleWatch: (productId: string) => void
   onCopySku: (sku: string | null) => void
@@ -53,6 +60,14 @@ function statusPillClass(status: string): string {
   }
 }
 
+function CostMissingPill({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-200">
+      {children}
+    </span>
+  )
+}
+
 function statusLabel(t: (key: ShellStringKey) => string, status: string): string {
   switch (status) {
     case "active":
@@ -69,7 +84,7 @@ function statusLabel(t: (key: ShellStringKey) => string, status: string): string
 }
 
 export function createProductColumns(labels: ProductTableColumnLabels): ColumnDef<ProductSummaryApi>[] {
-  const { t, baseCurrency, watchedIds, onToggleWatch, onCopySku, onRefresh, onGoDetail } = labels
+  const { t, formatBaseMoney, watchedIds, onToggleWatch, onCopySku, onRefresh, onGoDetail } = labels
 
   return [
     {
@@ -103,23 +118,22 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
     },
     {
       accessorKey: "title",
+      meta: {
+        headerClassName: "min-w-[17rem] max-w-[min(30rem,42vw)]",
+        cellClassName:
+          "min-w-[17rem] max-w-[min(30rem,42vw)] overflow-hidden align-top whitespace-normal",
+      },
       header: ({ column }) => <DataTableColumnHeader column={column} title={t("productsColProduct")} />,
       cell: ({ row }) => {
         const rowData = row.original
         return (
-          <div className="flex max-w-[min(20rem,50vw)] flex-wrap items-center gap-2">
-            <Link
-              to={`/dashboard/products/${rowData.id}`}
-              className="font-medium text-primary hover:underline"
-            >
-              {rowData.title}
-            </Link>
-            {rowData.cost_missing ? (
-              <span className="inline-flex rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-200">
-                {t("productsCostMissingBadge")}
-              </span>
-            ) : null}
-          </div>
+          <Link
+            to={`/dashboard/products/${rowData.id}`}
+            className="line-clamp-2 max-w-full break-words font-medium text-primary hover:underline"
+            title={rowData.title}
+          >
+            {rowData.title}
+          </Link>
         )
       },
       enableHiding: true,
@@ -169,10 +183,16 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
     },
     {
       accessorKey: "brand",
+      meta: META_BRAND_SKU_COL,
       header: ({ column }) => <DataTableColumnHeader column={column} title={t("productsColBrand")} />,
-      cell: ({ row }) => (
-        <span className="text-sm text-text-secondary">{row.original.brand?.trim() || "—"}</span>
-      ),
+      cell: ({ row }) => {
+        const b = row.original.brand?.trim() || "—"
+        return (
+          <span className="block truncate text-sm text-text-secondary" title={b === "—" ? undefined : b}>
+            {b}
+          </span>
+        )
+      },
       enableHiding: true,
     },
     {
@@ -182,20 +202,29 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
       ),
       cell: ({ row }) => {
         const c = row.original.cost
+        if (c != null) {
+          return <span className="block text-right tabular-nums">{formatBaseMoney(c)}</span>
+        }
         return (
-          <span className="block text-right tabular-nums">
-            {c != null ? fmtCurrency(c, baseCurrency) : "—"}
-          </span>
+          <div className="flex justify-end">
+            <CostMissingPill>{t("productsCostMissingBadge")}</CostMissingPill>
+          </div>
         )
       },
       enableHiding: true,
     },
     {
       accessorKey: "internal_sku",
+      meta: META_BRAND_SKU_COL,
       header: ({ column }) => <DataTableColumnHeader column={column} title={t("productsColSku")} />,
-      cell: ({ row }) => (
-        <span className="font-mono text-xs text-text-secondary">{row.original.internal_sku ?? "—"}</span>
-      ),
+      cell: ({ row }) => {
+        const sku = row.original.internal_sku ?? "—"
+        return (
+          <span className="block max-w-full truncate font-mono text-xs text-text-secondary" title={sku}>
+            {sku}
+          </span>
+        )
+      },
       enableHiding: true,
     },
     {

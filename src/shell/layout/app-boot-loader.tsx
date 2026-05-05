@@ -93,7 +93,7 @@ export function AppBootLoader() {
               <span
                 key={i}
                 className={cn(
-                  'h-1 w-6 rounded-full transition-colors duration-300',
+                  'h-1 w-6 rounded-md transition-colors duration-300',
                   i === stageIndex ? 'bg-primary/90' : 'bg-border-subtle/80'
                 )}
               />

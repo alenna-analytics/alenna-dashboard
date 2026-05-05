@@ -218,7 +218,7 @@ export function ReportsPage() {
           ) : null}
         </div>
         <div className="flex w-full flex-col items-stretch gap-3 sm:ml-auto sm:max-w-xl lg:max-w-none lg:flex-row lg:items-center lg:justify-end">
-          <div className="surface-glass flex flex-wrap items-center justify-end gap-2 rounded-[1.75rem] p-2.5 shadow-[var(--shadow-soft)]">
+          <div className="surface-glass flex flex-wrap items-center justify-end gap-2 rounded-md p-2.5 shadow-[var(--shadow-soft)]">
             {showConnectionSelector && (
               <Select
                 value={activeConnectionId}
@@ -258,21 +258,21 @@ export function ReportsPage() {
       </header>
 
       {!activeConnectionId ? (
-        <div className="rounded-[1.75rem] border border-[var(--color-border)] bg-[var(--color-bg-card)]/90 px-6 py-8 text-sm text-text-secondary shadow-[var(--shadow-soft)] backdrop-blur-sm">
+        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-card)]/90 px-6 py-8 text-sm text-text-secondary shadow-[var(--shadow-soft)] backdrop-blur-sm">
           {t('reportsSelectConnection')}
         </div>
       ) : kpiLoading ? (
         <div className="flex flex-col space-y-12">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={`h-${i}`} className="h-28 rounded-2xl" />
+              <Skeleton key={`h-${i}`} className="h-28 rounded-md" />
             ))}
           </div>
-          <Skeleton className="h-44 rounded-2xl" />
-          <Skeleton className="h-44 rounded-2xl" />
-          <Skeleton className="h-44 rounded-2xl" />
-          <Skeleton className="h-[22rem] rounded-2xl" />
-          <Skeleton className="h-96 rounded-2xl" />
+          <Skeleton className="h-44 rounded-md" />
+          <Skeleton className="h-44 rounded-md" />
+          <Skeleton className="h-44 rounded-md" />
+          <Skeleton className="h-[22rem] rounded-md" />
+          <Skeleton className="h-96 rounded-md" />
         </div>
       ) : kpi ? (
         <div className="flex flex-col space-y-12 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 motion-safe:fill-mode-both">
@@ -299,8 +299,14 @@ export function ReportsPage() {
                 description={t('reportsWaterfallSubtitle')}
               />
               {kpi.currency_mismatch_warning ? (
-                <div className="mb-4 rounded-xl border border-border-default bg-bg-elevated px-4 py-2 text-xs text-text-secondary">
+                <div className="mb-4 rounded-md border border-border-default bg-bg-elevated px-4 py-2 text-xs text-text-secondary">
                   {t('reportsCurrencyMismatchWarning')}
+                </div>
+              ) : null}
+              {kpi.cogs_incomplete ? (
+                <div className="mb-4 space-y-2 rounded-md border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-xs text-amber-950 dark:text-amber-100">
+                  <p>{t('reportsCogsIncompleteBanner')}</p>
+                  <p className="text-[11px] opacity-90">{t('reportsCogsIncompleteFootnote')}</p>
                 </div>
               ) : null}
               <WaterfallChart
@@ -320,9 +326,9 @@ export function ReportsPage() {
                 description={t('reportsMonthlyEvolutionSubtitle')}
               />
               {monthlyRevenueError ? (
-                <p className="rounded-2xl px-4 py-8 text-sm text-text-secondary">{t('reportsMonthlyLoadError')}</p>
+                <p className="rounded-md px-4 py-8 text-sm text-text-secondary">{t('reportsMonthlyLoadError')}</p>
               ) : monthlyRevenueLoading ? (
-                <Skeleton className="h-96 w-full rounded-2xl" />
+                <Skeleton className="h-96 w-full rounded-md" />
               ) : (
                 <MonthlyRevenueChart
                   startDate={startDate}
@@ -337,7 +343,7 @@ export function ReportsPage() {
           </section>
         </div>
       ) : (
-        <div className="rounded-[1.75rem] border border-[var(--color-border)] bg-[var(--color-bg-card)]/90 px-6 py-8 text-sm text-text-secondary shadow-[var(--shadow-soft)] backdrop-blur-sm">
+        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-card)]/90 px-6 py-8 text-sm text-text-secondary shadow-[var(--shadow-soft)] backdrop-blur-sm">
           {t('reportsNoData')}
         </div>
       )}

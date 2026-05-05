@@ -117,7 +117,7 @@ function ShopifySyncSection({
       </Button>
 
       {syncMutation.isSuccess && syncMutation.data ? (
-        <div className="rounded-2xl border border-border-subtle bg-bg-section p-3 text-sm shadow-[var(--glass-shadow)] backdrop-blur-xl">
+        <div className="rounded-md border border-border-subtle bg-bg-section p-3 text-sm shadow-[var(--glass-shadow)] backdrop-blur-xl">
           <div className="mb-2 flex items-center gap-1.5 font-medium text-text-primary">
             <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />
             {shellT(lang, 'integrationSyncDone')}

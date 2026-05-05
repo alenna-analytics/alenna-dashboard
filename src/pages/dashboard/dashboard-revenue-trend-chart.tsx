@@ -101,7 +101,7 @@ function TrendTooltip({
   const row = payload[0]?.payload as TrendRow | undefined
   if (!row) return null
   return (
-    <div className="rounded-xl border border-border-default bg-background px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
+    <div className="rounded-md border border-border-default bg-background px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
       <div className="space-y-1.5 leading-snug">
         <p className="tabular-nums">
           <span className="text-text-tertiary">

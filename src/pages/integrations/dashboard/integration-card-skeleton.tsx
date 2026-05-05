@@ -19,7 +19,7 @@ export function IntegrationCardSkeleton() {
         </CardHeader>
         <CardFooter className="flex flex-row items-center justify-between gap-3 border-border-subtle bg-transparent">
           <Skeleton className="h-8 w-24 rounded-md" />
-          <Skeleton className="h-5 w-9 rounded-full" />
+          <Skeleton className="h-5 w-9 rounded-md" />
         </CardFooter>
       </Card>
     </li>

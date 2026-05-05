@@ -23,7 +23,7 @@ export function ShellBootstrapError({
   return (
     <div className="flex min-h-svh w-full flex-col items-center justify-center bg-bg-base px-6 py-16 text-center">
       <div className="flex w-full max-w-md flex-col items-center gap-6">
-        <div className="flex size-16 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+        <div className="flex size-16 items-center justify-center rounded-md bg-destructive/10 text-destructive">
           <ServerCrash className="size-8" aria-hidden />
         </div>
 
@@ -71,7 +71,7 @@ export function ShellBootstrapError({
               : shellT(lang, 'shellErrorViewDetails')}
           </button>
           {showDetails && (
-            <pre className="animate-in fade-in mt-3 max-h-32 w-full overflow-auto rounded-lg border border-border-subtle bg-muted p-3 text-left text-xs text-muted-foreground duration-200">
+            <pre className="animate-in fade-in mt-3 max-h-32 w-full overflow-auto rounded-md border border-border-subtle bg-muted p-3 text-left text-xs text-muted-foreground duration-200">
               {error}
             </pre>
           )}

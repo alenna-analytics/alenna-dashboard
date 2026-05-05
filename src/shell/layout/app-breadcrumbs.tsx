@@ -1,8 +1,9 @@
 import { ChevronRight } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
-import { useLanguage } from '@/shell/providers/language-provider'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { useLanguage } from '@/shell/providers/language-provider'
+import { useProductDetailQuery } from '@/pages/products/use-catalog-queries'
 import { cn } from '@/lib/utils'
 
 type Crumb = {
@@ -10,7 +11,12 @@ type Crumb = {
   to?: string
 }
 
-function crumbsForPath(pathname: string, lang: string): Crumb[] {
+type ProductDetailCrumb = {
+  prefix: string
+  title?: string
+}
+
+function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDetailCrumb): Crumb[] {
   const normalized = pathname.replace(/\/$/, '') || '/'
 
   if (normalized === '/dashboard') {
@@ -28,6 +34,19 @@ function crumbsForPath(pathname: string, lang: string): Crumb[] {
   if (normalized === '/dashboard/integrations') {
     return [{ label: shellT(lang, 'navIntegrations') }]
   }
+  if (normalized === '/dashboard/products') {
+    return [{ label: shellT(lang, 'navProducts') }]
+  }
+  if (/^\/dashboard\/products\/[^/]+$/.test(normalized)) {
+    const detailLabel =
+      productDetail?.title?.trim().length
+        ? `${productDetail.prefix} ${productDetail.title.trim()}`
+        : shellT(lang, 'productsDetailBreadcrumb')
+    return [
+      { label: shellT(lang, 'navProducts'), to: '/dashboard/products' },
+      { label: detailLabel },
+    ]
+  }
 
   if (normalized.startsWith('/dashboard')) {
     return [{ label: shellT(lang, 'navHome'), to: '/dashboard' }]
@@ -39,7 +58,16 @@ function crumbsForPath(pathname: string, lang: string): Crumb[] {
 export function AppBreadcrumbs({ className }: { className?: string }) {
   const { pathname } = useLocation()
   const { lang } = useLanguage()
-  const items = crumbsForPath(pathname, lang)
+
+  const productMatch = pathname.match(/^\/dashboard\/products\/([^/]+)$/)
+  const productId = productMatch?.[1]
+  const detailQuery = useProductDetailQuery(productId)
+  const productTitle = productId ? detailQuery.data?.title : undefined
+
+  const items = crumbsForPath(pathname, lang, {
+    prefix: shellT(lang, 'productsDetailTitlePrefix'),
+    title: productTitle,
+  })
 
   return (
     <nav aria-label={shellT(lang, 'ariaBreadcrumb')} className={cn('min-w-0', className)}>

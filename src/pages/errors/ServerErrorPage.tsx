@@ -21,7 +21,7 @@ export function ServerErrorPage({ error, onRetry }: ServerErrorPageProps) {
           dashboard.
         </p>
         {import.meta.env.DEV && error ? (
-          <pre className="mt-4 max-h-40 max-w-lg overflow-auto rounded-lg border border-border-default bg-bg-sunken p-3 text-left font-mono text-xs break-words whitespace-pre-wrap text-danger">
+          <pre className="mt-4 max-h-40 max-w-lg overflow-auto rounded-md border border-border-default bg-bg-sunken p-3 text-left font-mono text-xs break-words whitespace-pre-wrap text-danger">
             {error.message}
           </pre>
         ) : null}

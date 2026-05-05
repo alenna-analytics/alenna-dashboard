@@ -26,7 +26,7 @@ export function IntegrationsSearchField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-10 rounded-full pl-9 pr-3"
+        className="h-10 rounded-md pl-9 pr-3"
         aria-label={placeholder}
       />
     </div>

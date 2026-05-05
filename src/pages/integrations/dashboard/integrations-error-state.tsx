@@ -24,10 +24,10 @@ export function IntegrationsErrorState({
   return (
     <div
       role="alert"
-      className="animate-in fade-in duration-300 rounded-xl border border-destructive/20 bg-destructive/5 p-6 shadow-sm ring-1 ring-destructive/10"
+      className="animate-in fade-in duration-300 rounded-md border border-destructive/20 bg-destructive/5 p-6 shadow-sm ring-1 ring-destructive/10"
     >
       <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-destructive/10 text-destructive">
           <CloudOff className="size-5" aria-hidden />
         </div>
         <div className="flex-1 space-y-1">

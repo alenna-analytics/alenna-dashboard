@@ -28,7 +28,7 @@ export function KpiDeltaPill({
     return (
       <span
         className={cn(
-          'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium tabular-nums',
+          'shrink-0 rounded-md px-2.5 py-1 text-xs font-medium tabular-nums',
           onDark ? 'bg-white/15 text-white/80' : 'bg-[var(--kpi-pill-neutral-bg)] text-[var(--color-text-muted)]',
         )}
       >
@@ -41,7 +41,7 @@ export function KpiDeltaPill({
     return (
       <span
         className={cn(
-          'shrink-0 rounded-full px-2.5 py-1 text-xs tabular-nums',
+          'shrink-0 rounded-md px-2.5 py-1 text-xs tabular-nums',
           onDark ? 'bg-white/15 text-white/80' : 'text-[var(--color-text-muted)]',
         )}
       >
@@ -58,7 +58,7 @@ export function KpiDeltaPill({
   return (
     <span
       className={cn(
-        'shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums',
+        'shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold tabular-nums',
         good && 'bg-[var(--kpi-pill-positive-bg)] text-[var(--kpi-pill-positive-text)]',
         bad && 'bg-[var(--kpi-pill-negative-bg)] text-[var(--kpi-pill-negative-text)]',
         !good && !bad && (onDark ? 'bg-white/15 text-white/85' : 'bg-[var(--kpi-pill-neutral-bg)] text-[var(--color-text-muted)]'),
@@ -107,7 +107,7 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        'flex min-w-0 flex-col gap-2.5 rounded-[1rem] p-3.5 text-left sm:p-4',
+        'flex min-w-0 flex-col gap-2.5 rounded-md p-3.5 text-left sm:p-4',
         featured
           ? 'border border-white/25 bg-[var(--color-accent-forest)] text-white shadow-none'
           : 'border border-[var(--shell-structure-border)] bg-white text-[var(--color-text-primary)] shadow-none',

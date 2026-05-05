@@ -105,7 +105,7 @@ function Calendar({
           defaultClassNames.day
         ),
         range_start: cn(
-          "relative isolate z-0 rounded-l-full rounded-r-none bg-primary/15 after:absolute after:inset-y-0 after:right-0 after:w-4 after:bg-primary/15",
+          "relative isolate z-0 rounded-l-md rounded-r-none bg-primary/15 after:absolute after:inset-y-0 after:right-0 after:w-4 after:bg-primary/15",
           defaultClassNames.range_start
         ),
         range_middle: cn("rounded-none bg-primary/15", defaultClassNames.range_middle),
@@ -114,7 +114,7 @@ function Calendar({
           defaultClassNames.range_end
         ),
         today: cn(
-          "rounded-full bg-bg-section text-foreground",
+          "rounded-md bg-bg-section text-foreground",
           defaultClassNames.today
         ),
         outside: cn(

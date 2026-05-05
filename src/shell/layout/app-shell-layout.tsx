@@ -115,7 +115,7 @@ export function AppShellLayout() {
             companyName={sidebarCompanyName}
             companySubtitle={sidebarCompanySubtitle}
           />
-          <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--shell-structure-border)] bg-white">
+          <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-[var(--shell-structure-border)] bg-white">
             <AppHeader className="border-b border-[var(--shell-structure-border)]" />
             <main
               ref={mainRef}

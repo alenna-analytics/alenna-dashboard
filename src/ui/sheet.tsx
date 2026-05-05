@@ -54,9 +54,9 @@ function SheetContent({
         className={cn(
           "fixed z-50 flex min-h-0 w-full max-w-md flex-col gap-0 overflow-hidden border border-border-subtle bg-popover p-0 text-sm shadow-[var(--shadow-sheet)] ring-1 ring-[color:var(--ring-popover)] backdrop-blur-xl duration-200 outline-none data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0",
           side === "right" &&
-          "top-3 right-3 bottom-3 h-auto max-h-[calc(100dvh-1.5rem)] rounded-2xl data-closed:slide-out-to-right data-open:slide-in-from-right sm:top-4 sm:right-4 sm:bottom-4 sm:max-h-[calc(100dvh-2rem)]",
+          "top-3 right-3 bottom-3 h-auto max-h-[calc(100dvh-1.5rem)] rounded-md data-closed:slide-out-to-right data-open:slide-in-from-right sm:top-4 sm:right-4 sm:bottom-4 sm:max-h-[calc(100dvh-2rem)]",
           side === "left" &&
-          "top-3 left-3 bottom-3 h-auto max-h-[calc(100dvh-1.5rem)] rounded-2xl data-closed:slide-out-to-left data-open:slide-in-from-left sm:top-4 sm:left-4 sm:bottom-4 sm:max-h-[calc(100dvh-2rem)]",
+          "top-3 left-3 bottom-3 h-auto max-h-[calc(100dvh-1.5rem)] rounded-md data-closed:slide-out-to-left data-open:slide-in-from-left sm:top-4 sm:left-4 sm:bottom-4 sm:max-h-[calc(100dvh-2rem)]",
           className,
         )}
         {...props}

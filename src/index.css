@@ -356,11 +356,11 @@
   }
 
   .delta-positive {
-    @apply inline-flex items-center gap-1 rounded-full border border-success/20 bg-success-dim px-2 py-0.5 font-mono text-[11px] tracking-wide text-success;
+    @apply inline-flex items-center gap-1 rounded-md border border-success/20 bg-success-dim px-2 py-0.5 font-mono text-[11px] tracking-wide text-success;
   }
 
   .delta-negative {
-    @apply inline-flex items-center gap-1 rounded-full border border-danger/25 bg-danger-dim px-2 py-0.5 font-mono text-[11px] tracking-wide text-danger;
+    @apply inline-flex items-center gap-1 rounded-md border border-danger/25 bg-danger-dim px-2 py-0.5 font-mono text-[11px] tracking-wide text-danger;
   }
 
   .surface-chart-card {

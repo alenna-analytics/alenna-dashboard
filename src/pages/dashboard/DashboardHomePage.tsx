@@ -202,13 +202,13 @@ export function DashboardHomePage() {
       </header>
 
       {!activeConnectionId ? (
-        <div className="rounded-xl border border-[var(--shell-structure-border)] bg-[var(--bg-base)]/35 px-6 py-8 text-sm text-text-secondary">
+        <div className="rounded-md border border-[var(--shell-structure-border)] bg-[var(--bg-base)]/35 px-6 py-8 text-sm text-text-secondary">
           {t('reportsSelectConnection')}
         </div>
       ) : kpiLoading ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={`sk-${i}`} className="h-36 rounded-[1rem] border border-[var(--shell-structure-border)]" />
+            <Skeleton key={`sk-${i}`} className="h-36 rounded-md border border-[var(--shell-structure-border)]" />
           ))}
         </div>
       ) : kpi && net && ebitda && margin && ord ? (
@@ -279,11 +279,11 @@ export function DashboardHomePage() {
                 description={t('dashboardRevenueTrendSubtitle')}
               />
               {monthlyRevenueError ? (
-                <p className="rounded-2xl px-2 py-6 text-sm text-text-secondary">
+                <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
                   {t('reportsMonthlyLoadError')}
                 </p>
               ) : chartsLoading ? (
-                <Skeleton className="h-80 w-full rounded-2xl" />
+                <Skeleton className="h-80 w-full rounded-md" />
               ) : (
                 <DashboardRevenueTrendChart
                   startDate={startDate}
@@ -307,7 +307,7 @@ export function DashboardHomePage() {
                 description={t('reportsWaterfallSubtitle')}
               />
               {kpi.currency_mismatch_warning ? (
-                <div className="mb-4 rounded-xl border border-border-default bg-bg-elevated px-4 py-2 text-xs text-text-secondary">
+                <div className="mb-4 rounded-md border border-border-default bg-bg-elevated px-4 py-2 text-xs text-text-secondary">
                   {t('reportsCurrencyMismatchWarning')}
                 </div>
               ) : null}
@@ -323,7 +323,7 @@ export function DashboardHomePage() {
         </div>
         </>
       ) : (
-        <div className="rounded-xl border border-[var(--shell-structure-border)] bg-[var(--bg-base)]/35 px-6 py-8 text-sm text-text-secondary">
+        <div className="rounded-md border border-[var(--shell-structure-border)] bg-[var(--bg-base)]/35 px-6 py-8 text-sm text-text-secondary">
           {t('reportsNoData')}
         </div>
       )}

@@ -176,7 +176,7 @@ function ChartTooltip({
   const net = toNum(row.net_revenue)
   const profit = toNum(row.gross_profit)
   return (
-    <div className="rounded-xl border border-border-default bg-background px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
+    <div className="rounded-md border border-border-default bg-background px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
       <p className="mb-2 font-medium text-text-primary">{row.label}</p>
       <div className="space-y-1 tabular-nums text-text-secondary">
         <div className="flex justify-between gap-6">
@@ -300,7 +300,7 @@ function ChartLegendToggle({
                 />
               </svg>
             ) : (
-              <span className={cn('size-2.5 shrink-0 rounded-sm', item.swatchClass)} aria-hidden />
+              <span className={cn('size-2.5 shrink-0 rounded-md', item.swatchClass)} aria-hidden />
             )}
             <span
               className={cn('text-text-secondary', isOff && 'line-through decoration-text-tertiary')}

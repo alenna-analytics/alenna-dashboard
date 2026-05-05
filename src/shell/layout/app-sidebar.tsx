@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { LayoutDashboard, Link2, PanelLeft } from 'lucide-react'
+import { LayoutDashboard, Link2, PanelLeft, Tag } from 'lucide-react'
 import { matchPath, NavLink, useLocation } from 'react-router-dom'
 
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -30,13 +30,13 @@ function linkClassNames(isActive: boolean, collapsed: boolean): string {
   if (collapsed) {
     return cn(
       baseTrans,
-      'flex size-8 shrink-0 items-center justify-center rounded-sm',
+      'flex size-8 shrink-0 items-center justify-center rounded-md',
       isActive ? active : inactive,
     )
   }
   return cn(
     baseTrans,
-    'flex items-center gap-3 rounded-sm px-4 py-1.5',
+    'flex items-center gap-3 rounded-md px-4 py-1.5',
     isActive ? active : inactive,
   )
 }
@@ -95,7 +95,7 @@ function TenantMark({ name, className }: { name: string; className?: string }) {
   return (
     <div
       className={cn(
-        'flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-text-primary)] text-sm font-bold text-white',
+        'flex size-9 shrink-0 items-center justify-center rounded-md bg-[var(--color-text-primary)] text-sm font-bold text-white',
         className,
       )}
       aria-hidden
@@ -119,7 +119,7 @@ export function AppSidebar({ collapsed, onToggle, companyName, companySubtitle }
     >
       <div
         className={cn(
-          'flex h-full min-h-0 flex-col rounded-xl border border-[var(--shell-structure-border)] bg-white shadow-none',
+          'flex h-full min-h-0 flex-col rounded-md border border-[var(--shell-structure-border)] bg-white shadow-none',
           collapsed ? 'p-2.5 pt-3' : 'p-2.5',
         )}
       >
@@ -159,7 +159,7 @@ export function AppSidebar({ collapsed, onToggle, companyName, companySubtitle }
             onClick={onToggle}
             aria-label={toggleAria}
             className={cn(
-              'h-8 w-8 shrink-0 rounded-md border-[var(--shell-structure-border)] bg-[var(--bg-base)]/30 text-text-secondary shadow-none hover:bg-[var(--bg-base)]/50 hover:text-text-primary',
+              'h-8 w-8 shrink-0 border-[var(--shell-structure-border)] bg-[var(--bg-base)]/30 text-text-secondary shadow-none hover:bg-[var(--bg-base)]/50 hover:text-text-primary',
               collapsed && 'w-8',
             )}
           >
@@ -175,6 +175,7 @@ export function AppSidebar({ collapsed, onToggle, companyName, companySubtitle }
           aria-label={t('navMain')}
         >
           <NavItem Icon={LayoutDashboard} to="/dashboard" end label={t('navHome')} collapsed={collapsed} />
+          <NavItem Icon={Tag} to="/dashboard/products" label={t('navProducts')} collapsed={collapsed} />
           <NavItem Icon={Link2} to="/dashboard/integrations" label={t('navIntegrations')} collapsed={collapsed} />
         </nav>
       </div>

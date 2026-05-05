@@ -570,7 +570,7 @@ function CustomTooltip({
 
   if (d.stackedParts && d.stackedParts.length > 0) {
     return (
-      <div className="rounded-[1.5rem] border border-border-default bg-bg-elevated/96 px-3.5 py-3 text-xs shadow-[var(--shadow-ink-md)]">
+      <div className="rounded-md border border-border-default bg-bg-elevated/96 px-3.5 py-3 text-xs shadow-[var(--shadow-ink-md)]">
         <p className="font-medium text-text-primary">{d.name}</p>
         <p className="mt-0.5 text-text-secondary">
           {sign}
@@ -596,7 +596,7 @@ function CustomTooltip({
   }
 
   return (
-    <div className="rounded-[1.5rem] border border-border-default bg-bg-elevated/96 px-3.5 py-3 text-xs shadow-[var(--shadow-ink-md)]">
+    <div className="rounded-md border border-border-default bg-bg-elevated/96 px-3.5 py-3 text-xs shadow-[var(--shadow-ink-md)]">
       <p className="font-medium text-text-primary">{d.name}</p>
       <p className="mt-0.5 text-text-secondary">
         {sign}
@@ -626,7 +626,7 @@ export function WaterfallChart({
 
   return (
     <div className="w-full min-w-0">
-      <div className="surface-chart-card relative overflow-x-auto overflow-y-visible rounded-[2rem] p-5 pb-7 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
+      <div className="surface-chart-card relative overflow-x-auto overflow-y-visible rounded-md p-5 pb-7 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
         <div className="relative z-[1] min-w-[min(100%,44rem)]">
           <ResponsiveContainer width="100%" height={288}>
             <ComposedChart

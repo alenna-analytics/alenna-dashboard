@@ -9,6 +9,8 @@ import { IntegrationsListPage } from '@/pages/integrations/dashboard/Integration
 import { DashboardHomePage } from '@/pages/dashboard/DashboardHomePage'
 import { ComponentsShowcasePage } from '@/pages/dev/ComponentsShowcasePage'
 import { ReportsPage } from '@/pages/reports/ReportsPage'
+import { ProductsListPage } from '@/pages/products/ProductsListPage'
+import { ProductDetailPage } from '@/pages/products/ProductDetailPage'
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
           <Route index element={<DashboardHomePage />} />
           <Route path="components" element={<ComponentsShowcasePage />} />
           <Route path="reports" element={<ReportsPage />} />
+          <Route path="products" element={<ProductsListPage />} />
+          <Route path="products/:productId" element={<ProductDetailPage />} />
           <Route path="integrations" element={<IntegrationsListPage />} />
           <Route path="integrations/:slug" element={<Navigate to="/dashboard/integrations" replace />} />
           <Route path="connections" element={<Navigate to="/dashboard/integrations" replace />} />

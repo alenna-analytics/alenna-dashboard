@@ -13,8 +13,8 @@ export function IntegrationsEmptyState({
   onExplore,
 }: IntegrationsEmptyStateProps) {
   return (
-    <div className="animate-in fade-in duration-300 flex flex-col items-center gap-6 rounded-xl border border-border-subtle bg-muted/30 px-6 py-16 text-center">
-      <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+    <div className="animate-in fade-in duration-300 flex flex-col items-center gap-6 rounded-md border border-border-subtle bg-muted/30 px-6 py-16 text-center">
+      <div className="flex size-16 items-center justify-center rounded-md bg-primary/10 text-primary">
         <Plug className="size-8" aria-hidden />
       </div>
       <div className="max-w-sm space-y-2">

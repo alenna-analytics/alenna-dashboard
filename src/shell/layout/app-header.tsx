@@ -14,14 +14,14 @@ export function AppHeader({ className }: { className?: string }) {
     lang === 'es' ? shellT(lang, 'ariaSwitchToEnglish') : shellT(lang, 'ariaSwitchToSpanish')
 
   return (
-    <header className={cn('min-w-0 shrink-0', className)}>
+    <header className={cn('min-w-0 shrink-0 bg-card', className)}>
       <div
         className={cn(
           WORKSPACE_SHELL_COLUMN_CLASS,
           'flex min-h-10 items-center justify-between gap-3 py-2',
         )}
       >
-        <div className="min-w-0 max-w-[min(100%,28rem)]">
+        <div className="min-w-0 max-w-[min(100%,42rem)] flex-1">
           <AppBreadcrumbs className="min-w-0" />
         </div>
         <div className="flex shrink-0 items-center gap-2">

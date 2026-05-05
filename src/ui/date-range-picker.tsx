@@ -248,7 +248,7 @@ export function DateRangePickerPanel({
     <div className="flex flex-col sm:flex-row">
       <nav
         aria-label="Date presets"
-        className="flex w-full shrink-0 flex-col gap-0.5 border-b border-border-subtle/70 p-1.5 sm:w-40 sm:border-b-0 sm:border-r sm:rounded-l-2xl"
+        className="flex w-full shrink-0 flex-col gap-0.5 border-b border-border-subtle/70 p-1.5 sm:w-40 sm:border-b-0 sm:border-r sm:rounded-l-md"
       >
         {presets.map((p) => (
           <React.Fragment key={p.id}>

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 /** Empty / default: dashed pill, compact height (inactive state). */
 export function filterPillInactiveClassName(className?: string): string {
   return cn(
-    'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-dashed border-border-default/80',
+    'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-dashed border-border-default/80',
     'bg-bg-section/50 px-2.5 text-sm font-medium leading-none text-accent shadow-none transition-colors',
     'hover:border-border-strong hover:bg-muted/55',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -15,7 +15,7 @@ export function filterPillInactiveClassName(className?: string): string {
 /** Outer wrap when a value is selected: solid white pill, img 1. */
 export function filterPillActiveShellClassName(className?: string): string {
   return cn(
-    'inline-flex h-8 max-w-full shrink-0 items-stretch overflow-hidden rounded-full border border-border-default',
+    'inline-flex h-8 max-w-full shrink-0 items-stretch overflow-hidden rounded-md border border-border-default',
     'bg-white text-sm leading-none shadow-none',
     className,
   )

@@ -9,6 +9,10 @@ import { Calendar } from '@/ui/calendar'
 import { Popover, PopoverContent } from '@/ui/popover'
 import { FilterPillTriggerArea } from '@/ui/filters/filter-pill-trigger'
 
+const DATE_RANGE_POPOVER_MAX_W = 740
+const DATE_RANGE_VIEWPORT_PAD = 24
+const DATE_RANGE_EDGE_MARGIN = 12
+
 export type DateRangePickerStrings = {
   startLabel: string
   endLabel: string
@@ -113,6 +117,9 @@ function rangeForPreset(id: Exclude<PresetId, 'custom'>): { from: Date; to: Date
     }
   }
 }
+
+/** Min width (px) of the calendar column for two month grids; below this, show one month. */
+const CALENDAR_COLUMN_MIN_FOR_TWO_MONTHS = 520
 
 function guessPreset(from?: Date, to?: Date): PresetId {
   if (!from || !to) return 'custom'
@@ -252,8 +259,25 @@ export function DateRangePickerPanel({
   setVisibleMonth,
   handleApply,
 }: DateRangePickerModel) {
+  const calendarColumnRef = React.useRef<HTMLDivElement>(null)
+  const [numberOfMonths, setNumberOfMonths] = React.useState<1 | 2>(2)
+
+  React.useLayoutEffect(() => {
+    const node = calendarColumnRef.current
+    if (!node || typeof ResizeObserver === 'undefined') return
+    const measure = () => {
+      const w = Math.round(node.getBoundingClientRect().width)
+      if (w < 40) return
+      setNumberOfMonths(w >= CALENDAR_COLUMN_MIN_FOR_TWO_MONTHS ? 2 : 1)
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(node)
+    return () => ro.disconnect()
+  }, [])
+
   return (
-    <div className="flex flex-col sm:flex-row">
+    <div className="flex min-w-0 flex-col sm:flex-row sm:items-stretch">
       <nav
         aria-label="Date presets"
         className="flex w-full shrink-0 flex-col gap-0.5 border-b border-border-subtle/70 p-1.5 sm:w-40 sm:border-b-0 sm:border-r sm:rounded-l-md"
@@ -280,8 +304,11 @@ export function DateRangePickerPanel({
         ))}
       </nav>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="p-2">
+      <div
+        ref={calendarColumnRef}
+        className="flex min-h-88 min-w-0 flex-1 flex-col sm:min-h-96"
+      >
+        <div className="flex min-w-0 flex-1 flex-col p-2">
           <Calendar
             mode="range"
             month={visibleMonth}
@@ -292,7 +319,7 @@ export function DateRangePickerPanel({
               setDraft(range ?? { from: undefined, to: undefined })
               applyPreset('custom')
             }}
-            numberOfMonths={2}
+            numberOfMonths={numberOfMonths}
           />
         </div>
 
@@ -333,7 +360,28 @@ export function DateRangePicker({
   const activeLabel = filterLabel?.trim() ?? ''
   const valueSummary = active ? `${m.startDisplay} - ${m.endDisplay}` : null
 
+  const pickerShellRef = React.useRef<HTMLDivElement>(null)
+  const [popoverAlign, setPopoverAlign] = React.useState<'start' | 'end'>('start')
+
+  React.useLayoutEffect(() => {
+    if (!m.open) {
+      setPopoverAlign('start')
+      return
+    }
+    const root = pickerShellRef.current
+    const btn = root?.querySelector('button[aria-expanded="true"]')
+    if (!(btn instanceof HTMLElement)) return
+    const r = btn.getBoundingClientRect()
+    const vw = window.innerWidth
+    const maxW = Math.min(vw - DATE_RANGE_VIEWPORT_PAD, DATE_RANGE_POPOVER_MAX_W)
+    const overflowRight = r.left + maxW > vw - DATE_RANGE_EDGE_MARGIN
+    const overflowLeftIfEnd = r.right - maxW < DATE_RANGE_EDGE_MARGIN
+    const next: 'start' | 'end' = overflowRight && !overflowLeftIfEnd ? 'end' : 'start'
+    setPopoverAlign(next)
+  }, [m.open])
+
   return (
+    <div ref={pickerShellRef} className="inline-flex max-w-full min-w-0 flex-col">
     <Popover open={m.open} onOpenChange={m.handleOpenChange}>
       <FilterPillTriggerArea
         active={active}
@@ -346,9 +394,12 @@ export function DateRangePicker({
       />
 
       <PopoverContent
-        align="start"
+        align={popoverAlign}
         sideOffset={6}
-        className="w-[min(calc(100vw-24px),740px)] overflow-hidden p-0"
+        positionMethod="fixed"
+        collisionPadding={12}
+        collisionAvoidance={{ side: 'shift', align: 'none', fallbackAxisSide: 'none' }}
+        className="max-h-[min(90dvh,calc(100dvh-32px))] w-[min(calc(100vw-24px),740px)] max-w-[calc(100vw-24px)] min-w-0 overflow-x-auto overflow-y-auto p-0"
       >
         <DateRangePickerPanel
           strings={m.strings}
@@ -363,5 +414,6 @@ export function DateRangePicker({
         />
       </PopoverContent>
     </Popover>
+    </div>
   )
 }

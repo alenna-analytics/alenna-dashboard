@@ -18,6 +18,8 @@ export type ProductCostPriceChartData = {
   series: ProductCostPriceChartSeries[]
 }
 
+type ChartSegment = { effective_from: string; effective_to: string | null; value: number }
+
 function addDaysYmd(ymd: string, deltaDays: number): string {
   const [y, m, d] = ymd.split('-').map(Number)
   const dt = new Date(y, m - 1, d + deltaDays)
@@ -27,39 +29,44 @@ function addDaysYmd(ymd: string, deltaDays: number): string {
   return `${yy}-${mm}-${dd}`
 }
 
-function expandSeriesPoints(
-  segments: ReadonlyArray<{ effective_from: string; effective_to: string | null; value: number }>,
-  todayYmd: string,
-  options?: { zeroFillGaps: boolean },
+/** Inclusive YYYY-MM-DD range (assumes start <= end). */
+function ymdRangeInclusive(start: string, end: string): string[] {
+  if (start > end) return [start]
+  const out: string[] = []
+  let cur = start
+  while (cur <= end) {
+    out.push(cur)
+    cur = addDaysYmd(cur, 1)
+  }
+  return out
+}
+
+/** Value on each calendar day from collapsed [from, to] segments (0 outside segments). */
+export function fillSeriesForDates(
+  segments: ReadonlyArray<ChartSegment>,
+  sortedDates: readonly string[],
 ): Map<string, number> {
-  const zeroFillGaps = options?.zeroFillGaps ?? true
-  const sorted = [...segments].sort((a, b) => a.effective_from.localeCompare(b.effective_from))
+  const sortedSegs = [...segments].sort((a, b) => a.effective_from.localeCompare(b.effective_from))
   const out = new Map<string, number>()
-  if (sorted.length === 0) {
-    out.set(todayYmd, 0)
+  if (sortedSegs.length === 0) {
+    for (const d of sortedDates) out.set(d, 0)
     return out
   }
-
-  for (let i = 0; i < sorted.length; i++) {
-    const seg = sorted[i]
-    const next = sorted[i + 1]
-    out.set(seg.effective_from, seg.value)
-    if (!seg.effective_to) continue
-
-    const gapStart = addDaysYmd(seg.effective_to, 1)
-    if (next) {
-      if (zeroFillGaps && gapStart < next.effective_from) out.set(gapStart, 0)
-    } else if (gapStart <= todayYmd) {
-      if (zeroFillGaps) {
-        out.set(gapStart, 0)
-        out.set(todayYmd, 0)
+  let j = 0
+  for (const d of sortedDates) {
+    while (j < sortedSegs.length && sortedSegs[j].effective_from <= d) {
+      j += 1
+    }
+    const k = j - 1
+    let value = 0
+    if (k >= 0) {
+      const seg = sortedSegs[k]
+      const to = seg.effective_to
+      if (to == null || to === '' || d <= to) {
+        value = seg.value
       }
     }
-  }
-
-  const last = sorted[sorted.length - 1]
-  if (!last.effective_to && last.effective_from < todayYmd) {
-    out.set(todayYmd, last.value)
+    out.set(d, value)
   }
   return out
 }
@@ -80,9 +87,29 @@ export function buildProductCostPriceChartData(
   options: { todayYmd: string; baseCurrency: string },
 ): ProductCostPriceChartData {
   const { todayYmd, baseCurrency } = options
+  const boundaryDates = new Set<string>([todayYmd])
+  for (const s of costSegments) {
+    boundaryDates.add(s.effective_from)
+    if (s.effective_to) boundaryDates.add(s.effective_to)
+  }
+  for (const s of listingPriceSegments) {
+    boundaryDates.add(s.effective_from)
+    if (s.effective_to) boundaryDates.add(s.effective_to)
+  }
+  const sortedBoundary = [...boundaryDates].sort((a, b) => a.localeCompare(b))
+  const minD = sortedBoundary[0] ?? todayYmd
+  const maxD = sortedBoundary[sortedBoundary.length - 1] ?? todayYmd
+  const endD = maxD >= todayYmd ? maxD : todayYmd
+  const sortedDates = ymdRangeInclusive(minD, endD)
+
   const seriesPoints = new Map<string, Map<string, number>>()
   const seriesMeta: ProductCostPriceChartSeries[] = []
 
+  const costSegs: ChartSegment[] = costSegments.map((s) => ({
+    effective_from: s.effective_from,
+    effective_to: s.effective_to,
+    value: s.cost,
+  }))
   seriesMeta.push({
     key: 'cost',
     label: 'Costo',
@@ -90,18 +117,7 @@ export function buildProductCostPriceChartData(
     color: '#111111',
     kind: 'cost',
   })
-  seriesPoints.set(
-    'cost',
-    expandSeriesPoints(
-      costSegments.map((s) => ({
-        effective_from: s.effective_from,
-        effective_to: s.effective_to,
-        value: s.cost,
-      })),
-      todayYmd,
-      { zeroFillGaps: true },
-    ),
-  )
+  seriesPoints.set('cost', fillSeriesForDates(costSegs, sortedDates))
 
   const grouped = new Map<string, ProductListingPriceSegmentApi[]>()
   for (const seg of listingPriceSegments) {
@@ -122,25 +138,14 @@ export function buildProductCostPriceChartData(
       kind: 'channel',
     })
     colorIdx += 1
-    seriesPoints.set(
-      key,
-      expandSeriesPoints(
-        rows.map((s) => ({
-          effective_from: s.effective_from,
-          effective_to: s.effective_to,
-          value: s.price,
-        })),
-        todayYmd,
-        { zeroFillGaps: false },
-      ),
-    )
+    const priceSegs: ChartSegment[] = rows.map((s) => ({
+      effective_from: s.effective_from,
+      effective_to: s.effective_to,
+      value: s.price,
+    }))
+    seriesPoints.set(key, fillSeriesForDates(priceSegs, sortedDates))
   }
 
-  const dateKeys = new Set<string>([todayYmd])
-  for (const points of seriesPoints.values()) {
-    for (const d of points.keys()) dateKeys.add(d)
-  }
-  const sortedDates = [...dateKeys].sort((a, b) => a.localeCompare(b))
   const points: ProductCostPriceChartPoint[] = sortedDates.map((d) => ({
     dateKey: d,
     values: Object.fromEntries(seriesMeta.map((s) => [s.key, seriesPoints.get(s.key)?.get(d) ?? 0])),

@@ -1,5 +1,4 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import type { ReactNode } from "react"
 import { Link } from "react-router-dom"
 import { MoreHorizontal } from "lucide-react"
 
@@ -23,7 +22,7 @@ import { ProductTableThumb } from "./product-table-thumb"
 /** Same width for Marca + SKU so both columns line up. */
 const META_BRAND_SKU_COL = {
   headerClassName: "w-44 min-w-44 max-w-44",
-  cellClassName: "w-44 min-w-44 max-w-44 overflow-hidden align-top whitespace-normal",
+  cellClassName: "w-44 min-w-44 max-w-44 overflow-hidden align-middle whitespace-normal",
 } as const
 
 export type ProductTableColumnLabels = {
@@ -58,14 +57,6 @@ function statusPillClass(status: string): string {
     default:
       return "bg-muted text-muted-foreground"
   }
-}
-
-function CostMissingPill({ children }: { children: ReactNode }) {
-  return (
-    <span className="inline-flex rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-200">
-      {children}
-    </span>
-  )
 }
 
 function statusLabel(t: (key: ShellStringKey) => string, status: string): string {
@@ -121,7 +112,7 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
       meta: {
         headerClassName: "min-w-[17rem] max-w-[min(30rem,42vw)]",
         cellClassName:
-          "min-w-[17rem] max-w-[min(30rem,42vw)] overflow-hidden align-top whitespace-normal",
+          "min-w-[17rem] max-w-[min(30rem,42vw)] overflow-hidden align-middle whitespace-normal",
       },
       header: ({ column }) => <DataTableColumnHeader column={column} title={t("productsColProduct")} />,
       cell: ({ row }) => {
@@ -207,7 +198,9 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
         }
         return (
           <div className="flex justify-end">
-            <CostMissingPill>{t("productsCostMissingBadge")}</CostMissingPill>
+            <span className="inline-flex rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-200">
+              {t("productsCostMissingBadge")}
+            </span>
           </div>
         )
       },

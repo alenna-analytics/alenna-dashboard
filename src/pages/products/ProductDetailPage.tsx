@@ -57,6 +57,20 @@ import {
 
 const NUM = 'font-numeric tabular-nums'
 
+function costAmountWithBaseCode(
+  formatted: string,
+  baseCurrency: string,
+  codeClassName: string,
+) {
+  if (formatted === '—') return formatted
+  return (
+    <>
+      {formatted}
+      <span className={cn('whitespace-nowrap font-medium text-text-tertiary', codeClassName)}> {baseCurrency}</span>
+    </>
+  )
+}
+
 function todayYmd(): string {
   const d = new Date()
   const y = d.getFullYear()
@@ -331,7 +345,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
   }
 
   const job = jobQuery.data
-  const bigCost = detail.cost != null ? fmtBase(detail.cost) : '—'
+  const bigCostFormatted = detail.cost != null ? fmtBase(detail.cost) : '—'
   const updatedDays = daysSinceUpdated(detail.updated_at)
   const updatedBadge =
     updatedDays <= 0
@@ -458,7 +472,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
         </div>
         <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
           <div className={cn('text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl', NUM)}>
-            {bigCost}
+            {costAmountWithBaseCode(bigCostFormatted, baseCurrency, 'text-lg sm:text-2xl')}
           </div>
           <Badge variant="secondary" className={cn('font-normal', NUM)}>
             {updatedBadge}
@@ -491,7 +505,11 @@ function ProductDetailBody({ productId }: { productId: string }) {
           </CardHeader>
           <CardContent className="pt-0">
             <p className={cn('text-lg font-semibold text-text-primary sm:text-xl', NUM)}>
-              {detail.cost != null ? fmtBase(detail.cost) : '—'}
+              {costAmountWithBaseCode(
+                detail.cost != null ? fmtBase(detail.cost) : '—',
+                baseCurrency,
+                'text-xs sm:text-sm',
+              )}
             </p>
           </CardContent>
         </Card>
@@ -503,7 +521,11 @@ function ProductDetailBody({ productId }: { productId: string }) {
           </CardHeader>
           <CardContent className="pt-0">
             <p className={cn('text-lg font-semibold text-text-primary sm:text-xl', NUM)}>
-              {avgHistory != null ? fmtBase(avgHistory) : '—'}
+              {costAmountWithBaseCode(
+                avgHistory != null ? fmtBase(avgHistory) : '—',
+                baseCurrency,
+                'text-xs sm:text-sm',
+              )}
             </p>
           </CardContent>
         </Card>
@@ -589,7 +611,9 @@ function ProductDetailBody({ productId }: { productId: string }) {
               </Button>
             </CardHeader>
             <CardContent className="space-y-2 px-3 pb-3 pt-0">
-              <p className={cn('text-2xl font-semibold text-text-primary sm:text-3xl', NUM)}>{bigCost}</p>
+              <p className={cn('text-2xl font-semibold text-text-primary sm:text-3xl', NUM)}>
+                {costAmountWithBaseCode(bigCostFormatted, baseCurrency, 'text-base sm:text-xl')}
+              </p>
               <dl className="space-y-1.5 text-xs text-text-secondary">
                 <div>
                   <dt className="text-text-tertiary">{t('productsDetailEffectiveSince')}</dt>

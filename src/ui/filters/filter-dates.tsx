@@ -52,7 +52,12 @@ export function FilterDates({
       <PopoverContent
         align="start"
         sideOffset={6}
-        className={cn('w-[min(calc(100vw-24px),740px)] overflow-hidden p-0')}
+        positionMethod="fixed"
+        collisionPadding={12}
+        collisionAvoidance={{ side: 'shift', align: 'none', fallbackAxisSide: 'none' }}
+        className={cn(
+          'max-h-[min(90dvh,calc(100dvh-32px))] w-[min(calc(100vw-24px),740px)] max-w-[calc(100vw-24px)] min-w-0 overflow-x-auto overflow-y-auto p-0',
+        )}
       >
         <DateRangePickerPanel
           strings={m.strings}

@@ -76,7 +76,7 @@ export function IntegrationListCard({
           {integration.available ? (
             <Button
               type="button"
-              variant="outline"
+              variant="default"
               className="gap-2 text-sm"
               onClick={onManage}
             >

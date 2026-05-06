@@ -3,16 +3,12 @@ import { useState } from "react"
 import { shellT } from "@/lib/i18n/shell-strings"
 import { useLanguage } from "@/shell/providers/language-provider"
 import { DashboardPage } from "@/shell/layout/dashboard-page"
-import { Button } from "@/ui/button"
-import { Input } from "@/ui/input"
-
 import { ProductsDataTable } from "./ProductsDataTable"
 
 export function ProductsListPage() {
   const { lang } = useLanguage()
   const t = (k: Parameters<typeof shellT>[1]) => shellT(lang, k)
   const [q, setQ] = useState("")
-  const [submittedQ, setSubmittedQ] = useState("")
 
   const empty = <p className="text-sm text-text-secondary">{t("productsCatalogEmptyTitle")}</p>
 
@@ -29,25 +25,13 @@ export function ProductsListPage() {
         </div>
       </header>
 
-      <form
-        className="flex max-w-xl flex-col gap-3 sm:flex-row sm:items-center"
-        onSubmit={(e) => {
-          e.preventDefault()
-          setSubmittedQ(q)
-        }}
-      >
-        <Input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={t("productsSearchPlaceholder")}
-          className="flex-1"
-        />
-        <Button type="submit" variant="secondary">
-          {t("productsSearchAction")}
-        </Button>
-      </form>
-
-      <ProductsDataTable submittedQ={submittedQ} t={t} emptyContent={empty} errorContent={errorContent} />
+      <ProductsDataTable
+        searchQ={q}
+        onSearchQChange={setQ}
+        t={t}
+        emptyContent={empty}
+        errorContent={errorContent}
+      />
     </DashboardPage>
   )
 }

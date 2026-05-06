@@ -30,6 +30,17 @@ import { useMoney } from "@/hooks/use-money"
 
 const PAGE_SIZE = 10
 const WATCH_STORAGE_KEY = "alenna.catalog.productWatchIds.v1"
+const COLUMN_LABEL_KEY_BY_ID = {
+  image: "productsColImage",
+  title: "productsColProduct",
+  status: "productsColStatus",
+  platforms: "productsColChannels",
+  brand: "productsColBrand",
+  internal_sku: "productsColSku",
+  cost: "productsColCost",
+  listing_count: "productsColListings",
+  created_at: "productsTableColCreated",
+} as const
 
 function readWatchedIds(): Set<string> {
   try {
@@ -44,13 +55,20 @@ function readWatchedIds(): Set<string> {
 }
 
 type ProductsDataTableProps = {
-  submittedQ: string
+  searchQ: string
+  onSearchQChange: (value: string) => void
   t: (key: ShellStringKey) => string
   emptyContent: React.ReactNode
   errorContent: React.ReactNode
 }
 
-export function ProductsDataTable({ submittedQ, t, emptyContent, errorContent }: ProductsDataTableProps) {
+export function ProductsDataTable({
+  searchQ,
+  onSearchQChange,
+  t,
+  emptyContent,
+  errorContent,
+}: ProductsDataTableProps) {
   const navigate = useNavigate()
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: PAGE_SIZE })
   const [sorting, setSorting] = useState<SortingState>([{ id: "title", desc: false }])
@@ -71,14 +89,14 @@ export function ProductsDataTable({ submittedQ, t, emptyContent, errorContent }:
 
   useEffect(() => {
     setPagination((p) => ({ ...p, pageIndex: 0 }))
-  }, [submittedQ, sortBy, sortDir])
+  }, [searchQ, sortBy, sortDir])
 
   useEffect(() => {
     setRowSelection({})
-  }, [submittedQ])
+  }, [searchQ])
 
   const listQuery = useProductListQuery({
-    q: submittedQ,
+    q: searchQ,
     limit: pagination.pageSize,
     offset: pagination.pageIndex * pagination.pageSize,
     sortBy,
@@ -163,6 +181,13 @@ export function ProductsDataTable({ submittedQ, t, emptyContent, errorContent }:
   })
 
   const selectedCount = table.getSelectedRowModel().rows.length
+  const getColumnLabel = useCallback(
+    (columnId: string) => {
+      const key = COLUMN_LABEL_KEY_BY_ID[columnId as keyof typeof COLUMN_LABEL_KEY_BY_ID]
+      return key ? t(key) : columnId
+    },
+    [t]
+  )
 
   if (listQuery.isError) {
     return <div className="rounded-md border border-border-subtle bg-bg-section px-4 py-10 text-sm">{errorContent}</div>
@@ -178,71 +203,55 @@ export function ProductsDataTable({ submittedQ, t, emptyContent, errorContent }:
         emptyContent={emptyContent}
         skeletonRowCount={PAGE_SIZE}
         toolbar={
-          <div className="flex w-full min-w-0 items-center justify-between gap-2">
-            <div className="min-w-0 flex flex-wrap items-center gap-2">
-              {selectedCount > 0 ? (
-                <div className="flex items-center gap-2 rounded-md border border-border-subtle bg-glass-fill-muted px-3 py-1 text-xs font-medium text-text-primary">
-                  <span>
-                    {selectedCount} {t("productsTableSelected")}
-                  </span>
-                  <Button type="button" variant="ghost" size="xs" onClick={() => setRowSelection({})}>
-                    {t("productsTableClearSelection")}
-                  </Button>
-                </div>
-              ) : null}
-            </div>
-            <div className="shrink-0">
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  type="button"
-                  className="inline-flex size-8 items-center justify-center rounded-full border border-transparent text-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30"
-                  aria-label={t("productsTableColumns")}
-                >
-                  <Columns3 className="size-4 shrink-0" aria-hidden />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel>{t("productsTableColumns")}</DropdownMenuLabel>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    {table
-                      .getAllColumns()
-                      .filter((col) => col.getCanHide())
-                      .map((column) => (
-                        <DropdownMenuCheckboxItem
-                          key={column.id}
-                          className="capitalize"
-                          checked={column.getIsVisible()}
-                          onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                        >
-                          {column.id === "image"
-                            ? t("productsColImage")
-                            : column.id === "title"
-                              ? t("productsColProduct")
-                              : column.id === "status"
-                                ? t("productsColStatus")
-                                : column.id === "platforms"
-                                  ? t("productsColChannels")
-                                  : column.id === "brand"
-                                    ? t("productsColBrand")
-                                    : column.id === "internal_sku"
-                                      ? t("productsColSku")
-                                      : column.id === "cost"
-                                        ? t("productsColCost")
-                                        : column.id === "listing_count"
-                                          ? t("productsColListings")
-                                          : column.id === "created_at"
-                                            ? t("productsTableColCreated")
-                                            : column.id}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                  </DropdownMenuGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+          <div className="flex min-w-0 items-center gap-2">
+            {selectedCount > 0 ? (
+              <div className="flex items-center gap-2 rounded-md border border-border-subtle bg-glass-fill-muted px-3 py-1 text-xs font-medium text-text-primary">
+                <span>
+                  {selectedCount} {t("productsTableSelected")}
+                </span>
+                <Button type="button" variant="ghost" size="xs" onClick={() => setRowSelection({})}>
+                  {t("productsTableClearSelection")}
+                </Button>
+              </div>
+            ) : null}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                type="button"
+                className="inline-flex size-8 items-center justify-center rounded-full border border-transparent text-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30"
+                aria-label={t("productsTableColumns")}
+              >
+                <Columns3 className="size-4 shrink-0" aria-hidden />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>{t("productsTableColumns")}</DropdownMenuLabel>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  {table
+                    .getAllColumns()
+                    .filter((col) => col.getCanHide())
+                    .map((column) => (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                      >
+                        {getColumnLabel(column.id)}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         }
+        search={{
+          value: searchQ,
+          onChange: onSearchQChange,
+          placeholder: t("productsSearchPlaceholder"),
+          ariaLabel: t("productsSearchPlaceholder"),
+        }}
         footer={
           <DataTablePagination
             table={table}

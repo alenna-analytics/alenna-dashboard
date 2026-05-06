@@ -23,7 +23,7 @@ export function BootSpinner({ className = 'size-[52px]', 'aria-label': ariaLabel
         cx="26"
         cy="26"
         r={SPINNER_R}
-        stroke="var(--border-subtle)"
+        stroke="rgba(0, 0, 0, 0.2)"
         strokeWidth="3"
         fill="none"
       />
@@ -35,7 +35,7 @@ export function BootSpinner({ className = 'size-[52px]', 'aria-label': ariaLabel
           cx="26"
           cy="26"
           r={SPINNER_R}
-          stroke="var(--brand)"
+          stroke="var(--ink)"
           strokeWidth="3"
           strokeLinecap="round"
           strokeDasharray={`${SPINNER_ARC} ${SPINNER_C - SPINNER_ARC}`}

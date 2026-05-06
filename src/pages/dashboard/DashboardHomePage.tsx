@@ -10,7 +10,6 @@ import { apiFetch } from '@/lib/api'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
-import { BootSpinner } from '@/ui/boot-spinner'
 import { Skeleton } from '@/ui/skeleton'
 import { DateRangePicker } from '@/ui/date-range-picker'
 import { KpiCard } from '@/ui/kpi-card'
@@ -79,19 +78,19 @@ function DashboardHomeLoadingSkeleton({ chartRegionLabel }: { chartRegionLabel: 
     <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <div
-          className="flex min-w-0 flex-col gap-2.5 rounded-md border border-white/25 bg-[var(--color-accent-forest)] p-3.5 sm:p-4"
+          className="flex min-w-0 flex-col gap-2.5 rounded-md border border-[var(--shell-structure-border)] bg-white p-3.5 sm:p-4"
           aria-hidden
         >
           <div className="flex w-full min-w-0 items-start justify-between gap-2">
-            <div className="h-5 w-28 max-w-[70%] animate-pulse rounded-md bg-white/25" />
-            <div className="size-5 shrink-0 animate-pulse rounded-full bg-white/15" />
+            <Skeleton className="h-5 w-28 max-w-[70%]" />
+            <Skeleton className="size-5 shrink-0 rounded-full" />
           </div>
-          <div className="h-[1.75rem] w-36 max-w-full animate-pulse rounded-md bg-white/30 sm:h-8" />
+          <Skeleton className="h-[1.75rem] w-36 max-w-full sm:h-8" />
           <div className="mt-1 space-y-2">
-            <div className="h-3 w-24 animate-pulse rounded-md bg-white/20" />
+            <Skeleton className="h-3 w-24" />
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <div className="h-6 w-20 animate-pulse rounded-md bg-white/25" />
-              <div className="h-6 w-14 animate-pulse rounded-md bg-white/20" />
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-6 w-14 rounded-md" />
             </div>
           </div>
         </div>
@@ -345,15 +344,7 @@ export function DashboardHomePage() {
         </div>
       </header>
 
-      {connectorsLoading ? (
-        <div
-          className="flex min-h-[12rem] items-center justify-center rounded-md border border-[var(--shell-structure-border)] bg-[var(--bg-base)]/35 px-6 py-8"
-          aria-busy
-          aria-label={t('bootLoadingLabel')}
-        >
-          <BootSpinner />
-        </div>
-      ) : displayKpi === null ? (
+      {displayKpi === null ? (
         <DashboardHomeLoadingSkeleton chartRegionLabel={t('shellHomeChartRegion')} />
       ) : (
         <>
@@ -365,40 +356,40 @@ export function DashboardHomePage() {
             helpText={t('reportsKpiHelpNetRevenue')}
             value={formatMoney(displayKpi.net_revenue, { nativeCurrency: currency })}
             vsPriorLabel={vsPrior}
-            priorValueDisplay={net.priorDisplay}
-            pct={net.pct}
-            trend={net.trend}
-            comparisonUnavailable={net.unavailable}
+            priorValueDisplay={net!.priorDisplay}
+            pct={net!.pct}
+            trend={net!.trend}
+            comparisonUnavailable={net!.unavailable}
           />
           <KpiCard
             label={t('reportsEbitda')}
             helpText={t('reportsKpiHelpEbitda')}
             value={formatMoney(displayKpi.ebitda, { nativeCurrency: currency })}
             vsPriorLabel={vsPrior}
-            priorValueDisplay={ebitda.priorDisplay}
-            pct={ebitda.pct}
-            trend={ebitda.trend}
-            comparisonUnavailable={ebitda.unavailable}
+            priorValueDisplay={ebitda!.priorDisplay}
+            pct={ebitda!.pct}
+            trend={ebitda!.trend}
+            comparisonUnavailable={ebitda!.unavailable}
           />
           <KpiCard
             label={t('reportsKpiMargenBrutoPct')}
             helpText={t('reportsKpiHelpMargenBrutoPct')}
             value={`${displayKpi.gross_margin_pct.toFixed(1)}%`}
             vsPriorLabel={vsPrior}
-            priorValueDisplay={margin.priorDisplay}
-            pct={margin.pct}
-            trend={margin.trend}
-            comparisonUnavailable={margin.unavailable}
+            priorValueDisplay={margin!.priorDisplay}
+            pct={margin!.pct}
+            trend={margin!.trend}
+            comparisonUnavailable={margin!.unavailable}
           />
           <KpiCard
             label={t('reportsOrders')}
             helpText={t('reportsKpiHelpOrders')}
             value={displayKpi.order_count.toLocaleString()}
             vsPriorLabel={vsPrior}
-            priorValueDisplay={ord.priorDisplay}
-            pct={ord.pct}
-            trend={ord.trend}
-            comparisonUnavailable={ord.unavailable}
+            priorValueDisplay={ord!.priorDisplay}
+            pct={ord!.pct}
+            trend={ord!.trend}
+            comparisonUnavailable={ord!.unavailable}
             showComparison={orders > 0}
           />
           <KpiCard

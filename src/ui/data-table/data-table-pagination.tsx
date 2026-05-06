@@ -47,26 +47,28 @@ export function DataTablePagination<TData>({
 }: DataTablePaginationProps<TData>) {
   const pageIndex = table.getState().pagination.pageIndex
   const pageCount = table.getPageCount()
-  const page = pageIndex + 1
+  const totalItems = table.getRowCount()
   const pageItems = getPaginationPageItems(pageIndex, pageCount)
 
-  const segmentedBtn =
-    "size-9 min-w-9 shrink-0 rounded-none border-0 px-0 shadow-none first:rounded-l-md last:rounded-r-md focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&_svg]:pointer-events-none [&_svg]:size-4"
+  const baseBtn =
+    "size-7 min-w-7 shrink-0 border-0 bg-transparent px-0 text-foreground shadow-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring hover:bg-[color-mix(in_srgb,var(--bg-section)_72%,white_28%)] [&_svg]:pointer-events-none [&_svg]:size-4"
+  const pageBtn = `${baseBtn} rounded-full font-medium tabular-nums`
+  const arrowBtn = `${baseBtn} rounded-sm`
 
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-between gap-3 border-t border-border-subtle px-3 py-3 sm:flex-row",
+        "flex flex-col items-center justify-between gap-3 border-t border-border-subtle px-3 py-3 sm:flex-row bg-glass-fill-raised rounded-b-md",
         className
       )}
     >
-      <p className="text-xs text-muted-foreground sm:text-sm">{labels.pageStatus(page, pageCount)}</p>
-      <div className="inline-flex max-w-full flex-nowrap divide-x divide-border-subtle overflow-hidden rounded-md border border-border-default bg-bg-elevated">
+      <p className="text-xs text-muted-foreground sm:text-sm">{`Total: ${totalItems}`}</p>
+      <div className="inline-flex max-w-full flex-nowrap items-center gap-1 overflow-hidden">
         <Button
           type="button"
           variant="outline"
           size="icon-sm"
-          className={cn(segmentedBtn, "bg-bg-elevated hover:bg-bg-surface")}
+          className={arrowBtn}
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
           aria-label={labels.ariaPrevious}
@@ -78,8 +80,8 @@ export function DataTablePagination<TData>({
             <span
               key={`e-${idx}`}
               className={cn(
-                segmentedBtn,
-                "pointer-events-none flex items-center justify-center bg-bg-elevated font-medium tabular-nums text-muted-foreground"
+                pageBtn,
+                "pointer-events-none flex items-center justify-center text-muted-foreground"
               )}
               aria-hidden
             >
@@ -89,12 +91,13 @@ export function DataTablePagination<TData>({
             <Button
               key={item}
               type="button"
-              variant={item === pageIndex ? "default" : "outline"}
+              variant="outline"
               size="icon-sm"
               className={cn(
-                segmentedBtn,
-                "font-medium tabular-nums",
-                item === pageIndex ? null : "bg-bg-elevated hover:bg-bg-surface"
+                pageBtn,
+                item === pageIndex
+                  ? "bg-secondary text-secondary-foreground hover:bg-secondary"
+                  : "bg-transparent"
               )}
               onClick={() => table.setPageIndex(item)}
               aria-label={labels.pageButtonAria(item + 1, pageCount)}
@@ -108,7 +111,7 @@ export function DataTablePagination<TData>({
           type="button"
           variant="outline"
           size="icon-sm"
-          className={cn(segmentedBtn, "bg-bg-elevated hover:bg-bg-surface")}
+          className={arrowBtn}
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
           aria-label={labels.ariaNext}

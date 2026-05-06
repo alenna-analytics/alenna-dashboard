@@ -109,7 +109,7 @@ export function KpiCard({
       className={cn(
         'flex min-w-0 flex-col gap-2.5 rounded-md p-3.5 text-left sm:p-4',
         featured
-          ? 'border border-white/25 bg-[var(--color-accent-forest)] text-white shadow-none'
+          ? 'border border-white/25 bg-[var(--country-green-base)] text-white shadow-none'
           : 'border border-[var(--shell-structure-border)] bg-white text-[var(--color-text-primary)] shadow-none',
         className,
       )}

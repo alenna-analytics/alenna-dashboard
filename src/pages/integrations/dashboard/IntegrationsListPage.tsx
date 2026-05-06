@@ -1,17 +1,9 @@
-import { useMemo, useState } from 'react'
-import { formatDistanceToNow } from 'date-fns'
-import { es as dateFnsEs } from 'date-fns/locale'
+import { useState } from 'react'
 
 import { IntegrationManageSheet } from '@/pages/integrations/dashboard/integration-manage-sheet'
-import {
-  integrationCategory,
-  integrationDescription,
-  integrationTitle,
-} from '@/pages/integrations/dashboard/integration-display'
 import { IntegrationCardSkeleton } from '@/pages/integrations/dashboard/integration-card-skeleton'
 import { IntegrationListCard } from '@/pages/integrations/dashboard/integration-list-card'
 import { IntegrationsDisconnectDialog } from '@/pages/integrations/dashboard/integrations-disconnect-dialog'
-import { IntegrationsSearchField } from '@/pages/integrations/dashboard/integrations-search-field'
 import { IntegrationsErrorState } from '@/pages/integrations/dashboard/integrations-error-state'
 import { IntegrationsEmptyState } from '@/pages/integrations/dashboard/integrations-empty-state'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
@@ -20,15 +12,8 @@ import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { shellT } from '@/lib/i18n/shell-strings'
 
-function formatUpdatedAt(ts: number, lang: string): string {
-  if (!ts) return ''
-  const locale = lang === 'en' ? undefined : dateFnsEs
-  return formatDistanceToNow(new Date(ts), { addSuffix: true, locale })
-}
-
 export function IntegrationsListPage() {
   const { lang } = useLanguage()
-  const [q, setQ] = useState('')
   const [managedSlug, setManagedSlug] = useState<string | null>(null)
   const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false)
 
@@ -36,53 +21,27 @@ export function IntegrationsListPage() {
   const { isAdmin, connected: shopifyConnected, disconnectMutation } =
     shopifyIntegration
 
-  const { integrations, pageLoading, pageError, isFetching, dataUpdatedAt, refetch } =
+  const { integrations, pageLoading, pageError, isFetching, refetch } =
     useIntegrationsListQueries()
-
-  const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase()
-    if (!needle) return integrations
-    return integrations.filter((i) => {
-      const name = integrationTitle(lang, i).toLowerCase()
-      const cat = integrationCategory(lang, i).toLowerCase()
-      const desc = integrationDescription(lang, i).toLowerCase()
-      return (
-        name.includes(needle) ||
-        cat.includes(needle) ||
-        desc.includes(needle) ||
-        i.slug.toLowerCase().includes(needle)
-      )
-    })
-  }, [q, lang, integrations])
 
   const managed = managedSlug
     ? integrations.find((x) => x.slug === managedSlug)
     : undefined
 
   const hasData = integrations.length > 0
-  const isSearching = q.trim().length > 0
-  const updatedLabel =
-    dataUpdatedAt > 0 ? formatUpdatedAt(dataUpdatedAt, lang) : null
 
   return (
     <DashboardPage className="space-y-8">
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+      <section className="grid gap-6">
         <div className="max-w-xl">
-          <h1 className="max-w-[12ch] text-4xl font-semibold tracking-[-0.045em] text-text-primary sm:text-5xl lg:text-[4.25rem]">
+          <h1 className="text-3xl font-semibold tracking-[-0.04em] text-text-primary sm:text-4xl">
             {shellT(lang, 'integrationsHeroTitle')}
           </h1>
           <p className="mt-1.5 max-w-xl text-sm text-text-secondary">
             {shellT(lang, 'integrationsHeroSubtitle')}
           </p>
         </div>
-        {updatedLabel && !pageLoading ? (
-          <p className="shrink-0 pt-1 text-xs text-muted-foreground">
-            {shellT(lang, 'integrationsLastUpdated')} {updatedLabel}
-          </p>
-        ) : null}
       </section>
-
-      <IntegrationsSearchField lang={lang} value={q} onChange={setQ} />
 
       {pageLoading ? (
         <ul
@@ -101,15 +60,11 @@ export function IntegrationsListPage() {
           isRetrying={isFetching}
           onRetry={refetch}
         />
-      ) : !hasData && !isSearching ? (
+      ) : !hasData ? (
         <IntegrationsEmptyState
           lang={lang}
           onExplore={() => setManagedSlug('shopify')}
         />
-      ) : filtered.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          {shellT(lang, 'integrationsEmptySearch')}
-        </p>
       ) : (
         <>
           {pageError ? (
@@ -121,7 +76,7 @@ export function IntegrationsListPage() {
             />
           ) : null}
           <ul className="grid list-none gap-4 sm:grid-cols-2">
-            {filtered.map((integration) => (
+            {integrations.map((integration) => (
               <IntegrationListCard
                 key={integration.slug}
                 integration={integration}

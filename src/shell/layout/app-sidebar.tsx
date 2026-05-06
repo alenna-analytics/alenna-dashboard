@@ -19,24 +19,24 @@ function linkClassNames(isActive: boolean, collapsed: boolean): string {
   const baseTrans =
     'text-sm font-medium transition-[background-color,color,transform] duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
   const active = cn(
-    'bg-primary text-primary-foreground shadow-none',
-    '[&_svg]:text-primary-foreground [&_svg]:opacity-100',
+    'bg-none text-[var(--sidebar-active-foreground)] font-bold shadow-none',
+    '[&_svg]:text-[var(--sidebar-active-foreground)] [&_svg]:opacity-100',
   )
   const inactive = cn(
-    'text-text-secondary hover:bg-brand-dim hover:text-text-primary',
+    'text-text-secondary hover:bg-[var(--sidebar-accent)] hover:text-[var(--sidebar-accent-foreground)]',
     !collapsed && '[&_svg]:opacity-75',
     !collapsed && 'hover:[&_svg]:opacity-100',
   )
   if (collapsed) {
     return cn(
       baseTrans,
-      'flex size-8 shrink-0 items-center justify-center rounded-md',
+      'flex size-8 shrink-0 items-center justify-center rounded-sm',
       isActive ? active : inactive,
     )
   }
   return cn(
     baseTrans,
-    'flex items-center gap-3 rounded-md px-4 py-1.5',
+    'flex items-center gap-3 rounded-sm px-4 py-1.5',
     isActive ? active : inactive,
   )
 }

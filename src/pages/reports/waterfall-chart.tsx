@@ -99,6 +99,35 @@ function fmt(value: number): string {
   return value.toFixed(0)
 }
 
+function fmtChip(value: number): string {
+  if (Math.abs(value) >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(2)}M`
+  }
+  if (Math.abs(value) >= 1_000) {
+    return `${(value / 1_000).toFixed(2)}K`
+  }
+  return value.toFixed(2)
+}
+
+function niceStep(rawStep: number): number {
+  if (!Number.isFinite(rawStep) || rawStep <= 0) return 1
+  const magnitude = 10 ** Math.floor(Math.log10(rawStep))
+  const normalized = rawStep / magnitude
+  if (normalized <= 1) return magnitude
+  if (normalized <= 2) return 2 * magnitude
+  if (normalized <= 3) return 3 * magnitude
+  if (normalized <= 5) return 5 * magnitude
+  return 10 * magnitude
+}
+
+function buildAxisTicks(maxValue: number, segments = 4): { domainMax: number; ticks: number[] } {
+  const safeMax = Math.max(1, maxValue)
+  const step = niceStep(safeMax / segments)
+  const domainMax = step * segments
+  const ticks = Array.from({ length: segments + 1 }, (_, i) => i * step)
+  return { domainMax, ticks }
+}
+
 function xAxisLabelLines(name: string): { line1: string; line2: string | null } {
   const t = name.trim()
   if (t.length <= 12) {
@@ -236,27 +265,26 @@ function buildBars(segments: Segment[], grossRevenue: number): WaterfallBar[] {
 }
 
 /** Full negative bar fill — KPI bad-delta palette (`kpi-card.tsx`). */
-const WF_NEG_BG = 'var(--kpi-pill-negative-bg)'
-const WF_NEG_TEXT = 'var(--kpi-pill-negative-text)'
+const WF_NEG_BG = 'var(--status-red-600)'
+const WF_NEG_TEXT = 'var(--ink)'
 /** Gray only for floating spacer above the bridge (not the bar itself). */
 const WF_GAP_FILL = 'var(--chart-wf-negative-neutral-fill)'
-const WF_GAP_STROKE = 'var(--chart-wf-negative-neutral-stroke)'
 
 function barFillSolid(payload: WaterfallBar): string {
   if (payload.isSubtotal) {
-    return 'var(--primary)'
+    return 'var(--country-green-base)'
   }
   if (payload.isNegative) {
     return WF_NEG_BG
   }
-  return 'var(--primary)'
+  return 'var(--country-green-base)'
 }
 
 function labelFillForBar(row: WaterfallBar | undefined): string {
   if (!row) return 'var(--text-primary)'
-  if (row.isSubtotal) return 'var(--primary-foreground)'
+  if (row.isSubtotal) return 'var(--secondary-foreground)'
   if (row.isNegative) return WF_NEG_TEXT
-  if (row.stackedParts && row.stackedParts.length > 0) return 'var(--primary-foreground)'
+  if (row.stackedParts && row.stackedParts.length > 0) return 'var(--secondary-foreground)'
   return 'var(--text-primary)'
 }
 
@@ -272,7 +300,7 @@ function SpacerHatchShape(props: BarShapeProps) {
   const w = props.width ?? 0
   const h = props.height ?? 0
   if (h <= 0 || w <= 0) return null
-  const rx = Math.min(12, w / 2, h / 2)
+  const rx = Math.min(6, w / 2, h / 2)
   const neg = isNegativeSegmentPayload(payload)
   return (
     <rect
@@ -283,9 +311,6 @@ function SpacerHatchShape(props: BarShapeProps) {
       fill={neg ? WF_GAP_FILL : 'url(#wfUnfilledHatch)'}
       rx={rx}
       ry={rx}
-      stroke={neg ? WF_GAP_STROKE : 'var(--card-solid-border)'}
-      strokeWidth={1}
-      strokeOpacity={neg ? 1 : 0.3}
     />
   )
 }
@@ -304,7 +329,7 @@ function StackedWaterfallBarShape({
   parts: WaterfallStackSlice[]
 }) {
   const weight = parts.reduce((s, p) => s + p.value, 0)
-  const rxCap = Math.min(12, w / 2)
+  const rxCap = Math.min(6, w / 2)
   if (weight <= 0 && h > 0) {
     return (
       <rect
@@ -322,22 +347,20 @@ function StackedWaterfallBarShape({
   if (weight <= 0) {
     return null
   }
-  const segments: { p: WaterfallStackSlice; i: number; yTop: number; hi: number; shadeIndex: number }[] = []
+  const segments: { p: WaterfallStackSlice; i: number; yTop: number; hi: number }[] = []
   let yCursor = y
-  let shadeIndex = 0
   for (let i = 0; i < parts.length; i += 1) {
     const p = parts[i]
     const hi = (p.value / weight) * h
     if (hi <= 0) {
       continue
     }
-    segments.push({ p, i, yTop: yCursor, hi, shadeIndex })
+    segments.push({ p, i, yTop: yCursor, hi })
     yCursor += hi
-    shadeIndex += 1
   }
   return (
     <g>
-      {segments.map(({ p, i, yTop, hi, shadeIndex: si }) => {
+      {segments.map(({ p, i, yTop, hi }) => {
         const r = Math.min(rxCap, w / 2, Math.max(hi / 2, 2))
         return (
           <rect
@@ -347,12 +370,9 @@ function StackedWaterfallBarShape({
             width={w}
             height={hi}
             fill={WF_NEG_BG}
-            fillOpacity={Math.max(0.72, 0.96 - si * 0.06)}
+            fillOpacity={1}
             rx={r}
             ry={r}
-            stroke={WF_NEG_TEXT}
-            strokeOpacity={0.14}
-            strokeWidth={1}
           />
         )
       })}
@@ -375,10 +395,9 @@ function WaterfallBarShape(props: BarShapeProps) {
   }
 
   const fill = barFillSolid(payload)
-  const isFinal = payload.isLast && payload.isSubtotal
-  const rx = Math.min(12, w / 2, h / 2)
+  const rx = Math.min(6, w / 2, h / 2)
   const fillOpacity =
-    payload.isSubtotal ? 1 : payload.isNegative ? 1 : 0.58
+    payload.isSubtotal ? 1 : payload.isNegative ? 1 : 0.88
 
   return (
     <g>
@@ -391,24 +410,7 @@ function WaterfallBarShape(props: BarShapeProps) {
         fillOpacity={fillOpacity}
         rx={rx}
         ry={rx}
-        style={{
-          filter: isFinal ? 'var(--wf-bar-filter-final)' : undefined,
-        }}
       />
-      {isFinal ? (
-        <rect
-          x={x + 1}
-          y={y + 1}
-          width={w - 2}
-          height={h - 2}
-          fill="none"
-          stroke="var(--chart-wf-stroke-brand)"
-          strokeWidth={2}
-          rx={Math.max(0, rx - 1)}
-          ry={Math.max(0, rx - 1)}
-          style={{ pointerEvents: 'none' }}
-        />
-      ) : null}
     </g>
   )
 }
@@ -442,7 +444,7 @@ function WaterfallCombinedColumnShape(props: BarShapeProps) {
   )
 }
 
-function BarLabel({ x, y, width, height, value, isNegative, fill }: BarLabelProps) {
+function BarLabel({ x, y, width, height, value, isNegative }: BarLabelProps) {
   if (
     value === undefined ||
     x === undefined ||
@@ -453,29 +455,43 @@ function BarLabel({ x, y, width, height, value, isNegative, fill }: BarLabelProp
     return null
   }
   const h = height
-  if (h < 12) {
+  if (h < 8) {
     return null
   }
   const cx = x + width / 2
-  const cy = y + h / 2
   const mag = Math.abs(value)
-  const displayAbs = fmt(mag)
+  const displayAbs = fmtChip(mag)
   const labelText = isNegative && value !== 0 ? `-${displayAbs}` : displayAbs
-  const fs = h < 22 ? 9 : 11
-  const textFill =
-    isNegative && value !== 0 ? WF_NEG_TEXT : fill
+  const fs = 10
+  const chipBg = 'var(--status-gray-200)'
+  const textFill = 'var(--ink)'
+  const chipWidth = Math.max(42, labelText.length * 6.6 + 12)
+  const chipHeight = 18
+  const chipX = cx - chipWidth / 2
+  const chipY = Math.max(4, y - chipHeight - 6)
   return (
-    <text
-      x={cx}
-      y={cy}
-      textAnchor="middle"
-      dominantBaseline="middle"
-      fontSize={fs}
-      fontWeight={700}
-      fill={textFill}
-    >
-      {labelText}
-    </text>
+    <g>
+      <rect
+        x={chipX}
+        y={chipY}
+        width={chipWidth}
+        height={chipHeight}
+        rx={9}
+        ry={9}
+        fill={chipBg}
+      />
+      <text
+        x={cx}
+        y={chipY + chipHeight / 2}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize={fs}
+        fontWeight={500}
+        fill={textFill}
+      >
+        {labelText}
+      </text>
+    </g>
   )
 }
 
@@ -622,16 +638,17 @@ export function WaterfallChart({
   finalBarCaption,
 }: WaterfallChartProps) {
   const bars = buildBars(segments, grossRevenue)
-  const domainMax = bars[0]?.domainMax ?? 1
+  const rawMax = bars[0]?.domainMax ?? 1
+  const { domainMax, ticks } = buildAxisTicks(rawMax, 4)
 
   return (
     <div className="w-full min-w-0">
-      <div className="surface-chart-card relative overflow-x-auto overflow-y-visible rounded-md p-5 pb-7 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
+      <div className="relative overflow-x-auto overflow-y-visible rounded-md p-5 pb-7 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
         <div className="relative z-[1] min-w-[min(100%,44rem)]">
           <ResponsiveContainer width="100%" height={288}>
             <ComposedChart
               data={bars}
-              margin={{ top: 12, right: 8, bottom: 6, left: 4 }}
+              margin={{ top: 28, right: 8, bottom: 6, left: 4 }}
               maxBarSize={76}
               barCategoryGap="7%"
             >
@@ -667,6 +684,7 @@ export function WaterfallChart({
               />
               <YAxis
                 domain={[0, domainMax]}
+                ticks={ticks}
                 tick={{ fontSize: 11, fill: 'var(--color-text-secondary)' }}
                 axisLine={false}
                 tickLine={false}

@@ -16,7 +16,14 @@ import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import { Separator } from '@/ui/separator'
 import { SheetHeader, SheetTitle } from '@/ui/sheet'
-// ── shared header ─────────────────────────────────────────────────────────────
+
+function formatYmdMedium(ymd: string | null, lang: string): string {
+  if (!ymd || !/^\d{4}-\d{2}-\d{2}/.test(ymd)) return ''
+  const d = new Date(`${ymd.slice(0, 10)}T12:00:00`)
+  return new Intl.DateTimeFormat(lang === 'en' ? 'en' : 'es', {
+    dateStyle: 'medium',
+  }).format(d)
+}
 
 export function SheetHeaderWithLogo({
   definition,
@@ -35,8 +42,6 @@ export function SheetHeaderWithLogo({
   )
 }
 
-// ── internal helpers ──────────────────────────────────────────────────────────
-
 function ShopifyIntroCopy({ lang }: { lang: string }) {
   return (
     <p className="text-sm text-muted-foreground">
@@ -45,25 +50,110 @@ function ShopifyIntroCopy({ lang }: { lang: string }) {
   )
 }
 
-type ShopifySyncSectionProps = {
-  lang: string
-  dateFrom: string
-  setDateFrom: (v: string) => void
-  dateTo: string
-  setDateTo: (v: string) => void
-  lastSyncDisplay: string
-  syncMutation: ShopifyIntegrationHook['syncMutation']
-}
+function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyIntegrationHook }) {
+  const {
+    dateFrom,
+    setDateFrom,
+    dateTo,
+    setDateTo,
+    lastSyncDisplay,
+    syncMutation,
+    shopifySyncPhase,
+    shopifyJobQuery,
+    ordersProcessed,
+    syncPage,
+    syncPanelBlockSuccess,
+    syncFailedMessage,
+    retryShopifySync,
+    retryShopifySyncPending,
+  } = shopify
 
-function ShopifySyncSection({
-  lang,
-  dateFrom,
-  setDateFrom,
-  dateTo,
-  setDateTo,
-  lastSyncDisplay,
-  syncMutation,
-}: ShopifySyncSectionProps) {
+  if (shopifySyncPhase === 'working') {
+    const job = shopifyJobQuery.data
+    const queued = job?.status === 'queued'
+    const ordersLine =
+      ordersProcessed != null && !Number.isNaN(ordersProcessed)
+        ? `${shellT(lang, 'shopifySyncProgressOrders')}: ${ordersProcessed.toLocaleString()}`
+        : null
+    const pageLine =
+      syncPage != null && !Number.isNaN(syncPage)
+        ? `${shellT(lang, 'shopifySyncProgressPages')}: ${syncPage}`
+        : null
+
+    return (
+      <div className="space-y-4">
+        <div className="flex gap-3 rounded-md border border-border-subtle bg-bg-section p-4 shadow-[var(--glass-shadow)] backdrop-blur-xl">
+          <Loader2 className="size-5 shrink-0 animate-spin text-muted-foreground" aria-hidden />
+          <div className="min-w-0 space-y-1">
+            <p className="text-sm font-medium text-text-primary">
+              {shellT(lang, 'shopifySyncProgressTitle')}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {queued ? shellT(lang, 'shopifySyncProgressQueued') : shellT(lang, 'syncRunning')}
+            </p>
+            {ordersLine ? <p className="text-sm text-text-primary">{ordersLine}</p> : null}
+            {pageLine ? <p className="text-xs text-muted-foreground">{pageLine}</p> : null}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (shopifySyncPhase === 'done_ok' && syncPanelBlockSuccess) {
+    const b = syncPanelBlockSuccess
+    const from = formatYmdMedium(b.minOrderDate, lang)
+    const to = formatYmdMedium(b.maxOrderDate, lang)
+    const range =
+      from && to ? `${from} — ${to}` : from || to || ''
+
+    return (
+      <div className="space-y-4">
+        <div className="rounded-md border border-border-subtle bg-bg-section p-4 text-sm shadow-[var(--glass-shadow)] backdrop-blur-xl">
+          <div className="mb-2 flex items-center gap-1.5 font-medium text-text-primary">
+            <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />
+            {shellT(lang, 'integrationSyncDone')}
+          </div>
+          <ul className="space-y-1 text-xs text-muted-foreground">
+            <li className="text-sm text-text-primary">
+              {b.recordsSynced.toLocaleString()} {shellT(lang, 'reportsOrders')}
+            </li>
+            <li>
+              {b.catalogProductsUpserted.toLocaleString()} {shellT(lang, 'syncProductsUpdated')}
+            </li>
+            {range ? (
+              <li>
+                {shellT(lang, 'shopifySyncDateRange')}: {range}
+              </li>
+            ) : null}
+          </ul>
+          <p className="mt-3 text-xs text-muted-foreground">{shellT(lang, 'shopifySyncBlockedHint')}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (shopifySyncPhase === 'done_fail') {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-destructive" role="alert">
+          {syncFailedMessage ?? shellT(lang, 'syncErrorLabel')}
+        </p>
+        <Button
+          type="button"
+          className="w-full"
+          variant="secondary"
+          disabled={retryShopifySyncPending}
+          onClick={() => retryShopifySync()}
+        >
+          {retryShopifySyncPending ? (
+            <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+          ) : null}
+          {shellT(lang, 'shopifySyncRetry')}
+        </Button>
+      </div>
+    )
+  }
+
   const pickerStrings: DateRangePickerStrings = {
     startLabel: shellT(lang, 'connectionsDateFrom'),
     endLabel: shellT(lang, 'connectionsDateTo'),
@@ -112,32 +202,10 @@ function ShopifySyncSection({
         {syncMutation.isPending ? (
           <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
         ) : null}
-        {syncMutation.isPending
-          ? shellT(lang, 'syncRunning')
-          : shellT(lang, 'syncRunBtn')}
+        {syncMutation.isPending ? shellT(lang, 'syncRunning') : shellT(lang, 'syncRunBtn')}
       </Button>
 
-      {syncMutation.isSuccess && syncMutation.data ? (
-        <div className="rounded-md border border-border-subtle bg-bg-section p-3 text-sm shadow-[var(--glass-shadow)] backdrop-blur-xl">
-          <div className="mb-2 flex items-center gap-1.5 font-medium text-text-primary">
-            <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />
-            {shellT(lang, 'integrationSyncDone')}
-          </div>
-          <ul className="space-y-0.5 text-xs text-muted-foreground">
-            <li>{syncMutation.data.records_synced}</li>
-            {syncMutation.data.catalog_products_upserted > 0 ? (
-              <li>
-                {syncMutation.data.catalog_products_upserted} {shellT(lang, 'syncProductsUpdated')}
-              </li>
-            ) : null}
-            {syncMutation.data.min_order_date && syncMutation.data.max_order_date ? (
-              <li>
-                {syncMutation.data.min_order_date} → {syncMutation.data.max_order_date}
-              </li>
-            ) : null}
-          </ul>
-        </div>
-      ) : syncMutation.isError ? (
+      {syncMutation.isError ? (
         <p className="text-sm text-destructive" role="alert">
           {syncMutation.error instanceof Error
             ? syncMutation.error.message
@@ -151,8 +219,6 @@ function ShopifySyncSection({
     </div>
   )
 }
-
-// ── main export ───────────────────────────────────────────────────────────────
 
 export function ShopifyManageBody({
   definition,
@@ -176,21 +242,13 @@ export function ShopifyManageBody({
     activeConnectionId,
     disconnectMutation,
     previewMessage,
-    dateFrom,
-    setDateFrom,
-    dateTo,
-    setDateTo,
-    syncMutation,
-    lastSyncDisplay,
+    syncMessage,
+    shopifySyncPhase,
   } = shopify
 
-  const name = definition.nameKey
-    ? shellT(lang, definition.nameKey)
-    : definition.catalogName
+  const name = definition.nameKey ? shellT(lang, definition.nameKey) : definition.catalogName
   const storeId = 'integration-shop-domain-sheet'
-  const shopSubdomain = normalizeShopifySubdomainInput(
-    activeConnection?.shop_domain ?? '',
-  )
+  const shopSubdomain = normalizeShopifySubdomainInput(activeConnection?.shop_domain ?? '')
 
   return (
     <>
@@ -242,9 +300,7 @@ export function ShopifyManageBody({
               className="inline-flex w-full items-center justify-center gap-2 sm:w-auto"
               size="lg"
               disabled={
-                oauthStarting ||
-                !normalizeShopifySubdomainInput(shopInput) ||
-                !tenantId
+                oauthStarting || !normalizeShopifySubdomainInput(shopInput) || !tenantId
               }
               onClick={() => void startOAuth()}
             >
@@ -265,7 +321,7 @@ export function ShopifyManageBody({
         ) : (
           <div className="space-y-5">
             <div className="space-y-4">
-              <ShopifyIntroCopy lang={lang} />
+              {shopifySyncPhase === 'idle' ? <ShopifyIntroCopy lang={lang} /> : null}
               <div className="space-y-2">
                 <Label htmlFor={`${storeId}-ro`}>
                   {shellT(lang, 'connectionsConnectShopLabel')}
@@ -288,9 +344,11 @@ export function ShopifyManageBody({
                     {SHOPIFY_MYSHOPIFY_SUFFIX}
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {shellT(lang, 'integrationDetailHeroHelper')}
-                </p>
+                {shopifySyncPhase === 'idle' ? (
+                  <p className="text-xs text-muted-foreground">
+                    {shellT(lang, 'integrationDetailHeroHelper')}
+                  </p>
+                ) : null}
               </div>
               <Button
                 type="button"
@@ -308,15 +366,13 @@ export function ShopifyManageBody({
 
             <Separator />
 
-            <ShopifySyncSection
-              lang={lang}
-              dateFrom={dateFrom}
-              setDateFrom={setDateFrom}
-              dateTo={dateTo}
-              setDateTo={setDateTo}
-              lastSyncDisplay={lastSyncDisplay}
-              syncMutation={syncMutation}
-            />
+            <ShopifySyncSection lang={lang} shopify={shopify} />
+
+            {syncMessage ? (
+              <p className="text-xs text-muted-foreground" role="status">
+                {syncMessage}
+              </p>
+            ) : null}
           </div>
         )}
       </div>

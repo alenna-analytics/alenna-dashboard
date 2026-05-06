@@ -26,10 +26,8 @@ export type ShopifyOrdersPreviewResponse = {
   truncated: boolean
 }
 
-export type ShopifySyncResponse = {
-  records_synced: number
-  catalog_products_upserted: number
-  search_query_used: string | null
-  min_order_date: string | null
-  max_order_date: string | null
+/** POST /connectors/shopify/sync returns 202 with job id for polling GET /catalog/jobs/:id */
+export type ShopifySyncEnqueueResponse = {
+  job_id: string
+  status: 'queued' | 'running' | 'succeeded' | 'failed'
 }

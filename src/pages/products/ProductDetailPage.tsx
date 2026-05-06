@@ -44,6 +44,10 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { useCurrentTenant } from '@/auth/hooks'
+import {
+  cogsBackfillActivityId,
+  useGlobalActivity,
+} from '@/shell/providers/global-activity-provider'
 
 import { buildProductCostPriceChartData } from './product-cost-chart-points'
 import { ProductCostOverTimeChart } from './product-cost-over-time-chart'
@@ -199,6 +203,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
   const t = useCallback((k: Parameters<typeof shellT>[1]) => shellT(lang, k), [lang])
   const { tenantId } = useCurrentTenant()
   const qc = useQueryClient()
+  const { upsertActivity, patchActivity } = useGlobalActivity()
 
   const detailQuery = useProductDetailQuery(productId)
   const patchMutation = usePatchProductCostMutation(productId)
@@ -318,7 +323,14 @@ function ProductDetailBody({ productId }: { productId: string }) {
           effective_to: rangeEnd,
         })
         setActiveJobId(res.job_id)
-        toast.success(t('productsDetailToastRecalcQueued'))
+        upsertActivity({
+          id: cogsBackfillActivityId(res.job_id),
+          phase: 'loading',
+          title: t('globalActivityCogsBackfillTitle'),
+          subtitle: t('productsJobQueued'),
+          href: `/dashboard/products/${productId}`,
+          minimized: false,
+        })
       }
       handleSheetOpenChange(false)
     } catch {
@@ -335,6 +347,26 @@ function ProductDetailBody({ productId }: { productId: string }) {
     if (jobQuery.data?.status !== 'succeeded' || !tenantId) return
     void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
   }, [jobQuery.data?.status, qc, tenantId, productId])
+
+  useEffect(() => {
+    if (!activeJobId || !jobQuery.data) return
+    const job = jobQuery.data
+    if (job.id !== activeJobId) return
+    const gid = cogsBackfillActivityId(activeJobId)
+
+    if (job.status === 'queued') {
+      patchActivity(gid, { phase: 'loading', subtitle: t('productsJobQueued') })
+    } else if (job.status === 'running') {
+      patchActivity(gid, { phase: 'loading', subtitle: t('productsJobRunning') })
+    } else if (job.status === 'succeeded') {
+      patchActivity(gid, { phase: 'success', subtitle: t('productsJobSucceeded') })
+    } else if (job.status === 'failed') {
+      patchActivity(gid, {
+        phase: 'error',
+        subtitle: job.error_message ?? t('productsJobFailed'),
+      })
+    }
+  }, [activeJobId, jobQuery.data, patchActivity, t])
 
   if (detailQuery.isError) {
     return <div className="p-8 text-sm text-destructive">Failed to load product.</div>

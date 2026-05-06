@@ -205,6 +205,17 @@
   --filter-pill-value-active: var(--color-accent-forest);
   --shell-structure-border: color-mix(in srgb, var(--color-accent-forest) 26%, transparent);
 
+  /** Global activity bar + header chip (Shopify sync, COGS backfill, etc.). */
+  --global-activity-loading-bg: #324143;
+  --global-activity-loading-border: color-mix(in srgb, var(--global-activity-loading-bg) 40%, transparent);
+  --global-activity-success-bg: #44695a;
+  --global-activity-success-border: color-mix(in srgb, var(--global-activity-success-bg) 40%, transparent);
+  --global-activity-error-bg: #dc2626;
+  --global-activity-error-border: color-mix(in srgb, var(--global-activity-error-bg) 40%, transparent);
+  --global-activity-on-tint-fg: var(--text-inverse);
+  --global-activity-divider: color-mix(in srgb, var(--global-activity-on-tint-fg) 15%, transparent);
+  --global-activity-bar-outer-border: color-mix(in srgb, var(--ink) 10%, transparent);
+
   --kpi-pill-positive-bg: #e8f7d3;
   --kpi-pill-positive-text: #203935;
   --kpi-pill-negative-bg: #f7d1d7;

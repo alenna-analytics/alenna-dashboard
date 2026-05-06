@@ -95,4 +95,8 @@ export type CatalogJobApi = {
   created_at: string
   started_at: string | null
   finished_at: string | null
+  records_synced?: number | null
+  catalog_products_upserted?: number | null
+  min_order_date?: string | null
+  max_order_date?: string | null
 }

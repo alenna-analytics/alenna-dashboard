@@ -1,5 +1,6 @@
-import { useLanguage } from '@/shell/providers/language-provider'
+import alennaLogo from '@/assets/alenna_logo.png'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { useLanguage } from '@/shell/providers/language-provider'
 import { BootSpinner } from '@/ui/boot-spinner'
 
 export function AppBootLoader() {
@@ -18,9 +19,14 @@ export function AppBootLoader() {
         <BootSpinner />
       </div>
 
-      <p className="pb-10 text-center text-sm font-medium tracking-tight text-text-secondary">
-        {shellT(lang, 'bootBrandName')}
-      </p>
+      <div className="flex justify-center pb-10">
+        <img
+          src={alennaLogo}
+          alt={shellT(lang, 'bootBrandName')}
+          decoding="async"
+          className="h-8 w-auto max-w-[min(11rem,55vw)] object-contain object-bottom opacity-90"
+        />
+      </div>
     </div>
   )
 }

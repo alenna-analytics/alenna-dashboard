@@ -1,70 +1,80 @@
 import { SignIn } from '@clerk/react'
 
-import { Card, CardContent } from '@/ui/card'
+import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import { shellT } from '@/lib/i18n/shell-strings'
+import { useLanguage } from '@/shell/providers/language-provider'
+import { AlennaLogo } from '@/ui/alenna-logo'
 
 const signInAppearance = {
   variables: {
-    colorBackground: 'rgba(255, 252, 247, 0.98)',
-    colorInputBackground: 'rgba(255, 255, 255, 0.96)',
+    colorBackground: '#ffffff',
+    colorInputBackground: '#ffffff',
     colorInputText: 'var(--text-primary)',
     colorText: 'var(--text-primary)',
     colorTextSecondary: 'var(--text-secondary)',
     colorPrimary: 'var(--brand)',
     colorDanger: 'var(--danger)',
     colorSuccess: 'var(--success)',
-    borderRadius: '10px',
+    borderRadius: '14px',
   },
   elements: {
-    rootBox: 'w-full clerk-signin-light',
-    card:
-      'shadow-none border border-[color:var(--card-solid-border)] bg-[rgba(255,252,247,0.98)] backdrop-blur-md',
-    headerTitle: 'text-[color:var(--text-primary)]',
-    headerSubtitle: 'text-[color:var(--text-secondary)]',
-    socialButtonsBlockButtonText: 'text-[color:var(--text-primary)]',
+    rootBox: 'auth-login-clerk-shell clerk-signin-light w-full max-w-full',
+    card: 'border-0 bg-transparent shadow-none backdrop-blur-none',
+    cardBox: 'shadow-none',
+    headerTitle:
+      'text-[color:var(--text-primary)] text-[1.4rem] font-semibold tracking-[-0.02em]',
+    headerSubtitle: '!text-neutral-600 text-[0.95rem] leading-relaxed mt-1',
+    socialButtonsBlockButtonText: 'text-[color:var(--text-primary)] text-[14px] font-medium',
     socialButtonsBlockButton:
-      'border border-[color:var(--border-default)] bg-white text-[color:var(--text-primary)] hover:bg-[color:var(--bg-section)]',
+      '!min-h-11 !rounded-[14px] border border-neutral-200 bg-white text-[color:var(--text-primary)] hover:bg-neutral-50',
     socialButtonsBlockButtonArrow: 'text-[color:var(--text-secondary)]',
-    dividerLine: 'bg-[color:var(--border-subtle)]',
-    dividerText: 'text-[color:var(--text-tertiary)]',
-    formFieldLabel: 'text-[color:var(--text-primary)]',
+    dividerLine: 'bg-neutral-300/45',
+    dividerText: 'text-neutral-500 text-[13px]',
+    formFieldLabel: 'text-[color:var(--text-primary)] text-[13px] font-medium mb-1.5',
     formButtonPrimary:
-      'bg-[color:var(--brand)] text-[color:var(--primary-foreground)] hover:bg-[color:var(--brand-hover)] focus-visible:ring-[color:var(--brand)]',
+      '!min-h-[46px] !rounded-[14px] !py-0 !text-[14px] font-semibold !shadow-none transition-[filter,transform] duration-200 hover:!brightness-[1.05] hover:!-translate-y-px active:!translate-y-0',
     formFieldInput:
-      'border border-[color:var(--border-default)] bg-white text-[color:var(--text-primary)] placeholder:text-[color:var(--text-tertiary)]',
+      '!min-h-[46px] !rounded-[14px] border border-neutral-200 bg-white text-[color:var(--text-primary)] placeholder:text-neutral-400',
     formFieldInputShowPasswordButton:
       'text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]',
     formResendCodeLink: 'text-[color:var(--brand)] hover:text-[color:var(--brand-light)]',
-    footerActionText: 'text-[color:var(--text-tertiary)]',
-    footerActionLink: 'text-[color:var(--brand)] hover:text-[color:var(--brand-light)]',
+    footerActionText: 'text-neutral-600 text-[14px]',
+    footerActionLink: 'text-[color:var(--brand)] hover:text-[color:var(--brand-light)] font-medium',
     identityPreviewText: 'text-[color:var(--text-primary)]',
     identityPreviewEditButton:
       'text-[color:var(--brand)] hover:text-[color:var(--brand-light)]',
+    footer: '!pb-0',
   },
 }
 
 export function AuthLoginPage() {
-  return (
-    <section className="w-full max-w-6xl">
-      <Card className="border-transparent bg-transparent shadow-none backdrop-blur-none md:border-border md:bg-card md:shadow-(--glass-shadow)">
-        <CardContent className="grid items-center border-none gap-8 px-0 py-2 md:grid-cols-2 md:p-8">
-          <div className="space-y-3 md:pr-6 md:border-r md:border-border">
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-brand">
-              alenna - analytics
-            </p>
-            <h1 className="text-3xl font-semibold tracking-tight text-text-primary md:text-4xl">
-              Sign in to your analytics workspace
-            </h1>
-            <p className="text-sm text-text-secondary md:text-base">
-              Access sales trends, channel performance, and operational insights
-              from your dashboard.
-            </p>
-          </div>
+  const { lang } = useLanguage()
+  const t = (key: ShellStringKey) => shellT(lang, key)
 
-          <div className="flex w-full items-center justify-center md:pl-2">
+  return (
+    <div className="relative z-10 mx-auto w-full max-w-[1080px]">
+      <div className="flex flex-col gap-14 lg:grid lg:grid-cols-[1fr_minmax(0,420px)] lg:items-center lg:gap-x-16 lg:gap-y-0 xl:gap-x-20">
+        <div className="flex max-w-lg flex-col [--auth-editorial-shadow:0_2px_28px_rgba(0,0,0,0.22)]">
+          <AlennaLogo
+            variant="atmospheric"
+            className="h-9 w-auto max-w-[10rem] object-contain object-left opacity-[0.96]"
+          />
+          <h1
+            className="mt-10 text-[1.65rem] font-semibold leading-snug tracking-[-0.03em] text-white drop-shadow-[var(--auth-editorial-shadow)] sm:text-[1.85rem] lg:text-[2rem]"
+          >
+            {t('authLoginHeadline')}
+          </h1>
+          <p className="mt-5 max-w-md text-[15px] leading-relaxed text-white/78 drop-shadow-[0_1px_18px_rgba(0,0,0,0.18)]">
+            {t('authLoginSupporting')}
+          </p>
+        </div>
+
+        <div className="flex w-full justify-center lg:justify-end">
+          <div className="relative w-full max-w-[400px] motion-safe:animate-[boot-card-enter_0.65s_ease-out_both]">
             <SignIn appearance={signInAppearance} forceRedirectUrl="/dashboard" />
           </div>
-        </CardContent>
-      </Card>
-    </section>
+        </div>
+      </div>
+    </div>
   )
 }

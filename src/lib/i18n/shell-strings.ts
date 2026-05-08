@@ -6,6 +6,7 @@ const SHELL_STRINGS = {
     navDashboard: 'Panel',
     navReports: 'Reportes',
     navProducts: 'Productos',
+    navProductCatalog: 'Productos',
     navExpenses: 'Gastos',
     navConnections: 'Conexiones',
     navIntegrations: 'Integraciones',
@@ -13,8 +14,18 @@ const SHELL_STRINGS = {
     navComponents: 'Componentes',
     shellHomeChartRegion: 'Área de gráficos',
     dashboardRevenueTrendTitle: 'Tendencia de ingresos',
-    dashboardRevenueTrendSubtitle:
+    dashboardRevenueTrendSubtitleMonth:
       'Ingresos netos por mes en el rango seleccionado frente al periodo anterior equivalente.',
+    dashboardRevenueTrendSubtitleWeek:
+      'Ingresos netos por semana en el rango seleccionado frente al periodo anterior equivalente.',
+    dashboardRevenueTrendSubtitleDay:
+      'Ingresos netos por día en el rango seleccionado frente al periodo anterior equivalente.',
+    dashboardRevenueGranularityLabel: 'Intervalo',
+    dashboardRevenueGranularityMonth: 'Mensual',
+    dashboardRevenueGranularityWeek: 'Semanal',
+    dashboardRevenueGranularityDay: 'Diario',
+    dashboardRevenueBrushAria:
+      'Arrastra los mangos del zoom inferior para ampliar o desplazar el rango visible en el gráfico.',
     dashboardRevenueSeriesCurrent: 'Periodo actual',
     dashboardRevenueSeriesPrevious: 'Periodo anterior',
     shellSidebarWorkspaceFallback: 'Espacio de trabajo',
@@ -44,6 +55,9 @@ const SHELL_STRINGS = {
     bootLoadingLabel: 'Cargando',
     bootBrandName: 'alenna',
     bootTagline: 'Preparando tu espacio',
+    authLoginHeadline: 'Todo tu negocio consolidado en un solo lugar',
+    authLoginSupporting:
+      'Menos ruido. Más claridad en ingresos, márgenes y operación.',
     welcomeTitle: 'Bienvenido a Alenna',
     welcomeSubtitle: 'Tu panel de analítica Shopify.',
     connectionsPageTitle: 'Conexiones',
@@ -527,7 +541,7 @@ const SHELL_STRINGS = {
     navSectionConfiguration: 'Configuration',
     navDashboard: 'Dashboard',
     navReports: 'Reports',
-    navProducts: 'Products',
+    navProductCatalog: 'Products',
     navExpenses: 'Expenses',
     navConnections: 'Connections',
     navIntegrations: 'Integrations',
@@ -535,7 +549,18 @@ const SHELL_STRINGS = {
     navComponents: 'Components',
     shellHomeChartRegion: 'Chart area',
     dashboardRevenueTrendTitle: 'Revenue trend',
-    dashboardRevenueTrendSubtitle: 'Net revenue by month for the selected range vs the equivalent prior period.',
+    dashboardRevenueTrendSubtitleMonth:
+      'Net revenue by month for the selected range vs the equivalent prior period.',
+    dashboardRevenueTrendSubtitleWeek:
+      'Net revenue by week for the selected range vs the equivalent prior period.',
+    dashboardRevenueTrendSubtitleDay:
+      'Net revenue by day for the selected range vs the equivalent prior period.',
+    dashboardRevenueGranularityLabel: 'Interval',
+    dashboardRevenueGranularityMonth: 'Monthly',
+    dashboardRevenueGranularityWeek: 'Weekly',
+    dashboardRevenueGranularityDay: 'Daily',
+    dashboardRevenueBrushAria:
+      'Drag the handles on the lower overview strip to zoom or pan the visible range on the chart.',
     dashboardRevenueSeriesCurrent: 'Current period',
     dashboardRevenueSeriesPrevious: 'Previous period',
     shellSidebarWorkspaceFallback: 'Workspace',
@@ -564,6 +589,9 @@ const SHELL_STRINGS = {
     bootLoadingLabel: 'Loading',
     bootBrandName: 'alenna',
     bootTagline: 'Preparing your workspace',
+    authLoginHeadline: 'All your business consolidated in one place',
+    authLoginSupporting:
+      'Less noise. Clearer revenue, margins, and operations.',
     welcomeTitle: 'Welcome to Alenna',
     welcomeSubtitle: 'Your Shopify analytics home.',
     connectionsPageTitle: 'Connections',

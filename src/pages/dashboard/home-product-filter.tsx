@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
@@ -56,9 +56,14 @@ export function HomeProductFilter({
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
 
+  const [catalogFetchEnabled, setCatalogFetchEnabled] = useState(() => values.length > 0)
+  useEffect(() => {
+    if (values.length > 0) setCatalogFetchEnabled(true)
+  }, [values.length])
+
   const { data, isFetching } = useQuery({
     queryKey: ['catalog', 'product-options', tenantId],
-    enabled: Boolean(tenantId),
+    enabled: Boolean(tenantId && catalogFetchEnabled),
     queryFn: async (): Promise<ProductListResponse> => {
       const sortBase = {
         sort_by: 'title',
@@ -109,6 +114,9 @@ export function HomeProductFilter({
     <FilterComboboxMulti
       label={label}
       options={options}
+      onOpenChange={(nextOpen) => {
+        if (nextOpen) setCatalogFetchEnabled(true)
+      }}
       values={values}
       onValuesChange={onValuesChange}
       applyLabel={applyLabel}

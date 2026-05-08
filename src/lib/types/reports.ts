@@ -1,3 +1,5 @@
+export type RevenueSeriesGranularity = 'month' | 'week' | 'day'
+
 export type MonthlyRevenueMonthRow = {
   month_start: string
   gross_revenue: number
@@ -7,6 +9,7 @@ export type MonthlyRevenueMonthRow = {
 }
 
 export type MonthlyRevenueSeriesResponse = {
+  granularity?: RevenueSeriesGranularity
   months: MonthlyRevenueMonthRow[]
 }
 

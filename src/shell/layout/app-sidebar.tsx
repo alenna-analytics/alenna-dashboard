@@ -5,6 +5,7 @@ import { matchPath, NavLink, useLocation } from 'react-router-dom'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { SidebarNavSection } from '@/shell/layout/sidebar-nav-section'
 import { Button } from '@/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
@@ -36,7 +37,7 @@ function linkClassNames(isActive: boolean, collapsed: boolean): string {
   }
   return cn(
     baseTrans,
-    'flex items-center gap-3 rounded-sm px-4 py-1.5',
+    'flex items-center gap-2 rounded-sm px-1 py-1.5',
     isActive ? active : inactive,
   )
 }
@@ -175,8 +176,10 @@ export function AppSidebar({ collapsed, onToggle, companyName, companySubtitle }
           aria-label={t('navMain')}
         >
           <NavItem Icon={LayoutDashboard} to="/dashboard" end label={t('navHome')} collapsed={collapsed} />
-          <NavItem Icon={Tag} to="/dashboard/products" label={t('navProducts')} collapsed={collapsed} />
-          <NavItem Icon={Link2} to="/dashboard/integrations" label={t('navIntegrations')} collapsed={collapsed} />
+          <NavItem Icon={Tag} to="/dashboard/products" label={t('navProductCatalog')} collapsed={collapsed} />
+          <SidebarNavSection collapsed={collapsed} sectionTitle={t('navSectionConfiguration')}>
+            <NavItem Icon={Link2} to="/dashboard/integrations" label={t('navIntegrations')} collapsed={collapsed} />
+          </SidebarNavSection>
         </nav>
       </div>
     </aside>

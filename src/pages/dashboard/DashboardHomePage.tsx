@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
@@ -13,6 +13,7 @@ import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { Skeleton } from '@/ui/skeleton'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
+import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import { KpiCard } from '@/ui/kpi-card'
 
 import { DashboardRevenueTrendChart } from './dashboard-revenue-trend-chart'
@@ -23,6 +24,7 @@ import { MoneyDisclaimer } from '@/shell/components/money-disclaimer'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import {
   computePreviousPeriod,
+  computeShiftedPreviousPeriod,
   pctVersusPrevious,
   toYmd,
 } from '@/pages/reports/reports-ui-helpers'
@@ -34,7 +36,7 @@ import { useReports } from '@/pages/reports/use-reports'
 import { useProductReports } from '@/pages/reports/use-product-reports'
 import { useTopProducts } from '@/pages/reports/use-top-products'
 import { useChannelBreakdown } from '@/pages/reports/use-channel-breakdown'
-import type { KpiResponse, ProductKpiResponse } from '@/lib/types/reports'
+import type { KpiResponse, ProductKpiResponse, RevenueSeriesGranularity } from '@/lib/types/reports'
 
 function zeroKpiResponse(currency: string): KpiResponse {
   return {
@@ -253,6 +255,28 @@ export function DashboardHomePage() {
 
   const prevPeriod = useMemo(() => computePreviousPeriod(startDate, endDate), [startDate, endDate])
 
+  const [revenueGranularity, setRevenueGranularity] = useState<RevenueSeriesGranularity>('month')
+
+  const revenuePrevPeriod = useMemo(() => {
+    if (revenueGranularity === 'month') return computePreviousPeriod(startDate, endDate)
+    return computeShiftedPreviousPeriod(startDate, endDate)
+  }, [startDate, endDate, revenueGranularity])
+
+  const revenueTrendSubtitle = useMemo(() => {
+    if (revenueGranularity === 'week') return t('dashboardRevenueTrendSubtitleWeek')
+    if (revenueGranularity === 'day') return t('dashboardRevenueTrendSubtitleDay')
+    return t('dashboardRevenueTrendSubtitleMonth')
+  }, [revenueGranularity, t])
+
+  const revenueGranularityOptions = useMemo(
+    () => [
+      { value: 'month', label: t('dashboardRevenueGranularityMonth') },
+      { value: 'week', label: t('dashboardRevenueGranularityWeek') },
+      { value: 'day', label: t('dashboardRevenueGranularityDay') },
+    ],
+    [t],
+  )
+
   const productMode = productIds.length > 0
 
   // Order-level KPIs (no product selected)
@@ -290,14 +314,16 @@ export function DashboardHomePage() {
       connectionIds: activeConnectionIds,
       startDate,
       endDate,
+      granularity: revenueGranularity,
       enabled: activeConnectionIds.length > 0,
     })
 
   const { data: monthlyPrev, isLoading: monthlyPrevLoading } = useMonthlyRevenueSeries({
     connectionIds: activeConnectionIds,
-    startDate: prevPeriod?.start ?? '',
-    endDate: prevPeriod?.end ?? '',
-    enabled: activeConnectionIds.length > 0 && Boolean(prevPeriod),
+    startDate: revenuePrevPeriod?.start ?? '',
+    endDate: revenuePrevPeriod?.end ?? '',
+    granularity: revenueGranularity,
+    enabled: activeConnectionIds.length > 0 && Boolean(revenuePrevPeriod),
   })
 
   const { data: channelBreakdown, isLoading: channelLoading } = useChannelBreakdown({
@@ -442,7 +468,7 @@ export function DashboardHomePage() {
 
   const chartsLoading =
     activeConnectionIds.length > 0 &&
-    (monthlyRevenueLoading || (Boolean(prevPeriod) && monthlyPrevLoading))
+    (monthlyRevenueLoading || (Boolean(revenuePrevPeriod) && monthlyPrevLoading))
 
   const showTopProducts = true
 
@@ -673,7 +699,23 @@ export function DashboardHomePage() {
               <SectionContainer className="overflow-visible">
                 <SectionHeader
                   title={t('dashboardRevenueTrendTitle')}
-                  description={t('dashboardRevenueTrendSubtitle')}
+                  description={revenueTrendSubtitle}
+                  aside={
+                    <div className="min-w-[10.5rem] shrink-0">
+                      <FilterComboboxSingle
+                        label={t('dashboardRevenueGranularityLabel')}
+                        options={revenueGranularityOptions}
+                        value={revenueGranularity}
+                        onValueChange={(v) => {
+                          if (v === 'month' || v === 'week' || v === 'day') setRevenueGranularity(v)
+                        }}
+                        applyLabel={t('datePickerApply')}
+                        searchPlaceholder={t('filterSearch')}
+                        emptyLabel={t('filterComingSoon')}
+                        allowClear={false}
+                      />
+                    </div>
+                  }
                 />
                 {monthlyRevenueError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
@@ -685,11 +727,12 @@ export function DashboardHomePage() {
                   <DashboardRevenueTrendChart
                     startDate={startDate}
                     endDate={endDate}
-                    prevStart={prevPeriod?.start ?? ''}
-                    prevEnd={prevPeriod?.end ?? ''}
+                    prevStart={revenuePrevPeriod?.start ?? ''}
+                    prevEnd={revenuePrevPeriod?.end ?? ''}
+                    granularity={revenueGranularity}
                     rowsCurrent={monthlyCurrent?.months ?? []}
                     rowsPrev={monthlyPrev?.months ?? []}
-                    comparePrevious={Boolean(prevPeriod)}
+                    comparePrevious={Boolean(revenuePrevPeriod)}
                     currency={effectiveDisplayCurrency}
                     formatValue={formatInDisplay}
                     convertValue={convertFromBase}

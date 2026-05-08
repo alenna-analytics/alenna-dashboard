@@ -3,13 +3,17 @@ import { useQuery } from '@tanstack/react-query'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch } from '@/lib/api'
-import type { MonthlyRevenueSeriesResponse } from '@/lib/types/reports'
+import type {
+  MonthlyRevenueSeriesResponse,
+  RevenueSeriesGranularity,
+} from '@/lib/types/reports'
 
 type Params = {
   connectionId?: string | null
   connectionIds?: string[]
   startDate: string
   endDate: string
+  granularity?: RevenueSeriesGranularity
   enabled?: boolean
 }
 
@@ -18,6 +22,7 @@ export function useMonthlyRevenueSeries({
   connectionIds,
   startDate,
   endDate,
+  granularity = 'month',
   enabled = true,
 }: Params) {
   const { getToken } = useAuth()
@@ -27,7 +32,7 @@ export function useMonthlyRevenueSeries({
   const scopeKey = ids ? ids.join(',') : (connectionId ?? null)
 
   return useQuery({
-    queryKey: ['reports', 'monthly-revenue', tenantId, scopeKey, startDate, endDate],
+    queryKey: ['reports', 'monthly-revenue', tenantId, scopeKey, startDate, endDate, granularity],
     enabled: Boolean(
       enabled && tenantId && startDate && endDate && (ids || connectionId),
     ),
@@ -40,6 +45,7 @@ export function useMonthlyRevenueSeries({
       }
       params.set('start_date', startDate)
       params.set('end_date', endDate)
+      params.set('granularity', granularity)
       const res = await apiFetch(`/reports/monthly-revenue?${params}`, (a) => getToken(a), {}, tenantId)
       if (!res.ok) throw new Error(await res.text())
       return (await res.json()) as MonthlyRevenueSeriesResponse

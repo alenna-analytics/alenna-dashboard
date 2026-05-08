@@ -1,26 +1,29 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import type { Locale } from 'date-fns'
-import type { MonthlyRevenueMonthRow } from '@/lib/types/reports'
+import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
+  Brush,
   CartesianGrid,
-  Legend,
   Line,
   LineChart,
+  ReferenceArea,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
 
-import { mergeMonthlyRows } from '@/pages/reports/monthly-revenue-chart'
+import { cn } from '@/lib/utils'
+import { mergeRevenueSeriesRows } from '@/pages/reports/monthly-revenue-chart'
 
 export type DashboardRevenueTrendChartProps = {
   startDate: string
   endDate: string
   prevStart: string
   prevEnd: string
+  granularity: RevenueSeriesGranularity
   rowsCurrent: MonthlyRevenueMonthRow[]
   rowsPrev: MonthlyRevenueMonthRow[]
   comparePrevious: boolean
@@ -42,6 +45,8 @@ type TrendRow = {
   previousBucketLabel: string | null
 }
 
+type TrendRowIndexed = TrendRow & { __idx: number }
+
 function fmtMoneyCompact(value: number, currency: string): string {
   const abs = Math.abs(value)
   if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
@@ -58,12 +63,13 @@ function buildTrendRows(
   endDate: string,
   prevStart: string,
   prevEnd: string,
+  granularity: RevenueSeriesGranularity,
   rowsCurrent: MonthlyRevenueMonthRow[],
   rowsPrev: MonthlyRevenueMonthRow[],
   locale: Locale,
   comparePrevious: boolean,
 ): TrendRow[] {
-  const cur = mergeMonthlyRows(startDate, endDate, rowsCurrent, locale)
+  const cur = mergeRevenueSeriesRows(startDate, endDate, granularity, rowsCurrent, locale)
   if (!comparePrevious) {
     return cur.map((c) => ({
       label: c.label,
@@ -72,7 +78,7 @@ function buildTrendRows(
       previousBucketLabel: null,
     }))
   }
-  const prev = mergeMonthlyRows(prevStart, prevEnd, rowsPrev, locale)
+  const prev = mergeRevenueSeriesRows(prevStart, prevEnd, granularity, rowsPrev, locale)
   const n = Math.min(cur.length, prev.length)
   const out: TrendRow[] = []
   for (let i = 0; i < n; i++) {
@@ -131,6 +137,7 @@ export function DashboardRevenueTrendChart({
   endDate,
   prevStart,
   prevEnd,
+  granularity,
   rowsCurrent,
   rowsPrev,
   comparePrevious,
@@ -146,6 +153,7 @@ export function DashboardRevenueTrendChart({
       endDate,
       prevStart,
       prevEnd,
+      granularity,
       rowsCurrent,
       rowsPrev,
       dateLocale,
@@ -161,6 +169,7 @@ export function DashboardRevenueTrendChart({
     endDate,
     prevStart,
     prevEnd,
+    granularity,
     rowsCurrent,
     rowsPrev,
     dateLocale,
@@ -168,17 +177,51 @@ export function DashboardRevenueTrendChart({
     convertValue,
   ])
 
+  const dataWithIndex: TrendRowIndexed[] = useMemo(
+    () => data.map((d, i) => ({ ...d, __idx: i })),
+    [data],
+  )
+
+  const [zoomStart, setZoomStart] = useState(0)
+  const [zoomEnd, setZoomEnd] = useState(Math.max(0, data.length - 1))
+
+  useEffect(() => {
+    if (dataWithIndex.length === 0) {
+      setZoomStart(0)
+      setZoomEnd(0)
+      return
+    }
+    setZoomStart(0)
+    setZoomEnd(dataWithIndex.length - 1)
+  }, [startDate, endDate, prevStart, prevEnd, granularity, comparePrevious, dataWithIndex.length])
+
+  const visibleData = useMemo(() => {
+    if (dataWithIndex.length === 0) return dataWithIndex
+    const start = Math.max(0, Math.min(zoomStart, dataWithIndex.length - 1))
+    const end = Math.max(start, Math.min(zoomEnd, dataWithIndex.length - 1))
+    return dataWithIndex.slice(start, end + 1)
+  }, [dataWithIndex, zoomStart, zoomEnd])
+
+  const x1Label = dataWithIndex[Math.max(0, Math.min(zoomStart, Math.max(0, dataWithIndex.length - 1)))]?.label
+  const x2Label = dataWithIndex[Math.max(0, Math.min(zoomEnd, Math.max(0, dataWithIndex.length - 1)))]?.label
+
+  const denseMain = visibleData.length > 18
+
   return (
-    <div className="w-full min-w-0">
-      <ResponsiveContainer width="100%" height={320}>
-        <LineChart data={data} margin={{ top: 8, right: 8, left: 4, bottom: 4 }}>
+    <div
+      className={cn(
+        'w-full min-w-0 [&_.recharts-surface:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-wrapper:focus]:outline-none [&_.recharts-brush-traveller:focus]:outline-none',
+      )}
+    >
+      <ResponsiveContainer width="100%" height={312}>
+        <LineChart data={visibleData} margin={{ top: 8, right: 8, left: 4, bottom: 4 }}>
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="label"
             tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
             axisLine={{ stroke: 'var(--border-default)' }}
             tickLine={false}
-            interval={data.length > 12 ? 'preserveStartEnd' : 0}
+            interval={denseMain ? 'preserveStartEnd' : 0}
           />
           <YAxis
             tickFormatter={(v) => fmtMoneyCompact(Number(v), currency)}
@@ -197,10 +240,6 @@ export function DashboardRevenueTrendChart({
               borderRadius: 0,
               boxShadow: 'none',
             }}
-          />
-          <Legend
-            wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
-            formatter={(value) => <span className="text-text-secondary">{value}</span>}
           />
           <Line
             type="monotone"
@@ -227,6 +266,89 @@ export function DashboardRevenueTrendChart({
           ) : null}
         </LineChart>
       </ResponsiveContainer>
+
+      {dataWithIndex.length > 0 ? (
+        <div className="mt-2 rounded-md border border-border-subtle/70 bg-white px-1 py-1">
+          <div className="relative h-16 w-full">
+            <div className="absolute inset-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={dataWithIndex} margin={{ top: 4, right: 4, left: 4, bottom: 2 }}>
+                  <XAxis dataKey="label" hide />
+                  <YAxis hide domain={['auto', 'auto']} />
+                  {x1Label !== undefined && x2Label !== undefined ? (
+                    <ReferenceArea
+                      x1={x1Label}
+                      x2={x2Label}
+                      fill="rgba(0,0,0,0.14)"
+                      stroke="rgba(0,0,0,0.28)"
+                      strokeWidth={1}
+                      ifOverflow="extendDomain"
+                    />
+                  ) : null}
+                  <Line
+                    type="monotone"
+                    dataKey="current"
+                    stroke="var(--chart-3)"
+                    strokeWidth={1.5}
+                    dot={false}
+                    isAnimationActive={false}
+                  />
+                  {comparePrevious ? (
+                    <Line
+                      type="monotone"
+                      dataKey="previous"
+                      stroke="var(--chart-line-secondary)"
+                      strokeWidth={1.25}
+                      strokeDasharray="4 3"
+                      dot={false}
+                      connectNulls={false}
+                      isAnimationActive={false}
+                    />
+                  ) : null}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="absolute inset-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={dataWithIndex} margin={{ top: 0, right: 4, left: 4, bottom: 0 }}>
+                  <XAxis dataKey="__idx" hide />
+                  <YAxis hide />
+                  <Brush
+                    dataKey="__idx"
+                    height={62}
+                    travellerWidth={8}
+                    stroke="var(--border-default)"
+                    fill="transparent"
+                    startIndex={zoomStart}
+                    endIndex={zoomEnd}
+                    ariaLabel={t('dashboardRevenueBrushAria')}
+                    onChange={(r) => {
+                      if (typeof r?.startIndex === 'number') setZoomStart(r.startIndex)
+                      if (typeof r?.endIndex === 'number') setZoomEnd(r.endIndex)
+                    }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 pt-2 text-xs">
+        <span className="inline-flex items-center gap-2 text-text-secondary">
+          <span className="inline-block h-0.5 w-6 rounded bg-[var(--chart-3)]" aria-hidden />
+          {t('dashboardRevenueSeriesCurrent')}
+        </span>
+        {comparePrevious ? (
+          <span className="inline-flex items-center gap-2 text-text-secondary">
+            <span
+              className="inline-block h-0.5 w-6 rounded border-t-2 border-dashed border-[var(--chart-line-secondary)]"
+              aria-hidden
+            />
+            {t('dashboardRevenueSeriesPrevious')}
+          </span>
+        ) : null}
+      </div>
     </div>
   )
 }

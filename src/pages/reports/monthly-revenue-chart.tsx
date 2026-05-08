@@ -1,6 +1,15 @@
 /* eslint-disable react-refresh/only-export-components -- mergeMonthlyRows shared with dashboard trend chart */
 import { useState } from 'react'
-import { eachMonthOfInterval, endOfMonth, format, startOfMonth } from 'date-fns'
+import {
+  eachDayOfInterval,
+  eachMonthOfInterval,
+  eachWeekOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  startOfMonth,
+  startOfWeek,
+} from 'date-fns'
 import type { Locale } from 'date-fns'
 import type { BarShapeProps } from 'recharts'
 import {
@@ -15,7 +24,7 @@ import {
 } from 'recharts'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { MonthlyRevenueMonthRow } from '@/lib/types/reports'
+import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
 
 import { parseLocalYmd } from './reports-ui-helpers'
@@ -67,6 +76,62 @@ export function mergeMonthlyRows(
     const p = byYm.get(key)
     return {
       label: format(d, 'MMM yyyy', { locale }),
+      gross_revenue: toNum(p?.gross_revenue),
+      net_revenue: toNum(p?.net_revenue),
+      gross_profit: toNum(p?.gross_profit),
+      gross_margin_pct: toNum(p?.gross_margin_pct),
+    }
+  })
+}
+
+export function mergeRevenueSeriesRows(
+  startYmd: string,
+  endYmd: string,
+  granularity: RevenueSeriesGranularity,
+  rows: MonthlyRevenueMonthRow[],
+  locale: Locale,
+): MonthlyChartRow[] {
+  if (granularity === 'month') return mergeMonthlyRows(startYmd, endYmd, rows, locale)
+
+  const d0 = parseLocalYmd(startYmd)
+  const d1 = parseLocalYmd(endYmd)
+  const lo = d0 <= d1 ? d0 : d1
+  const hi = d0 <= d1 ? d1 : d0
+
+  const byDay = new Map<string, MonthlyRevenueMonthRow>()
+  for (const m of rows) {
+    byDay.set(m.month_start.slice(0, 10), m)
+  }
+
+  if (granularity === 'day') {
+    const days = eachDayOfInterval({ start: lo, end: hi })
+    return days.map((d) => {
+      const key = format(d, 'yyyy-MM-dd')
+      const p = byDay.get(key)
+      return {
+        label: format(d, 'd MMM yyyy', { locale }),
+        gross_revenue: toNum(p?.gross_revenue),
+        net_revenue: toNum(p?.net_revenue),
+        gross_profit: toNum(p?.gross_profit),
+        gross_margin_pct: toNum(p?.gross_margin_pct),
+      }
+    })
+  }
+
+  const intervalStart = startOfWeek(lo, { weekStartsOn: 1 })
+  const intervalEnd = endOfWeek(hi, { weekStartsOn: 1 })
+  const weeks = eachWeekOfInterval({ start: intervalStart, end: intervalEnd }, { weekStartsOn: 1 })
+  return weeks.map((d) => {
+    const monday = startOfWeek(d, { weekStartsOn: 1 })
+    const key = format(monday, 'yyyy-MM-dd')
+    const p = byDay.get(key)
+    const weekEnd = endOfWeek(d, { weekStartsOn: 1 })
+    const label =
+      format(monday, 'd MMM', { locale }) +
+      ' – ' +
+      format(weekEnd, 'd MMM yyyy', { locale })
+    return {
+      label,
       gross_revenue: toNum(p?.gross_revenue),
       net_revenue: toNum(p?.net_revenue),
       gross_profit: toNum(p?.gross_profit),
@@ -257,11 +322,11 @@ function ChartLegendToggle({
     swatchClass?: string
     isLine?: boolean
   }[] = [
-    { key: 'bruto', label: 'reportsGrossRevenue', swatchClass: 'bg-[var(--chart-monthly-gross-bar)]' },
-    { key: 'neta', label: 'reportsNetRevenue', swatchClass: 'bg-[var(--chart-3)]' },
-    { key: 'utilidad', label: 'reportsGrossProfit', swatchClass: 'bg-[var(--chart-4)]' },
-    { key: 'margin', label: 'reportsMonthlyLegendGrossMarginPct', isLine: true },
-  ]
+      { key: 'bruto', label: 'reportsGrossRevenue', swatchClass: 'bg-[var(--chart-monthly-gross-bar)]' },
+      { key: 'neta', label: 'reportsNetRevenue', swatchClass: 'bg-[var(--chart-3)]' },
+      { key: 'utilidad', label: 'reportsGrossProfit', swatchClass: 'bg-[var(--chart-4)]' },
+      { key: 'margin', label: 'reportsMonthlyLegendGrossMarginPct', isLine: true },
+    ]
 
   return (
     <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px]">

@@ -14,6 +14,7 @@ import { Popover, PopoverContent } from '@/ui/popover'
 import { Button } from '@/ui/button'
 import { FilterPillTriggerArea } from '@/ui/filters/filter-pill-trigger'
 import type { FilterOption } from '@/ui/filters/types'
+import { TruncatedOptionLabel } from '@/ui/filters/truncated-option-label'
 
 export type FilterComboboxMultiProps = {
   label: string
@@ -35,6 +36,7 @@ export type FilterComboboxMultiProps = {
   selectAllContainingLabel?: string
   deselectAllContainingLabel?: string
   allContainingSummaryLabel?: string
+  onOpenChange?: (open: boolean) => void
 }
 
 function toggle(list: string[], v: string): string[] {
@@ -66,6 +68,7 @@ export function FilterComboboxMulti({
   selectAllContainingLabel = 'Select all containing: {query}',
   deselectAllContainingLabel = 'Deselect all containing: {query}',
   allContainingSummaryLabel = 'all containing {query}',
+  onOpenChange,
 }: FilterComboboxMultiProps) {
   const [open, setOpen] = React.useState(false)
   const [draftValues, setDraftValues] = React.useState<string[]>(values)
@@ -141,7 +144,13 @@ export function FilterComboboxMulti({
   }, [filteredOptionValues, filteredSelected, query])
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        onOpenChange?.(next)
+      }}
+    >
       <FilterPillTriggerArea
         active={active}
         label={label}
@@ -185,9 +194,10 @@ export function FilterComboboxMulti({
                     value="__toggle-all__"
                     onSelect={toggleSelectAll}
                   >
-                    <span className="truncate font-medium">
-                      {allSelected ? deselectAllLabel : selectAllLabel}
-                    </span>
+                    <TruncatedOptionLabel
+                      label={allSelected ? deselectAllLabel : selectAllLabel}
+                      className="font-medium"
+                    />
                   </CommandItem>
                 )}
                 {showSelectAllContainingToggle && normalizedQuery && (
@@ -228,7 +238,7 @@ export function FilterComboboxMulti({
                     >
                       <Check className="size-3" />
                     </span>
-                    <span className="truncate">{o.label}</span>
+                    <TruncatedOptionLabel label={o.label} />
                   </CommandItem>
                 )
               })}

@@ -29,10 +29,12 @@ export function SectionHeader({
   title,
   description,
   className,
+  aside,
 }: {
   title: string
   description?: string
   className?: string
+  aside?: ReactNode
 }) {
   return (
     <div className={cn('mb-4 space-y-1', className)}>
@@ -40,6 +42,7 @@ export function SectionHeader({
         <h2 className="text-lg font-semibold tracking-[-0.02em] text-[var(--color-text-primary)]">
           {title}
         </h2>
+        {aside}
       </div>
       {description ? (
         <p className="max-w-2xl text-sm leading-relaxed text-[var(--color-text-muted)]">{description}</p>

@@ -1,4 +1,11 @@
-import { eachMonthOfInterval, endOfMonth, startOfMonth, subMonths } from 'date-fns'
+import {
+  differenceInCalendarDays,
+  eachMonthOfInterval,
+  endOfMonth,
+  startOfMonth,
+  subDays,
+  subMonths,
+} from 'date-fns'
 
 export function toYmd(d: Date): string {
   const y = d.getFullYear()
@@ -36,6 +43,23 @@ export function computePreviousPeriod(
   const prevEnd = endOfMonth(subMonths(rangeStart, 1))
 
   if (prevStart > prevEnd) return null
+  return { start: toYmd(prevStart), end: toYmd(prevEnd) }
+}
+
+/** Same calendar span (inclusive days), shifted to end the day before `start`. */
+export function computeShiftedPreviousPeriod(
+  startYmd: string,
+  endYmd: string,
+): { start: string; end: string } | null {
+  const rawStart = parseLocalYmd(startYmd)
+  const rawEnd = parseLocalYmd(endYmd)
+  if (Number.isNaN(rawStart.getTime()) || Number.isNaN(rawEnd.getTime()) || rawStart > rawEnd) return null
+
+  const days = differenceInCalendarDays(rawEnd, rawStart) + 1
+  if (days < 1) return null
+
+  const prevEnd = subDays(rawStart, 1)
+  const prevStart = subDays(prevEnd, days - 1)
   return { start: toYmd(prevStart), end: toYmd(prevEnd) }
 }
 

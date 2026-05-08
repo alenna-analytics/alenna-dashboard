@@ -14,6 +14,7 @@ import { Popover, PopoverContent } from '@/ui/popover'
 import { Button } from '@/ui/button'
 import { FilterPillTriggerArea } from '@/ui/filters/filter-pill-trigger'
 import type { FilterOption } from '@/ui/filters/types'
+import { TruncatedOptionLabel } from '@/ui/filters/truncated-option-label'
 
 export type FilterComboboxSingleProps = {
   label: string
@@ -36,6 +37,8 @@ export type FilterComboboxSingleProps = {
   /** Optional loading state shown in place of empty when fetching. */
   loading?: boolean
   loadingLabel?: string
+  /** When false, the pill cannot be cleared (required selection). */
+  allowClear?: boolean
 }
 
 export function FilterComboboxSingle({
@@ -51,6 +54,7 @@ export function FilterComboboxSingle({
   onSearchChange,
   loading = false,
   loadingLabel,
+  allowClear = true,
 }: FilterComboboxSingleProps) {
   const [open, setOpen] = React.useState(false)
   const [draftValue, setDraftValue] = React.useState(value)
@@ -71,7 +75,7 @@ export function FilterComboboxSingle({
         active={active}
         label={label}
         valueSummary={summary}
-        onClear={active ? () => onValueChange('') : undefined}
+        onClear={active && allowClear ? () => onValueChange('') : undefined}
         clearAriaLabel={clearAriaLabel}
         ariaExpanded={open}
         triggerClassName={triggerClassName}
@@ -120,7 +124,7 @@ export function FilterComboboxSingle({
                   >
                     <Check className="size-3" />
                   </span>
-                  <span className="truncate">{o.label}</span>
+                  <TruncatedOptionLabel label={o.label} />
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -8,12 +8,17 @@ import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { apiFetch, apiPostJson } from '@/lib/api'
-import type {
-  PlatformConnection,
-  ShopifyOrdersPreviewResponse,
-  ShopifySyncEnqueueResponse,
+import {
+  ShopifySyncCooldownError,
+  ShopifySyncFailedRetryCapError,
+  ShopifySyncInProgressError,
+  ShopifySyncTenantBusyError,
+  type PlatformConnection,
+  type ShopifySyncEnqueueResponse,
+  type ShopifySyncTypedError,
+  type SyncPlan,
 } from '@/lib/types/connectors'
-import { formatShopifyLastSync, normalizeShopifySubdomainInput, toYmd } from '@/lib/integrations/shopify-format'
+import { formatShopifyLastSync, normalizeShopifySubdomainInput } from '@/lib/integrations/shopify-format'
 import { shellT } from '@/lib/i18n/shell-strings'
 import {
   GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
@@ -24,25 +29,14 @@ import { useCatalogJobQuery, useRetryCatalogJobMutation } from '@/pages/products
 export type ShopifyIntegrationHook = ReturnType<typeof useShopifyIntegration>
 
 type ShopifySyncFiltersState = {
-  dateFrom: string
-  dateTo: string
   storePicker: string
-  fullHistory: boolean
 }
 
 function parseShopifySyncFilters(raw: unknown): ShopifySyncFiltersState | null {
   if (!raw || typeof raw !== 'object') return null
   const o = raw as Record<string, unknown>
-  if (typeof o.dateFrom !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(o.dateFrom)) return null
-  if (typeof o.dateTo !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(o.dateTo)) return null
   if (typeof o.storePicker !== 'string') return null
-  if (typeof o.fullHistory !== 'boolean') return null
-  return {
-    dateFrom: o.dateFrom,
-    dateTo: o.dateTo,
-    storePicker: o.storePicker,
-    fullHistory: o.fullHistory,
-  }
+  return { storePicker: o.storePicker }
 }
 
 type ShopifySyncBlockSuccess = {
@@ -100,6 +94,54 @@ function parseShopifySyncPanel(raw: unknown): ShopifySyncPanelState | null {
   }
 }
 
+function readRetryAfterSeconds(res: Response): number | null {
+  const raw = res.headers.get('Retry-After')
+  if (!raw) return null
+  const parsed = Number.parseInt(raw, 10)
+  if (Number.isNaN(parsed) || parsed < 0) return null
+  return parsed
+}
+
+async function readApiErrorDetail(res: Response): Promise<string | null> {
+  const text = await res.text()
+  if (!text) return null
+  try {
+    const parsed = JSON.parse(text) as unknown
+    if (parsed && typeof parsed === 'object' && 'detail' in parsed) {
+      const detail = (parsed as { detail: unknown }).detail
+      if (typeof detail === 'string') return detail
+    }
+  } catch {
+    /* not json */
+  }
+  return text
+}
+
+function buildSyncTypedError(
+  status: number,
+  detail: string | null,
+  retryAfterSeconds: number | null,
+): ShopifySyncTypedError | null {
+  if (status === 409 && detail === 'shopify_full_sync_in_progress') {
+    return new ShopifySyncInProgressError()
+  }
+  if (status === 409 && detail === 'shopify_full_sync_tenant_busy') {
+    return new ShopifySyncTenantBusyError()
+  }
+  if (status === 429 && detail === 'shopify_full_sync_cooldown') {
+    return new ShopifySyncCooldownError(retryAfterSeconds)
+  }
+  if (status === 429 && detail === 'shopify_full_sync_failed_retry_cap') {
+    return new ShopifySyncFailedRetryCapError(retryAfterSeconds)
+  }
+  return null
+}
+
+function secondsToCeilHours(seconds: number | null): number {
+  if (seconds == null || seconds <= 0) return 0
+  return Math.max(1, Math.ceil(seconds / 3600))
+}
+
 export function useShopifyIntegration() {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
@@ -112,17 +154,10 @@ export function useShopifyIntegration() {
 
   const [shopInput, setShopInput] = useState('')
 
-  const defaultSyncFilters = useMemo((): ShopifySyncFiltersState => {
-    const endD = new Date()
-    const startD = new Date()
-    startD.setDate(startD.getDate() - 7)
-    return {
-      dateFrom: toYmd(startD),
-      dateTo: toYmd(endD),
-      storePicker: '',
-      fullHistory: false,
-    }
-  }, [])
+  const defaultSyncFilters = useMemo<ShopifySyncFiltersState>(
+    () => ({ storePicker: '' }),
+    [],
+  )
 
   const [syncFilters, setSyncFilters] = useTenantPersistedJson(
     tenantId,
@@ -130,7 +165,7 @@ export function useShopifyIntegration() {
     defaultSyncFilters,
     parseShopifySyncFilters,
   )
-  const { dateFrom, dateTo, storePicker, fullHistory } = syncFilters
+  const { storePicker } = syncFilters
 
   const [syncPanel, setSyncPanel] = useTenantPersistedJson(
     tenantId,
@@ -139,27 +174,9 @@ export function useShopifyIntegration() {
     parseShopifySyncPanel,
   )
 
-  const setDateFrom = useCallback(
-    (v: string) => {
-      setSyncFilters({ dateFrom: v })
-    },
-    [setSyncFilters],
-  )
-  const setDateTo = useCallback(
-    (v: string) => {
-      setSyncFilters({ dateTo: v })
-    },
-    [setSyncFilters],
-  )
   const setStorePicker = useCallback(
     (v: string) => {
       setSyncFilters({ storePicker: v })
-    },
-    [setSyncFilters],
-  )
-  const setFullHistory = useCallback(
-    (v: boolean) => {
-      setSyncFilters({ fullHistory: v })
     },
     [setSyncFilters],
   )
@@ -174,6 +191,7 @@ export function useShopifyIntegration() {
   } = useQuery({
     queryKey: ['connectors', tenantId],
     enabled: Boolean(tenantId),
+    staleTime: 10_000,
     queryFn: async (): Promise<PlatformConnection[]> => {
       const res = await apiFetch('/connectors', (a) => getToken(a), {}, tenantId)
       if (!res.ok) {
@@ -202,6 +220,8 @@ export function useShopifyIntegration() {
     () => shopifyRows.find((c) => c.id === activeConnectionId) ?? primary,
     [shopifyRows, activeConnectionId, primary],
   )
+
+  const syncPlan: SyncPlan | null = activeConnection?.sync_plan ?? null
 
   const pollShopifyJob = Boolean(
     syncPanel.pendingJobId &&
@@ -253,25 +273,25 @@ export function useShopifyIntegration() {
         : shellT(lang, 'syncRunning')
     if (job.status === 'running') {
       const prog = job.progress ?? {}
-      const raw = prog.orders_processed
-      const op =
-        typeof raw === 'number'
-          ? raw
-          : typeof raw === 'string'
-            ? Number.parseInt(raw, 10)
+      const processedRaw = prog.processed_count ?? prog.orders_processed
+      const processed =
+        typeof processedRaw === 'number'
+          ? processedRaw
+          : typeof processedRaw === 'string'
+            ? Number.parseInt(processedRaw, 10)
             : null
-      const pgRaw = prog.page
-      const pg =
-        typeof pgRaw === 'number'
-          ? pgRaw
-          : typeof pgRaw === 'string'
-            ? Number.parseInt(pgRaw, 10)
-            : null
-      if (op != null && !Number.isNaN(op)) {
-        subtitle = `${shellT(lang, 'shopifySyncProgressOrders')}: ${op.toLocaleString()}`
-        if (pg != null && !Number.isNaN(pg)) {
-          subtitle += ` · ${shellT(lang, 'shopifySyncProgressPages')} ${pg}`
-        }
+      const oldestRaw = prog.oldest_processed_created_at
+      const oldestYear =
+        typeof oldestRaw === 'string' && /^\d{4}-/.test(oldestRaw)
+          ? Number.parseInt(oldestRaw.slice(0, 4), 10)
+          : null
+      if (processed != null && !Number.isNaN(processed) && oldestYear != null) {
+        subtitle = shellT(lang, 'syncProgressLabel', {
+          year: String(oldestYear),
+          count: processed.toLocaleString(),
+        })
+      } else if (processed != null && !Number.isNaN(processed)) {
+        subtitle = `${shellT(lang, 'shopifySyncProgressOrders')}: ${processed.toLocaleString()}`
       }
     }
     patchActivity(GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID, { phase: 'loading', subtitle })
@@ -344,6 +364,7 @@ export function useShopifyIntegration() {
         failedMessage: job.error_message ?? shellT(lang, 'syncErrorLabel'),
         blockSuccess: null,
       })
+      void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
     }
   }, [
     pollShopifyJob,
@@ -360,6 +381,9 @@ export function useShopifyIntegration() {
   const shopifySyncPhase = useMemo((): 'idle' | 'working' | 'done_ok' | 'done_fail' => {
     if (!activeConnectionId) return 'idle'
     if (syncPanel.pendingJobId && syncPanel.pendingConnectionId === activeConnectionId) {
+      return 'working'
+    }
+    if (syncPlan?.last_sync_status === 'syncing') {
       return 'working'
     }
     if (syncPanel.blockSuccess?.connectionId === activeConnectionId) {
@@ -379,6 +403,7 @@ export function useShopifyIntegration() {
     syncPanel.blockSuccess,
     syncPanel.failedJobId,
     syncPanel.failedConnectionId,
+    syncPlan?.last_sync_status,
   ])
 
   const startOAuth = useCallback(async () => {
@@ -416,65 +441,12 @@ export function useShopifyIntegration() {
     void startOAuth()
   }, [shopInput, startOAuth])
 
-  const previewMutation = useMutation({
-    mutationFn: async (): Promise<ShopifyOrdersPreviewResponse> => {
-      if (!tenantId) throw new Error('No workspace')
-      const body: {
-        start_date: string
-        end_date: string
-        platform_connection_id?: string
-        full?: boolean
-      } = {
-        start_date: dateFrom,
-        end_date: dateTo,
-      }
-      if (shopifyRows.length > 1 && activeConnectionId) {
-        body.platform_connection_id = activeConnectionId
-      }
-      const res = await apiPostJson(
-        '/connectors/shopify/orders-preview',
-        (a) => getToken(a),
-        body,
-        {},
-        tenantId,
-      )
-      if (!res.ok) {
-        const t = await res.text()
-        throw new Error(t || res.statusText)
-      }
-      return (await res.json()) as ShopifyOrdersPreviewResponse
-    },
-    onSuccess: (data) => {
-      void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
-      const trunc = data.truncated
-        ? ` ${shellT(lang, 'connectionsPreviewTruncated')}`
-        : ''
-      setPreviewMessage(
-        `${shellT(lang, 'connectionsPreviewResult')}: ${data.orders_written}. JSONL: ${data.file_name}. CSV: ${data.csv_file_name}.${trunc}`,
-      )
-    },
-    onError: (e: Error) => {
-      setPreviewMessage(e.message)
-    },
-  })
-
   const syncMutation = useMutation({
     mutationFn: async (): Promise<ShopifySyncEnqueueResponse> => {
       if (!tenantId) throw new Error('No workspace')
-      const body: {
-        start_date?: string
-        end_date?: string
-        platform_connection_id?: string
-        full?: boolean
-      } = {
-        start_date: dateFrom,
-        end_date: dateTo,
-      }
+      const body: { full: true; platform_connection_id?: string } = { full: true }
       if (shopifyRows.length > 1 && activeConnectionId) {
         body.platform_connection_id = activeConnectionId
-      }
-      if (fullHistory) {
-        body.full = true
       }
       const res = await apiPostJson(
         '/connectors/shopify/sync',
@@ -484,12 +456,16 @@ export function useShopifyIntegration() {
         tenantId,
       )
       if (!res.ok) {
-        const t = await res.text()
-        throw new Error(t || res.statusText)
+        const detail = await readApiErrorDetail(res)
+        const retryAfterSeconds = readRetryAfterSeconds(res)
+        const typed = buildSyncTypedError(res.status, detail, retryAfterSeconds)
+        if (typed) throw typed
+        throw new Error(detail ?? res.statusText)
       }
       return (await res.json()) as ShopifySyncEnqueueResponse
     },
     onSuccess: (data) => {
+      setSyncMessage(null)
       upsertActivity({
         id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
         phase: 'loading',
@@ -506,8 +482,28 @@ export function useShopifyIntegration() {
         failedMessage: null,
         blockSuccess: null,
       })
+      void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
     },
     onError: (e: Error) => {
+      if (e instanceof ShopifySyncInProgressError) {
+        toast.error(shellT(lang, 'syncInProgressToast'))
+        void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
+        return
+      }
+      if (e instanceof ShopifySyncTenantBusyError) {
+        toast.error(shellT(lang, 'syncTenantBusyToast'))
+        return
+      }
+      if (e instanceof ShopifySyncCooldownError) {
+        const hours = secondsToCeilHours(e.retryAfterSeconds)
+        toast.error(shellT(lang, 'syncCooldownToast', { hours: String(hours) }))
+        return
+      }
+      if (e instanceof ShopifySyncFailedRetryCapError) {
+        const hours = secondsToCeilHours(e.retryAfterSeconds)
+        toast.error(shellT(lang, 'syncFailedRetryCapToast', { hours: String(hours) }))
+        return
+      }
       setSyncMessage(e.message)
       upsertActivity({
         id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
@@ -583,16 +579,19 @@ export function useShopifyIntegration() {
   const lastSyncDisplay = formatShopifyLastSync(activeConnection?.last_synced_at, lang, neverLabel)
 
   const shopifyJobProgress = shopifyJobQuery.data?.progress ?? null
-  const ordersProcessedRaw = shopifyJobProgress?.orders_processed
+  const processedRaw =
+    shopifyJobProgress?.processed_count ?? shopifyJobProgress?.orders_processed
   const ordersProcessed =
-    typeof ordersProcessedRaw === 'number'
-      ? ordersProcessedRaw
-      : typeof ordersProcessedRaw === 'string'
-        ? Number.parseInt(ordersProcessedRaw, 10)
+    typeof processedRaw === 'number'
+      ? processedRaw
+      : typeof processedRaw === 'string'
+        ? Number.parseInt(processedRaw, 10)
         : null
-  const pageRaw = shopifyJobProgress?.page
-  const syncPage =
-    typeof pageRaw === 'number' ? pageRaw : typeof pageRaw === 'string' ? Number.parseInt(pageRaw, 10) : null
+  const oldestRaw = shopifyJobProgress?.oldest_processed_created_at
+  const oldestProcessedYear =
+    typeof oldestRaw === 'string' && /^\d{4}-/.test(oldestRaw)
+      ? Number.parseInt(oldestRaw.slice(0, 4), 10)
+      : null
 
   return {
     lang,
@@ -602,12 +601,6 @@ export function useShopifyIntegration() {
     setShopInput,
     storePicker,
     setStorePicker,
-    dateFrom,
-    setDateFrom,
-    dateTo,
-    setDateTo,
-    fullHistory,
-    setFullHistory,
     previewMessage,
     setPreviewMessage,
     syncMessage,
@@ -622,7 +615,6 @@ export function useShopifyIntegration() {
     oauthStarting,
     startOAuth,
     onConnectClick,
-    previewMutation,
     syncMutation,
     disconnectMutation,
     neverLabel,
@@ -630,10 +622,11 @@ export function useShopifyIntegration() {
     shopifySyncPhase,
     shopifyJobQuery,
     ordersProcessed,
-    syncPage,
+    oldestProcessedYear,
     syncPanelBlockSuccess: syncPanel.blockSuccess,
     syncFailedMessage: syncPanel.failedMessage,
     retryShopifySync,
     retryShopifySyncPending: retryCatalogJobMutation.isPending,
+    syncPlan,
   }
 }

@@ -32,7 +32,7 @@ const CommandInputWrapper = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandInput>
 >(({ className, ...props }, ref) => (
   <div
-    className="flex shrink-0 items-center border-b border-border-default/80 bg-bg-sunken/40 px-3"
+    className="flex shrink-0 items-center border-b border-border-default/80 bg-white px-3"
     cmdk-input-wrapper=""
   >
     <Search className="mr-2 size-4 shrink-0 text-text-tertiary" aria-hidden />

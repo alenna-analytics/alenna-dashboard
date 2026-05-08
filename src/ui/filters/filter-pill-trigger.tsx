@@ -78,7 +78,7 @@ export function FilterPillTriggerArea({
         className={cn(filterPillInactiveClassName(), triggerClassName)}
         aria-expanded={ariaExpanded}
       >
-        <InactiveIcon className="size-3.5 shrink-0 stroke-[1.5] text-accent" aria-hidden />
+        <InactiveIcon className="size-3.5 shrink-0 stroke-[1.5] text-text-secondary" aria-hidden />
         <span className="max-w-[12rem] truncate">{label}</span>
       </PopoverTrigger>
     )

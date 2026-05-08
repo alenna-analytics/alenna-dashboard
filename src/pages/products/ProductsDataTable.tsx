@@ -87,16 +87,26 @@ export function ProductsDataTable({
   const sortBy = sort?.id ?? "title"
   const sortDir: "asc" | "desc" = sort?.desc ? "desc" : "asc"
 
+  const [debouncedSearchQ, setDebouncedSearchQ] = useState(searchQ)
+  useEffect(() => {
+    if (searchQ.trim() === "") {
+      setDebouncedSearchQ("")
+      return
+    }
+    const id = window.setTimeout(() => setDebouncedSearchQ(searchQ), 350)
+    return () => window.clearTimeout(id)
+  }, [searchQ])
+
   useEffect(() => {
     setPagination((p) => ({ ...p, pageIndex: 0 }))
-  }, [searchQ, sortBy, sortDir])
+  }, [debouncedSearchQ, sortBy, sortDir])
 
   useEffect(() => {
     setRowSelection({})
-  }, [searchQ])
+  }, [debouncedSearchQ])
 
   const listQuery = useProductListQuery({
-    q: searchQ,
+    q: debouncedSearchQ,
     limit: pagination.pageSize,
     offset: pagination.pageIndex * pagination.pageSize,
     sortBy,
@@ -251,6 +261,7 @@ export function ProductsDataTable({
           onChange: onSearchQChange,
           placeholder: t("productsSearchPlaceholder"),
           ariaLabel: t("productsSearchPlaceholder"),
+          clearAriaLabel: t("productsSearchClearAria"),
         }}
         footer={
           <DataTablePagination

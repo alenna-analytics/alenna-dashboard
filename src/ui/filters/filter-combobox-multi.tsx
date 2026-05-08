@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Check } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import {
@@ -11,6 +11,7 @@ import {
   CommandList,
 } from '@/ui/command'
 import { Popover, PopoverContent } from '@/ui/popover'
+import { Button } from '@/ui/button'
 import { FilterPillTriggerArea } from '@/ui/filters/filter-pill-trigger'
 import type { FilterOption } from '@/ui/filters/types'
 
@@ -19,10 +20,21 @@ export type FilterComboboxMultiProps = {
   options: FilterOption[]
   values: string[]
   onValuesChange: (next: string[]) => void
+  applyLabel: string
   searchPlaceholder: string
   emptyLabel: string
   triggerClassName?: string
   clearAriaLabel?: string
+  onSearchChange?: (query: string) => void
+  loading?: boolean
+  loadingLabel?: string
+  showSelectAllToggle?: boolean
+  showSelectAllContainingToggle?: boolean
+  selectAllLabel?: string
+  deselectAllLabel?: string
+  selectAllContainingLabel?: string
+  deselectAllContainingLabel?: string
+  allContainingSummaryLabel?: string
 }
 
 function toggle(list: string[], v: string): string[] {
@@ -30,29 +42,103 @@ function toggle(list: string[], v: string): string[] {
   return [...list, v]
 }
 
+function truncateLabel(label: string, maxLen: number): string {
+  if (label.length <= maxLen) return label
+  return `${label.slice(0, maxLen)}...`
+}
+
 export function FilterComboboxMulti({
   label,
   options,
   values,
   onValuesChange,
+  applyLabel,
   searchPlaceholder,
   emptyLabel,
   triggerClassName,
   clearAriaLabel = 'Clear filter',
+  onSearchChange,
+  loading = false,
+  showSelectAllToggle = true,
+  showSelectAllContainingToggle = false,
+  selectAllLabel = 'Select all',
+  deselectAllLabel = 'Deselect all',
+  selectAllContainingLabel = 'Select all containing: {query}',
+  deselectAllContainingLabel = 'Deselect all containing: {query}',
+  allContainingSummaryLabel = 'all containing {query}',
 }: FilterComboboxMultiProps) {
   const [open, setOpen] = React.useState(false)
+  const [draftValues, setDraftValues] = React.useState<string[]>(values)
+  const [query, setQuery] = React.useState('')
+  const [appliedContainsQuery, setAppliedContainsQuery] = React.useState<string | null>(null)
+  const [draftContainsQuery, setDraftContainsQuery] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    if (!open) return
+    setDraftValues(values)
+    setDraftContainsQuery(appliedContainsQuery)
+  }, [open, values, appliedContainsQuery])
+
+  React.useEffect(() => {
+    if (values.length > 0) return
+    setAppliedContainsQuery(null)
+  }, [values])
 
   const summary = React.useMemo(() => {
     if (values.length === 0) return null
+    if (appliedContainsQuery) {
+      return allContainingSummaryLabel.replace('{query}', appliedContainsQuery)
+    }
     const labels = values
       .map((v) => options.find((o) => o.value === v)?.label)
       .filter((x): x is string => Boolean(x))
+      .map((x) => truncateLabel(x, 15))
     if (labels.length === 0) return null
     if (labels.length <= 2) return labels.join(', ')
     return `${labels.slice(0, 2).join(', ')} +${labels.length - 2}`
-  }, [values, options])
+  }, [values, options, appliedContainsQuery, allContainingSummaryLabel])
 
   const active = Boolean(summary)
+
+  const normalizedQuery = query.trim().toLowerCase()
+  const filteredOptions = React.useMemo(() => {
+    if (!normalizedQuery) return options
+    return options.filter((o) => {
+      const haystack = `${o.label} ${o.value}`.toLowerCase()
+      return haystack.includes(normalizedQuery)
+    })
+  }, [options, normalizedQuery])
+
+  const allOptionValues = React.useMemo(() => options.map((o) => o.value), [options])
+  const filteredOptionValues = React.useMemo(
+    () => filteredOptions.map((o) => o.value),
+    [filteredOptions],
+  )
+
+  const allSelected =
+    allOptionValues.length > 0 && allOptionValues.every((v) => draftValues.includes(v))
+  const filteredSelected =
+    filteredOptionValues.length > 0 &&
+    filteredOptionValues.every((v) => draftValues.includes(v))
+
+  const toggleSelectAll = React.useCallback(() => {
+    setDraftValues((current) => {
+      if (allSelected) return current.filter((v) => !allOptionValues.includes(v))
+      const merged = new Set([...current, ...allOptionValues])
+      return Array.from(merged)
+    })
+    setDraftContainsQuery(null)
+  }, [allOptionValues, allSelected])
+
+  const toggleSelectAllContaining = React.useCallback(() => {
+    setDraftValues((current) => {
+      if (filteredSelected) return current.filter((v) => !filteredOptionValues.includes(v))
+      const merged = new Set([...current, ...filteredOptionValues])
+      return Array.from(merged)
+    })
+    const q = query.trim()
+    setDraftContainsQuery(q.length > 0 ? q : null)
+  }, [filteredOptionValues, filteredSelected, query])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -65,32 +151,106 @@ export function FilterComboboxMulti({
         ariaExpanded={open}
         triggerClassName={triggerClassName}
       />
-      <PopoverContent align="start" sideOffset={6} className="w-[min(calc(100vw-24px),18rem)] p-0">
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} />
-          <CommandList>
-            <CommandEmpty>{emptyLabel}</CommandEmpty>
+      <PopoverContent
+        align="start"
+        sideOffset={6}
+        positionMethod="fixed"
+        collisionPadding={12}
+        collisionAvoidance={{ side: 'shift', align: 'none', fallbackAxisSide: 'none' }}
+        className="w-[min(calc(100vw-24px),18rem)] border-border-subtle shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)] p-0"
+      >
+        <Command shouldFilter={false}>
+          <CommandInput
+            className="bg-white"
+            placeholder={searchPlaceholder}
+            onValueChange={(next) => {
+              setQuery(next)
+              onSearchChange?.(next)
+            }}
+          />
+          <CommandList className="max-h-72 overflow-y-auto">
+            <CommandEmpty>
+              {loading ? (
+                <span className="flex w-full items-center justify-center py-5 text-text-secondary">
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                </span>
+              ) : (
+                emptyLabel
+              )}
+            </CommandEmpty>
+            {(showSelectAllToggle || showSelectAllContainingToggle) && (
+              <CommandGroup>
+                {showSelectAllToggle && (
+                  <CommandItem
+                    value="__toggle-all__"
+                    onSelect={toggleSelectAll}
+                  >
+                    <span className="truncate font-medium">
+                      {allSelected ? deselectAllLabel : selectAllLabel}
+                    </span>
+                  </CommandItem>
+                )}
+                {showSelectAllContainingToggle && normalizedQuery && (
+                  <CommandItem
+                    value="__toggle-filtered__"
+                    onSelect={toggleSelectAllContaining}
+                    disabled={filteredOptionValues.length === 0}
+                  >
+                    <span className="truncate font-medium">
+                      {filteredSelected
+                        ? deselectAllContainingLabel.replace('{query}', query)
+                        : selectAllContainingLabel.replace('{query}', query)}
+                    </span>
+                  </CommandItem>
+                )}
+              </CommandGroup>
+            )}
             <CommandGroup>
-              {options.map((o) => {
-                const checked = values.includes(o.value)
+              {filteredOptions.map((o) => {
+                const checked = draftValues.includes(o.value)
                 return (
                   <CommandItem
                     key={o.value}
                     value={`${o.label} ${o.value}`}
                     onSelect={() => {
-                      onValuesChange(toggle(values, o.value))
+                      setDraftValues((current) => toggle(current, o.value))
+                      setDraftContainsQuery(null)
                     }}
                   >
-                    <Check
-                      className={cn('size-4 shrink-0', checked ? 'opacity-100' : 'opacity-0')}
+                    <span
+                      className={cn(
+                        'grid size-4 shrink-0 place-items-center rounded-[4px] border border-border-default',
+                        checked
+                          ? 'bg-secondary text-primary-foreground'
+                          : 'bg-bg-default text-transparent',
+                      )}
                       aria-hidden
-                    />
+                    >
+                      <Check className="size-3" />
+                    </span>
                     <span className="truncate">{o.label}</span>
                   </CommandItem>
                 )
               })}
             </CommandGroup>
           </CommandList>
+          <div className="border-t border-border-default p-2">
+            <Button
+              type="button"
+              variant="default"
+              size="xs"
+              className="w-full"
+              onClick={() => {
+                onValuesChange(draftValues)
+                setAppliedContainsQuery(
+                  draftContainsQuery && draftValues.length > 0 ? draftContainsQuery : null,
+                )
+                setOpen(false)
+              }}
+            >
+              {applyLabel}
+            </Button>
+          </div>
         </Command>
       </PopoverContent>
     </Popover>

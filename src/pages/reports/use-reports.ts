@@ -6,25 +6,53 @@ import { apiFetch } from '@/lib/api'
 import type { KpiResponse } from '@/lib/types/reports'
 
 type UseReportsParams = {
-  connectionId: string | null
+  /**
+   * Single-connection mode (legacy). Use `connectionIds` instead for the
+   * home page / multi-channel filter; pass `null` to disable the query.
+   */
+  connectionId?: string | null
+  /**
+   * Multi-connection mode. When non-empty, `connection_ids` is sent as
+   * repeated query params and `connection_id` is omitted; the API still
+   * supports the legacy single-id form for `ReportsPage`.
+   */
+  connectionIds?: string[]
   startDate: string
   endDate: string
   enabled?: boolean
 }
 
-export function useReports({ connectionId, startDate, endDate, enabled = true }: UseReportsParams) {
+export function useReports({
+  connectionId,
+  connectionIds,
+  startDate,
+  endDate,
+  enabled = true,
+}: UseReportsParams) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
 
+  const ids = connectionIds && connectionIds.length > 0 ? connectionIds : null
+  const scopeKey = ids ? ids.join(',') : (connectionId ?? null)
+
   return useQuery({
-    queryKey: ['reports', 'kpis', tenantId, connectionId, startDate, endDate],
-    enabled: Boolean(enabled && tenantId && connectionId && startDate && endDate),
+    queryKey: ['reports', 'kpis', tenantId, scopeKey, startDate, endDate],
+    enabled: Boolean(
+      enabled &&
+        tenantId &&
+        startDate &&
+        endDate &&
+        (ids || connectionId),
+    ),
     queryFn: async (): Promise<KpiResponse> => {
-      const params = new URLSearchParams({
-        connection_id: connectionId!,
-        start_date: startDate,
-        end_date: endDate,
-      })
+      const params = new URLSearchParams()
+      if (ids) {
+        for (const id of ids) params.append('connection_ids', id)
+      } else if (connectionId) {
+        params.set('connection_id', connectionId)
+      }
+      params.set('start_date', startDate)
+      params.set('end_date', endDate)
       const res = await apiFetch(`/reports/kpis?${params}`, (a) => getToken(a), {}, tenantId)
       if (!res.ok) {
         const t = await res.text()

@@ -36,3 +36,42 @@ export type KpiResponse = {
   cogs_incomplete: boolean
   order_status_counts: Record<string, number>
 }
+
+export type ProductKpiResponse = {
+  gross_revenue: number
+  cogs: number
+  gross_profit: number
+  gross_margin_pct: number
+  units_sold: number
+  currency: string
+}
+
+export type TopProductRow = {
+  product_id: string
+  title: string
+  image_url: string | null
+  internal_sku: string | null
+  gross_revenue: number
+  units_sold: number
+  cogs: number
+  gross_profit: number
+  gross_margin_pct: number
+}
+
+export type TopProductsResponse = {
+  items: TopProductRow[]
+  currency: string
+}
+
+export type ChannelBreakdownRow = {
+  connection_id: string
+  shop_domain: string | null
+  platform: string
+  gross_revenue: number
+  units_sold: number
+}
+
+export type ChannelBreakdownResponse = {
+  items: ChannelBreakdownRow[]
+  currency: string
+}

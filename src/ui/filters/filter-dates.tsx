@@ -56,7 +56,7 @@ export function FilterDates({
         collisionPadding={12}
         collisionAvoidance={{ side: 'shift', align: 'none', fallbackAxisSide: 'none' }}
         className={cn(
-          'max-h-[min(90dvh,calc(100dvh-32px))] w-[min(calc(100vw-24px),740px)] max-w-[calc(100vw-24px)] min-w-0 overflow-x-auto overflow-y-auto p-0',
+          'max-h-[min(90dvh,calc(100dvh-32px))] w-[min(calc(100vw-24px),740px)] max-w-[calc(100vw-24px)] min-w-0 overflow-x-auto overflow-y-auto border-border-subtle shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)] p-0',
         )}
       >
         <DateRangePickerPanel

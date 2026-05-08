@@ -164,11 +164,29 @@ const SHELL_STRINGS = {
     ariaSwitchToSpanish: 'Cambiar a español',
     ariaBreadcrumb: 'Ruta de navegación',
     syncSectionTitle: 'Sincronización de datos',
-    syncSectionDescription: 'Importa pedidos y productos desde tu tienda Shopify hacia Alenna.',
+    syncSectionDescription:
+      'Importamos pedidos y productos desde Shopify. La sincronización inicial trae los últimos 3 años calendario completos más lo que va del año actual, en el horario de tu tienda.',
     syncRunBtn: 'Ejecutar sincronización inicial',
+    syncRefreshBtn: 'Re-sincronizar pedidos',
+    syncRetryBtn: 'Reintentar sincronización',
     syncRunning: 'Sincronizando…',
     syncProductsUpdated: 'productos actualizados',
     syncErrorLabel: 'Error al sincronizar',
+    syncFullHistoryHelper:
+      'Importamos pedidos desde enero {startYear} hasta hoy según el horario de tu tienda. Si tu integración de Shopify limita el historial visible, importaremos sólo lo disponible. Para más historia, escríbenos.',
+    syncCoverageHelper:
+      'Importamos {count} pedidos desde {actualMin} hasta {actualMax}. Si necesitas más historia, escríbenos.',
+    syncNoNewOrdersHelper: 'No se encontraron pedidos nuevos en la última sincronización.',
+    syncCooldownHelper: 'Próximo sync disponible en {hours}h.',
+    syncCooldownToast:
+      'Sólo puedes iniciar una sincronización completa cada 24 horas. Próximo intento disponible en {hours}h.',
+    syncFailedRetryCapToast:
+      'Demasiados intentos fallidos. Espera {hours}h antes de volver a intentarlo.',
+    syncInProgressToast: 'Ya hay una sincronización en curso para esta tienda.',
+    syncTenantBusyToast:
+      'Ya tienes el máximo de sincronizaciones completas en curso. Espera a que terminen para iniciar otra.',
+    syncProgressLabel:
+      'Explorando pedidos... más antiguo encontrado hasta ahora: {year} ({count})',
     shopifySyncProgressTitle: 'Sincronizando con Shopify',
     shopifySyncProgressQueued: 'En cola, esperando al trabajador…',
     shopifySyncProgressOrders: 'Pedidos importados',
@@ -206,6 +224,34 @@ const SHELL_STRINGS = {
     filterComingSoon: 'Próximamente',
     filterDateTimeLabel: 'Fecha',
     filterClear: 'Quitar filtro',
+    homeFilterChannels: 'Canales',
+    homeFilterChannelsAll: 'Todos los canales',
+    homeFilterChannelsSearch: 'Buscar canal…',
+    homeFilterChannelsEmpty: 'Sin canales',
+    homeFilterProduct: 'Producto',
+    homeFilterProductSearch: 'Buscar producto…',
+    homeFilterProductEmpty: 'Sin productos',
+    homeFilterProductLoading: 'Buscando…',
+    homeFilterProductHint: 'Escribe para buscar más',
+    homeFilterSelectAll: 'Seleccionar todos',
+    homeFilterDeselectAll: 'Deseleccionar todos',
+    homeFilterSelectAllContaining: 'Seleccionar todo lo que contenga: {query}',
+    homeFilterDeselectAllContaining: 'Deseleccionar todo lo que contenga: {query}',
+    homeFilterAllContainingSummary: 'todo lo que contenga: {query}',
+    homeChannelDonutTitle: 'Participación por canal',
+    homeChannelDonutSubtitle: 'Distribución de ingresos brutos por canal en el periodo',
+    homeChannelDonutEmpty: 'Sin ingresos en el periodo',
+    homeChannelDonutCenterLabel: 'Total',
+    homeChannelDonutOther: 'Otros',
+    homeTopProductsTitle: 'Productos más vendidos',
+    homeTopProductsSubtitle: 'Top {count} por ingresos brutos en el periodo',
+    homeTopProductsEmpty: 'Sin productos vendidos en el periodo',
+    homeTopProductsImageAlt: 'Imagen de {title}',
+    homeTopProductsTooltipUnits: '{units} uds',
+    homeProductKpiUnits: 'Unidades vendidas',
+    homeProductKpiCogs: 'COGS',
+    homeProductDeltaNew: 'nuevo',
+    homeProductDeltaNoChange: 'sin cambios',
     reportsConnection: 'Conexión',
     reportsGrossRevenue: 'Ventas brutas',
     reportsNetRevenue: 'Ventas netas',
@@ -349,6 +395,7 @@ const SHELL_STRINGS = {
     productsPageTitle: 'Productos',
     productsPageSubtitle: 'Catálogo y costo unitario (COGS) en la moneda base del espacio.',
     productsSearchPlaceholder: 'Buscar por nombre, SKU o marca…',
+    productsSearchClearAria: 'Borrar búsqueda',
     productsSearchAction: 'Buscar',
     productsColProduct: 'Producto',
     productsColImage: 'Imagen',
@@ -636,11 +683,29 @@ const SHELL_STRINGS = {
     ariaSwitchToSpanish: 'Switch to Spanish',
     ariaBreadcrumb: 'Breadcrumb',
     syncSectionTitle: 'Data Sync',
-    syncSectionDescription: 'Pull orders and products from your Shopify store into Alenna.',
+    syncSectionDescription:
+      'We pull orders and products from Shopify. Initial sync brings the last 3 full calendar years plus the current year-to-date, in your store timezone.',
     syncRunBtn: 'Run Initial Sync',
+    syncRefreshBtn: 'Re-sync orders',
+    syncRetryBtn: 'Retry sync',
     syncRunning: 'Syncing…',
     syncProductsUpdated: 'products updated',
     syncErrorLabel: 'Sync error',
+    syncFullHistoryHelper:
+      'We import orders from January {startYear} through today in your store timezone. If your Shopify integration caps visible history, we will import only what is available. For more history, contact us.',
+    syncCoverageHelper:
+      'We imported {count} orders from {actualMin} to {actualMax}. For more history, contact us.',
+    syncNoNewOrdersHelper: 'No new orders were found in the last sync.',
+    syncCooldownHelper: 'Next full sync available in {hours}h.',
+    syncCooldownToast:
+      'You can only start a full sync once every 24 hours. Next attempt available in {hours}h.',
+    syncFailedRetryCapToast:
+      'Too many failed attempts. Wait {hours}h before trying again.',
+    syncInProgressToast: 'A sync is already in progress for this store.',
+    syncTenantBusyToast:
+      'You already have the maximum number of full syncs running. Wait for them to finish before starting another.',
+    syncProgressLabel:
+      'Exploring orders... earliest found so far: {year} ({count})',
     shopifySyncProgressTitle: 'Syncing with Shopify',
     shopifySyncProgressQueued: 'Queued, waiting for worker…',
     shopifySyncProgressOrders: 'Orders imported',
@@ -678,6 +743,34 @@ const SHELL_STRINGS = {
     filterComingSoon: 'Coming soon',
     filterDateTimeLabel: 'Date',
     filterClear: 'Clear filter',
+    homeFilterChannels: 'Channels',
+    homeFilterChannelsAll: 'All channels',
+    homeFilterChannelsSearch: 'Search channel…',
+    homeFilterChannelsEmpty: 'No channels',
+    homeFilterProduct: 'Product',
+    homeFilterProductSearch: 'Search product…',
+    homeFilterProductEmpty: 'No products',
+    homeFilterProductLoading: 'Searching…',
+    homeFilterProductHint: 'Type to search more',
+    homeFilterSelectAll: 'Select all',
+    homeFilterDeselectAll: 'Deselect all',
+    homeFilterSelectAllContaining: 'Select all containing: {query}',
+    homeFilterDeselectAllContaining: 'Deselect all containing: {query}',
+    homeFilterAllContainingSummary: 'all containing: {query}',
+    homeChannelDonutTitle: 'Channel breakdown',
+    homeChannelDonutSubtitle: 'Gross revenue split by channel for the period',
+    homeChannelDonutEmpty: 'No revenue in the period',
+    homeChannelDonutCenterLabel: 'Total',
+    homeChannelDonutOther: 'Other',
+    homeTopProductsTitle: 'Top products',
+    homeTopProductsSubtitle: 'Top {count} by gross revenue for the period',
+    homeTopProductsEmpty: 'No products sold in the period',
+    homeTopProductsImageAlt: 'Image of {title}',
+    homeTopProductsTooltipUnits: '{units} units',
+    homeProductKpiUnits: 'Units sold',
+    homeProductKpiCogs: 'COGS',
+    homeProductDeltaNew: 'new',
+    homeProductDeltaNoChange: 'no change',
     reportsConnection: 'Connection',
     reportsGrossRevenue: 'Gross Revenue',
     reportsNetRevenue: 'Net Revenue',
@@ -821,6 +914,7 @@ const SHELL_STRINGS = {
     productsPageTitle: 'Products',
     productsPageSubtitle: 'Catalog and unit cost (COGS) in your workspace base currency.',
     productsSearchPlaceholder: 'Search by name, SKU, or brand…',
+    productsSearchClearAria: 'Clear search',
     productsSearchAction: 'Search',
     productsColProduct: 'Product',
     productsColImage: 'Image',
@@ -947,7 +1041,14 @@ const SHELL_STRINGS = {
 
 export type ShellStringKey = keyof typeof SHELL_STRINGS.es
 
-export function shellT(lang: string, key: ShellStringKey): string {
+export type ShellStringVars = Readonly<Record<string, string | number>>
+
+export function shellT(lang: string, key: ShellStringKey, vars?: ShellStringVars): string {
   const locale = lang === 'en' ? 'en' : 'es'
-  return SHELL_STRINGS[locale][key] ?? key
+  const template = SHELL_STRINGS[locale][key] ?? key
+  if (!vars) return template
+  return template.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, name) => {
+    const v = vars[name as string]
+    return v == null ? match : String(v)
+  })
 }

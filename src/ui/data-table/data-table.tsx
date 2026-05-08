@@ -1,7 +1,8 @@
 import { flexRender, type Table as TableType } from "@tanstack/react-table"
-import { Search } from "lucide-react"
+import { Search, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { Button } from "@/ui/button"
 import { Input } from "@/ui/input"
 import { Skeleton } from "@/ui/skeleton"
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
@@ -27,6 +28,7 @@ type DataTableProps<TData> = {
     onChange: (value: string) => void
     placeholder?: string
     ariaLabel?: string
+    clearAriaLabel?: string
     className?: string
   }
   footer?: React.ReactNode
@@ -65,8 +67,23 @@ export function DataTable<TData>({
                   onChange={(e) => search.onChange(e.target.value)}
                   placeholder={search.placeholder}
                   aria-label={search.ariaLabel}
-                  className="relative z-0 h-8 border-border-subtle bg-glass-fill-raised pl-8 focus-visible:border-border-subtle focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className={cn(
+                    "relative z-0 h-8 border-border-subtle bg-glass-fill-raised pl-8 focus-visible:border-border-subtle focus-visible:ring-0 focus-visible:ring-offset-0",
+                    search.value ? "pr-8" : "",
+                  )}
                 />
+                {search.value ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="xs"
+                    className="absolute right-0.5 top-1/2 z-20 size-7 min-w-7 -translate-y-1/2 p-0 text-text-secondary hover:text-text-primary active:-translate-y-1/2!"
+                    aria-label={search.clearAriaLabel ?? "Clear search"}
+                    onClick={() => search.onChange("")}
+                  >
+                    <X className="size-4 shrink-0" aria-hidden />
+                  </Button>
+                ) : null}
               </div>
             ) : null}
           </div>

@@ -1,4 +1,5 @@
 import { CheckCircle2, Loader2 } from 'lucide-react'
+import { useMemo } from 'react'
 
 import { IntegrationLogo } from '@/pages/integrations/details/integration-logo'
 import type { ShopifyIntegrationHook } from '@/pages/integrations/details/use-shopify-integration'
@@ -8,21 +9,32 @@ import {
   SHOPIFY_MYSHOPIFY_SUFFIX,
 } from '@/lib/integrations/shopify-format'
 import { useLanguage } from '@/shell/providers/language-provider'
-import { shellT } from '@/lib/i18n/shell-strings'
-import { toYmd } from '@/pages/reports/reports-ui-helpers'
+import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
+import type { SyncPlan } from '@/lib/types/connectors'
 import { Button } from '@/ui/button'
-import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import { Separator } from '@/ui/separator'
 import { SheetHeader, SheetTitle } from '@/ui/sheet'
 
-function formatYmdMedium(ymd: string | null, lang: string): string {
-  if (!ymd || !/^\d{4}-\d{2}-\d{2}/.test(ymd)) return ''
-  const d = new Date(`${ymd.slice(0, 10)}T12:00:00`)
-  return new Intl.DateTimeFormat(lang === 'en' ? 'en' : 'es', {
-    dateStyle: 'medium',
-  }).format(d)
+function formatYmdMedium(value: string | null, lang: string): string {
+  if (!value) return ''
+  const ymd = value.length >= 10 ? value.slice(0, 10) : value
+  if (!/^\d{4}-\d{2}-\d{2}/.test(ymd)) return ''
+  const d = new Date(`${ymd}T12:00:00`)
+  return new Intl.DateTimeFormat(lang === 'en' ? 'en' : 'es', { dateStyle: 'medium' }).format(d)
+}
+
+function ceilHours(seconds: number | null | undefined): number {
+  if (seconds == null || seconds <= 0) return 0
+  return Math.max(1, Math.ceil(seconds / 3600))
+}
+
+function lifecycleButtonLabelKey(syncPlan: SyncPlan | null): ShellStringKey {
+  const status = syncPlan?.last_sync_status ?? 'not_synced'
+  if (status === 'synced' || status === 'partial') return 'syncRefreshBtn'
+  if (status === 'failed') return 'syncRetryBtn'
+  return 'syncRunBtn'
 }
 
 export function SheetHeaderWithLogo({
@@ -52,33 +64,61 @@ function ShopifyIntroCopy({ lang }: { lang: string }) {
 
 function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyIntegrationHook }) {
   const {
-    dateFrom,
-    setDateFrom,
-    dateTo,
-    setDateTo,
     lastSyncDisplay,
     syncMutation,
     shopifySyncPhase,
     shopifyJobQuery,
     ordersProcessed,
-    syncPage,
+    oldestProcessedYear,
     syncPanelBlockSuccess,
     syncFailedMessage,
     retryShopifySync,
     retryShopifySyncPending,
+    syncPlan,
   } = shopify
+
+  const buttonLabel = shellT(lang, lifecycleButtonLabelKey(syncPlan))
+
+  const helperText = useMemo<string | null>(() => {
+    if (!syncPlan) return shellT(lang, 'syncFullHistoryHelper', { startYear: '' })
+    const startYear = syncPlan.full_history_window.start_date.slice(0, 4)
+    const hasActual = Boolean(syncPlan.actual_min_created_at && syncPlan.actual_max_created_at)
+    if (hasActual) {
+      const min = formatYmdMedium(syncPlan.actual_min_created_at, lang)
+      const max = formatYmdMedium(syncPlan.actual_max_created_at, lang)
+      const count = syncPlan.last_sync_records_count ?? 0
+      const coverage = shellT(lang, 'syncCoverageHelper', {
+        count: count.toLocaleString(),
+        actualMin: min,
+        actualMax: max,
+      })
+      const isNoOp =
+        syncPlan.last_sync_records_count === 0 &&
+        (syncPlan.last_sync_records_touched_count ?? 0) === 0
+      if (isNoOp) return `${shellT(lang, 'syncNoNewOrdersHelper')} ${coverage}`
+      return coverage
+    }
+    return shellT(lang, 'syncFullHistoryHelper', { startYear })
+  }, [lang, syncPlan])
+
+  const cooldownHelper = useMemo<string | null>(() => {
+    if (!syncPlan?.retry_after_seconds || syncPlan.retry_after_seconds <= 0) return null
+    if (syncPlan.cooldown_reason !== 'shopify_full_sync_cooldown') return null
+    return shellT(lang, 'syncCooldownHelper', { hours: String(ceilHours(syncPlan.retry_after_seconds)) })
+  }, [lang, syncPlan])
 
   if (shopifySyncPhase === 'working') {
     const job = shopifyJobQuery.data
     const queued = job?.status === 'queued'
-    const ordersLine =
-      ordersProcessed != null && !Number.isNaN(ordersProcessed)
-        ? `${shellT(lang, 'shopifySyncProgressOrders')}: ${ordersProcessed.toLocaleString()}`
-        : null
-    const pageLine =
-      syncPage != null && !Number.isNaN(syncPage)
-        ? `${shellT(lang, 'shopifySyncProgressPages')}: ${syncPage}`
-        : null
+    const subtitle =
+      ordersProcessed != null && !Number.isNaN(ordersProcessed) && oldestProcessedYear != null
+        ? shellT(lang, 'syncProgressLabel', {
+            year: String(oldestProcessedYear),
+            count: ordersProcessed.toLocaleString(),
+          })
+        : queued
+          ? shellT(lang, 'shopifySyncProgressQueued')
+          : shellT(lang, 'syncRunning')
 
     return (
       <div className="space-y-4">
@@ -88,11 +128,7 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
             <p className="text-sm font-medium text-text-primary">
               {shellT(lang, 'shopifySyncProgressTitle')}
             </p>
-            <p className="text-xs text-muted-foreground">
-              {queued ? shellT(lang, 'shopifySyncProgressQueued') : shellT(lang, 'syncRunning')}
-            </p>
-            {ordersLine ? <p className="text-sm text-text-primary">{ordersLine}</p> : null}
-            {pageLine ? <p className="text-xs text-muted-foreground">{pageLine}</p> : null}
+            <p className="text-xs text-muted-foreground">{subtitle}</p>
           </div>
         </div>
       </div>
@@ -103,8 +139,7 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
     const b = syncPanelBlockSuccess
     const from = formatYmdMedium(b.minOrderDate, lang)
     const to = formatYmdMedium(b.maxOrderDate, lang)
-    const range =
-      from && to ? `${from} — ${to}` : from || to || ''
+    const range = from && to ? `${from} — ${to}` : from || to || ''
 
     return (
       <div className="space-y-4">
@@ -154,21 +189,6 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
     )
   }
 
-  const pickerStrings: DateRangePickerStrings = {
-    startLabel: shellT(lang, 'connectionsDateFrom'),
-    endLabel: shellT(lang, 'connectionsDateTo'),
-    applyLabel: shellT(lang, 'datePickerApply'),
-    presetCustom: shellT(lang, 'datePickerCustom'),
-    presetLast7Days: shellT(lang, 'datePickerLast7Days'),
-    presetLast30Days: shellT(lang, 'datePickerLast30Days'),
-    presetLast3Months: shellT(lang, 'datePickerLast3Months'),
-    presetLast12Months: shellT(lang, 'datePickerLast12Months'),
-    presetCurrentMonth: shellT(lang, 'datePickerCurrentMonth'),
-    presetCurrentQuarter: shellT(lang, 'datePickerCurrentQuarter'),
-    presetYtd: shellT(lang, 'datePickerYtd'),
-    presetLastYear: shellT(lang, 'datePickerLastYear'),
-  }
-
   return (
     <div className="space-y-4">
       <div className="space-y-0.5">
@@ -176,41 +196,26 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
         <p className="text-xs text-muted-foreground">{shellT(lang, 'syncSectionDescription')}</p>
       </div>
 
-      <DateRangePicker
-        strings={pickerStrings}
-        startValue={dateFrom}
-        endValue={dateTo}
-        onStartChange={(v) => setDateFrom(v ?? '')}
-        onEndChange={(v) => setDateTo(v ?? '')}
-        filterLabel={shellT(lang, 'filterDateTimeLabel')}
-        clearAriaLabel={shellT(lang, 'filterClear')}
-        onClear={() => {
-          const today = new Date()
-          const thirtyDaysAgo = new Date()
-          thirtyDaysAgo.setDate(today.getDate() - 29)
-          setDateFrom(toYmd(thirtyDaysAgo))
-          setDateTo(toYmd(today))
-        }}
-      />
+      <div className="flex flex-col gap-2">
+        <Button
+          type="button"
+          className="w-full"
+          disabled={syncMutation.isPending}
+          onClick={() => syncMutation.mutate()}
+        >
+          {syncMutation.isPending ? (
+            <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+          ) : null}
+          {syncMutation.isPending ? shellT(lang, 'syncRunning') : buttonLabel}
+        </Button>
+      </div>
 
-      <Button
-        type="button"
-        className="w-full"
-        disabled={syncMutation.isPending || !dateFrom || !dateTo}
-        onClick={() => syncMutation.mutate()}
-      >
-        {syncMutation.isPending ? (
-          <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
-        ) : null}
-        {syncMutation.isPending ? shellT(lang, 'syncRunning') : shellT(lang, 'syncRunBtn')}
-      </Button>
+      {helperText ? (
+        <p className="text-xs text-muted-foreground">{helperText}</p>
+      ) : null}
 
-      {syncMutation.isError ? (
-        <p className="text-sm text-destructive" role="alert">
-          {syncMutation.error instanceof Error
-            ? syncMutation.error.message
-            : shellT(lang, 'syncErrorLabel')}
-        </p>
+      {cooldownHelper ? (
+        <p className="text-xs text-muted-foreground">{cooldownHelper}</p>
       ) : null}
 
       <p className="text-xs text-muted-foreground">
@@ -239,8 +244,6 @@ export function ShopifyManageBody({
     error,
     activeConnection,
     connected,
-    activeConnectionId,
-    disconnectMutation,
     previewMessage,
     syncMessage,
     shopifySyncPhase,
@@ -298,7 +301,7 @@ export function ShopifyManageBody({
             <Button
               type="button"
               className="inline-flex w-full items-center justify-center gap-2 sm:w-auto"
-              size="lg"
+              size="default"
               disabled={
                 oauthStarting || !normalizeShopifySubdomainInput(shopInput) || !tenantId
               }
@@ -350,18 +353,6 @@ export function ShopifyManageBody({
                   </p>
                 ) : null}
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="inline-flex w-full items-center justify-center gap-2 border-destructive/35 text-destructive hover:bg-destructive/10 hover:text-destructive sm:w-auto"
-                disabled={disconnectMutation.isPending || !activeConnectionId}
-                onClick={() => disconnectMutation.mutate()}
-              >
-                {disconnectMutation.isPending ? (
-                  <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
-                ) : null}
-                {shellT(lang, 'integrationDetailDisconnect')}
-              </Button>
             </div>
 
             <Separator />

@@ -14,9 +14,15 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { TopProductRow } from '@/lib/types/reports'
 
+import {
+  TOP_PRODUCTS_AXIS_PX,
+  TOP_PRODUCTS_BAR_ROW_PX,
+} from './home-top-products-chart-layout'
+
 const BAR_FILL = 'var(--chart-1)'
-const ROW_HEIGHT = 32
-const AXIS_HEIGHT = 28
+
+const ROW_HEIGHT = TOP_PRODUCTS_BAR_ROW_PX
+const AXIS_HEIGHT = TOP_PRODUCTS_AXIS_PX
 
 export type HomeTopProductsChartProps = {
   rows: TopProductRow[]

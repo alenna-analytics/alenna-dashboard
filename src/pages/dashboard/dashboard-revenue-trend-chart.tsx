@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import type { Locale } from 'date-fns'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
@@ -182,18 +182,35 @@ export function DashboardRevenueTrendChart({
     [data],
   )
 
-  const [zoomStart, setZoomStart] = useState(0)
-  const [zoomEnd, setZoomEnd] = useState(Math.max(0, data.length - 1))
+  const zoomResetKey = useMemo(
+    () =>
+      `${startDate}|${endDate}|${prevStart}|${prevEnd}|${granularity}|${String(comparePrevious)}|${dataWithIndex.length}`,
+    [
+      startDate,
+      endDate,
+      prevStart,
+      prevEnd,
+      granularity,
+      comparePrevious,
+      dataWithIndex.length,
+    ],
+  )
 
-  useEffect(() => {
-    if (dataWithIndex.length === 0) {
-      setZoomStart(0)
-      setZoomEnd(0)
-      return
-    }
+  const [zoomRangeKey, setZoomRangeKey] = useState(zoomResetKey)
+  const [zoomStart, setZoomStart] = useState(0)
+  const [zoomEnd, setZoomEnd] = useState(() => Math.max(0, data.length - 1))
+  const [hiddenKeys, setHiddenKeys] = useState<Record<string, boolean>>({})
+
+  const toggleLegendKey = (key: string) => {
+    setHiddenKeys((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  if (zoomResetKey !== zoomRangeKey) {
+    setZoomRangeKey(zoomResetKey)
+    const n = dataWithIndex.length
     setZoomStart(0)
-    setZoomEnd(dataWithIndex.length - 1)
-  }, [startDate, endDate, prevStart, prevEnd, granularity, comparePrevious, dataWithIndex.length])
+    setZoomEnd(n === 0 ? 0 : n - 1)
+  }
 
   const visibleData = useMemo(() => {
     if (dataWithIndex.length === 0) return dataWithIndex
@@ -249,6 +266,7 @@ export function DashboardRevenueTrendChart({
             strokeWidth={2.5}
             dot={{ r: 3, fill: 'var(--chart-3)', strokeWidth: 0 }}
             activeDot={{ r: 5 }}
+            opacity={hiddenKeys.current ? 0.18 : 1}
             isAnimationActive={false}
           />
           {comparePrevious ? (
@@ -261,6 +279,7 @@ export function DashboardRevenueTrendChart({
               strokeDasharray="6 4"
               dot={{ r: 2.5, fill: 'var(--chart-line-secondary)', strokeWidth: 0 }}
               connectNulls={false}
+              opacity={hiddenKeys.previous ? 0.18 : 1}
               isAnimationActive={false}
             />
           ) : null}
@@ -291,6 +310,7 @@ export function DashboardRevenueTrendChart({
                     stroke="var(--chart-3)"
                     strokeWidth={1.5}
                     dot={false}
+                    opacity={hiddenKeys.current ? 0.2 : 0.9}
                     isAnimationActive={false}
                   />
                   {comparePrevious ? (
@@ -302,6 +322,7 @@ export function DashboardRevenueTrendChart({
                       strokeDasharray="4 3"
                       dot={false}
                       connectNulls={false}
+                      opacity={hiddenKeys.previous ? 0.2 : 0.9}
                       isAnimationActive={false}
                     />
                   ) : null}
@@ -334,19 +355,33 @@ export function DashboardRevenueTrendChart({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 pt-2 text-xs">
-        <span className="inline-flex items-center gap-2 text-text-secondary">
-          <span className="inline-block h-0.5 w-6 rounded bg-[var(--chart-3)]" aria-hidden />
-          {t('dashboardRevenueSeriesCurrent')}
-        </span>
+      <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
+        <button
+          type="button"
+          onClick={() => toggleLegendKey('current')}
+          className={cn(
+            'inline-flex items-center gap-1.5 text-text-secondary outline-none transition-opacity focus:outline-none',
+            hiddenKeys.current ? 'opacity-40' : 'opacity-100',
+          )}
+        >
+          <span className="inline-block h-0.5 w-4 rounded bg-[var(--chart-3)]" aria-hidden />
+          <span>{t('dashboardRevenueSeriesCurrent')}</span>
+        </button>
         {comparePrevious ? (
-          <span className="inline-flex items-center gap-2 text-text-secondary">
+          <button
+            type="button"
+            onClick={() => toggleLegendKey('previous')}
+            className={cn(
+              'inline-flex items-center gap-1.5 text-text-secondary outline-none transition-opacity focus:outline-none',
+              hiddenKeys.previous ? 'opacity-40' : 'opacity-100',
+            )}
+          >
             <span
-              className="inline-block h-0.5 w-6 rounded border-t-2 border-dashed border-[var(--chart-line-secondary)]"
+              className="inline-block h-0.5 w-4 rounded border-t-2 border-dashed border-[var(--chart-line-secondary)]"
               aria-hidden
             />
-            {t('dashboardRevenueSeriesPrevious')}
-          </span>
+            <span>{t('dashboardRevenueSeriesPrevious')}</span>
+          </button>
         ) : null}
       </div>
     </div>

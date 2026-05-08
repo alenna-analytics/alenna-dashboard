@@ -26,6 +26,15 @@ const SHELL_STRINGS = {
     dashboardRevenueGranularityDay: 'Diario',
     dashboardRevenueBrushAria:
       'Arrastra los mangos del zoom inferior para ampliar o desplazar el rango visible en el gráfico.',
+    dashboardChannelSalesTitle: 'Ventas brutas y netas por canal',
+    dashboardChannelSalesSubtitle:
+      'Serie temporal por canal: línea continua = ventas brutas; línea discontinua = ventas netas. Usa el mismo intervalo que «Tendencia de ingresos».',
+    dashboardChannelSalesEmpty: 'No hay datos de canal en el periodo.',
+    dashboardProfitMarginTitle: 'Utilidad bruta y margen %',
+    dashboardProfitMarginSubtitle:
+      'Barras apiladas (utilidad, diferencia neto−utilidad, bruto−neto) y margen bruto % sobre ventas netas. Usa el mismo intervalo que «Tendencia de ingresos».',
+    dashboardProfitStackMerchAdj: 'Ventas brutas − ventas netas',
+    dashboardProfitStackNetMinusProfit: 'Ventas netas − utilidad bruta',
     dashboardRevenueSeriesCurrent: 'Periodo actual',
     dashboardRevenueSeriesPrevious: 'Periodo anterior',
     shellSidebarWorkspaceFallback: 'Espacio de trabajo',
@@ -561,6 +570,15 @@ const SHELL_STRINGS = {
     dashboardRevenueGranularityDay: 'Daily',
     dashboardRevenueBrushAria:
       'Drag the handles on the lower overview strip to zoom or pan the visible range on the chart.',
+    dashboardChannelSalesTitle: 'Gross and net sales by channel',
+    dashboardChannelSalesSubtitle:
+      'Time series per channel: solid line = gross sales; dashed line = net sales. Uses the same interval as Revenue trend.',
+    dashboardChannelSalesEmpty: 'No channel data for this period.',
+    dashboardProfitMarginTitle: 'Gross profit and margin %',
+    dashboardProfitMarginSubtitle:
+      'Stacked bars (profit, net−profit, gross−net) and gross margin % of net sales. Uses the same interval as Revenue trend.',
+    dashboardProfitStackMerchAdj: 'Gross sales − net sales',
+    dashboardProfitStackNetMinusProfit: 'Net sales − gross profit',
     dashboardRevenueSeriesCurrent: 'Current period',
     dashboardRevenueSeriesPrevious: 'Previous period',
     shellSidebarWorkspaceFallback: 'Workspace',

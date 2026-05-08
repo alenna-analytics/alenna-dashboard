@@ -22,6 +22,8 @@ export type HomeChannelDonutChartProps = {
   /** Format a value (already in display currency) for tooltips/center label. */
   formatValue: (value: number) => string
   t: (key: ShellStringKey) => string
+  /** Match adjacent chart height (e.g. top products column). */
+  minBodyHeightPx?: number
 }
 
 type Slice = {
@@ -59,6 +61,7 @@ export function HomeChannelDonutChart({
   convertValue,
   formatValue,
   t,
+  minBodyHeightPx,
 }: HomeChannelDonutChartProps) {
   const slices = useMemo<Slice[]>(() => {
     const sorted = [...rows].sort((a, b) => b.gross_revenue - a.gross_revenue)
@@ -100,7 +103,10 @@ export function HomeChannelDonutChart({
   }
 
   return (
-    <div className="flex w-full flex-col items-stretch gap-4 lg:flex-row lg:items-center">
+    <div
+      className="flex w-full flex-col items-stretch gap-4 lg:flex-row lg:items-center lg:justify-between"
+      style={minBodyHeightPx ? { minHeight: minBodyHeightPx } : undefined}
+    >
       <div className="relative h-64 w-full lg:w-1/2">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>

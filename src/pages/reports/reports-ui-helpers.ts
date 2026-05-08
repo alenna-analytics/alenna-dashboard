@@ -1,11 +1,19 @@
+import type { Locale } from 'date-fns'
 import {
   differenceInCalendarDays,
+  eachDayOfInterval,
   eachMonthOfInterval,
+  eachWeekOfInterval,
   endOfMonth,
+  endOfWeek,
+  format,
   startOfMonth,
+  startOfWeek,
   subDays,
   subMonths,
 } from 'date-fns'
+
+import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 
 export function toYmd(d: Date): string {
   const y = d.getFullYear()
@@ -83,4 +91,48 @@ export function fmtCurrency(value: number, currency: string): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value)
+}
+
+/** Labels + stable bucket keys aligned with `mergeRevenueSeriesRows` / API `bucket_start`. */
+export function eachRevenueBucketMeta(
+  startYmd: string,
+  endYmd: string,
+  granularity: RevenueSeriesGranularity,
+  locale: Locale,
+): { bucketKey: string; label: string }[] {
+  const d0 = parseLocalYmd(startYmd)
+  const d1 = parseLocalYmd(endYmd)
+  const lo = d0 <= d1 ? d0 : d1
+  const hi = d0 <= d1 ? d1 : d0
+
+  if (granularity === 'month') {
+    const intervalStart = startOfMonth(lo)
+    const intervalEnd = endOfMonth(hi)
+    const months = eachMonthOfInterval({ start: intervalStart, end: intervalEnd })
+    return months.map((d) => ({
+      bucketKey: format(startOfMonth(d), 'yyyy-MM-dd'),
+      label: format(d, 'MMM yyyy', { locale }),
+    }))
+  }
+
+  if (granularity === 'day') {
+    const days = eachDayOfInterval({ start: lo, end: hi })
+    return days.map((d) => ({
+      bucketKey: format(d, 'yyyy-MM-dd'),
+      label: format(d, 'd MMM yyyy', { locale }),
+    }))
+  }
+
+  const intervalStart = startOfWeek(lo, { weekStartsOn: 1 })
+  const intervalEnd = endOfWeek(hi, { weekStartsOn: 1 })
+  const weeks = eachWeekOfInterval({ start: intervalStart, end: intervalEnd }, { weekStartsOn: 1 })
+  return weeks.map((d) => {
+    const monday = startOfWeek(d, { weekStartsOn: 1 })
+    const weekEnd = endOfWeek(d, { weekStartsOn: 1 })
+    return {
+      bucketKey: format(monday, 'yyyy-MM-dd'),
+      label:
+        format(monday, 'd MMM', { locale }) + ' – ' + format(weekEnd, 'd MMM yyyy', { locale }),
+    }
+  })
 }

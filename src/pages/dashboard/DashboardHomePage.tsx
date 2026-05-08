@@ -16,10 +16,16 @@ import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import { KpiCard } from '@/ui/kpi-card'
 
+import { DashboardChannelSalesChart } from './dashboard-channel-sales-chart'
+import { DashboardProfitMarginChart } from './dashboard-profit-margin-chart'
 import { DashboardRevenueTrendChart } from './dashboard-revenue-trend-chart'
 import { HomeChannelDonutChart } from './home-channel-donut-chart'
 import { HomeProductFilter } from './home-product-filter'
 import { HomeTopProductsChart } from './home-top-products-chart'
+import {
+  TOP_PRODUCTS_DEFAULT_VISIBLE_ROWS,
+  getTopProductsChartHeightPx,
+} from './home-top-products-chart-layout'
 import { MoneyDisclaimer } from '@/shell/components/money-disclaimer'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import {
@@ -36,6 +42,7 @@ import { useReports } from '@/pages/reports/use-reports'
 import { useProductReports } from '@/pages/reports/use-product-reports'
 import { useTopProducts } from '@/pages/reports/use-top-products'
 import { useChannelBreakdown } from '@/pages/reports/use-channel-breakdown'
+import { useChannelTimeSeries } from '@/pages/reports/use-channel-time-series'
 import type { KpiResponse, ProductKpiResponse, RevenueSeriesGranularity } from '@/lib/types/reports'
 
 function zeroKpiResponse(currency: string): KpiResponse {
@@ -334,6 +341,19 @@ export function DashboardHomePage() {
     enabled: activeConnectionIds.length > 0,
   })
 
+  const {
+    data: channelTimeSeries,
+    isLoading: channelTimeSeriesLoading,
+    isError: channelTimeSeriesError,
+  } = useChannelTimeSeries({
+    connectionIds: activeConnectionIds,
+    productIds,
+    startDate,
+    endDate,
+    granularity: revenueGranularity,
+    enabled: activeConnectionIds.length > 0,
+  })
+
   const { data: topProducts, isLoading: topProductsLoading } = useTopProducts({
     connectionIds: activeConnectionIds,
     productIds,
@@ -470,6 +490,11 @@ export function DashboardHomePage() {
     activeConnectionIds.length > 0 &&
     (monthlyRevenueLoading || (Boolean(revenuePrevPeriod) && monthlyPrevLoading))
 
+  const pairedChartBodyPx = useMemo(
+    () => getTopProductsChartHeightPx(TOP_PRODUCTS_DEFAULT_VISIBLE_ROWS),
+    [],
+  )
+
   const showTopProducts = true
 
   const isInitialLoad = displayKpi === null && displayProductKpi === null
@@ -525,6 +550,20 @@ export function DashboardHomePage() {
             deselectAllContainingLabel={t('homeFilterDeselectAllContaining')}
             allContainingSummaryLabel={t('homeFilterAllContainingSummary')}
           />
+          <div className="min-w-[10.5rem] shrink-0">
+            <FilterComboboxSingle
+              label={t('dashboardRevenueGranularityLabel')}
+              options={revenueGranularityOptions}
+              value={revenueGranularity}
+              onValueChange={(v) => {
+                if (v === 'month' || v === 'week' || v === 'day') setRevenueGranularity(v)
+              }}
+              applyLabel={t('datePickerApply')}
+              searchPlaceholder={t('filterSearch')}
+              emptyLabel={t('filterComingSoon')}
+              allowClear={false}
+            />
+          </div>
         </div>
       </header>
 
@@ -643,31 +682,35 @@ export function DashboardHomePage() {
           <div
             className={
               showTopProducts
-                ? 'mt-2 grid grid-cols-1 gap-5 lg:grid-cols-2'
+                ? 'mt-2 grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-stretch'
                 : 'mt-2 grid grid-cols-1 gap-5'
             }
           >
-            <section>
-              <SectionContainer className="overflow-visible">
+            <section className={showTopProducts ? 'flex min-h-0 lg:h-full' : undefined}>
+              <SectionContainer className="flex h-full min-h-0 flex-1 flex-col overflow-visible">
                 <SectionHeader
                   title={t('homeChannelDonutTitle')}
                   description={t('homeChannelDonutSubtitle')}
                 />
                 {channelLoading ? (
-                  <Skeleton className="h-64 w-full rounded-md" />
+                  <Skeleton
+                    className="w-full flex-1 rounded-md"
+                    style={{ minHeight: pairedChartBodyPx }}
+                  />
                 ) : (
                   <HomeChannelDonutChart
                     rows={channelBreakdown?.items ?? []}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}
                     t={t}
+                    minBodyHeightPx={showTopProducts ? pairedChartBodyPx : undefined}
                   />
                 )}
               </SectionContainer>
             </section>
             {showTopProducts ? (
-              <section>
-                <SectionContainer className="overflow-visible">
+              <section className="flex min-h-0 lg:h-full">
+                <SectionContainer className="flex h-full min-h-0 flex-1 flex-col overflow-visible">
                   <SectionHeader
                     title={t('homeTopProductsTitle')}
                     description={t('homeTopProductsSubtitle').replace(
@@ -676,7 +719,10 @@ export function DashboardHomePage() {
                     )}
                   />
                   {topProductsLoading ? (
-                    <Skeleton className="h-64 w-full rounded-md" />
+                    <Skeleton
+                      className="w-full flex-1 rounded-md"
+                      style={{ minHeight: pairedChartBodyPx }}
+                    />
                   ) : (
                     <HomeTopProductsChart
                       rows={topProducts?.items ?? []}
@@ -700,22 +746,6 @@ export function DashboardHomePage() {
                 <SectionHeader
                   title={t('dashboardRevenueTrendTitle')}
                   description={revenueTrendSubtitle}
-                  aside={
-                    <div className="min-w-[10.5rem] shrink-0">
-                      <FilterComboboxSingle
-                        label={t('dashboardRevenueGranularityLabel')}
-                        options={revenueGranularityOptions}
-                        value={revenueGranularity}
-                        onValueChange={(v) => {
-                          if (v === 'month' || v === 'week' || v === 'day') setRevenueGranularity(v)
-                        }}
-                        applyLabel={t('datePickerApply')}
-                        searchPlaceholder={t('filterSearch')}
-                        emptyLabel={t('filterComingSoon')}
-                        allowClear={false}
-                      />
-                    </div>
-                  }
                 />
                 {monthlyRevenueError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
@@ -736,6 +766,60 @@ export function DashboardHomePage() {
                     currency={effectiveDisplayCurrency}
                     formatValue={formatInDisplay}
                     convertValue={convertFromBase}
+                    dateLocale={dateLocale}
+                    t={t}
+                  />
+                )}
+              </SectionContainer>
+            </section>
+            <section>
+              <SectionContainer className="overflow-visible">
+                <SectionHeader
+                  title={t('dashboardChannelSalesTitle')}
+                  description={t('dashboardChannelSalesSubtitle')}
+                />
+                {channelTimeSeriesLoading ? (
+                  <Skeleton className="h-[24rem] w-full rounded-md" />
+                ) : channelTimeSeriesError ? (
+                  <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
+                    {t('reportsMonthlyLoadError')}
+                  </p>
+                ) : (
+                  <DashboardChannelSalesChart
+                    startDate={startDate}
+                    endDate={endDate}
+                    granularity={revenueGranularity}
+                    rows={channelTimeSeries?.rows ?? []}
+                    currency={effectiveDisplayCurrency}
+                    convertValue={convertFromBase}
+                    formatValue={formatInDisplay}
+                    dateLocale={dateLocale}
+                    t={t}
+                  />
+                )}
+              </SectionContainer>
+            </section>
+            <section>
+              <SectionContainer className="overflow-visible">
+                <SectionHeader
+                  title={t('dashboardProfitMarginTitle')}
+                  description={t('dashboardProfitMarginSubtitle')}
+                />
+                {channelTimeSeriesLoading ? (
+                  <Skeleton className="h-[24rem] w-full rounded-md" />
+                ) : channelTimeSeriesError ? (
+                  <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
+                    {t('reportsMonthlyLoadError')}
+                  </p>
+                ) : (
+                  <DashboardProfitMarginChart
+                    startDate={startDate}
+                    endDate={endDate}
+                    granularity={revenueGranularity}
+                    rows={channelTimeSeries?.rows ?? []}
+                    currency={effectiveDisplayCurrency}
+                    convertValue={convertFromBase}
+                    formatValue={formatInDisplay}
                     dateLocale={dateLocale}
                     t={t}
                   />

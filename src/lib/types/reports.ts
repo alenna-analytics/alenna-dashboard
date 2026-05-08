@@ -78,3 +78,19 @@ export type ChannelBreakdownResponse = {
   items: ChannelBreakdownRow[]
   currency: string
 }
+
+export type ChannelTimeSeriesRow = {
+  bucket_start: string
+  connection_id: string
+  shop_domain: string | null
+  platform: string
+  gross_revenue: number
+  net_revenue: number
+  gross_profit: number
+}
+
+export type ChannelTimeSeriesResponse = {
+  granularity: RevenueSeriesGranularity
+  currency: string
+  rows: ChannelTimeSeriesRow[]
+}

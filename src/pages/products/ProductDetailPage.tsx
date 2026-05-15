@@ -56,7 +56,6 @@ import {
   useEnqueueCogsBackfillMutation,
   usePatchProductCostMutation,
   useProductDetailQuery,
-  useRetryCatalogJobMutation,
 } from './use-catalog-queries'
 
 const NUM = 'font-numeric tabular-nums'
@@ -208,7 +207,6 @@ function ProductDetailBody({ productId }: { productId: string }) {
   const detailQuery = useProductDetailQuery(productId)
   const patchMutation = usePatchProductCostMutation(productId)
   const backfillMutation = useEnqueueCogsBackfillMutation(productId)
-  const retryMutation = useRetryCatalogJobMutation()
 
   const detail = detailQuery.data
   const baseCurrency = detail?.base_currency ?? 'USD'
@@ -221,6 +219,8 @@ function ProductDetailBody({ productId }: { productId: string }) {
   const [rangeStart, setRangeStart] = useState(defaultBackfillRange().start)
   const [rangeEnd, setRangeEnd] = useState(defaultBackfillRange().end)
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
+  const [editingSku, setEditingSku] = useState(false)
+  const [skuDraft, setSkuDraft] = useState('')
 
   const jobQuery = useCatalogJobQuery(activeJobId, Boolean(activeJobId))
 
@@ -338,9 +338,15 @@ function ProductDetailBody({ productId }: { productId: string }) {
     }
   }
 
-  const handleRetry = async () => {
-    if (!activeJobId) return
-    await retryMutation.mutateAsync(activeJobId)
+  const handleSkuSave = async () => {
+    const trimmed = skuDraft.trim()
+    try {
+      await patchMutation.mutateAsync({ internal_sku: trimmed.length > 0 ? trimmed : null })
+      toast.success(t('productsDetailToastSkuSaved'))
+      setEditingSku(false)
+    } catch {
+      toast.error(t('productsDetailToastSaveFailed'))
+    }
   }
 
   useEffect(() => {
@@ -376,7 +382,6 @@ function ProductDetailBody({ productId }: { productId: string }) {
     return <ProductDetailSkeleton />
   }
 
-  const job = jobQuery.data
   const bigCostFormatted = detail.cost != null ? fmtBase(detail.cost) : '—'
   const updatedDays = daysSinceUpdated(detail.updated_at)
   const updatedBadge =
@@ -384,9 +389,10 @@ function ProductDetailBody({ productId }: { productId: string }) {
       ? t('productsDetailLastUpdatedToday')
       : t('productsDetailLastUpdatedDays').replace('{days}', String(updatedDays))
 
-  const headerMeta = detail.internal_sku?.trim()
-    ? t('productsDetailHeaderMetaSku').replace('{sku}', detail.internal_sku)
-    : t('productsDetailHeaderMetaChannels').replace('{count}', String(detail.listings.length))
+  const hasPeriodMetrics =
+    detail.period_start != null ||
+    detail.period_units_sold > 0 ||
+    Number(detail.period_cogs) > 0
 
   const sheetBusy = patchMutation.isPending || backfillMutation.isPending
 
@@ -496,9 +502,57 @@ function ProductDetailBody({ productId }: { productId: string }) {
             <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[var(--color-text-primary)] sm:text-3xl">
               {detail.title}
             </h1>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-text-secondary">
               {detail.brand ? <span>{detail.brand}</span> : null}
-              <span className={cn(NUM, 'text-text-tertiary')}>{headerMeta}</span>
+              {editingSku ? (
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <span className="shrink-0 text-text-tertiary">SKU:</span>
+                  <Input
+                    value={skuDraft}
+                    onChange={(e) => setSkuDraft(e.target.value)}
+                    placeholder={t('productsDetailSkuPlaceholder')}
+                    className="h-8 max-w-[14rem] font-mono text-xs"
+                  />
+                  <Button
+                    type="button"
+                    size="xs"
+                    variant="secondary"
+                    disabled={patchMutation.isPending}
+                    onClick={() => void handleSkuSave()}
+                  >
+                    {t('productsDetailSkuSave')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="xs"
+                    variant="ghost"
+                    onClick={() => setEditingSku(false)}
+                  >
+                    {t('productsDetailSheetCancel')}
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                  <span className={cn(NUM, 'text-text-tertiary')}>
+                    {detail.internal_sku?.trim()
+                      ? t('productsDetailHeaderMetaSku').replace('{sku}', detail.internal_sku)
+                      : t('productsDetailHeaderMetaSkuUnset')}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="size-7 shrink-0"
+                    aria-label={t('productsDetailEditSkuAria')}
+                    onClick={() => {
+                      setSkuDraft(detail.internal_sku ?? '')
+                      setEditingSku(true)
+                    }}
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -568,8 +622,16 @@ function ProductDetailBody({ productId }: { productId: string }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <p className={cn('text-lg font-semibold text-text-tertiary sm:text-xl', NUM)}>
-              {t('productsDetailKpiNoData')}
+            <p
+              className={cn(
+                'text-lg font-semibold sm:text-xl',
+                hasPeriodMetrics ? 'text-text-primary' : 'text-text-tertiary',
+                NUM,
+              )}
+            >
+              {hasPeriodMetrics
+                ? String(detail.period_units_sold)
+                : t('productsDetailKpiNoData')}
             </p>
           </CardContent>
         </Card>
@@ -580,8 +642,16 @@ function ProductDetailBody({ productId }: { productId: string }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <p className={cn('text-lg font-semibold text-text-tertiary sm:text-xl', NUM)}>
-              {t('productsDetailKpiNoData')}
+            <p
+              className={cn(
+                'text-lg font-semibold sm:text-xl',
+                hasPeriodMetrics ? 'text-text-primary' : 'text-text-tertiary',
+                NUM,
+              )}
+            >
+              {hasPeriodMetrics
+                ? costAmountWithBaseCode(fmtBase(detail.period_cogs), baseCurrency, 'text-xs sm:text-sm')
+                : t('productsDetailKpiNoData')}
             </p>
           </CardContent>
         </Card>
@@ -600,34 +670,6 @@ function ProductDetailBody({ productId }: { productId: string }) {
               <ProductCostOverTimeChart data={chartData.points} series={chartData.series} t={t} />
             </CardContent>
           </Card>
-
-          {job ? (
-            <Card size="sm">
-              <CardContent className="flex flex-wrap items-center gap-3 py-3 text-xs text-text-secondary">
-                <span className={NUM}>
-                  {job.status === 'queued'
-                    ? t('productsJobQueued')
-                    : job.status === 'running'
-                      ? t('productsJobRunning')
-                      : job.status === 'succeeded'
-                        ? t('productsJobSucceeded')
-                        : t('productsJobFailed')}
-                </span>
-                {job.created_by_user_id === null ? (
-                  <span className="text-text-tertiary">{t('productsJobSystemTrigger')}</span>
-                ) : null}
-                {job?.status === 'failed' ? (
-                  <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
-                    <span className="text-destructive">{job.error_message ?? t('productsJobFailed')}</span>
-                    <span className="text-text-tertiary">{t('productsJobPartialRisk')}</span>
-                    <Button type="button" size="sm" variant="outline" onClick={() => void handleRetry()}>
-                      {t('productsJobRetry')}
-                    </Button>
-                  </div>
-                ) : null}
-              </CardContent>
-            </Card>
-          ) : null}
         </div>
 
         <aside className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-4 lg:self-start">

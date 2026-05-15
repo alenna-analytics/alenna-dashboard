@@ -68,12 +68,20 @@ export function usePatchProductCostMutation(productId: string | undefined) {
   const qc = useQueryClient()
 
   return useMutation({
-    mutationFn: async (body: { cost: number; currency?: string | null }) => {
+    mutationFn: async (body: {
+      cost?: number
+      currency?: string | null
+      internal_sku?: string | null
+    }) => {
       if (!productId) throw new Error('Missing product')
+      const payload: Record<string, unknown> = {}
+      if (body.cost !== undefined) payload.cost = body.cost
+      if (body.currency !== undefined) payload.currency = body.currency
+      if ('internal_sku' in body) payload.internal_sku = body.internal_sku
       const res = await apiPatchJson(
         `/catalog/products/${productId}`,
         (a) => getToken(a),
-        body,
+        payload,
         {},
         tenantId,
       )

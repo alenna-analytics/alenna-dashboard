@@ -60,6 +60,10 @@ export type ProductCostHistorySegmentApi = {
 export type ProductDetailApi = {
   id: string
   internal_sku: string | null
+  period_units_sold: number
+  period_cogs: number
+  period_start: string | null
+  period_end: string | null
   title: string
   brand: string | null
   cost: number | null

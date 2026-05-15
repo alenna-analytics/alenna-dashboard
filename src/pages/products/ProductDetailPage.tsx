@@ -613,6 +613,9 @@ function ProductDetailBody({ productId }: { productId: string }) {
                         ? t('productsJobSucceeded')
                         : t('productsJobFailed')}
                 </span>
+                {job.created_by_user_id === null ? (
+                  <span className="text-text-tertiary">{t('productsJobSystemTrigger')}</span>
+                ) : null}
                 {job?.status === 'failed' ? (
                   <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
                     <span className="text-destructive">{job.error_message ?? t('productsJobFailed')}</span>

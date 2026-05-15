@@ -99,4 +99,5 @@ export type CatalogJobApi = {
   catalog_products_upserted?: number | null
   min_order_date?: string | null
   max_order_date?: string | null
+  created_by_user_id?: string | null
 }

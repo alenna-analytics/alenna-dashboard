@@ -129,6 +129,9 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
               {shellT(lang, 'shopifySyncProgressTitle')}
             </p>
             <p className="text-xs text-muted-foreground">{subtitle}</p>
+            {job?.created_by_user_id === null ? (
+              <p className="text-xs text-muted-foreground">{shellT(lang, 'jobTriggeredBySystem')}</p>
+            ) : null}
           </div>
         </div>
       </div>

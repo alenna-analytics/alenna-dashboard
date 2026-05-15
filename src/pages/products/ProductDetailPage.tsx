@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ImageIcon, Loader2, Pencil } from 'lucide-react'
+import { ImageIcon, Loader2 } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 
 import { shellT } from '@/lib/i18n/shell-strings'
@@ -12,13 +12,7 @@ import { useMoney } from '@/hooks/use-money'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { Button } from '@/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/ui/card'
+import { Card, CardContent, CardHeader } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Input } from '@/ui/input'
 import {
@@ -137,45 +131,71 @@ function ProductThumbSm({ url, title }: { url: string | null; title: string }) {
 function ProductDetailSkeleton() {
   return (
     <DashboardPage className="flex flex-1 flex-col gap-6 lg:gap-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex gap-4">
-          <Skeleton className="size-16 shrink-0 rounded-md" />
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-64 max-w-full" />
-            <Skeleton className="h-4 w-48" />
+      <div className="flex min-w-0 gap-4 border-b border-border-subtle pb-6">
+        <Skeleton className="size-16 shrink-0 rounded-md" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <Skeleton className="h-9 w-full max-w-lg" />
+          <Skeleton className="h-8 w-full max-w-sm" />
+          <Skeleton className="h-4 w-44" />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-row flex-wrap items-center justify-between gap-3">
+          <Skeleton className="h-8 w-64 max-w-full" />
+          <Skeleton className="h-10 w-44 shrink-0" />
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3 lg:items-stretch">
+          <div className="flex flex-col gap-3 lg:col-span-1">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <Card key={i} size="sm" className="flex-1">
+                <CardHeader className="pb-2">
+                  <Skeleton className="h-3 w-28" />
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Skeleton className="h-10 w-40" />
+                  <Skeleton className="h-3 w-full max-w-[12rem]" />
+                  <Skeleton className="h-7 w-36 rounded-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="flex min-w-0 flex-col lg:col-span-2">
+            <Skeleton className="mb-2 h-4 w-48" />
+            <Skeleton className="min-h-64 flex-1 w-full rounded-md" />
           </div>
         </div>
-        <Skeleton className="h-10 w-32 self-end sm:self-start" />
       </div>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} size="sm">
-            <CardHeader className="pb-2">
-              <Skeleton className="h-3 w-20" />
-            </CardHeader>
-            <CardContent className="pt-0">
-              <Skeleton className="h-7 w-24" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
-        <div className="flex flex-col gap-6">
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-4 w-40" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-56 w-full" />
-            </CardContent>
-          </Card>
+
+      <div className="flex flex-col gap-4 rounded-none border-0 p-0 shadow-none">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-40" />
+            <Skeleton className="h-3 w-full max-w-md" />
+          </div>
+          <Skeleton className="h-8 w-full max-w-md shrink-0 rounded-md" />
         </div>
-        <div className="flex flex-col gap-6">
-          <Card size="sm">
-            <CardContent className="py-4">
-              <Skeleton className="h-16 w-full" />
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-md border border-border-subtle bg-muted/20 px-3 py-2.5"
+            >
+              <Skeleton className="mb-2 h-3 w-16" />
+              <Skeleton className="h-6 w-20" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-none border-0 p-0 shadow-none">
+        <Skeleton className="h-6 w-56" />
+        <Skeleton className="h-3 w-72 max-w-full" />
+        <div className="overflow-hidden rounded-md border border-border-subtle">
+          <Skeleton className="h-10 w-full rounded-none" />
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-11 w-full rounded-none border-t border-border-subtle" />
+          ))}
         </div>
       </div>
     </DashboardPage>

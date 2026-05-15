@@ -127,7 +127,7 @@ export function ProductDetailSections({
                     {t('productsDetailEffectiveSince')}{' '}
                     <span className={cn('font-medium text-text-secondary', NUM)}>{effectiveSinceLabel}</span>
                   </p>
-                  <Badge variant="blue" className={cn('font-normal', NUM)}>
+                  <Badge variant="info" className={cn('font-normal', NUM)}>
                     {updatedBadge}
                   </Badge>
                 </CardContent>

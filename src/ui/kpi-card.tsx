@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { HelpCircle } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { Badge } from '@/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 type PctTrend = 'up' | 'down' | 'flat'
@@ -13,8 +14,23 @@ type DeltaPillProps = {
   trend: PctTrend
   comparisonUnavailable: boolean
   negativeMetric?: boolean
-  /** featured card needs light-friendly pill contrast */
-  onDark?: boolean
+}
+
+type BadgeVariant = NonNullable<ComponentProps<typeof Badge>['variant']>
+
+function deltaBadgeVariant(
+  pct: number | null,
+  trend: PctTrend,
+  comparisonUnavailable: boolean,
+  negativeMetric: boolean | undefined,
+): BadgeVariant {
+  if (comparisonUnavailable || pct === null) return 'secondary'
+  const invert = Boolean(negativeMetric)
+  const good = invert ? trend === 'down' : trend === 'up'
+  const bad = invert ? trend === 'up' : trend === 'down'
+  if (good) return 'success'
+  if (bad) return 'error'
+  return 'secondary'
 }
 
 export function KpiDeltaPill({
@@ -22,50 +38,21 @@ export function KpiDeltaPill({
   trend,
   comparisonUnavailable,
   negativeMetric,
-  onDark,
 }: DeltaPillProps) {
-  if (comparisonUnavailable) {
-    return (
-      <span
-        className={cn(
-          'shrink-0 rounded-md px-2.5 py-1 text-xs font-medium tabular-nums',
-          onDark ? 'bg-white/15 text-white/80' : 'bg-[var(--kpi-pill-neutral-bg)] text-[var(--color-text-muted)]',
-        )}
-      >
-        —
-      </span>
-    )
+  const empty = comparisonUnavailable || pct === null
+  const variant = deltaBadgeVariant(pct, trend, comparisonUnavailable, negativeMetric)
+  let pctStr = '—'
+  if (!empty && pct !== null) {
+    pctStr = `${trend === 'up' && pct > 0 ? '+' : ''}${pct.toFixed(1)}%`
   }
-
-  if (pct === null) {
-    return (
-      <span
-        className={cn(
-          'shrink-0 rounded-md px-2.5 py-1 text-xs tabular-nums',
-          onDark ? 'bg-white/15 text-white/80' : 'text-[var(--color-text-muted)]',
-        )}
-      >
-        —
-      </span>
-    )
-  }
-
-  const invert = Boolean(negativeMetric)
-  const good = invert ? trend === 'down' : trend === 'up'
-  const bad = invert ? trend === 'up' : trend === 'down'
-  const pctStr = `${trend === 'up' && pct > 0 ? '+' : ''}${pct.toFixed(1)}%`
 
   return (
-    <span
-      className={cn(
-        'shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold tabular-nums',
-        good && 'bg-[var(--kpi-pill-positive-bg)] text-[var(--kpi-pill-positive-text)]',
-        bad && 'bg-[var(--kpi-pill-negative-bg)] text-[var(--kpi-pill-negative-text)]',
-        !good && !bad && (onDark ? 'bg-white/15 text-white/85' : 'bg-[var(--kpi-pill-neutral-bg)] text-[var(--color-text-muted)]'),
-      )}
+    <Badge
+      variant={variant}
+      className={cn('tabular-nums', !empty && 'font-semibold')}
     >
       {pctStr}
-    </span>
+    </Badge>
   )
 }
 
@@ -109,18 +96,13 @@ export function KpiCard({
       className={cn(
         'flex min-w-0 flex-col gap-2.5 rounded-md p-3.5 text-left sm:p-4',
         featured
-          ? 'border border-white/25 bg-[var(--country-green-base)] text-white shadow-none'
-          : 'border border-[var(--shell-structure-border)] bg-white text-[var(--color-text-primary)] shadow-none',
+          ? 'border border-[var(--color-border)] bg-[var(--color-bg-section)] shadow-[var(--shadow-ink-sm)]'
+          : 'border border-[var(--shell-structure-border)] bg-white shadow-none',
         className,
       )}
     >
       <div className="flex w-full min-w-0 items-start justify-between gap-2">
-        <span
-          className={cn(
-            'min-w-0 text-base font-medium leading-tight tracking-tight',
-            featured ? 'text-white/95' : 'text-[var(--color-text-primary)]',
-          )}
-        >
+        <span className="min-w-0 text-base font-medium leading-tight tracking-tight text-[var(--color-text-primary)]">
           {label}
         </span>
         {helpText ? (
@@ -128,10 +110,7 @@ export function KpiCard({
             <TooltipTrigger asChild>
               <button
                 type="button"
-                className={cn(
-                  'shrink-0 rounded-full p-0.5',
-                  featured ? 'text-white/70 hover:text-white' : 'text-[var(--color-text-muted)] hover:text-text-secondary',
-                )}
+                className="shrink-0 rounded-full p-0.5 text-[var(--color-text-muted)] hover:text-text-secondary"
                 aria-label={helpText}
               >
                 <HelpCircle className="size-4" />
@@ -144,32 +123,15 @@ export function KpiCard({
         ) : null}
       </div>
 
-      <p
-        className={cn(
-          'font-numeric min-w-0 text-2xl font-semibold leading-none tracking-tight sm:text-[1.75rem]',
-          featured ? 'text-white' : 'text-[var(--color-accent-forest)]',
-        )}
-      >
+      <p className="font-numeric min-w-0 text-2xl font-semibold leading-none tracking-tight text-[var(--color-accent-forest)] sm:text-[1.75rem]">
         {value}
       </p>
 
       {showComparison ? (
         <div className="mt-1 space-y-2">
-          <p
-            className={cn(
-              'text-xs leading-tight',
-              featured ? 'text-white/75' : 'text-[var(--color-text-muted)]',
-            )}
-          >
-            {vsPriorLabel}
-          </p>
+          <p className="text-xs leading-tight text-[var(--color-text-muted)]">{vsPriorLabel}</p>
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <span
-              className={cn(
-                'font-numeric min-w-0 text-lg font-semibold tabular-nums',
-                featured ? 'text-white' : 'text-[var(--color-text-primary)]',
-              )}
-            >
+            <span className="font-numeric min-w-0 text-lg font-semibold tabular-nums text-[var(--color-text-primary)]">
               {priorValueDisplay ?? '—'}
             </span>
             <KpiDeltaPill
@@ -177,19 +139,13 @@ export function KpiCard({
               trend={trend}
               comparisonUnavailable={unavailable}
               negativeMetric={negativeMetric}
-              onDark={featured}
             />
           </div>
         </div>
       ) : null}
 
       {footer ? (
-        <div
-          className={cn(
-            'mt-1 space-y-0.5 text-xs leading-snug tabular-nums',
-            featured ? 'text-white/80' : 'text-[var(--color-text-muted)]',
-          )}
-        >
+        <div className="mt-1 space-y-0.5 text-xs leading-snug tabular-nums text-[var(--color-text-muted)]">
           {footer}
         </div>
       ) : null}

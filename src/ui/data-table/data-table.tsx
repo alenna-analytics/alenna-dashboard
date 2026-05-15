@@ -105,21 +105,20 @@ export function DataTable<TData>({
           <TableHeader className="[&_tr]:border-b">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                {headerGroup.headers.map((header, headerIndex) => {
+                {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta as ColumnMetaWithCellClass | undefined
-                  const n = headerGroup.headers.length
                   return (
                     <TableHead
                       key={header.id}
                       colSpan={header.colSpan}
                       className={cn(
-                        "sticky top-0 z-10 bg-glass-fill-raised shadow-[0_1px_0_var(--border-subtle)]",
-                        headerIndex === 0 && "rounded-tl-md",
-                        headerIndex === n - 1 && "rounded-tr-md",
+                        "sticky top-0 z-10 border-0 bg-glass-fill-raised align-middle shadow-[0_1px_0_var(--border-subtle)] font-semibold text-text-secondary",
                         meta?.headerClassName,
                       )}
                     >
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      <div className="flex min-h-10 w-full items-center text-sm font-semibold leading-none text-text-secondary">
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      </div>
                     </TableHead>
                   )
                 })}
@@ -135,7 +134,9 @@ export function DataTable<TData>({
                 >
                   {table.getVisibleFlatColumns().map((col) => (
                     <TableCell key={col.id}>
-                      <Skeleton className="h-4 w-full max-w-48 rounded-full" />
+                      <div className="flex min-h-10 items-center text-sm leading-normal">
+                        <Skeleton className="h-[1.125rem] w-full max-w-48 rounded-full" />
+                      </div>
                     </TableCell>
                   ))}
                 </TableRow>
@@ -159,7 +160,9 @@ export function DataTable<TData>({
                     const meta = cell.column.columnDef.meta as ColumnMetaWithCellClass | undefined
                     return (
                       <TableCell key={cell.id} className={meta?.cellClassName}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        <div className="flex min-h-10 w-full items-center text-sm leading-normal [&:has([role=checkbox])]:[&_input]:self-center">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </div>
                       </TableCell>
                     )
                   })}

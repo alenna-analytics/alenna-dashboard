@@ -3,11 +3,10 @@ import type { ColumnDef } from '@tanstack/react-table'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductListingApi } from '@/lib/types/catalog'
 import { fmtCurrency } from '@/pages/reports/reports-ui-helpers'
-import { Badge } from '@/ui/badge'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 import { cn } from '@/lib/utils'
 
-import { formatPlatformSlug } from './product-detail-range'
+import { ProductPlatformLogoName } from './product-platform-logo-name'
 
 const NUM = 'font-numeric tabular-nums'
 
@@ -23,9 +22,13 @@ export function createProductDetailChannelsColumns(
         <DataTableColumnHeader column={column} title={t('productsDetailListingColPlatform')} />
       ),
       cell: ({ row }) => (
-        <Badge variant="outline" className="font-normal">
-          {formatPlatformSlug(row.original.platform)}
-        </Badge>
+        <div className="flex min-w-0 w-full items-center">
+          <ProductPlatformLogoName
+            platformSlug={row.original.platform}
+            t={t}
+            className="max-w-56 text-sm text-text-primary"
+          />
+        </div>
       ),
     },
     {
@@ -35,9 +38,14 @@ export function createProductDetailChannelsColumns(
         <DataTableColumnHeader column={column} title={t('productsDetailListingColSku')} />
       ),
       cell: ({ row }) => (
-        <span className="block max-w-40 truncate font-mono text-xs" title={row.original.platform_sku}>
-          {row.original.platform_sku}
-        </span>
+        <div className="flex min-w-0 w-full items-center">
+          <span
+            className="block max-w-40 min-w-0 truncate font-mono text-sm leading-normal"
+            title={row.original.platform_sku}
+          >
+            {row.original.platform_sku}
+          </span>
+        </div>
       ),
     },
     {
@@ -51,7 +59,7 @@ export function createProductDetailChannelsColumns(
         />
       ),
       cell: ({ row }) => (
-        <span className={cn('block text-right text-xs', NUM)}>
+        <span className={cn('block w-full text-right text-sm', NUM)}>
           {fmtBase(row.original.period_sales)}
         </span>
       ),
@@ -67,7 +75,7 @@ export function createProductDetailChannelsColumns(
         />
       ),
       cell: ({ row }) => (
-        <span className={cn('block text-right text-xs', NUM)}>{row.original.period_orders}</span>
+        <span className={cn('block w-full text-right text-sm', NUM)}>{row.original.period_orders}</span>
       ),
     },
     {
@@ -81,7 +89,7 @@ export function createProductDetailChannelsColumns(
         />
       ),
       cell: ({ row }) => (
-        <span className={cn('block text-right text-xs', NUM)}>{row.original.period_units_sold}</span>
+        <span className={cn('block w-full text-right text-sm', NUM)}>{row.original.period_units_sold}</span>
       ),
     },
     {
@@ -97,7 +105,7 @@ export function createProductDetailChannelsColumns(
       cell: ({ row }) => {
         const li = row.original
         return (
-          <span className={cn('block text-right text-xs', NUM)}>
+          <span className={cn('block w-full text-right text-sm', NUM)}>
             {li.platform_price != null && li.currency
               ? fmtCurrency(li.platform_price, li.currency)
               : '—'}
@@ -109,10 +117,16 @@ export function createProductDetailChannelsColumns(
       id: 'currency',
       accessorKey: 'currency',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('productsDetailListingColPlatformCurrency')} />
+        <DataTableColumnHeader
+          className="justify-end"
+          column={column}
+          title={t('productsDetailListingColPlatformCurrency')}
+        />
       ),
       cell: ({ row }) => (
-        <span className={cn('text-xs', NUM)}>{row.original.currency ?? '—'}</span>
+        <span className="block w-full text-right text-sm text-text-secondary">
+          {row.original.currency ?? '—'}
+        </span>
       ),
     },
   ]

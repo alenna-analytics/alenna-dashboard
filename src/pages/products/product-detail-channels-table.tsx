@@ -26,6 +26,7 @@ export function ProductDetailChannelsTable({
 }: ProductDetailChannelsTableProps) {
   const columns = useMemo(() => createProductDetailChannelsColumns(t, fmtBase), [t, fmtBase])
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
   const table = useReactTable({
     data: listings,
     columns,

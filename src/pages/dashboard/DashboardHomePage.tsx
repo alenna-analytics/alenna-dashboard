@@ -8,7 +8,7 @@ import { useCurrentTenant } from '@/auth/hooks'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { apiFetch } from '@/lib/api'
 import type { PlatformConnection } from '@/lib/types/connectors'
-import { useLanguage } from '@/shell/providers/language-provider'
+import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { Skeleton } from '@/ui/skeleton'
 import { FilterDates } from '@/ui/filters/filter-dates'
@@ -22,10 +22,7 @@ import { DashboardRevenueTrendChart } from './dashboard-revenue-trend-chart'
 import { HomeChannelDonutChart } from './home-channel-donut-chart'
 import { HomeProductFilter } from './home-product-filter'
 import { HomeTopProductsChart } from './home-top-products-chart'
-import {
-  TOP_PRODUCTS_DEFAULT_VISIBLE_ROWS,
-  getTopProductsChartHeightPx,
-} from './home-top-products-chart-layout'
+import { getTopProductsChartHeightPx } from './home-top-products-chart-layout'
 import { MoneyDisclaimer } from '@/shell/components/money-disclaimer'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import {
@@ -119,11 +116,27 @@ function parseHomeFilters(raw: unknown): HomeFiltersState | null {
   }
 }
 
-function fmtCompact(value: number, currency: string): string {
+function fmtCompact(value: number, currency: string, lang: Language): string {
   const abs = Math.abs(value)
-  if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
-  if (abs >= 1_000) return `${(value / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat(undefined, {
+  const narrow = lang === 'es' ? 'es-MX' : 'en-US'
+
+  if (abs >= 1_000_000) {
+    const m = value / 1_000_000
+    const part = m.toLocaleString(narrow, {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    })
+    return `${part}M`
+  }
+  if (abs >= 1_000) {
+    const k = value / 1_000
+    const part = k.toLocaleString(narrow, {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    })
+    return lang === 'es' ? `${part} mil` : `${part} K`
+  }
+  return new Intl.NumberFormat(narrow, {
     style: 'currency',
     currency,
     maximumFractionDigits: 0,
@@ -391,8 +404,8 @@ export function DashboardHomePage() {
     [formatMoney, effectiveDisplayCurrency],
   )
   const formatCompactInDisplay = useMemo(
-    () => (n: number) => fmtCompact(n, effectiveDisplayCurrency),
-    [effectiveDisplayCurrency],
+    () => (n: number) => fmtCompact(n, effectiveDisplayCurrency, lang),
+    [effectiveDisplayCurrency, lang],
   )
 
   const orders = displayKpi?.order_count ?? 0
@@ -490,10 +503,7 @@ export function DashboardHomePage() {
     activeConnectionIds.length > 0 &&
     (monthlyRevenueLoading || (Boolean(revenuePrevPeriod) && monthlyPrevLoading))
 
-  const pairedChartBodyPx = useMemo(
-    () => getTopProductsChartHeightPx(TOP_PRODUCTS_DEFAULT_VISIBLE_ROWS),
-    [],
-  )
+  const pairedChartBodyPx = useMemo(() => getTopProductsChartHeightPx(), [])
 
   const showTopProducts = true
 
@@ -575,7 +585,6 @@ export function DashboardHomePage() {
           {productMode && displayProductKpi ? (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <KpiCard
-                variant="featured"
                 label={t('reportsGrossRevenue')}
                 value={formatMoney(displayProductKpi.gross_revenue, { nativeCurrency: currency })}
                 vsPriorLabel={vsPrior}
@@ -624,7 +633,6 @@ export function DashboardHomePage() {
           ) : displayKpi ? (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <KpiCard
-                variant="featured"
                 label={t('reportsNetRevenue')}
                 helpText={t('reportsKpiHelpNetRevenue')}
                 value={formatMoney(displayKpi.net_revenue, { nativeCurrency: currency })}

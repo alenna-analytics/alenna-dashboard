@@ -108,39 +108,8 @@ export function HomeChannelDonutChart({
       style={minBodyHeightPx ? { minHeight: minBodyHeightPx } : undefined}
     >
       <div className="relative h-64 w-full lg:w-1/2">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={slices}
-              dataKey="value"
-              nameKey="label"
-              innerRadius="60%"
-              outerRadius="90%"
-              stroke="var(--bg-default, #fff)"
-              strokeWidth={2}
-              paddingAngle={1}
-              isAnimationActive={false}
-            >
-              {slices.map((s) => (
-                <Cell key={s.key} fill={s.fill} />
-              ))}
-            </Pie>
-            <Tooltip
-              formatter={(value: number, name: string) => [
-                formatValue(value),
-                name,
-              ]}
-              contentStyle={{
-                background: 'var(--bg-default, #fff)',
-                border: '1px solid var(--shell-structure-border)',
-                borderRadius: 6,
-                fontSize: 12,
-              }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
         <div
-          className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"
+          className="pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-center"
           aria-hidden
         >
           <span className="text-xs font-medium text-text-secondary">
@@ -149,6 +118,42 @@ export function HomeChannelDonutChart({
           <span className="text-lg font-semibold tracking-tight text-text-primary">
             {formatValue(total)}
           </span>
+        </div>
+        <div className="relative z-[5] h-full min-h-0 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={slices}
+                dataKey="value"
+                nameKey="label"
+                innerRadius="60%"
+                outerRadius="90%"
+                stroke="var(--bg-default, #fff)"
+                strokeWidth={2}
+                paddingAngle={1}
+                isAnimationActive={false}
+              >
+                {slices.map((s) => (
+                  <Cell key={s.key} fill={s.fill} />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value: number, name: string) => [
+                  formatValue(value),
+                  name,
+                ]}
+                wrapperStyle={{ zIndex: 30 }}
+                contentStyle={{
+                  background: 'var(--bg-default, #fff)',
+                  border: '1px solid var(--shell-structure-border)',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  position: 'relative',
+                  zIndex: 30,
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
       <ul className="flex flex-1 flex-col gap-2 text-sm">

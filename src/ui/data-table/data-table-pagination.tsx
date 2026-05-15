@@ -50,10 +50,10 @@ export function DataTablePagination<TData>({
   const totalItems = table.getRowCount()
   const pageItems = getPaginationPageItems(pageIndex, pageCount)
 
-  const baseBtn =
-    "size-7 min-w-7 shrink-0 border-0 bg-transparent px-0 text-foreground shadow-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring hover:bg-[color-mix(in_srgb,var(--bg-section)_72%,white_28%)] [&_svg]:pointer-events-none [&_svg]:size-4"
-  const pageBtn = `${baseBtn} rounded-full font-medium tabular-nums`
-  const arrowBtn = `${baseBtn} rounded-sm`
+  const navCtl =
+    "size-7 min-w-7 shrink-0 border-0 bg-transparent px-0 text-foreground shadow-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring hover:bg-[color-mix(in_srgb,var(--bg-section)_72%,white_28%)] [&_svg]:pointer-events-none [&_svg]:size-3.5"
+  const arrowBtn = `${navCtl} rounded-sm`
+  const pageBtn = `${navCtl} rounded-full text-xs font-medium tabular-nums leading-none`
 
   return (
     <div

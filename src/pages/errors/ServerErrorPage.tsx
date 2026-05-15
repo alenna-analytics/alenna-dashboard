@@ -12,7 +12,7 @@ export function ServerErrorPage({ error, onRetry }: ServerErrorPageProps) {
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-bg-base px-6 text-center">
       <div className="space-y-2">
-        <p className="font-mono text-5xl font-semibold text-text-primary">500</p>
+        <p className="text-5xl font-semibold text-text-primary">500</p>
         <h1 className="text-xl font-semibold text-text-primary">
           Something went wrong
         </h1>
@@ -38,12 +38,6 @@ export function ServerErrorPage({ error, onRetry }: ServerErrorPageProps) {
         ) : null}
         <Link className={cn(buttonVariants({ variant: onRetry ? 'outline' : 'default' }))} to="/">
           Back to home
-        </Link>
-        <Link
-          className={cn(buttonVariants({ variant: 'outline' }))}
-          to="/dashboard/sales"
-        >
-          Sales
         </Link>
       </div>
     </div>

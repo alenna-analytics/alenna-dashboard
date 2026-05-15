@@ -1,6 +1,9 @@
 import { Settings } from 'lucide-react'
 
 import type { ManagedIntegration } from '@/lib/integrations/catalog'
+import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
+import type { PlatformConnection } from '@/lib/types/connectors'
+import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
 import { IntegrationLogo } from '@/pages/integrations/details/integration-logo'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { Badge } from '@/ui/badge'
@@ -18,6 +21,8 @@ type IntegrationListCardProps = {
   integration: ManagedIntegration
   lang: string
   shopifyConnected: boolean
+  shopifyConnection?: PlatformConnection | null
+  shopifyForceSyncing?: boolean
   isAdmin: boolean
   disconnectPending: boolean
   onManage: () => void
@@ -28,6 +33,8 @@ export function IntegrationListCard({
   integration,
   lang,
   shopifyConnected,
+  shopifyConnection,
+  shopifyForceSyncing = false,
   isAdmin,
   disconnectPending,
   onManage,
@@ -48,6 +55,13 @@ export function IntegrationListCard({
     onConnectToggle(on)
   }
 
+  const syncPill =
+    isShopify && shopifyConnected
+      ? resolveConnectionSyncFreshnessPillContent(shopifyConnection, {
+          forceSyncing: shopifyForceSyncing,
+        })
+      : null
+
   return (
     <li>
       <Card
@@ -59,8 +73,9 @@ export function IntegrationListCard({
         <CardHeader className="flex flex-col items-start gap-3 border-0 pb-0">
           <IntegrationLogo src={integration.logoSrc} alt={name} size="xl" />
           <div className="min-w-0 flex-1 flex flex-col">
-            <div className="flex flex-row items-center gap-2">
+            <div className="flex flex-row flex-wrap items-center gap-2">
               <CardTitle className="text-base! font-semibold tracking-tight">{name}</CardTitle>
+              {syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : null}
               {!integration.available ? (
                 <Badge variant="default">
                   {shellT(lang, 'integrationsComingSoonBadge')}

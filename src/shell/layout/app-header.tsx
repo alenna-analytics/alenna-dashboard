@@ -2,6 +2,7 @@ import { UserButton } from '@clerk/react'
 
 import { AppBreadcrumbs } from '@/shell/layout/app-breadcrumbs'
 import { CurrencyPicker } from '@/shell/layout/currency-picker'
+import { SyncFreshnessHeaderPill } from '@/components/integrations/sync-freshness-header-pill'
 import { GlobalActivityHeaderIndicator } from '@/shell/layout/global-activity-header-indicator'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'
@@ -27,6 +28,7 @@ export function AppHeader({ className }: { className?: string }) {
           <AppBreadcrumbs className="min-w-0" />
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <SyncFreshnessHeaderPill />
           <GlobalActivityHeaderIndicator />
           <CurrencyPicker />
           <Button

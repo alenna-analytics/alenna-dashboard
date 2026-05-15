@@ -193,6 +193,24 @@ const SHELL_STRINGS = {
     syncRefreshBtn: 'Re-sincronizar pedidos',
     syncRetryBtn: 'Reintentar sincronización',
     syncRunning: 'Sincronizando…',
+    syncFreshnessUpToDate: 'Al día',
+    syncFreshnessSyncing: 'Sincronizando',
+    syncFreshnessOutdated: 'Desactualizado',
+    syncFreshnessHomeTitle: 'Datos de Shopify',
+    syncFreshnessHomeDetailFresh:
+      'Los pedidos se actualizan automáticamente cada pocos minutos.',
+    syncFreshnessHomeDetailSyncing: 'Hay una sincronización en curso.',
+    syncFreshnessHomeDetailStale:
+      'Los datos pueden no estar al día. Revisa la integración.',
+    syncFreshnessManageLink: 'Gestionar integraciones',
+    syncFreshnessManageLine: 'Sincronización automática',
+    syncFreshnessPillNow: 'Última actualización: ahora',
+    syncFreshnessPillMinutesAgo: 'Última actualización: hace {minutes} min',
+    syncFreshnessPillSyncing: 'Sincronizando',
+    syncFreshnessPillTooltip:
+      'Visita la página de integraciones para más detalles.',
+    syncFreshnessPillInfoTooltip:
+      'Los datos de todas las plataformas se actualizan automáticamente cada 5 min.',
     syncProductsUpdated: 'productos actualizados',
     syncErrorLabel: 'Error al sincronizar',
     syncFullHistoryHelper:
@@ -737,6 +755,21 @@ const SHELL_STRINGS = {
     syncRefreshBtn: 'Re-sync orders',
     syncRetryBtn: 'Retry sync',
     syncRunning: 'Syncing…',
+    syncFreshnessUpToDate: 'Up to date',
+    syncFreshnessSyncing: 'Syncing',
+    syncFreshnessOutdated: 'Outdated',
+    syncFreshnessHomeTitle: 'Shopify data',
+    syncFreshnessHomeDetailFresh: 'Orders refresh automatically every few minutes.',
+    syncFreshnessHomeDetailSyncing: 'A sync is currently in progress.',
+    syncFreshnessHomeDetailStale: 'Data may be stale. Check your integration.',
+    syncFreshnessManageLink: 'Manage integrations',
+    syncFreshnessManageLine: 'Automatic sync',
+    syncFreshnessPillNow: 'Last update: now',
+    syncFreshnessPillMinutesAgo: 'Last update: {minutes} min ago',
+    syncFreshnessPillSyncing: 'Syncing',
+    syncFreshnessPillTooltip: 'Visit the integrations page for more details.',
+    syncFreshnessPillInfoTooltip:
+      'Data across all platforms is automatically updated every 5 mins.',
     syncProductsUpdated: 'products updated',
     syncErrorLabel: 'Sync error',
     syncFullHistoryHelper:

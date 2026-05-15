@@ -14,15 +14,15 @@ const badgeVariants = cva(
         secondary:
           "border-border-subtle bg-muted/90 text-muted-foreground [a]:hover:bg-muted",
         destructive:
-          "border-destructive/22 bg-[var(--danger-dim)] text-destructive [a]:hover:bg-destructive/15",
+          "border-[var(--pill-error-border)] bg-[var(--pill-error-bg)] text-[var(--pill-error-text)] [a]:hover:bg-[color-mix(in_srgb,var(--pill-error-bg)_88%,var(--pill-error-text)_12%)]",
         outline:
           "border-border-subtle bg-transparent text-foreground [a]:hover:bg-muted",
         ghost: "border-transparent hover:bg-muted hover:text-foreground",
         link: "border-transparent text-primary underline-offset-4 hover:underline",
         success:
-          "border-success/22 bg-[var(--success-dim)] text-success [a]:hover:bg-success/18",
+          "border-[var(--pill-success-border)] bg-[var(--pill-success-bg)] text-[var(--pill-success-text)] [a]:hover:bg-[color-mix(in_srgb,var(--pill-success-bg)_88%,var(--pill-success-text)_12%)]",
         error:
-          "border-destructive/22 bg-[var(--danger-dim)] text-destructive [a]:hover:bg-destructive/15",
+          "border-[var(--pill-error-border)] bg-[var(--pill-error-bg)] text-[var(--pill-error-text)] [a]:hover:bg-[color-mix(in_srgb,var(--pill-error-bg)_88%,var(--pill-error-text)_12%)]",
         warning:
           "border-warning/25 bg-[var(--warning-dim)] text-text-secondary [a]:hover:bg-warning/14",
         info: "border-info/28 bg-[var(--info-dim)] text-text-secondary [a]:hover:bg-info/18",
@@ -34,7 +34,7 @@ const badgeVariants = cva(
         orange:
           "border-warning/25 bg-[var(--warning-dim)] text-[color-mix(in_srgb,var(--warning)_70%,var(--text-primary))] [a]:hover:bg-warning/14",
         green:
-          "border-success/22 bg-[var(--success-dim)] text-success [a]:hover:bg-success/18",
+          "border-[var(--pill-success-border)] bg-[var(--pill-success-bg)] text-[var(--pill-success-text)] [a]:hover:bg-[color-mix(in_srgb,var(--pill-success-bg)_88%,var(--pill-success-text)_12%)]",
         gray: "border-border-subtle bg-muted/85 text-muted-foreground [a]:hover:bg-muted",
       },
     },

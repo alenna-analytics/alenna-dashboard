@@ -11,6 +11,8 @@ import {
 import { useLanguage } from '@/shell/providers/language-provider'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { SyncPlan } from '@/lib/types/connectors'
+import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
+import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
@@ -64,6 +66,7 @@ function ShopifyIntroCopy({ lang }: { lang: string }) {
 
 function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyIntegrationHook }) {
   const {
+    activeConnection,
     lastSyncDisplay,
     syncMutation,
     shopifySyncPhase,
@@ -76,6 +79,10 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
     retryShopifySyncPending,
     syncPlan,
   } = shopify
+
+  const syncPill = resolveConnectionSyncFreshnessPillContent(activeConnection, {
+    forceSyncing: shopifySyncPhase === 'working',
+  })
 
   const buttonLabel = shellT(lang, lifecycleButtonLabelKey(syncPlan))
 
@@ -195,8 +202,14 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
   return (
     <div className="space-y-4">
       <div className="space-y-0.5">
-        <p className="text-sm font-medium text-text-primary">{shellT(lang, 'syncSectionTitle')}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm font-medium text-text-primary">{shellT(lang, 'syncSectionTitle')}</p>
+          {syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : null}
+        </div>
         <p className="text-xs text-muted-foreground">{shellT(lang, 'syncSectionDescription')}</p>
+        {syncPill ? (
+          <p className="text-xs text-muted-foreground">{shellT(lang, 'syncFreshnessManageLine')}</p>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-2">

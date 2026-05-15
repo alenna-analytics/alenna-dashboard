@@ -21,8 +21,16 @@ export function IntegrationsListPage() {
   const { isAdmin, connected: shopifyConnected, disconnectMutation } =
     shopifyIntegration
 
-  const { integrations, pageLoading, pageError, isFetching, refetch } =
+  const { integrations, connections, pageLoading, pageError, isFetching, refetch } =
     useIntegrationsListQueries()
+
+  const shopifyConnection =
+    connections.find(
+      (c) =>
+        c.platform === 'shopify' &&
+        c.status === 'active' &&
+        c.connection_status === 'active',
+    ) ?? null
 
   const managed = managedSlug
     ? integrations.find((x) => x.slug === managedSlug)
@@ -82,6 +90,13 @@ export function IntegrationsListPage() {
                 integration={integration}
                 lang={lang}
                 shopifyConnected={shopifyConnected}
+                shopifyConnection={
+                  integration.slug === 'shopify' ? shopifyConnection : null
+                }
+                shopifyForceSyncing={
+                  integration.slug === 'shopify' &&
+                  shopifyIntegration.shopifySyncPhase === 'working'
+                }
                 isAdmin={isAdmin}
                 disconnectPending={disconnectMutation.isPending}
                 onManage={() => setManagedSlug(integration.slug)}

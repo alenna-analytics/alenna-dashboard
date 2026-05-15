@@ -51,6 +51,10 @@
   --color-success-dim: var(--success-dim);
   --color-danger: var(--danger);
   --color-danger-dim: var(--danger-dim);
+  --color-pill-success-text: var(--pill-success-text);
+  --color-pill-success-bg: var(--pill-success-bg);
+  --color-pill-error-text: var(--pill-error-text);
+  --color-pill-error-bg: var(--pill-error-bg);
   --color-warning: var(--warning);
   --color-warning-dim: var(--warning-dim);
   --color-info: var(--info);
@@ -161,6 +165,27 @@
   --status-gray-500: #6b7280;
   --status-gray-600: #4b5563;
   --status-gray-900: #111827;
+
+  /** Pill primitives (sync status, badges, KPI deltas). */
+  --primitive-pill-green-text: #397f18;
+  --primitive-pill-green-bg: #f3fcdc;
+  --primitive-pill-red-text: #d70c30;
+  --primitive-pill-red-bg: #fff1ed;
+
+  --pill-success-text: var(--primitive-pill-green-text);
+  --pill-success-bg: var(--primitive-pill-green-bg);
+  --pill-success-border: color-mix(
+    in srgb,
+    var(--pill-success-text) 22%,
+    transparent
+  );
+  --pill-error-text: var(--primitive-pill-red-text);
+  --pill-error-bg: var(--primitive-pill-red-bg);
+  --pill-error-border: color-mix(
+    in srgb,
+    var(--pill-error-text) 22%,
+    transparent
+  );
 
   --ink: var(--african-turquoise-base);
   --ink-rgb: 0, 0, 0;
@@ -336,10 +361,10 @@
     transparent
   );
 
-  --kpi-pill-positive-bg: var(--status-green-50);
-  --kpi-pill-positive-text: var(--status-green-900);
-  --kpi-pill-negative-bg: var(--status-red-50);
-  --kpi-pill-negative-text: var(--status-red-900);
+  --kpi-pill-positive-bg: var(--pill-success-bg);
+  --kpi-pill-positive-text: var(--pill-success-text);
+  --kpi-pill-negative-bg: var(--pill-error-bg);
+  --kpi-pill-negative-text: var(--pill-error-text);
   --kpi-pill-neutral-bg: color-mix(
     in srgb,
     var(--status-gray-200) 68%,
@@ -607,11 +632,17 @@
   }
 
   .delta-positive {
-    @apply inline-flex items-center gap-1 rounded-md border border-success/20 bg-success-dim px-2 py-0.5 font-mono text-[11px] tracking-wide text-success;
+    @apply inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-[11px] tracking-wide;
+    border-color: var(--pill-success-border);
+    background-color: var(--pill-success-bg);
+    color: var(--pill-success-text);
   }
 
   .delta-negative {
-    @apply inline-flex items-center gap-1 rounded-md border border-danger/25 bg-danger-dim px-2 py-0.5 font-mono text-[11px] tracking-wide text-danger;
+    @apply inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-[11px] tracking-wide;
+    border-color: var(--pill-error-border);
+    background-color: var(--pill-error-bg);
+    color: var(--pill-error-text);
   }
 
   .surface-chart-card {

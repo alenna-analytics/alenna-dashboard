@@ -8,6 +8,9 @@ export type ProductListingApi = {
   currency: string | null
   active: boolean
   has_orders: boolean
+  period_sales: number
+  period_orders: number
+  period_units_sold: number
 }
 
 export type ProductListingPriceSegmentApi = {
@@ -62,6 +65,8 @@ export type ProductDetailApi = {
   internal_sku: string | null
   period_units_sold: number
   period_cogs: number
+  period_sales: number
+  period_orders: number
   period_start: string | null
   period_end: string | null
   title: string

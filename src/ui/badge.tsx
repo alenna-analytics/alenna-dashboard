@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 [&>svg]:pointer-events-none [&>svg]:size-3!",
+  "group/badge inline-flex h-7 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-md border px-2.5 py-0 text-xs font-medium whitespace-nowrap transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 [&>svg]:pointer-events-none [&>svg]:size-3!",
   {
     variants: {
       variant: {
@@ -25,10 +25,10 @@ const badgeVariants = cva(
           "border-[var(--pill-error-border)] bg-[var(--pill-error-bg)] text-[var(--pill-error-text)] [a]:hover:bg-[color-mix(in_srgb,var(--pill-error-bg)_88%,var(--pill-error-text)_12%)]",
         warning:
           "border-warning/25 bg-[var(--warning-dim)] text-text-secondary [a]:hover:bg-warning/14",
-        info: "border-info/28 bg-[var(--info-dim)] text-text-secondary [a]:hover:bg-info/18",
+        info: "border-info/35 bg-[var(--info-dim)] text-[var(--info)] [a]:hover:bg-info/18",
         neutral:
           "border-border-subtle bg-muted/80 text-muted-foreground [a]:hover:bg-muted",
-        blue: "border-info/28 bg-[var(--info-dim)] text-text-secondary [a]:hover:bg-info/18",
+        blue: "border-info/35 bg-[var(--info-dim)] text-[var(--info)] [a]:hover:bg-info/18",
         purple:
           "border-primary/22 bg-primary/10 text-primary [a]:hover:bg-primary/16",
         orange:

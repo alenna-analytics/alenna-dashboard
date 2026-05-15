@@ -52,7 +52,7 @@ export function DataTable<TData>({
   const showEmpty = !isLoading && hasEverLoaded && rows.length === 0
 
   return (
-    <div className="relative rounded-md border border-border-subtle bg-bg-section shadow-[var(--shadow-ink-xs)]">
+    <div className="relative overflow-hidden rounded-md border border-border-subtle bg-bg-section shadow-[var(--shadow-ink-xs)]">
       {toolbar || search ? (
         <div className="flex min-h-10 items-center justify-between gap-2 border-b border-border-subtle rounded-t-md bg-white px-3 py-2">
           <div className="min-w-0 flex-1">
@@ -105,14 +105,17 @@ export function DataTable<TData>({
           <TableHeader className="[&_tr]:border-b">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
-                {headerGroup.headers.map((header) => {
+                {headerGroup.headers.map((header, headerIndex) => {
                   const meta = header.column.columnDef.meta as ColumnMetaWithCellClass | undefined
+                  const n = headerGroup.headers.length
                   return (
                     <TableHead
                       key={header.id}
                       colSpan={header.colSpan}
                       className={cn(
                         "sticky top-0 z-10 bg-glass-fill-raised shadow-[0_1px_0_var(--border-subtle)]",
+                        headerIndex === 0 && "rounded-tl-md",
+                        headerIndex === n - 1 && "rounded-tr-md",
                         meta?.headerClassName,
                       )}
                     >

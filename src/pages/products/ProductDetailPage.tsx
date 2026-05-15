@@ -7,11 +7,10 @@ import type {
   ProductCostHistorySegmentApi,
   ProductDetailApi,
 } from '@/lib/types/catalog'
-import { fmtCurrency, toYmd } from '@/pages/reports/reports-ui-helpers'
+import { toYmd } from '@/pages/reports/reports-ui-helpers'
 import { useMoney } from '@/hooks/use-money'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
-import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import {
   Card,
@@ -31,14 +30,6 @@ import {
   SheetTitle,
 } from '@/ui/sheet'
 import { Skeleton } from '@/ui/skeleton'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/ui/table'
 import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -50,7 +41,9 @@ import {
 } from '@/shell/providers/global-activity-provider'
 
 import { buildProductCostPriceChartData } from './product-cost-chart-points'
-import { ProductCostOverTimeChart } from './product-cost-over-time-chart'
+import { ProductDetailSections } from './product-detail-sections'
+import { ProductDetailSkuRow } from './product-detail-sku-row'
+import { defaultProductInsightRange } from './product-detail-range'
 import {
   useCatalogJobQuery,
   useEnqueueCogsBackfillMutation,
@@ -90,14 +83,6 @@ function defaultBackfillRange(): { start: string; end: string } {
 }
 
 type CostEditMode = 'forward' | 'history'
-
-function formatPlatformSlug(slug: string): string {
-  return slug
-    .split(/[_-]+/)
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(' ')
-}
 
 function daysSinceUpdated(iso: string): number {
   const u = new Date(iso)
@@ -204,7 +189,14 @@ function ProductDetailBody({ productId }: { productId: string }) {
   const qc = useQueryClient()
   const { upsertActivity, patchActivity } = useGlobalActivity()
 
-  const detailQuery = useProductDetailQuery(productId)
+  const defaultInsight = useMemo(() => defaultProductInsightRange(), [])
+  const [insightStart, setInsightStart] = useState(defaultInsight.start)
+  const [insightEnd, setInsightEnd] = useState(defaultInsight.end)
+
+  const detailQuery = useProductDetailQuery(productId, {
+    metricsStart: insightStart,
+    metricsEnd: insightEnd,
+  })
   const patchMutation = usePatchProductCostMutation(productId)
   const backfillMutation = useEnqueueCogsBackfillMutation(productId)
 
@@ -349,6 +341,12 @@ function ProductDetailBody({ productId }: { productId: string }) {
     }
   }
 
+  const onInsightRangeClear = useCallback(() => {
+    const d0 = defaultProductInsightRange()
+    setInsightStart(d0.start)
+    setInsightEnd(d0.end)
+  }, [])
+
   useEffect(() => {
     if (jobQuery.data?.status !== 'succeeded' || !tenantId) return
     void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
@@ -389,12 +387,18 @@ function ProductDetailBody({ productId }: { productId: string }) {
       ? t('productsDetailLastUpdatedToday')
       : t('productsDetailLastUpdatedDays').replace('{days}', String(updatedDays))
 
-  const hasPeriodMetrics =
+  const hasInsightData =
     detail.period_start != null ||
+    detail.period_sales > 0 ||
+    detail.period_orders > 0 ||
     detail.period_units_sold > 0 ||
     Number(detail.period_cogs) > 0
+  const showInsightValues = hasInsightData || Boolean(insightStart && insightEnd)
 
   const sheetBusy = patchMutation.isPending || backfillMutation.isPending
+
+  const insightKpi = (value: React.ReactNode): React.ReactNode =>
+    showInsightValues ? value : t('productsDetailKpiNoData')
 
   return (
     <DashboardPage className="flex flex-1 flex-col gap-6 lg:gap-8">
@@ -495,84 +499,29 @@ function ProductDetailBody({ productId }: { productId: string }) {
         </SheetContent>
       </Sheet>
 
-      <div className="flex flex-col gap-4 border-b border-border-subtle pb-6 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 gap-4">
-          <ProductThumbSm url={detail.image_url} title={detail.title} />
-          <div className="min-w-0 space-y-1">
-            <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[var(--color-text-primary)] sm:text-3xl">
-              {detail.title}
-            </h1>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-text-secondary">
-              {detail.brand ? <span>{detail.brand}</span> : null}
-              {editingSku ? (
-                <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <span className="shrink-0 text-text-tertiary">SKU:</span>
-                  <Input
-                    value={skuDraft}
-                    onChange={(e) => setSkuDraft(e.target.value)}
-                    placeholder={t('productsDetailSkuPlaceholder')}
-                    className="h-8 max-w-[14rem] font-mono text-xs"
-                  />
-                  <Button
-                    type="button"
-                    size="xs"
-                    variant="secondary"
-                    disabled={patchMutation.isPending}
-                    onClick={() => void handleSkuSave()}
-                  >
-                    {t('productsDetailSkuSave')}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="xs"
-                    variant="ghost"
-                    onClick={() => setEditingSku(false)}
-                  >
-                    {t('productsDetailSheetCancel')}
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                  <span className={cn(NUM, 'text-text-tertiary')}>
-                    {detail.internal_sku?.trim()
-                      ? t('productsDetailHeaderMetaSku').replace('{sku}', detail.internal_sku)
-                      : t('productsDetailHeaderMetaSkuUnset')}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="size-7 shrink-0"
-                    aria-label={t('productsDetailEditSkuAria')}
-                    onClick={() => {
-                      setSkuDraft(detail.internal_sku ?? '')
-                      setEditingSku(true)
-                    }}
-                  >
-                    <Pencil className="size-3.5" />
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
-          <div className={cn('text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl', NUM)}>
-            {costAmountWithBaseCode(bigCostFormatted, baseCurrency, 'text-lg sm:text-2xl')}
-          </div>
-          <Badge variant="secondary" className={cn('font-normal', NUM)}>
-            {updatedBadge}
-          </Badge>
+      <div className="flex min-w-0 gap-4 border-b border-border-subtle pb-6">
+        <ProductThumbSm url={detail.image_url} title={detail.title} />
+        <div className="min-w-0 space-y-2">
+          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[var(--color-text-primary)] sm:text-3xl">
+            {detail.title}
+          </h1>
+          <ProductDetailSkuRow
+            internalSku={detail.internal_sku}
+            t={t}
+            editing={editingSku}
+            draft={skuDraft}
+            onDraftChange={setSkuDraft}
+            onStartEdit={() => {
+              setSkuDraft(detail.internal_sku ?? '')
+              setEditingSku(true)
+            }}
+            onCancelEdit={() => setEditingSku(false)}
+            onSave={() => void handleSkuSave()}
+            savePending={patchMutation.isPending}
+          />
+          {detail.brand ? <p className="text-sm text-text-secondary">{detail.brand}</p> : null}
         </div>
       </div>
-
-      {detail.has_listing_currency_mismatch ? (
-        <Card size="sm" variant="solid">
-          <CardContent className="py-3 text-xs text-text-secondary">
-            {t('productsDetailListingCurrencyCallout')}
-          </CardContent>
-        </Card>
-      ) : null}
 
       {futureSegment ? (
         <Card size="sm" variant="solid" className="border-amber-500/30 bg-amber-500/10">
@@ -582,172 +531,28 @@ function ProductDetailBody({ productId }: { productId: string }) {
         </Card>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card size="sm">
-          <CardHeader className="pb-1">
-            <CardTitle className="text-xs font-medium text-text-secondary">
-              {t('productsDetailKpiCurrentCost')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className={cn('text-lg font-semibold text-text-primary sm:text-xl', NUM)}>
-              {costAmountWithBaseCode(
-                detail.cost != null ? fmtBase(detail.cost) : '—',
-                baseCurrency,
-                'text-xs sm:text-sm',
-              )}
-            </p>
-          </CardContent>
-        </Card>
-        <Card size="sm">
-          <CardHeader className="pb-1">
-            <CardTitle className="text-xs font-medium text-text-secondary">
-              {t('productsDetailKpiAvgCost')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className={cn('text-lg font-semibold text-text-primary sm:text-xl', NUM)}>
-              {costAmountWithBaseCode(
-                avgHistory != null ? fmtBase(avgHistory) : '—',
-                baseCurrency,
-                'text-xs sm:text-sm',
-              )}
-            </p>
-          </CardContent>
-        </Card>
-        <Card size="sm">
-          <CardHeader className="pb-1">
-            <CardTitle className="text-xs font-medium text-text-secondary">
-              {t('productsDetailKpiUnitsSold')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p
-              className={cn(
-                'text-lg font-semibold sm:text-xl',
-                hasPeriodMetrics ? 'text-text-primary' : 'text-text-tertiary',
-                NUM,
-              )}
-            >
-              {hasPeriodMetrics
-                ? String(detail.period_units_sold)
-                : t('productsDetailKpiNoData')}
-            </p>
-          </CardContent>
-        </Card>
-        <Card size="sm">
-          <CardHeader className="pb-1">
-            <CardTitle className="text-xs font-medium text-text-secondary">
-              {t('productsDetailKpiCogsTotal')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p
-              className={cn(
-                'text-lg font-semibold sm:text-xl',
-                hasPeriodMetrics ? 'text-text-primary' : 'text-text-tertiary',
-                NUM,
-              )}
-            >
-              {hasPeriodMetrics
-                ? costAmountWithBaseCode(fmtBase(detail.period_cogs), baseCurrency, 'text-xs sm:text-sm')
-                : t('productsDetailKpiNoData')}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
-        <div className="flex min-w-0 flex-col gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('productsDetailCostVsPriceOverTimeTitle')}</CardTitle>
-              <CardDescription className="text-xs">
-                {t('productsColCost')} vs {t('productsDetailListingColPrice')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ProductCostOverTimeChart data={chartData.points} series={chartData.series} t={t} />
-            </CardContent>
-          </Card>
-        </div>
-
-        <aside className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-4 lg:self-start">
-          <Card size="sm" className="gap-2 py-3">
-            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 px-3 py-2">
-              <CardTitle className="text-sm">{t('productsDetailSummaryCardTitle')}</CardTitle>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className="shrink-0"
-                aria-label={t('productsDetailEditAria')}
-                onClick={() => openEditSheet()}
-              >
-                <Pencil className="size-4" />
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-2 px-3 pb-3 pt-0">
-              <p className={cn('text-2xl font-semibold text-text-primary sm:text-3xl', NUM)}>
-                {costAmountWithBaseCode(bigCostFormatted, baseCurrency, 'text-base sm:text-xl')}
-              </p>
-              <dl className="space-y-1.5 text-xs text-text-secondary">
-                <div>
-                  <dt className="text-text-tertiary">{t('productsDetailEffectiveSince')}</dt>
-                  <dd className={cn('font-medium text-text-primary', NUM)}>{effectiveSinceLabel}</dd>
-                </div>
-                <div>
-                  <dt className="text-text-tertiary">{t('productsDetailLastSyncedLabel')}</dt>
-                  <dd className={cn('font-medium text-text-primary', NUM)}>
-                    {new Date(detail.updated_at).toLocaleString()}
-                  </dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
-
-          <Card size="sm" className="gap-2 py-3">
-            <CardHeader className="space-y-0 px-3 py-2">
-              <CardTitle className="text-sm">{t('productsDetailChannelsCardTitle')}</CardTitle>
-              <CardDescription className="text-xs">{t('productsDetailListingsTitle')}</CardDescription>
-            </CardHeader>
-            <CardContent className="px-3 pb-3 pt-0">
-              <div className="overflow-x-auto rounded-md border border-border-subtle">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="h-8 text-xs">{t('productsDetailListingColPlatform')}</TableHead>
-                      <TableHead className="h-8 text-xs">{t('productsDetailListingColSku')}</TableHead>
-                      <TableHead className="h-8 text-right text-xs">{t('productsDetailListingColPrice')}</TableHead>
-                      <TableHead className="h-8 text-xs">{t('productsDetailListingColCurrency')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {detail.listings.map((li) => (
-                      <TableRow key={li.id} className="hover:bg-muted/40">
-                        <TableCell className="py-2">
-                          <Badge variant="outline" className="font-normal">
-                            {formatPlatformSlug(li.platform)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="max-w-32 truncate py-2 font-mono text-xs" title={li.platform_sku}>
-                          {li.platform_sku}
-                        </TableCell>
-                        <TableCell className={cn('py-2 text-right text-xs', NUM)}>
-                          {li.platform_price != null && li.currency
-                            ? fmtCurrency(li.platform_price, li.currency)
-                            : '—'}
-                        </TableCell>
-                        <TableCell className={cn('py-2 text-xs', NUM)}>{li.currency ?? '—'}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </aside>
-      </div>
+      <ProductDetailSections
+        detail={detail}
+        t={t}
+        baseCurrency={baseCurrency}
+        bigCostFormatted={bigCostFormatted}
+        updatedBadge={updatedBadge}
+        effectiveSinceLabel={effectiveSinceLabel}
+        avgHistory={avgHistory}
+        chartData={chartData}
+        costAmountWithBaseCode={costAmountWithBaseCode}
+        fmtBase={fmtBase}
+        insightStart={insightStart}
+        insightEnd={insightEnd}
+        setInsightStart={setInsightStart}
+        setInsightEnd={setInsightEnd}
+        onInsightRangeClear={onInsightRangeClear}
+        pickerStrings={pickerStrings}
+        showInsightValues={showInsightValues}
+        insightKpi={insightKpi}
+        isFetching={detailQuery.isFetching}
+        onEditCost={openEditSheet}
+      />
     </DashboardPage>
   )
 }

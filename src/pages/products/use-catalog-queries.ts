@@ -42,16 +42,30 @@ export function useProductListQuery(params: ProductListQueryParams) {
   })
 }
 
-export function useProductDetailQuery(productId: string | undefined) {
+export type ProductDetailMetricsParams = {
+  metricsStart: string
+  metricsEnd: string
+}
+
+export function useProductDetailQuery(
+  productId: string | undefined,
+  metrics?: ProductDetailMetricsParams,
+) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const metricsStart = metrics?.metricsStart
+  const metricsEnd = metrics?.metricsEnd
 
   return useQuery({
-    queryKey: ['catalog', 'product', tenantId, productId],
-    enabled: Boolean(tenantId && productId),
+    queryKey: ['catalog', 'product', tenantId, productId, metricsStart, metricsEnd],
+    enabled: Boolean(tenantId && productId && metricsStart && metricsEnd),
     queryFn: async (): Promise<ProductDetailApi> => {
+      const sp = new URLSearchParams({
+        metrics_start: metricsStart!,
+        metrics_end: metricsEnd!,
+      })
       const res = await apiFetch(
-        `/catalog/products/${productId}`,
+        `/catalog/products/${productId}?${sp.toString()}`,
         (a) => getToken(a),
         {},
         tenantId,

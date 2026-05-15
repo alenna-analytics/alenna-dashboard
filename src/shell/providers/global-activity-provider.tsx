@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- Provider barrel: hooks + ids alongside Provider */
 import {
   createContext,
   useCallback,

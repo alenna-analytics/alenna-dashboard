@@ -1,0 +1,84 @@
+import { ChevronDownIcon } from 'lucide-react'
+
+import { useDisplayCurrency, type DisplayCurrencyCode } from '@/shell/providers/display-currency-provider'
+import { useLanguage } from '@/shell/providers/language-provider'
+import { shellT } from '@/lib/i18n/shell-strings'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
+import { cn } from '@/lib/utils'
+
+const SUPPORTED: DisplayCurrencyCode[] = ['MXN', 'USD']
+
+const TRIGGER_CLS =
+  'inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-semibold text-text-secondary outline-none transition-colors hover:bg-muted hover:text-text-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-60'
+
+export function CurrencyPicker({ className }: { className?: string }) {
+  const { lang } = useLanguage()
+  const {
+    baseCurrency,
+    displayCurrency,
+    effectiveDisplayCurrency,
+    latestFx,
+    setDisplayCurrency,
+    isUpdating,
+  } = useDisplayCurrency()
+
+  const ariaLabel = shellT(lang, 'ariaDisplayCurrency')
+  const baseUpper = baseCurrency.toUpperCase()
+  const effectiveUpper = effectiveDisplayCurrency.toUpperCase()
+  const displayUpper = displayCurrency?.toUpperCase() ?? baseUpper
+  const noFxRate = effectiveUpper !== baseUpper && latestFx === null
+
+  if (noFxRate) {
+    return (
+      <Tooltip>
+        <TooltipTrigger
+          className={cn(TRIGGER_CLS, className)}
+          aria-label={ariaLabel}
+          disabled
+        >
+          <span>{displayUpper}</span>
+          <ChevronDownIcon className="size-3" />
+        </TooltipTrigger>
+        <TooltipContent>
+          {shellT(lang, 'displayCurrencyPickerNoFxRate')}
+        </TooltipContent>
+      </Tooltip>
+    )
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        className={cn(TRIGGER_CLS, className)}
+        aria-label={ariaLabel}
+        disabled={isUpdating}
+      >
+        <span>{displayUpper}</span>
+        <ChevronDownIcon className="size-3" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" sideOffset={6}>
+        <DropdownMenuItem
+          aria-checked={displayCurrency === null}
+          onClick={() => void setDisplayCurrency(null)}
+        >
+          {shellT(lang, 'displayCurrencyOptionBase').replace('{code}', baseUpper)}
+        </DropdownMenuItem>
+        {SUPPORTED.map((code) => (
+          <DropdownMenuItem
+            key={code}
+            aria-checked={displayUpper === code}
+            onClick={() => void setDisplayCurrency(code)}
+          >
+            {code}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}

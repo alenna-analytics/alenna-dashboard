@@ -10,9 +10,9 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-primary/20 bg-primary/12 text-brand [a]:hover:bg-primary/18",
+          "border-none bg-primary/12 text-brand [a]:hover:bg-primary/18",
         secondary:
-          "border-border-subtle bg-muted/90 text-muted-foreground [a]:hover:bg-muted",
+          "border-none bg-muted/90 text-muted-foreground [a]:hover:bg-muted",
         outline:
           "border-border-subtle bg-transparent text-foreground [a]:hover:bg-muted",
         ghost: "border-transparent hover:bg-muted hover:text-foreground",
@@ -22,8 +22,8 @@ const badgeVariants = cva(
         error:
           "border-none bg-[var(--pill-error-bg)] text-[var(--pill-error-text)] [a]:hover:bg-[color-mix(in_srgb,var(--pill-error-bg)_88%,var(--pill-error-text)_12%)]",
         warning:
-          "border-warning/25 bg-[var(--warning-dim)] text-[color-mix(in_srgb,var(--warning)_70%,var(--text-primary))] [a]:hover:bg-warning/14",
-        info: "border-info/35 bg-[var(--info-dim)] text-[var(--info)] [a]:hover:bg-info/18",
+          "border-none bg-[var(--warning-dim)] text-[color-mix(in_srgb,var(--warning)_70%,var(--text-primary))] [a]:hover:bg-warning/14",
+        info: "border-none bg-[var(--info-dim)] text-[var(--info)] [a]:hover:bg-info/18",
       },
     },
     defaultVariants: {

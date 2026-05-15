@@ -591,6 +591,7 @@ const SHELL_STRINGS = {
     navSectionConfiguration: 'Configuration',
     navDashboard: 'Dashboard',
     navReports: 'Reports',
+    navProducts: 'Products',
     navProductCatalog: 'Products',
     navExpenses: 'Expenses',
     navConnections: 'Connections',
@@ -1172,8 +1173,8 @@ export function shellT(lang: string, key: ShellStringKey, vars?: ShellStringVars
   const locale = lang === 'en' ? 'en' : 'es'
   const template = SHELL_STRINGS[locale][key] ?? key
   if (!vars) return template
-  return template.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, name) => {
-    const v = vars[name as string]
+  return template.replace(/\{([a-zA-Z0-9_]+)\}/g, (match: string, name: string) => {
+    const v = vars[name]
     return v == null ? match : String(v)
   })
 }

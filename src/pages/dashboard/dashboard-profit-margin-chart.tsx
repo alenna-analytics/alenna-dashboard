@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react'
 
+import {
+  CHART_LINE_MAIN_MS,
+  CHART_LINE_MINI_MS,
+  useChartLineLoadAnimation,
+} from '@/pages/dashboard/use-chart-line-load-animation'
+
 import type { Locale } from 'date-fns'
 import type { ChannelTimeSeriesRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -161,6 +167,8 @@ export function DashboardProfitMarginChart({
   const [zoomEnd, setZoomEnd] = useState(() => Math.max(0, fullRows.length - 1))
   const [hiddenKeys, setHiddenKeys] = useState<Record<string, boolean>>({})
 
+  const chartLoadAnim = useChartLineLoadAnimation(zoomResetKey, CHART_LINE_MAIN_MS)
+
   const toggleLegendKey = (key: string) => {
     setHiddenKeys((prev) => ({ ...prev, [key]: !prev[key] }))
   }
@@ -247,7 +255,9 @@ export function DashboardProfitMarginChart({
             stackId="tot"
             fill="var(--chart-4)"
             radius={[0, 0, 0, 0]}
-            isAnimationActive={false}
+            isAnimationActive={chartLoadAnim}
+            animationDuration={CHART_LINE_MAIN_MS}
+            animationEasing="ease-out"
           />
           <Bar
             yAxisId="left"
@@ -255,7 +265,9 @@ export function DashboardProfitMarginChart({
             name={t('dashboardProfitStackNetMinusProfit')}
             stackId="tot"
             fill="var(--chart-3)"
-            isAnimationActive={false}
+            isAnimationActive={chartLoadAnim}
+            animationDuration={CHART_LINE_MAIN_MS}
+            animationEasing="ease-out"
           />
           <Bar
             yAxisId="left"
@@ -264,7 +276,9 @@ export function DashboardProfitMarginChart({
             stackId="tot"
             fill="var(--chart-1)"
             radius={[4, 4, 0, 0]}
-            isAnimationActive={false}
+            isAnimationActive={chartLoadAnim}
+            animationDuration={CHART_LINE_MAIN_MS}
+            animationEasing="ease-out"
           />
           <Line
             yAxisId="right"
@@ -275,7 +289,10 @@ export function DashboardProfitMarginChart({
             strokeWidth={2.5}
             dot={{ r: 3, fill: 'var(--danger)', strokeWidth: 0 }}
             opacity={hiddenKeys.marginPct ? 0.18 : 1}
-            isAnimationActive={false}
+            isAnimationActive={chartLoadAnim}
+            animationBegin={200}
+            animationDuration={CHART_LINE_MAIN_MS}
+            animationEasing="ease-out"
           />
         </ComposedChart>
       </ResponsiveContainer>
@@ -297,7 +314,9 @@ export function DashboardProfitMarginChart({
               stroke="var(--chart-1)"
               strokeWidth={1.25}
               dot={false}
-              isAnimationActive={false}
+              isAnimationActive={chartLoadAnim}
+              animationDuration={CHART_LINE_MINI_MS}
+              animationEasing="ease-out"
             />
             <Line
               type="monotone"
@@ -306,7 +325,10 @@ export function DashboardProfitMarginChart({
               strokeWidth={1.25}
               strokeDasharray="4 3"
               dot={false}
-              isAnimationActive={false}
+              isAnimationActive={chartLoadAnim}
+              animationBegin={100}
+              animationDuration={CHART_LINE_MINI_MS}
+              animationEasing="ease-out"
             />
           </>
         }

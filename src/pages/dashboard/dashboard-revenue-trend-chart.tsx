@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react'
 
+import {
+  CHART_LINE_MAIN_MS,
+  CHART_LINE_MINI_MS,
+  useChartLineLoadAnimation,
+} from '@/pages/dashboard/use-chart-line-load-animation'
+
 import type { Locale } from 'date-fns'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -201,6 +207,8 @@ export function DashboardRevenueTrendChart({
   const [zoomEnd, setZoomEnd] = useState(() => Math.max(0, data.length - 1))
   const [hiddenKeys, setHiddenKeys] = useState<Record<string, boolean>>({})
 
+  const lineLoadAnim = useChartLineLoadAnimation(zoomResetKey, CHART_LINE_MAIN_MS)
+
   const toggleLegendKey = (key: string) => {
     setHiddenKeys((prev) => ({ ...prev, [key]: !prev[key] }))
   }
@@ -267,7 +275,9 @@ export function DashboardRevenueTrendChart({
             dot={{ r: 3, fill: 'var(--chart-3)', strokeWidth: 0 }}
             activeDot={{ r: 5 }}
             opacity={hiddenKeys.current ? 0.18 : 1}
-            isAnimationActive={false}
+            isAnimationActive={lineLoadAnim}
+            animationDuration={CHART_LINE_MAIN_MS}
+            animationEasing="ease-out"
           />
           {comparePrevious ? (
             <Line
@@ -280,7 +290,10 @@ export function DashboardRevenueTrendChart({
               dot={{ r: 2.5, fill: 'var(--chart-line-secondary)', strokeWidth: 0 }}
               connectNulls={false}
               opacity={hiddenKeys.previous ? 0.18 : 1}
-              isAnimationActive={false}
+              isAnimationActive={lineLoadAnim}
+              animationBegin={180}
+              animationDuration={CHART_LINE_MAIN_MS}
+              animationEasing="ease-out"
             />
           ) : null}
         </LineChart>
@@ -311,7 +324,9 @@ export function DashboardRevenueTrendChart({
                     strokeWidth={1.5}
                     dot={false}
                     opacity={hiddenKeys.current ? 0.2 : 0.9}
-                    isAnimationActive={false}
+                    isAnimationActive={lineLoadAnim}
+                    animationDuration={CHART_LINE_MINI_MS}
+                    animationEasing="ease-out"
                   />
                   {comparePrevious ? (
                     <Line
@@ -323,7 +338,10 @@ export function DashboardRevenueTrendChart({
                       dot={false}
                       connectNulls={false}
                       opacity={hiddenKeys.previous ? 0.2 : 0.9}
-                      isAnimationActive={false}
+                      isAnimationActive={lineLoadAnim}
+                      animationBegin={120}
+                      animationDuration={CHART_LINE_MINI_MS}
+                      animationEasing="ease-out"
                     />
                   ) : null}
                 </LineChart>

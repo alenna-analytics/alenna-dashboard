@@ -12,6 +12,11 @@ import {
 } from 'recharts'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import {
+  CHART_LINE_MAIN_MS,
+  CHART_LINE_MINI_MS,
+  useChartLineLoadAnimation,
+} from '@/pages/dashboard/use-chart-line-load-animation'
 import { cn } from '@/lib/utils'
 import { fmtCurrency } from '@/pages/reports/reports-ui-helpers'
 
@@ -84,20 +89,50 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
   const [zoomStart, setZoomStart] = useState(0)
   const [zoomEnd, setZoomEnd] = useState(Math.max(0, data.length - 1))
   useEffect(() => {
-    if (data.length === 0) {
-      setZoomStart(0)
-      setZoomEnd(0)
-      return
-    }
-    const today = data[data.length - 1]?.dateKey
-    const startYmd = today ? addDaysYmd(today, -29) : data[0]?.dateKey
-    const startIdx = Math.max(
-      0,
-      data.findIndex((p) => p.dateKey >= startYmd),
-    )
-    setZoomStart(startIdx === -1 ? 0 : startIdx)
-    setZoomEnd(data.length - 1)
+    const id = window.setTimeout(() => {
+      if (data.length === 0) {
+        setZoomStart(0)
+        setZoomEnd(0)
+        return
+      }
+      const today = data[data.length - 1]?.dateKey
+      const startYmd = today ? addDaysYmd(today, -29) : data[0]?.dateKey
+      const startIdx = Math.max(
+        0,
+        data.findIndex((p) => p.dateKey >= startYmd),
+      )
+      setZoomStart(startIdx === -1 ? 0 : startIdx)
+      setZoomEnd(data.length - 1)
+    }, 0)
+    return () => window.clearTimeout(id)
   }, [data])
+
+  const chartResetKey = useMemo(() => {
+    if (data.length === 0) {
+      return `empty:${series.map((s) => s.key).join('|')}`
+    }
+    const meta = series.map((s) => `${s.key}:${s.currency}:${s.kind}`).join('|')
+    const sig = data
+      .map((p) => {
+        const vals = series.map((s) => String(p.values[s.key] ?? '')).join(',')
+        return `${p.dateKey}:${vals}`
+      })
+      .join(';')
+    return `${meta}#${sig}`
+  }, [data, series])
+
+  const lineLoadAnim = useChartLineLoadAnimation(chartResetKey, CHART_LINE_MAIN_MS)
+
+  const dataWithIndex = useMemo(
+    () => data.map((d, i) => ({ ...d, __idx: i })),
+    [data],
+  )
+  const visibleData = useMemo(() => {
+    if (dataWithIndex.length === 0) return dataWithIndex
+    const start = Math.max(0, Math.min(zoomStart, dataWithIndex.length - 1))
+    const end = Math.max(start, Math.min(zoomEnd, dataWithIndex.length - 1))
+    return dataWithIndex.slice(start, end + 1)
+  }, [dataWithIndex, zoomStart, zoomEnd])
 
   if (data.length === 0) {
     return (
@@ -111,16 +146,6 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
       </div>
     )
   }
-  const dataWithIndex = useMemo(
-    () => data.map((d, i) => ({ ...d, __idx: i })),
-    [data],
-  )
-  const visibleData = useMemo(() => {
-    if (dataWithIndex.length === 0) return dataWithIndex
-    const start = Math.max(0, Math.min(zoomStart, dataWithIndex.length - 1))
-    const end = Math.max(start, Math.min(zoomEnd, dataWithIndex.length - 1))
-    return dataWithIndex.slice(start, end + 1)
-  }, [dataWithIndex, zoomStart, zoomEnd])
   const seriesByKey = Object.fromEntries(series.map((s) => [s.key, s]))
 
   const handleLegendClick = (entry: {
@@ -217,7 +242,9 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
               dot={false}
               activeDot={{ r: 4 }}
               opacity={hiddenKeys[s.key] ? 0.18 : 1}
-              isAnimationActive={false}
+              isAnimationActive={lineLoadAnim}
+              animationDuration={CHART_LINE_MAIN_MS}
+              animationEasing="ease-out"
             />
           ))}
         </LineChart>
@@ -246,7 +273,9 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
                     strokeWidth={1.5}
                     strokeDasharray={s.kind === 'channel' ? '4 3' : undefined}
                     dot={false}
-                    isAnimationActive={false}
+                    isAnimationActive={lineLoadAnim}
+                    animationDuration={CHART_LINE_MINI_MS}
+                    animationEasing="ease-out"
                     opacity={hiddenKeys[s.key] ? 0.2 : 0.9}
                   />
                 ))}

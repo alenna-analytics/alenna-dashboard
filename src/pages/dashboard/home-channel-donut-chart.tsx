@@ -1,5 +1,7 @@
 import { useMemo } from 'react'
 
+import { useChartLineLoadAnimation } from '@/pages/dashboard/use-chart-line-load-animation'
+
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -14,6 +16,7 @@ const PALETTE = [
 ]
 const OVERFLOW_COLOR = 'var(--text-tertiary, #9aa0a6)'
 const TOP_N = 5
+const PIE_LOAD_MS = 1000
 
 export type HomeChannelDonutChartProps = {
   rows: ChannelBreakdownRow[]
@@ -89,6 +92,12 @@ export function HomeChannelDonutChart({
     return head.filter((s) => s.value > 0)
   }, [rows, convertValue, t])
 
+  const pieAnimKey = useMemo(
+    () => slices.map((s) => `${s.key}:${s.value.toFixed(4)}`).join('|'),
+    [slices],
+  )
+  const pieLoadAnim = useChartLineLoadAnimation(pieAnimKey, PIE_LOAD_MS)
+
   const total = useMemo(
     () => slices.reduce((acc, s) => acc + s.value, 0),
     [slices],
@@ -131,17 +140,23 @@ export function HomeChannelDonutChart({
                 stroke="var(--bg-default, #fff)"
                 strokeWidth={2}
                 paddingAngle={1}
-                isAnimationActive={false}
+                isAnimationActive={pieLoadAnim}
+                animationDuration={PIE_LOAD_MS}
+                animationEasing="ease-out"
               >
                 {slices.map((s) => (
                   <Cell key={s.key} fill={s.fill} />
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number, name: string) => [
-                  formatValue(value),
-                  name,
-                ]}
+                formatter={(value, name) => {
+                  const n =
+                    value == null ? 0 : typeof value === 'number' ? value : Number(value)
+                  return [
+                    formatValue(Number.isFinite(n) ? n : 0),
+                    String(name ?? ''),
+                  ]
+                }}
                 wrapperStyle={{ zIndex: 30 }}
                 contentStyle={{
                   background: 'var(--bg-default, #fff)',

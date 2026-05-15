@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react'
 
+import {
+  CHART_LINE_MAIN_MS,
+  CHART_LINE_MINI_MS,
+  useChartLineLoadAnimation,
+} from '@/pages/dashboard/use-chart-line-load-animation'
+
 import type { Locale } from 'date-fns'
 import type { ChannelTimeSeriesRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -202,6 +208,8 @@ export function DashboardChannelSalesChart({
   const [zoomEnd, setZoomEnd] = useState(() => Math.max(0, fullRows.length - 1))
   const [hiddenKeys, setHiddenKeys] = useState<Record<string, boolean>>({})
 
+  const lineLoadAnim = useChartLineLoadAnimation(zoomResetKey, CHART_LINE_MAIN_MS)
+
   const toggleLegendKey = (key: string) => {
     setHiddenKeys((prev) => ({ ...prev, [key]: !prev[key] }))
   }
@@ -245,7 +253,9 @@ export function DashboardChannelSalesChart({
         strokeWidth={2}
         dot={{ r: 2, fill: stroke, strokeWidth: 0 }}
         opacity={hiddenKeys[gKey] ? 0.18 : 1}
-        isAnimationActive={false}
+        isAnimationActive={lineLoadAnim}
+        animationDuration={CHART_LINE_MAIN_MS}
+        animationEasing="ease-out"
       />,
       <Line
         key={`n-${ch.connection_id}`}
@@ -257,7 +267,9 @@ export function DashboardChannelSalesChart({
         strokeDasharray="6 4"
         dot={{ r: 2, fill: stroke, strokeWidth: 0 }}
         opacity={hiddenKeys[nKey] ? 0.18 : 1}
-        isAnimationActive={false}
+        isAnimationActive={lineLoadAnim}
+        animationDuration={CHART_LINE_MAIN_MS}
+        animationEasing="ease-out"
       />,
     ]
   })
@@ -317,7 +329,9 @@ export function DashboardChannelSalesChart({
               stroke="var(--chart-1)"
               strokeWidth={1.25}
               dot={false}
-              isAnimationActive={false}
+              isAnimationActive={lineLoadAnim}
+              animationDuration={CHART_LINE_MINI_MS}
+              animationEasing="ease-out"
             />
             <Line
               type="monotone"
@@ -326,7 +340,10 @@ export function DashboardChannelSalesChart({
               strokeWidth={1.25}
               strokeDasharray="4 3"
               dot={false}
-              isAnimationActive={false}
+              isAnimationActive={lineLoadAnim}
+              animationBegin={100}
+              animationDuration={CHART_LINE_MINI_MS}
+              animationEasing="ease-out"
             />
           </>
         }

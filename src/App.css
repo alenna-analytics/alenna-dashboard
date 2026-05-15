@@ -20,7 +20,7 @@
   padding: 6px 8px;
   border-radius: 6px;
   border: 1px solid var(--border, #ccc);
-  background: var(--bg, #fff);
+  background: var(--bg, #f5f1ea);
   color: inherit;
 }
 

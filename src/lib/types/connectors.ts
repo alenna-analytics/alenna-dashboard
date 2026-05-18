@@ -34,6 +34,7 @@ export type SyncPlan = {
   actual_max_created_at: string | null
   retry_after_seconds: number | null
   cooldown_reason: SyncCooldownReason | null
+  current_job_id: string | null
 }
 
 export type PlatformConnection = {

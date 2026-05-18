@@ -25,6 +25,7 @@ import {
   useGlobalActivity,
 } from '@/shell/providers/global-activity-provider'
 import { useCatalogJobQuery, useRetryCatalogJobMutation } from '@/pages/products/use-catalog-queries'
+import { extractShopifyJobProgressInfo } from '@/lib/integrations/shopify-job-progress'
 
 export type ShopifyIntegrationHook = ReturnType<typeof useShopifyIntegration>
 
@@ -148,7 +149,7 @@ export function useShopifyIntegration() {
   const { me } = useWorkspace()
   const { lang } = useLanguage()
   const queryClient = useQueryClient()
-  const { upsertActivity, patchActivity, removeActivity } = useGlobalActivity()
+  const { upsertActivity, removeActivity } = useGlobalActivity()
 
   const isAdmin = me?.role === 'admin' || me?.role === 'owner'
 
@@ -223,92 +224,31 @@ export function useShopifyIntegration() {
 
   const syncPlan: SyncPlan | null = activeConnection?.sync_plan ?? null
 
-  const pollShopifyJob = Boolean(
+  const serverActiveJobId =
+    syncPlan?.last_sync_status === 'syncing' ? (syncPlan.current_job_id ?? null) : null
+
+  const localPendingMatchesActive = Boolean(
     syncPanel.pendingJobId &&
       syncPanel.pendingConnectionId &&
       syncPanel.pendingConnectionId === activeConnectionId,
   )
 
-  const shopifyJobQuery = useCatalogJobQuery(syncPanel.pendingJobId, pollShopifyJob)
+  const effectiveJobId: string | null = localPendingMatchesActive
+    ? syncPanel.pendingJobId
+    : serverActiveJobId
+
+  const pollShopifyJob = Boolean(effectiveJobId && activeConnectionId)
+
+  const shopifyJobQuery = useCatalogJobQuery(effectiveJobId, pollShopifyJob)
 
   const retryCatalogJobMutation = useRetryCatalogJobMutation()
-
-  const toastStatusRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    if (!pollShopifyJob || !syncPanel.pendingJobId) {
-      toastStatusRef.current = null
-      return
-    }
-    const job = shopifyJobQuery.data
-    if (!job || job.id !== syncPanel.pendingJobId) return
-
-    if (job.status === 'queued' || job.status === 'running') {
-      toastStatusRef.current = job.status
-      return
-    }
-
-    const prev = toastStatusRef.current
-    if (prev === null) {
-      toastStatusRef.current = job.status
-      if (job.status === 'succeeded') toast.success(shellT(lang, 'shopifySyncToastSuccess'))
-      if (job.status === 'failed') toast.error(shellT(lang, 'shopifySyncToastFailed'))
-      return
-    }
-    if (prev === job.status) return
-    toastStatusRef.current = job.status
-    if (job.status === 'succeeded') toast.success(shellT(lang, 'shopifySyncToastSuccess'))
-    if (job.status === 'failed') toast.error(shellT(lang, 'shopifySyncToastFailed'))
-  }, [pollShopifyJob, syncPanel.pendingJobId, shopifyJobQuery.data, lang])
-
-  useEffect(() => {
-    if (!pollShopifyJob || !syncPanel.pendingJobId) return
-    const job = shopifyJobQuery.data
-    if (!job || job.id !== syncPanel.pendingJobId) return
-    if (job.status !== 'queued' && job.status !== 'running') return
-
-    let subtitle =
-      job.status === 'queued'
-        ? shellT(lang, 'shopifySyncProgressQueued')
-        : shellT(lang, 'syncRunning')
-    if (job.status === 'running') {
-      const prog = job.progress ?? {}
-      const processedRaw = prog.processed_count ?? prog.orders_processed
-      const processed =
-        typeof processedRaw === 'number'
-          ? processedRaw
-          : typeof processedRaw === 'string'
-            ? Number.parseInt(processedRaw, 10)
-            : null
-      const oldestRaw = prog.oldest_processed_created_at
-      const oldestYear =
-        typeof oldestRaw === 'string' && /^\d{4}-/.test(oldestRaw)
-          ? Number.parseInt(oldestRaw.slice(0, 4), 10)
-          : null
-      if (processed != null && !Number.isNaN(processed) && oldestYear != null) {
-        subtitle = shellT(lang, 'syncProgressLabel', {
-          year: String(oldestYear),
-          count: processed.toLocaleString(),
-        })
-      } else if (processed != null && !Number.isNaN(processed)) {
-        subtitle = `${shellT(lang, 'shopifySyncProgressOrders')}: ${processed.toLocaleString()}`
-      }
-    }
-    patchActivity(GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID, { phase: 'loading', subtitle })
-  }, [
-    pollShopifyJob,
-    syncPanel.pendingJobId,
-    shopifyJobQuery.data,
-    lang,
-    patchActivity,
-  ])
 
   const settledJobSigRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!pollShopifyJob || !syncPanel.pendingJobId) return
+    if (!pollShopifyJob || !effectiveJobId) return
     const job = shopifyJobQuery.data
-    if (!job || job.id !== syncPanel.pendingJobId) return
+    if (!job || job.id !== effectiveJobId) return
 
     if (job.status === 'queued' || job.status === 'running') {
       settledJobSigRef.current = null
@@ -319,20 +259,9 @@ export function useShopifyIntegration() {
     if (settledJobSigRef.current === sig) return
     settledJobSigRef.current = sig
 
-    const pendingConn = syncPanel.pendingConnectionId
+    const settledConn = syncPanel.pendingConnectionId ?? activeConnectionId
 
-    if (job.status === 'succeeded' && pendingConn) {
-      const summaryParts: string[] = [
-        `${job.records_synced ?? 0} ${shellT(lang, 'reportsOrders')}`,
-      ]
-      const cat = job.catalog_products_upserted ?? 0
-      if (cat > 0) {
-        summaryParts.push(`${cat} ${shellT(lang, 'syncProductsUpdated')}`)
-      }
-      patchActivity(GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID, {
-        phase: 'success',
-        subtitle: summaryParts.join(' · '),
-      })
+    if (job.status === 'succeeded' && settledConn) {
       setSyncPanel({
         pendingJobId: null,
         pendingConnectionId: null,
@@ -340,7 +269,7 @@ export function useShopifyIntegration() {
         failedConnectionId: null,
         failedMessage: null,
         blockSuccess: {
-          connectionId: pendingConn,
+          connectionId: settledConn,
           recordsSynced: job.records_synced ?? 0,
           catalogProductsUpserted: job.catalog_products_upserted ?? 0,
           minOrderDate: job.min_order_date ?? null,
@@ -351,16 +280,12 @@ export function useShopifyIntegration() {
       return
     }
 
-    if (job.status === 'failed' && pendingConn) {
-      patchActivity(GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID, {
-        phase: 'error',
-        subtitle: job.error_message ?? shellT(lang, 'syncErrorLabel'),
-      })
+    if (job.status === 'failed' && settledConn) {
       setSyncPanel({
         pendingJobId: null,
         pendingConnectionId: null,
         failedJobId: job.id,
-        failedConnectionId: pendingConn,
+        failedConnectionId: settledConn,
         failedMessage: job.error_message ?? shellT(lang, 'syncErrorLabel'),
         blockSuccess: null,
       })
@@ -368,14 +293,14 @@ export function useShopifyIntegration() {
     }
   }, [
     pollShopifyJob,
-    syncPanel.pendingJobId,
+    effectiveJobId,
     syncPanel.pendingConnectionId,
+    activeConnectionId,
     shopifyJobQuery.data,
     setSyncPanel,
     queryClient,
     tenantId,
     lang,
-    patchActivity,
   ])
 
   const shopifySyncPhase = useMemo((): 'idle' | 'working' | 'done_ok' | 'done_fail' => {
@@ -578,20 +503,9 @@ export function useShopifyIntegration() {
   const neverLabel = shellT(lang, 'integrationDetailLastSyncNever')
   const lastSyncDisplay = formatShopifyLastSync(activeConnection?.last_synced_at, lang, neverLabel)
 
-  const shopifyJobProgress = shopifyJobQuery.data?.progress ?? null
-  const processedRaw =
-    shopifyJobProgress?.processed_count ?? shopifyJobProgress?.orders_processed
-  const ordersProcessed =
-    typeof processedRaw === 'number'
-      ? processedRaw
-      : typeof processedRaw === 'string'
-        ? Number.parseInt(processedRaw, 10)
-        : null
-  const oldestRaw = shopifyJobProgress?.oldest_processed_created_at
-  const oldestProcessedYear =
-    typeof oldestRaw === 'string' && /^\d{4}-/.test(oldestRaw)
-      ? Number.parseInt(oldestRaw.slice(0, 4), 10)
-      : null
+  const { ordersProcessed, oldestProcessedYear } = extractShopifyJobProgressInfo(
+    shopifyJobQuery.data,
+  )
 
   return {
     lang,

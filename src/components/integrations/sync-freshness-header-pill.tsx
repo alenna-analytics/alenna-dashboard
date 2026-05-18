@@ -15,15 +15,21 @@ import {
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import { useLanguage } from '@/shell/providers/language-provider'
+import {
+  GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
+  useGlobalActivity,
+} from '@/shell/providers/global-activity-provider'
 import { Badge } from '@/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { cn } from '@/lib/utils'
+import { useShopifySyncBanner } from '@/components/integrations/use-shopify-sync-banner'
 
 export function SyncFreshnessHeaderPill() {
   const { lang } = useLanguage()
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const [pillTooltipOpen, setPillTooltipOpen] = useState(false)
+  const { restoreAllActivities, upsertActivity } = useGlobalActivity()
 
   const { data: connections } = useQuery({
     queryKey: ['connectors', tenantId],
@@ -40,13 +46,34 @@ export function SyncFreshnessHeaderPill() {
     },
   })
 
+  useShopifySyncBanner(connections)
+
   const pill = resolveSyncFreshnessPillContent(connections ?? [])
+  const isSyncing = pill?.kind === 'syncing'
+
   if (!pill) return null
 
   const label = formatSyncFreshnessPillLabel(lang, pill)
   const variant = syncFreshnessPillBadgeVariant(pill)
   const pillTooltip = shellT(lang, 'syncFreshnessPillTooltip')
   const infoTooltip = shellT(lang, 'syncFreshnessPillInfoTooltip')
+
+  const onBadgeClick = () => {
+    if (isSyncing) {
+      upsertActivity({
+        id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
+        phase: 'loading',
+        title: shellT(lang, 'shopifySyncProgressTitle'),
+        subtitle: shellT(lang, 'shopifySyncProgressQueued'),
+        href: '/dashboard/integrations',
+        minimized: false,
+      })
+      restoreAllActivities()
+      setPillTooltipOpen(false)
+      return
+    }
+    setPillTooltipOpen((open) => !open)
+  }
 
   return (
     <div className="flex max-w-[min(100vw-8rem,18rem)] shrink-0 items-center gap-1">
@@ -62,7 +89,7 @@ export function SyncFreshnessHeaderPill() {
                 type="button"
                 className="inline-flex max-w-full min-w-0 items-center gap-1.5"
                 aria-label={pillTooltip}
-                onClick={() => setPillTooltipOpen((open) => !open)}
+                onClick={onBadgeClick}
               />
             }
           >

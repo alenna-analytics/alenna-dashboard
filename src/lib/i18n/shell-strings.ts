@@ -255,7 +255,7 @@ const SHELL_STRINGS = {
     datePickerCurrentMonth: 'Este mes',
     datePickerCurrentQuarter: 'Este trimestre',
     datePickerYtd: 'Año hasta hoy',
-    datePickerLastYear: 'Año anterior completo',
+    datePickerLastYear: 'Año anterior',
     reportsPageTitle: 'Reportes',
     filterAmount: 'Importe',
     filterCurrency: 'Moneda',

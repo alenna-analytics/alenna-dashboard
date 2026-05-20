@@ -117,6 +117,7 @@ export function useMercadoLibreIntegration() {
         '/connectors/mercadolibre/sync',
         (a) => getToken(a),
         { platform_connection_id: activeConnectionId },
+        {},
         tenantId,
       )
       if (res.status === 409) {

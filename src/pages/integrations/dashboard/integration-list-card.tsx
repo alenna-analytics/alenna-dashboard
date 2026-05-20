@@ -23,6 +23,8 @@ type IntegrationListCardProps = {
   shopifyConnected: boolean
   shopifyConnection?: PlatformConnection | null
   shopifyForceSyncing?: boolean
+  mercadolibreConnected?: boolean
+  mercadolibreConnection?: PlatformConnection | null
   isAdmin: boolean
   disconnectPending: boolean
   onManage: () => void
@@ -35,6 +37,8 @@ export function IntegrationListCard({
   shopifyConnected,
   shopifyConnection,
   shopifyForceSyncing = false,
+  mercadolibreConnected = false,
+  mercadolibreConnection = null,
   isAdmin,
   disconnectPending,
   onManage,
@@ -43,14 +47,20 @@ export function IntegrationListCard({
   const name = integrationTitle(lang, integration)
   const desc = integrationDescription(lang, integration)
   const isShopify = integration.slug === 'shopify'
-  const switchChecked = isShopify ? shopifyConnected : false
+  const isMercadolibre = integration.slug === 'mercadolibre'
+  const isConnectable = isShopify || isMercadolibre
+  const switchChecked = isShopify
+    ? shopifyConnected
+    : isMercadolibre
+      ? mercadolibreConnected
+      : false
   const switchDisabled =
     !integration.available ||
-    !isShopify ||
-    (isShopify && (!isAdmin || disconnectPending))
+    !isConnectable ||
+    (!isAdmin || disconnectPending)
 
   const handleSwitch = (on: boolean) => {
-    if (!integration.available || !isShopify) return
+    if (!integration.available || !isConnectable) return
     if (!isAdmin) return
     onConnectToggle(on)
   }
@@ -60,7 +70,9 @@ export function IntegrationListCard({
       ? resolveConnectionSyncFreshnessPillContent(shopifyConnection, {
           forceSyncing: shopifyForceSyncing,
         })
-      : null
+      : isMercadolibre && mercadolibreConnected
+        ? resolveConnectionSyncFreshnessPillContent(mercadolibreConnection)
+        : null
 
   return (
     <li>

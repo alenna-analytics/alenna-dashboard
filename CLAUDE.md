@@ -1,5 +1,9 @@
 # alenna-analytics-dashboard — AI & developer guide
 
+## Secrets & environment
+
+**NEVER read `.env`** (or any local env file with real credentials). Use `.env.example` (if present) and documented env var names in code or README only.
+
 **Stack:** Vite, React, TypeScript, Tailwind v4, shadcn-style primitives under `src/ui/`, Clerk, TanStack Query, Recharts.
 
 **Layout manifest:** [`src/README.md`](src/README.md) — `ui` (design system), `shell` (app chrome + providers), `pages` (routes, grouped by area).

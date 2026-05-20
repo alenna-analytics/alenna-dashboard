@@ -79,6 +79,14 @@ const SHELL_STRINGS = {
     connectionsConnectShopPlaceholder: 'mi-tienda',
     integrationSheetShopifyConnectIntro:
       'Conecta tu tienda de Shopify con tu dominio para sincronizar pedidos, productos y más.',
+    integrationSheetMercadoLibreConnectIntro:
+      'Conecta tu cuenta de Mercado Libre para sincronizar pedidos y métricas de ventas.',
+    integrationConnectWithMercadoLibre: 'Conectar con Mercado Libre',
+    integrationDetailMercadoLibreHelper:
+      'Serás redirigido a Mercado Libre para autorizar el acceso de forma segura.',
+    integrationMercadoLibreAccountLabel: 'Cuenta conectada',
+    syncSectionDescriptionMercadoLibre:
+      'Importamos pedidos desde Mercado Libre. La sincronización inicial y las actualizaciones periódicas mantienen tus datos al día.',
     connectionsConnectButton: 'Continuar con Shopify',
     connectionsConnectedHeading: 'Tiendas conectadas',
     connectionsConnectedDescription: 'Estado de la integración con Shopify.',
@@ -229,7 +237,7 @@ const SHELL_STRINGS = {
     syncProgressLabel:
       'Explorando pedidos... más antiguo encontrado hasta ahora: {year} ({count})',
     shopifySyncProgressTitle: 'Sincronizando con Shopify',
-    shopifySyncProgressQueued: 'En cola, esperando al trabajador…',
+    shopifySyncProgressQueued: 'En proceso...',
     jobTriggeredBySystem: 'Iniciado automáticamente por Alenna',
     shopifySyncProgressOrders: 'Pedidos importados',
     shopifySyncProgressPages: 'Página',
@@ -502,7 +510,7 @@ const SHELL_STRINGS = {
     productsDetailSheetSave: 'Guardar',
     productsDetailSheetCancel: 'Cerrar',
     productsDetailToastCostSaved: 'Costo unitario actualizado',
-    productsDetailToastRecalcQueued: 'Recálculo de COGS en cola',
+    productsDetailToastRecalcQueued: 'Recálculo de COGS en proceso',
     productsDetailToastSaveFailed: 'No se pudo guardar. Inténtalo de nuevo.',
     productsDetailEditAria: 'Editar costo',
     productsDetailCostHelp: 'Introduce el costo en {currency}. Las ventas en otras monedas no convierten COGS automáticamente.',
@@ -524,9 +532,9 @@ const SHELL_STRINGS = {
       'Aún no hay historial de precios para este canal.',
     productsDetailPriceHistoryBackfillCta: 'Reconstruir historial',
     productsDetailPriceHistoryBackfillQueued:
-      'Reconstrucción del historial de precios encolada.',
+      'Reconstrucción del historial de precios iniciada.',
     productsDetailPriceHistoryBackfillFailed:
-      'No se pudo encolar la reconstrucción del historial de precios.',
+      'No se pudo iniciar la reconstrucción del historial de precios.',
     productsDetailPriceHistoryCurrentBadge: 'Vigente',
     productsDetailPriceHistoryOpenSegmentAria:
       'Tramo abierto: el precio sigue activo hoy.',
@@ -539,11 +547,11 @@ const SHELL_STRINGS = {
     productsDetailBackfillCostLabel: 'Costo del recálculo ({currency})',
     productsDetailBackfillTitle: 'Recalcular COGS histórico',
     productsDetailBackfillHint:
-      'Encola un trabajo que actualiza snapshots de líneas y agregados diarios para el rango elegido.',
+      'Inicia un trabajo que actualiza snapshots de líneas y agregados diarios para el rango elegido.',
     productsDetailEffectiveFrom: 'Válido desde',
     productsDetailEffectiveTo: 'Válido hasta (opcional)',
-    productsDetailEnqueueBackfill: 'Encolar recálculo',
-    productsJobQueued: 'Trabajo en cola…',
+    productsDetailEnqueueBackfill: 'Iniciar recálculo',
+    productsJobQueued: 'Trabajo en proceso...',
     productsJobSystemTrigger: 'Iniciado automáticamente por Alenna',
     productsJobRunning: 'Procesando…',
     productsJobSucceeded: 'Recálculo completado',
@@ -664,6 +672,14 @@ const SHELL_STRINGS = {
     connectionsConnectShopPlaceholder: 'my-store',
     integrationSheetShopifyConnectIntro:
       'Connect your Shopify store to sync orders, products, and more.',
+    integrationSheetMercadoLibreConnectIntro:
+      'Connect your Mercado Libre account to sync orders and sales metrics.',
+    integrationConnectWithMercadoLibre: 'Connect with Mercado Libre',
+    integrationDetailMercadoLibreHelper:
+      'You will be redirected to Mercado Libre to authorize access securely.',
+    integrationMercadoLibreAccountLabel: 'Connected account',
+    syncSectionDescriptionMercadoLibre:
+      'We import orders from Mercado Libre. Initial sync and periodic updates keep your data current.',
     connectionsConnectButton: 'Continue with Shopify',
     connectionsConnectedHeading: 'Connected stores',
     connectionsConnectedDescription: 'Shopify integration status.',

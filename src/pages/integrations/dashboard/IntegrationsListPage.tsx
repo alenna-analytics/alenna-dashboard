@@ -7,6 +7,7 @@ import { IntegrationsDisconnectDialog } from '@/pages/integrations/dashboard/int
 import { IntegrationsErrorState } from '@/pages/integrations/dashboard/integrations-error-state'
 import { IntegrationsEmptyState } from '@/pages/integrations/dashboard/integrations-empty-state'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
+import { useMercadoLibreIntegration } from '@/pages/integrations/details/use-mercadolibre-integration'
 import { useShopifyIntegration } from '@/pages/integrations/details/use-shopify-integration'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -18,8 +19,11 @@ export function IntegrationsListPage() {
   const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false)
 
   const shopifyIntegration = useShopifyIntegration()
-  const { isAdmin, connected: shopifyConnected, disconnectMutation } =
+  const mercadolibreIntegration = useMercadoLibreIntegration()
+  const { isAdmin, connected: shopifyConnected, disconnectMutation: shopifyDisconnect } =
     shopifyIntegration
+  const mercadolibreConnected = mercadolibreIntegration.connected
+  const meliDisconnect = mercadolibreIntegration.disconnectMutation
 
   const { integrations, connections, pageLoading, pageError, isFetching, refetch } =
     useIntegrationsListQueries()
@@ -28,6 +32,14 @@ export function IntegrationsListPage() {
     connections.find(
       (c) =>
         c.platform === 'shopify' &&
+        c.status === 'active' &&
+        c.connection_status === 'active',
+    ) ?? null
+
+  const mercadolibreConnection =
+    connections.find(
+      (c) =>
+        c.platform === 'mercadolibre' &&
         c.status === 'active' &&
         c.connection_status === 'active',
     ) ?? null
@@ -98,15 +110,26 @@ export function IntegrationsListPage() {
                   shopifyIntegration.shopifySyncPhase === 'working'
                 }
                 isAdmin={isAdmin}
-                disconnectPending={disconnectMutation.isPending}
+                mercadolibreConnected={mercadolibreConnected}
+                mercadolibreConnection={
+                  integration.slug === 'mercadolibre' ? mercadolibreConnection : null
+                }
+                disconnectPending={
+                  shopifyDisconnect.isPending || meliDisconnect.isPending
+                }
                 onManage={() => setManagedSlug(integration.slug)}
                 onConnectToggle={(on) => {
                   if (on) {
-                    setManagedSlug('shopify')
+                    setManagedSlug(integration.slug)
                     return
                   }
-                  if (!shopifyConnected) return
-                  setDisconnectDialogOpen(true)
+                  if (integration.slug === 'shopify' && shopifyConnected) {
+                    setDisconnectDialogOpen(true)
+                    return
+                  }
+                  if (integration.slug === 'mercadolibre' && mercadolibreConnected) {
+                    setDisconnectDialogOpen(true)
+                  }
                 }}
               />
             ))}
@@ -122,6 +145,9 @@ export function IntegrationsListPage() {
             if (!open) setManagedSlug(null)
           }}
           shopify={managed.slug === 'shopify' ? shopifyIntegration : undefined}
+          mercadolibre={
+            managed.slug === 'mercadolibre' ? mercadolibreIntegration : undefined
+          }
         />
       ) : null}
 
@@ -129,9 +155,11 @@ export function IntegrationsListPage() {
         lang={lang}
         open={disconnectDialogOpen}
         onOpenChange={setDisconnectDialogOpen}
-        disconnectPending={disconnectMutation.isPending}
+        disconnectPending={shopifyDisconnect.isPending || meliDisconnect.isPending}
         onConfirmDisconnect={() => {
-          disconnectMutation.mutate(undefined, {
+          const mutation =
+            managedSlug === 'mercadolibre' ? meliDisconnect : shopifyDisconnect
+          mutation.mutate(undefined, {
             onSettled: () => setDisconnectDialogOpen(false),
           })
         }}

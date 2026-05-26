@@ -21,7 +21,7 @@ export function AppHeader({ className }: { className?: string }) {
       <div
         className={cn(
           WORKSPACE_SHELL_COLUMN_CLASS,
-          'flex min-h-10 items-center justify-between gap-3 py-2',
+          'flex h-[var(--shell-chrome-header-height)] min-h-[var(--shell-chrome-header-height)] items-center justify-between gap-3',
         )}
       >
         <div className="min-w-0 max-w-[min(100%,42rem)] flex-1">

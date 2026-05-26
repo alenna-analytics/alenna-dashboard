@@ -69,6 +69,11 @@ export type KpiCardProps = {
   negativeMetric?: boolean
   /** When false, hides prior row (MoM/YoY-only cards). */
   showComparison?: boolean
+  /** Renders placeholder text instead of value; hides comparison row. */
+  placeholder?: boolean
+  placeholderLabel?: string
+  /** Smaller typography for secondary KPI rows. */
+  compact?: boolean
   footer?: ReactNode
   className?: string
 }
@@ -85,16 +90,21 @@ export function KpiCard({
   comparisonUnavailable,
   negativeMetric,
   showComparison = true,
+  placeholder = false,
+  placeholderLabel = '—',
+  compact = false,
   footer,
   className,
 }: KpiCardProps) {
   const featured = variant === 'featured'
   const unavailable = comparisonUnavailable
+  const showDelta = showComparison && !placeholder
 
   return (
     <div
       className={cn(
-        'flex min-w-0 flex-col gap-2.5 rounded-md p-3.5 text-left sm:p-4',
+        'flex min-w-0 flex-col gap-2.5 rounded-md text-left',
+        compact ? 'gap-2 p-3 sm:p-3' : 'gap-2.5 p-3.5 sm:p-4',
         featured
           ? 'border border-[var(--color-border)] bg-[var(--color-bg-section)] shadow-[var(--shadow-ink-sm)]'
           : 'border border-[var(--shell-structure-border)] bg-white shadow-none',
@@ -102,7 +112,12 @@ export function KpiCard({
       )}
     >
       <div className="flex w-full min-w-0 items-start justify-between gap-2">
-        <span className="min-w-0 text-base font-medium leading-tight tracking-tight text-[var(--color-text-primary)]">
+        <span
+          className={cn(
+            'min-w-0 font-medium leading-tight tracking-tight text-[var(--color-text-primary)]',
+            compact ? 'text-sm' : 'text-base',
+          )}
+        >
           {label}
         </span>
         {helpText ? (
@@ -123,11 +138,19 @@ export function KpiCard({
         ) : null}
       </div>
 
-      <p className="font-numeric min-w-0 text-2xl font-semibold leading-none tracking-tight text-[var(--color-accent-forest)] sm:text-[1.75rem]">
-        {value}
+      <p
+        className={cn(
+          'font-numeric min-w-0 font-semibold leading-none tracking-tight',
+          placeholder
+            ? 'text-lg text-text-secondary'
+            : 'text-[var(--color-accent-forest)]',
+          compact ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-[1.75rem]',
+        )}
+      >
+        {placeholder ? placeholderLabel : value}
       </p>
 
-      {showComparison ? (
+      {showDelta ? (
         <div className="mt-1 space-y-2">
           <p className="text-xs leading-tight text-[var(--color-text-muted)]">{vsPriorLabel}</p>
           <div className="flex min-w-0 flex-wrap items-center gap-2">

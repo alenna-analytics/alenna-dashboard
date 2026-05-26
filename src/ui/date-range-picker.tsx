@@ -280,7 +280,7 @@ export function DateRangePickerPanel({
     <div className="flex min-w-0 flex-col sm:flex-row sm:items-stretch">
       <nav
         aria-label="Date presets"
-        className="flex w-full shrink-0 flex-col gap-0.5 border-b border-border-subtle/70 p-1.5 sm:w-40 sm:border-b-0 sm:border-r sm:rounded-l-md"
+        className="flex w-full shrink-0 flex-col gap-0.5 border-b border-border-subtle/70 p-1.5 sm:w-40 sm:border-b-0 sm:border-r sm:rounded-l-sm"
       >
         {presets.map((p) => (
           <React.Fragment key={p.id}>
@@ -289,10 +289,10 @@ export function DateRangePickerPanel({
               type="button"
               onClick={() => applyPreset(p.id)}
               className={cn(
-                'flex w-full items-center gap-1.5 rounded-full px-2 py-1.5 text-left text-xs transition-colors',
+                'flex w-full items-center gap-1.5 rounded-sm px-2 py-1.5 text-left text-xs transition-colors',
                 preset === p.id
-                  ? 'bg-bg-surface font-medium text-text-primary shadow-sm backdrop-blur-sm'
-                  : 'text-text-secondary hover:bg-glass-fill-muted hover:text-text-primary',
+                  ? 'bg-accent font-medium text-accent-foreground'
+                  : 'text-text-secondary hover:bg-accent hover:text-accent-foreground',
               )}
             >
               <span className="flex size-3 shrink-0 items-center justify-center">

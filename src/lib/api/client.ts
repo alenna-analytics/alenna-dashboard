@@ -1,5 +1,29 @@
+import { signalTrialExpired } from '@/lib/trial-expired-signal'
+
 const baseUrl = (): string =>
   (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+
+type TrialExpiredDetail = {
+  code?: string
+  message?: string
+}
+
+async function maybeSignalTrialExpired(res: Response): Promise<void> {
+  if (res.status !== 402) return
+  try {
+    const body = (await res.clone().json()) as { detail?: TrialExpiredDetail | string }
+    const detail = body.detail
+    if (
+      typeof detail === 'object' &&
+      detail !== null &&
+      detail.code === 'trial_expired'
+    ) {
+      signalTrialExpired()
+    }
+  } catch {
+    /* ignore parse errors */
+  }
+}
 
 export type GetTokenFn = (args?: { skipCache?: boolean }) => Promise<string | null>
 
@@ -19,7 +43,9 @@ export async function apiFetch(
   if (token) {
     headers.set('Authorization', `Bearer ${token}`)
   }
-  return fetch(url, { ...init, headers })
+  const res = await fetch(url, { ...init, headers })
+  await maybeSignalTrialExpired(res)
+  return res
 }
 
 export async function apiPostJson(

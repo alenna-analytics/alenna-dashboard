@@ -11,6 +11,31 @@ const SHELL_STRINGS = {
     navConnections: 'Conexiones',
     navIntegrations: 'Integraciones',
     navHome: 'Inicio',
+    navSales: 'Ventas',
+    navAds: 'Publicidad',
+    navSimulations: 'Simulaciones',
+    navChannels: 'Canales',
+    comingSoonBadge: 'Próximamente',
+    comingSoonPageTitle: 'Próximamente',
+    comingSoonPageBody: 'Esta sección estará disponible pronto.',
+    homeKpiNetSales: 'Ventas netas',
+    homeKpiNetSalesHelp:
+      'Ingresos netos del periodo seleccionado. Es el pulso del negocio: ventas reales, no brutas.',
+    homeKpiRoasGlobal: 'ROAS global',
+    homeKpiRoasGlobalHelp:
+      'Retorno de la inversión publicitaria agregada. Si cae por debajo del mínimo rentable, requiere acción inmediata.',
+    homeKpiContributionMarginPct: 'Contribución marginal %',
+    homeKpiContributionMarginPctHelp:
+      'Conecta ventas con rentabilidad real. Un día récord con CM negativa puede significar pérdidas.',
+    homeKpiActiveAlerts: 'Alertas activas',
+    homeKpiActiveAlertsHelp:
+      'Estado de alertas críticas del negocio (stock, ROAS, caja). Lo primero que debe revisar un operador.',
+    homeSecondaryKpiSectionTitle: 'Otros indicadores',
+    trialExpiredTitle: 'Tu periodo de prueba terminó',
+    trialExpiredBody:
+      'Para seguir usando Alenna, elige un plan que se adapte a tu operación.',
+    trialExpiredCta: 'Comprar un plan',
+    trialExpiredSignOut: 'Cerrar sesión',
     navComponents: 'Componentes',
     shellHomeChartRegion: 'Área de gráficos',
     dashboardRevenueTrendTitle: 'Tendencia de ventas',
@@ -28,7 +53,7 @@ const SHELL_STRINGS = {
       'Arrastra los mangos del zoom inferior para ampliar o desplazar el rango visible en el gráfico.',
     dashboardChannelSalesTitle: 'Ventas brutas y netas por canal',
     dashboardChannelSalesSubtitle:
-      'Serie temporal por canal: línea continua = ventas brutas; línea discontinua = ventas netas. Usa el mismo intervalo que «Tendencia de ingresos».',
+      'Serie temporal por canal',
     dashboardChannelSalesEmpty: 'No hay datos de canal en el periodo.',
     dashboardProfitMarginTitle: 'Utilidad bruta y margen %',
     dashboardProfitMarginSubtitle:
@@ -605,6 +630,30 @@ const SHELL_STRINGS = {
     navConnections: 'Connections',
     navIntegrations: 'Integrations',
     navHome: 'Home',
+    navSales: 'Sales',
+    navAds: 'Ads',
+    navSimulations: 'Simulations',
+    navChannels: 'Channels',
+    comingSoonBadge: 'Coming soon',
+    comingSoonPageTitle: 'Coming soon',
+    comingSoonPageBody: 'This section will be available soon.',
+    homeKpiNetSales: 'Net sales',
+    homeKpiNetSalesHelp:
+      'Net revenue for the selected period. The business pulse: real sales, not gross.',
+    homeKpiRoasGlobal: 'Global ROAS',
+    homeKpiRoasGlobalHelp:
+      'Blended return on ad spend. If it drops below your profitable floor, act immediately.',
+    homeKpiContributionMarginPct: 'Contribution margin %',
+    homeKpiContributionMarginPctHelp:
+      'Links sales to real profitability. Record revenue with negative CM can still mean losses.',
+    homeKpiActiveAlerts: 'Active alerts',
+    homeKpiActiveAlertsHelp:
+      'Critical business alert status (stock, ROAS, cash). What operators should check first.',
+    homeSecondaryKpiSectionTitle: 'Other indicators',
+    trialExpiredTitle: 'Your trial has ended',
+    trialExpiredBody: 'To keep using Alenna, choose a plan that fits your operation.',
+    trialExpiredCta: 'Purchase a plan',
+    trialExpiredSignOut: 'Sign out',
     navComponents: 'Components',
     shellHomeChartRegion: 'Chart area',
     dashboardRevenueTrendTitle: 'Revenue trend',
@@ -622,7 +671,7 @@ const SHELL_STRINGS = {
       'Drag the handles on the lower overview strip to zoom or pan the visible range on the chart.',
     dashboardChannelSalesTitle: 'Gross and net sales by channel',
     dashboardChannelSalesSubtitle:
-      'Time series per channel: solid line = gross sales; dashed line = net sales. Uses the same interval as Revenue trend.',
+      'Time series per channel.',
     dashboardChannelSalesEmpty: 'No channel data for this period.',
     dashboardProfitMarginTitle: 'Gross profit and margin %',
     dashboardProfitMarginSubtitle:

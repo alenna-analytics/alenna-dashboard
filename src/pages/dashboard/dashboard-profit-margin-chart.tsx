@@ -60,7 +60,7 @@ function ProfitMarginTooltip({
   if (!active || !payload?.length) return null
   const title = label !== undefined && label !== null ? String(label) : ''
   return (
-    <div className="rounded-md border border-border-default bg-background px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
+    <div className="rounded-md border border-border-default bg-[var(--platinum-blonde-400)] px-3.5 py-3 text-xs shadow-[var(--shadow-ink-md)]">
       {title ? <div className="mb-1.5 font-medium text-text-primary">{title}</div> : null}
       <div className="space-y-1 leading-snug">
         {payload.map((entry, i) => {
@@ -238,7 +238,12 @@ export function DashboardProfitMarginChart({
                 marginPctLabel={t('reportsMonthlyLegendGrossMarginPct')}
               />
             }
-            wrapperStyle={{ outline: 'none' }}
+            wrapperStyle={{
+              outline: 'none',
+              background: 'transparent',
+              border: 'none',
+              boxShadow: 'none',
+            }}
             contentStyle={{
               margin: 0,
               padding: 0,
@@ -246,6 +251,7 @@ export function DashboardProfitMarginChart({
               border: 'none',
               borderRadius: 0,
               boxShadow: 'none',
+              backdropFilter: 'none',
             }}
           />
           <Bar

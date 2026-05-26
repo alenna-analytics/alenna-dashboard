@@ -329,6 +329,8 @@
     var(--color-accent-forest) 26%,
     transparent
   );
+  /** Sidebar workspace header + main AppHeader share this height so border-b lines align. */
+  --shell-chrome-header-height: 3.5rem;
 
   /** Global activity bar + header chip (Shopify sync, COGS backfill, etc.). */
   --global-activity-loading-bg: var(--status-blue-600);
@@ -394,22 +396,14 @@
 
   --sidebar: transparent;
   --sidebar-foreground: var(--text-primary);
-  --sidebar-primary: var(--country-green-base);
+  --sidebar-primary: var(--firefly-base);
   --sidebar-primary-foreground: var(--platinum-blonde-400);
-  --sidebar-active-bg: color-mix(
-    in srgb,
-    var(--platinum-blonde-base) 100%,
-    transparent
-  );
-  --sidebar-active-foreground: var(--country-green-base);
-  --sidebar-accent: color-mix(
-    in srgb,
-    var(--platinum-blonde-base) 50%,
-    transparent
-  );
-  --sidebar-accent-foreground: var(--country-green-base);
+  --sidebar-active-bg: #ebebeb;
+  --sidebar-active-foreground: var(--firefly-base);
+  --sidebar-accent: #ebebeb;
+  --sidebar-accent-foreground: var(--firefly-base);
   --sidebar-border: transparent;
-  --sidebar-ring: var(--country-green-base);
+  --sidebar-ring: var(--firefly-base);
 
   --shadow-ink-xs: 0 10px 24px rgba(71, 77, 48, 0.06);
   --shadow-ink-sm: 0 8px 18px rgba(71, 77, 48, 0.05);

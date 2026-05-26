@@ -78,9 +78,7 @@ export function IntegrationListCard({
     <li>
       <Card
         size="sm"
-        className={cn(
-          'h-full transition-shadow hover:shadow-[var(--glass-shadow-hover)]',
-        )}
+        className="h-full hover:shadow-[var(--shadow-ink-sm)]"
       >
         <CardHeader className="flex flex-col items-start gap-3 border-0 pb-0">
           <IntegrationLogo src={integration.logoSrc} alt={name} size="xl" />

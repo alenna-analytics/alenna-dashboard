@@ -10,7 +10,6 @@ import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/ui/card'
 import { Switch } from '@/ui/switch'
-import { cn } from '@/lib/utils'
 
 import {
   integrationDescription,

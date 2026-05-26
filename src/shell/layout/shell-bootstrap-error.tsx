@@ -59,6 +59,25 @@ export function ShellBootstrapError({
             {shellT(lang, 'shellErrorRefresh')}
           </Button>
         </div>
+
+        {error ? (
+          <div className="w-full text-left">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-auto px-0 text-xs text-muted-foreground"
+              onClick={() => setShowDetails((v) => !v)}
+            >
+              {shellT(lang, showDetails ? 'shellErrorHideDetails' : 'shellErrorViewDetails')}
+            </Button>
+            {showDetails ? (
+              <pre className="mt-2 max-h-40 overflow-auto rounded-md border border-border-default bg-bg-elevated p-3 text-left text-[11px] leading-relaxed text-text-secondary">
+                {error}
+              </pre>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   )

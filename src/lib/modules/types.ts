@@ -11,7 +11,7 @@ export type ModuleId =
   | 'integrations'
   | 'channels'
 
-export type ModuleSection = 'main' | 'configuration'
+export type ModuleSection = 'analytics' | 'config'
 
 export type ModuleDefinition = {
   id: ModuleId

@@ -7,6 +7,7 @@ import { formatTenantPlan } from '@/lib/utils'
 import { AppBootLoader } from '@/shell/layout/app-boot-loader'
 import { AppHeader } from '@/shell/layout/app-header'
 import { AppSidebar } from '@/shell/layout/app-sidebar'
+import { AppSidebarDrawer } from '@/shell/layout/app-sidebar-drawer'
 import { ShellBootstrapError } from '@/shell/layout/shell-bootstrap-error'
 import { DisplayCurrencyProvider } from '@/shell/providers/display-currency-provider'
 import { GlobalActivityProvider } from '@/shell/providers/global-activity-provider'
@@ -43,7 +44,16 @@ export function AppShellLayout() {
   const { lang } = useLanguage()
   const { tenantId } = useCurrentTenant()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readInitialSidebarCollapsed)
+  const [mobileNavPath, setMobileNavPath] = useState<string | null>(null)
   const [trialForced, setTrialForced] = useState(false)
+
+  const mobileNavOpen = mobileNavPath === location.pathname
+  const setMobileNavOpen = useCallback((open: boolean) => {
+    setMobileNavPath(open ? location.pathname : null)
+  }, [location.pathname])
+  const openMobileNav = useCallback(() => {
+    setMobileNavPath(location.pathname)
+  }, [location.pathname])
 
   useEffect(() => onTrialExpired(() => setTrialForced(true)), [])
   const toggleSidebar = useCallback(() => {
@@ -122,17 +132,27 @@ export function AppShellLayout() {
       <DisplayCurrencyProvider me={me} refetchMe={refetchMe}>
         <GlobalActivityProvider>
           <TooltipProvider delayDuration={200}>
-            <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh gap-2 overflow-hidden bg-[var(--bg-base)] px-2 py-2 lg:gap-3 lg:px-3 lg:py-3">
+            <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh gap-0 overflow-hidden bg-[var(--bg-base)] p-2 lg:gap-3 lg:p-3">
               <AppSidebar
+                className="hidden lg:flex"
                 collapsed={sidebarCollapsed}
                 onToggle={toggleSidebar}
                 companyName={sidebarCompanyName}
                 companySubtitle={sidebarCompanySubtitle}
               />
+              <AppSidebarDrawer
+                open={mobileNavOpen}
+                onOpenChange={setMobileNavOpen}
+                companyName={sidebarCompanyName}
+                companySubtitle={sidebarCompanySubtitle}
+              />
               <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-[var(--shell-structure-border)] bg-white">
                 <div className="sticky top-0 z-30 shrink-0 bg-card">
-                  <AppHeader className="border-b border-[var(--shell-structure-border)]" />
-                  <GlobalActivityBar />
+                  <AppHeader
+                    className="border-b border-[var(--shell-structure-border)]"
+                    onOpenMobileNav={openMobileNav}
+                  />
+                  <GlobalActivityBar className="hidden lg:block" />
                 </div>
                 <main
                   ref={mainRef}

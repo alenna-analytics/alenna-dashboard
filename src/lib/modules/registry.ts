@@ -12,20 +12,12 @@ import type { ModuleDefinition } from '@/lib/modules/types'
 
 export const MODULES: readonly ModuleDefinition[] = [
   {
-    id: 'reports',
-    labelKey: 'navReports',
-    path: '/dashboard',
-    icon: FileBarChart,
-    comingSoon: false,
-    section: 'main',
-  },
-  {
     id: 'products',
     labelKey: 'navProductCatalog',
     path: '/dashboard/products',
     icon: Tag,
     comingSoon: false,
-    section: 'main',
+    section: 'analytics',
   },
   {
     id: 'sales',
@@ -33,7 +25,15 @@ export const MODULES: readonly ModuleDefinition[] = [
     path: '/dashboard/sales',
     icon: Receipt,
     comingSoon: true,
-    section: 'main',
+    section: 'analytics',
+  },
+  {
+    id: 'reports',
+    labelKey: 'navReports',
+    path: '/dashboard/reports',
+    icon: FileBarChart,
+    comingSoon: false,
+    section: 'analytics',
   },
   {
     id: 'ads',
@@ -41,15 +41,7 @@ export const MODULES: readonly ModuleDefinition[] = [
     path: '/dashboard/ads',
     icon: Megaphone,
     comingSoon: true,
-    section: 'main',
-  },
-  {
-    id: 'simulations',
-    labelKey: 'navSimulations',
-    path: '/dashboard/simulations',
-    icon: Sparkles,
-    comingSoon: true,
-    section: 'main',
+    section: 'analytics',
   },
   {
     id: 'channels',
@@ -57,7 +49,15 @@ export const MODULES: readonly ModuleDefinition[] = [
     path: '/dashboard/channels',
     icon: Store,
     comingSoon: true,
-    section: 'configuration',
+    section: 'analytics',
+  },
+  {
+    id: 'simulations',
+    labelKey: 'navSimulations',
+    path: '/dashboard/simulations',
+    icon: Sparkles,
+    comingSoon: true,
+    section: 'analytics',
   },
   {
     id: 'integrations',
@@ -65,6 +65,6 @@ export const MODULES: readonly ModuleDefinition[] = [
     path: '/dashboard/integrations',
     icon: Link2,
     comingSoon: false,
-    section: 'configuration',
+    section: 'config',
   },
 ] as const

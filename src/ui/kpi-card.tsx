@@ -75,6 +75,8 @@ export type KpiCardProps = {
   /** Smaller typography for secondary KPI rows. */
   compact?: boolean
   footer?: ReactNode
+  footerClassName?: string
+  valueClassName?: string
   className?: string
 }
 
@@ -94,6 +96,8 @@ export function KpiCard({
   placeholderLabel = '—',
   compact = false,
   footer,
+  footerClassName,
+  valueClassName,
   className,
 }: KpiCardProps) {
   const featured = variant === 'featured'
@@ -144,6 +148,7 @@ export function KpiCard({
           placeholder
             ? 'text-lg text-text-secondary'
             : 'text-[var(--color-accent-forest)]',
+          valueClassName,
           compact ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-[1.75rem]',
         )}
       >
@@ -168,7 +173,12 @@ export function KpiCard({
       ) : null}
 
       {footer ? (
-        <div className="mt-1 space-y-0.5 text-xs leading-snug tabular-nums text-[var(--color-text-muted)]">
+        <div
+          className={cn(
+            'mt-1 space-y-0.5 text-xs leading-snug tabular-nums text-[var(--color-text-muted)]',
+            footerClassName,
+          )}
+        >
           {footer}
         </div>
       ) : null}

@@ -11,6 +11,15 @@ import {
   ProductStockQuantityCell,
 } from './product-stock-alert-ui'
 
+const NUMERIC_CELL_META = {
+  headerClassName: '[&>div]:justify-end',
+  cellClassName: '[&>div]:justify-end',
+} as const
+const TEXT_CELL_META = {
+  headerClassName: '[&>div]:justify-start',
+  cellClassName: '[&>div]:justify-start',
+} as const
+
 function alertRank(level: StockAlertLevel): number {
   if (level === 'out') return 0
   if (level === 'low') return 1
@@ -33,39 +42,38 @@ export function createProductDetailChannelsColumns(
     {
       id: 'platform',
       accessorKey: 'platform',
+      meta: TEXT_CELL_META,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsDetailListingColPlatform')} />
       ),
       cell: ({ row }) => (
-        <div className="flex min-w-0 w-full items-center">
-          <ProductPlatformLogoName
-            platformSlug={row.original.platform}
-            t={t}
-            className="max-w-56 text-sm text-text-primary"
-          />
-        </div>
+        <ProductPlatformLogoName
+          platformSlug={row.original.platform}
+          t={t}
+          className="max-w-56 text-sm text-text-primary"
+        />
       ),
     },
     {
       id: 'platform_sku',
       accessorKey: 'platform_sku',
+      meta: { ...TEXT_CELL_META, headerClassName: 'min-w-[14rem]', cellClassName: 'min-w-[14rem] [&>div]:justify-start' },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsDetailListingColSku')} />
       ),
       cell: ({ row }) => (
-        <div className="flex min-w-0 w-full items-center">
-          <span
-            className="block max-w-40 min-w-0 truncate font-mono text-sm leading-normal"
-            title={row.original.platform_sku}
-          >
-            {row.original.platform_sku}
-          </span>
-        </div>
+        <span
+          className="block min-w-0 max-w-[18rem] truncate font-mono text-sm leading-normal"
+          title={row.original.platform_sku}
+        >
+          {row.original.platform_sku}
+        </span>
       ),
     },
     {
       id: 'stock_quantity',
       accessorKey: 'stock_quantity',
+      meta: NUMERIC_CELL_META,
       header: ({ column }) => (
         <DataTableColumnHeader
           className="justify-end"
@@ -78,6 +86,7 @@ export function createProductDetailChannelsColumns(
     {
       id: 'stock_alert',
       accessorKey: 'stock_alert',
+      meta: TEXT_CELL_META,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsDetailListingColAlert')} />
       ),
@@ -86,6 +95,7 @@ export function createProductDetailChannelsColumns(
     {
       id: 'period_sales',
       accessorKey: 'period_sales',
+      meta: NUMERIC_CELL_META,
       header: ({ column }) => (
         <DataTableColumnHeader
           className="justify-end"
@@ -94,14 +104,13 @@ export function createProductDetailChannelsColumns(
         />
       ),
       cell: ({ row }) => (
-        <span className="block w-full text-right text-sm tabular-nums">
-          {fmtBase(row.original.period_sales)}
-        </span>
+        <span className="text-sm tabular-nums">{fmtBase(row.original.period_sales)}</span>
       ),
     },
     {
       id: 'period_orders',
       accessorKey: 'period_orders',
+      meta: NUMERIC_CELL_META,
       header: ({ column }) => (
         <DataTableColumnHeader
           className="justify-end"
@@ -110,12 +119,13 @@ export function createProductDetailChannelsColumns(
         />
       ),
       cell: ({ row }) => (
-        <span className="block w-full text-right text-sm tabular-nums">{row.original.period_orders}</span>
+        <span className="text-sm tabular-nums">{row.original.period_orders}</span>
       ),
     },
     {
       id: 'period_units_sold',
       accessorKey: 'period_units_sold',
+      meta: NUMERIC_CELL_META,
       header: ({ column }) => (
         <DataTableColumnHeader
           className="justify-end"
@@ -124,14 +134,13 @@ export function createProductDetailChannelsColumns(
         />
       ),
       cell: ({ row }) => (
-        <span className="block w-full text-right text-sm tabular-nums">
-          {row.original.period_units_sold}
-        </span>
+        <span className="text-sm tabular-nums">{row.original.period_units_sold}</span>
       ),
     },
     {
       id: 'platform_price',
       accessorKey: 'platform_price',
+      meta: NUMERIC_CELL_META,
       header: ({ column }) => (
         <DataTableColumnHeader
           className="justify-end"
@@ -142,7 +151,7 @@ export function createProductDetailChannelsColumns(
       cell: ({ row }) => {
         const li = row.original
         return (
-          <span className="block w-full text-right text-sm tabular-nums">
+          <span className="text-sm tabular-nums">
             {li.platform_price != null && li.currency
               ? fmtCurrency(li.platform_price, li.currency)
               : '—'}
@@ -153,17 +162,16 @@ export function createProductDetailChannelsColumns(
     {
       id: 'currency',
       accessorKey: 'currency',
+      meta: NUMERIC_CELL_META,
       header: ({ column }) => (
         <DataTableColumnHeader
           className="justify-end"
           column={column}
-          title={t('productsDetailListingColPlatformCurrency')}
+          title={t('productsDetailListingColDivisa')}
         />
       ),
       cell: ({ row }) => (
-        <span className="block w-full text-right text-sm text-text-secondary">
-          {row.original.currency ?? '—'}
-        </span>
+        <span className="text-sm text-text-secondary">{row.original.currency ?? '—'}</span>
       ),
     },
   ]

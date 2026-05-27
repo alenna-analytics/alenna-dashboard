@@ -8,6 +8,7 @@ import type {
   ProductDetailApi,
   ProductListResponse,
   ProductStockAlertCountsApi,
+  StockAlertLevel,
 } from '@/lib/types/catalog'
 
 export type ProductListQueryParams = {
@@ -16,6 +17,9 @@ export type ProductListQueryParams = {
   offset: number
   sortBy: string
   sortDir: 'asc' | 'desc'
+  statuses: string[]
+  platforms: string[]
+  stockAlertLevels: StockAlertLevel[]
 }
 
 export function useProductStockAlertCountsQuery() {
@@ -42,10 +46,22 @@ export function useProductStockAlertCountsQuery() {
 export function useProductListQuery(params: ProductListQueryParams) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
-  const { q, limit, offset, sortBy, sortDir } = params
+  const { q, limit, offset, sortBy, sortDir, statuses, platforms, stockAlertLevels } = params
 
   return useQuery({
-    queryKey: ['catalog', 'products', tenantId, q, limit, offset, sortBy, sortDir],
+    queryKey: [
+      'catalog',
+      'products',
+      tenantId,
+      q,
+      limit,
+      offset,
+      sortBy,
+      sortDir,
+      statuses,
+      platforms,
+      stockAlertLevels,
+    ],
     enabled: Boolean(tenantId),
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<ProductListResponse> => {
@@ -56,6 +72,15 @@ export function useProductListQuery(params: ProductListQueryParams) {
         sort_dir: sortDir,
       })
       if (q.trim()) sp.set('q', q.trim())
+      for (const st of statuses) {
+        if (st === 'active' || st === 'inactive') sp.append('status', st)
+      }
+      for (const plat of platforms) {
+        if (plat.trim()) sp.append('platform', plat.trim().toLowerCase())
+      }
+      for (const level of stockAlertLevels) {
+        sp.append('stock_alert', level)
+      }
       const res = await apiFetch(
         `/catalog/products?${sp.toString()}`,
         (a) => getToken(a),

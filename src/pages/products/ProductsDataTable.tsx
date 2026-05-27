@@ -27,6 +27,10 @@ import {
 import { useMoney } from "@/hooks/use-money"
 
 import { createProductColumns, type ProductTableSelectionBinding } from "./products-columns"
+import {
+  normalizeStockAlertLevelsFilter,
+  type ProductsListFiltersState,
+} from "./products-list-filter-state"
 import { useProductListQuery } from "./use-catalog-queries"
 
 const PAGE_SIZE = 10
@@ -47,6 +51,7 @@ const EMPTY_ITEMS: ProductSummaryApi[] = []
 type ProductsDataTableProps = {
   searchQ: string
   onSearchQChange: (value: string) => void
+  filters: ProductsListFiltersState
   t: (key: ShellStringKey) => string
   emptyContent: React.ReactNode
   errorContent: React.ReactNode
@@ -55,6 +60,7 @@ type ProductsDataTableProps = {
 export function ProductsDataTable({
   searchQ,
   onSearchQChange,
+  filters,
   t,
   emptyContent,
   errorContent,
@@ -84,15 +90,20 @@ export function ProductsDataTable({
     return () => window.clearTimeout(id)
   }, [searchQ])
 
+  const stockAlertLevels = useMemo(
+    () => normalizeStockAlertLevelsFilter(filters.stockAlertLevels),
+    [filters.stockAlertLevels],
+  )
+
   useEffect(() => {
     setPagination((p) => ({ ...p, pageIndex: 0 }))
-  }, [debouncedSearchQ, sortBy, sortDir])
+  }, [debouncedSearchQ, sortBy, sortDir, filters.statuses, filters.platforms, stockAlertLevels])
 
   useEffect(() => {
     setRowSelection({})
     setBulkAllMatching(false)
     setExcludedIds(new Set())
-  }, [debouncedSearchQ])
+  }, [debouncedSearchQ, filters.statuses, filters.platforms, stockAlertLevels])
 
   const listQuery = useProductListQuery({
     q: debouncedSearchQ,
@@ -100,6 +111,9 @@ export function ProductsDataTable({
     offset: pagination.pageIndex * pagination.pageSize,
     sortBy,
     sortDir,
+    statuses: filters.statuses,
+    platforms: filters.platforms,
+    stockAlertLevels,
   })
 
   const items = listQuery.data?.items ?? EMPTY_ITEMS

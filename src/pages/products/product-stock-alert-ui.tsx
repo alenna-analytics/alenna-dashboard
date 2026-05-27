@@ -32,8 +32,8 @@ export function ProductStockQuantityCell({
   className?: string
 }) {
   return (
-    <span className={cn('block text-right text-sm tabular-nums', className)}>
-      {quantity != null ? quantity : '—'}
-    </span>
+    <div className={cn('flex w-full justify-end', className)}>
+      <span className="text-sm tabular-nums">{quantity != null ? quantity : '—'}</span>
+    </div>
   )
 }

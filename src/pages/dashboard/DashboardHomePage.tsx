@@ -24,6 +24,8 @@ import { HomeChannelDonutChart } from './home-channel-donut-chart'
 import { HomeProductFilter } from './home-product-filter'
 import { HomeTopProductsChart } from './home-top-products-chart'
 import { getTopProductsChartHeightPx } from './home-top-products-chart-layout'
+import { homeActiveAlertsKpiLabels } from './home-active-alerts-kpi-labels'
+import { HomeActiveAlertsKpi } from './home-active-alerts-kpi'
 import { HomeStockInventoryAlerts } from './home-stock-inventory-alerts'
 import { useProductStockAlertCountsQuery } from '@/pages/products/use-catalog-queries'
 import { MoneyDisclaimer } from '@/shell/components/money-disclaimer'
@@ -271,8 +273,8 @@ export function DashboardHomePage() {
 
   const stockAlertCountsQuery = useProductStockAlertCountsQuery()
   const stockAlertCounts = stockAlertCountsQuery.data
-  const inventoryAlertTotal =
-    (stockAlertCounts?.low_count ?? 0) + (stockAlertCounts?.out_count ?? 0)
+  const inventoryAlertLowCount = stockAlertCounts?.low_count ?? 0
+  const inventoryAlertOutCount = stockAlertCounts?.out_count ?? 0
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -617,8 +619,8 @@ export function DashboardHomePage() {
           <MoneyDisclaimer />
           {!productMode ? (
             <HomeStockInventoryAlerts
-              lowCount={stockAlertCounts?.low_count ?? 0}
-              outCount={stockAlertCounts?.out_count ?? 0}
+              lowCount={inventoryAlertLowCount}
+              outCount={inventoryAlertOutCount}
               t={t}
             />
           ) : null}
@@ -709,16 +711,10 @@ export function DashboardHomePage() {
                   comparisonUnavailable={cmPct!.unavailable}
                   negativeMetric
                 />
-                <KpiCard
-                  label={t('homeKpiActiveAlerts')}
-                  helpText={t('homeKpiActiveAlertsHelp')}
-                  value={String(inventoryAlertTotal)}
-                  vsPriorLabel={vsPrior}
-                  priorValueDisplay={null}
-                  pct={null}
-                  trend="flat"
-                  comparisonUnavailable
-                  showComparison={false}
+                <HomeActiveAlertsKpi
+                  lowCount={inventoryAlertLowCount}
+                  outCount={inventoryAlertOutCount}
+                  {...homeActiveAlertsKpiLabels(t, vsPrior)}
                 />
               </div>
             </>

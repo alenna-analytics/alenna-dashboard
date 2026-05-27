@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/react'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch } from '@/lib/api'
@@ -35,6 +35,7 @@ export function useChannelBreakdown({
       startDate,
       endDate,
     ],
+    placeholderData: keepPreviousData,
     enabled: Boolean(
       enabled && tenantId && connectionIds.length > 0 && startDate && endDate,
     ),

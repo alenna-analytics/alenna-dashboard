@@ -356,8 +356,7 @@ export function DashboardHomePage() {
     enabled: productMode && Boolean(prevPeriod),
   })
 
-  const { data: monthlyCurrent, isLoading: monthlyRevenueLoading, isError: monthlyRevenueError } =
-    useMonthlyRevenueSeries({
+  const { data: monthlyCurrent, isError: monthlyRevenueError } = useMonthlyRevenueSeries({
       connectionIds: activeConnectionIds,
       startDate,
       endDate,
@@ -365,7 +364,7 @@ export function DashboardHomePage() {
       enabled: activeConnectionIds.length > 0,
     })
 
-  const { data: monthlyPrev, isLoading: monthlyPrevLoading } = useMonthlyRevenueSeries({
+  const { data: monthlyPrev } = useMonthlyRevenueSeries({
     connectionIds: activeConnectionIds,
     startDate: revenuePrevPeriod?.start ?? '',
     endDate: revenuePrevPeriod?.end ?? '',
@@ -373,7 +372,7 @@ export function DashboardHomePage() {
     enabled: activeConnectionIds.length > 0 && Boolean(revenuePrevPeriod),
   })
 
-  const { data: channelBreakdown, isLoading: channelLoading } = useChannelBreakdown({
+  const { data: channelBreakdown, isPending: channelDonutPending } = useChannelBreakdown({
     connectionIds: activeConnectionIds,
     productIds,
     startDate,
@@ -381,11 +380,7 @@ export function DashboardHomePage() {
     enabled: activeConnectionIds.length > 0,
   })
 
-  const {
-    data: channelTimeSeries,
-    isLoading: channelTimeSeriesLoading,
-    isError: channelTimeSeriesError,
-  } = useChannelTimeSeries({
+  const { data: channelTimeSeries, isError: channelTimeSeriesError } = useChannelTimeSeries({
     connectionIds: activeConnectionIds,
     productIds,
     startDate,
@@ -394,7 +389,7 @@ export function DashboardHomePage() {
     enabled: activeConnectionIds.length > 0,
   })
 
-  const { data: topProducts, isLoading: topProductsLoading } = useTopProducts({
+  const { data: topProducts, isPending: topProductsPending } = useTopProducts({
     connectionIds: activeConnectionIds,
     productIds,
     startDate,
@@ -532,11 +527,9 @@ export function DashboardHomePage() {
     }))
   }, [displayKpi, t, convertFromBase])
 
-  const chartsLoading =
-    activeConnectionIds.length > 0 &&
-    (monthlyRevenueLoading || (Boolean(revenuePrevPeriod) && monthlyPrevLoading))
-
   const pairedChartBodyPx = useMemo(() => getTopProductsChartHeightPx(), [])
+
+  const revenueComparePrevious = Boolean(revenuePrevPeriod && monthlyPrev)
 
   const showTopProducts = true
 
@@ -730,20 +723,14 @@ export function DashboardHomePage() {
                   title={t('homeChannelDonutTitle')}
                   description={t('homeChannelDonutSubtitle')}
                 />
-                {channelLoading ? (
-                  <Skeleton
-                    className="w-full flex-1 rounded-md"
-                    style={{ minHeight: pairedChartBodyPx }}
-                  />
-                ) : (
-                  <HomeChannelDonutChart
-                    rows={channelBreakdown?.items ?? []}
-                    convertValue={convertFromBase}
-                    formatValue={formatInDisplay}
-                    t={t}
-                    minBodyHeightPx={showTopProducts ? pairedChartBodyPx : undefined}
-                  />
-                )}
+                <HomeChannelDonutChart
+                  rows={channelBreakdown?.items ?? []}
+                  convertValue={convertFromBase}
+                  formatValue={formatInDisplay}
+                  t={t}
+                  minBodyHeightPx={showTopProducts ? pairedChartBodyPx : undefined}
+                  isLoading={channelDonutPending}
+                />
               </SectionContainer>
             </section>
             {showTopProducts ? (
@@ -756,20 +743,14 @@ export function DashboardHomePage() {
                       String(topProducts?.items.length ?? 10),
                     )}
                   />
-                  {topProductsLoading ? (
-                    <Skeleton
-                      className="w-full flex-1 rounded-md"
-                      style={{ minHeight: pairedChartBodyPx }}
-                    />
-                  ) : (
-                    <HomeTopProductsChart
-                      rows={topProducts?.items ?? []}
-                      convertValue={convertFromBase}
-                      formatValue={formatInDisplay}
-                      formatCompact={formatCompactInDisplay}
-                      t={t}
-                    />
-                  )}
+                  <HomeTopProductsChart
+                    rows={topProducts?.items ?? []}
+                    convertValue={convertFromBase}
+                    formatValue={formatInDisplay}
+                    formatCompact={formatCompactInDisplay}
+                    t={t}
+                    isLoading={topProductsPending}
+                  />
                 </SectionContainer>
               </section>
             ) : null}
@@ -856,8 +837,6 @@ export function DashboardHomePage() {
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
                     {t('reportsMonthlyLoadError')}
                   </p>
-                ) : chartsLoading ? (
-                  <Skeleton className="h-80 w-full rounded-md" />
                 ) : (
                   <DashboardRevenueTrendChart
                     startDate={startDate}
@@ -867,7 +846,7 @@ export function DashboardHomePage() {
                     granularity={revenueGranularity}
                     rowsCurrent={monthlyCurrent?.months ?? []}
                     rowsPrev={monthlyPrev?.months ?? []}
-                    comparePrevious={Boolean(revenuePrevPeriod)}
+                    comparePrevious={revenueComparePrevious}
                     currency={effectiveDisplayCurrency}
                     formatValue={formatInDisplay}
                     convertValue={convertFromBase}
@@ -883,9 +862,7 @@ export function DashboardHomePage() {
                   title={t('dashboardChannelSalesTitle')}
                   description={t('dashboardChannelSalesSubtitle')}
                 />
-                {channelTimeSeriesLoading ? (
-                  <Skeleton className="h-[24rem] w-full rounded-md" />
-                ) : channelTimeSeriesError ? (
+                {channelTimeSeriesError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
                     {t('reportsMonthlyLoadError')}
                   </p>
@@ -910,9 +887,7 @@ export function DashboardHomePage() {
                   title={t('dashboardProfitMarginTitle')}
                   description={t('dashboardProfitMarginSubtitle')}
                 />
-                {channelTimeSeriesLoading ? (
-                  <Skeleton className="h-[24rem] w-full rounded-md" />
-                ) : channelTimeSeriesError ? (
+                {channelTimeSeriesError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
                     {t('reportsMonthlyLoadError')}
                   </p>

@@ -29,7 +29,10 @@ const SHELL_STRINGS = {
       'Conecta ventas con rentabilidad real. Un día récord con CM negativa puede significar pérdidas.',
     homeKpiActiveAlerts: 'Alertas activas',
     homeKpiActiveAlertsHelp:
-      'Estado de alertas críticas del negocio (stock, ROAS, caja). Lo primero que debe revisar un operador.',
+      'Productos con inventario bajo o sin stock según ventas del mes anterior.',
+    homeStockAlertOutBanner: '{count} productos no tienen inventario',
+    homeStockAlertLowBanner: '{count} productos tienen bajo inventario',
+    homeStockAlertViewProducts: 'Ver productos',
     homeSecondaryKpiSectionTitle: 'Otros indicadores',
     trialExpiredTitle: 'Tu periodo de prueba terminó',
     trialExpiredBody:
@@ -676,7 +679,10 @@ const SHELL_STRINGS = {
       'Links sales to real profitability. Record revenue with negative CM can still mean losses.',
     homeKpiActiveAlerts: 'Active alerts',
     homeKpiActiveAlertsHelp:
-      'Critical business alert status (stock, ROAS, cash). What operators should check first.',
+      'Products with low or out-of-stock inventory based on prior-month sales velocity.',
+    homeStockAlertOutBanner: '{count} products are out of stock',
+    homeStockAlertLowBanner: '{count} products have low inventory',
+    homeStockAlertViewProducts: 'View products',
     homeSecondaryKpiSectionTitle: 'Other indicators',
     trialExpiredTitle: 'Your trial has ended',
     trialExpiredBody: 'To keep using Alenna, choose a plan that fits your operation.',

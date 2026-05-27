@@ -76,6 +76,11 @@ export type ProductSummaryApi = {
   updated_at: string
 }
 
+export type ProductStockAlertCountsApi = {
+  low_count: number
+  out_count: number
+}
+
 export type ProductListResponse = {
   items: ProductSummaryApi[]
   total: number

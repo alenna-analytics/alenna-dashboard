@@ -411,7 +411,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
     return <div className="p-8 text-sm text-destructive">Failed to load product.</div>
   }
 
-  if (!detail && (detailQuery.isPending || detailQuery.isLoading)) {
+  if (!detail && detailQuery.isPending) {
     return <ProductDetailSkeleton />
   }
 

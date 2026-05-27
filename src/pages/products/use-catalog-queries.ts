@@ -3,7 +3,12 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch, apiPatchJson, apiPostJson } from '@/lib/api'
-import type { CatalogJobApi, ProductDetailApi, ProductListResponse } from '@/lib/types/catalog'
+import type {
+  CatalogJobApi,
+  ProductDetailApi,
+  ProductListResponse,
+  ProductStockAlertCountsApi,
+} from '@/lib/types/catalog'
 
 export type ProductListQueryParams = {
   q: string
@@ -11,6 +16,27 @@ export type ProductListQueryParams = {
   offset: number
   sortBy: string
   sortDir: 'asc' | 'desc'
+}
+
+export function useProductStockAlertCountsQuery() {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+
+  return useQuery({
+    queryKey: ['catalog', 'stock-alert-counts', tenantId],
+    enabled: Boolean(tenantId),
+    staleTime: 60_000,
+    queryFn: async (): Promise<ProductStockAlertCountsApi> => {
+      const res = await apiFetch(
+        '/catalog/products/stock-alert-counts',
+        (a) => getToken(a),
+        {},
+        tenantId,
+      )
+      if (!res.ok) throw new Error(await res.text())
+      return (await res.json()) as ProductStockAlertCountsApi
+    },
+  })
 }
 
 export function useProductListQuery(params: ProductListQueryParams) {
@@ -106,6 +132,7 @@ export function usePatchProductCostMutation(productId: string | undefined) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
       void qc.invalidateQueries({ queryKey: ['catalog', 'products', tenantId] })
+      void qc.invalidateQueries({ queryKey: ['catalog', 'stock-alert-counts', tenantId] })
     },
   })
 }

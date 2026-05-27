@@ -24,6 +24,8 @@ import { HomeChannelDonutChart } from './home-channel-donut-chart'
 import { HomeProductFilter } from './home-product-filter'
 import { HomeTopProductsChart } from './home-top-products-chart'
 import { getTopProductsChartHeightPx } from './home-top-products-chart-layout'
+import { HomeStockInventoryAlerts } from './home-stock-inventory-alerts'
+import { useProductStockAlertCountsQuery } from '@/pages/products/use-catalog-queries'
 import { MoneyDisclaimer } from '@/shell/components/money-disclaimer'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import {
@@ -266,6 +268,11 @@ export function DashboardHomePage() {
   )
 
   const { startDate, endDate, connectionIds, productIds } = filters
+
+  const stockAlertCountsQuery = useProductStockAlertCountsQuery()
+  const stockAlertCounts = stockAlertCountsQuery.data
+  const inventoryAlertTotal =
+    (stockAlertCounts?.low_count ?? 0) + (stockAlertCounts?.out_count ?? 0)
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -608,6 +615,13 @@ export function DashboardHomePage() {
       ) : (
         <>
           <MoneyDisclaimer />
+          {!productMode ? (
+            <HomeStockInventoryAlerts
+              lowCount={stockAlertCounts?.low_count ?? 0}
+              outCount={stockAlertCounts?.out_count ?? 0}
+              t={t}
+            />
+          ) : null}
           {productMode && displayProductKpi ? (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <KpiCard
@@ -698,7 +712,7 @@ export function DashboardHomePage() {
                 <KpiCard
                   label={t('homeKpiActiveAlerts')}
                   helpText={t('homeKpiActiveAlertsHelp')}
-                  value="0"
+                  value={String(inventoryAlertTotal)}
                   vsPriorLabel={vsPrior}
                   priorValueDisplay={null}
                   pct={null}

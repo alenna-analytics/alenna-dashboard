@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ImageIcon, Loader2 } from 'lucide-react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 
 import { shellT } from '@/lib/i18n/shell-strings'
 import type {
@@ -36,6 +36,7 @@ import {
 
 import { buildProductCostPriceChartData } from './product-cost-chart-points'
 import { ProductDetailSections } from './product-detail-sections'
+import { ProductDetailHeaderMeta } from './product-detail-header-meta'
 import { ProductDetailSkuRow } from './product-detail-sku-row'
 import { defaultProductInsightRange } from './product-detail-range'
 import {
@@ -523,8 +524,16 @@ function ProductDetailBody({ productId }: { productId: string }) {
         <ProductThumbSm url={detail.image_url} title={detail.title} />
         <div className="min-w-0 space-y-2">
           <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[var(--color-text-primary)] sm:text-3xl">
-            {detail.title}
+            {detail.variant_label ?? detail.title}
           </h1>
+          {detail.parent_product_id ? (
+            <Link
+              to={`/dashboard/products/${detail.parent_product_id}`}
+              className="inline-block text-sm font-medium text-primary hover:underline"
+            >
+              {t('productsDetailParentLink')}
+            </Link>
+          ) : null}
           <ProductDetailSkuRow
             internalSku={detail.internal_sku}
             t={t}
@@ -539,6 +548,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
             onSave={() => void handleSkuSave()}
             savePending={patchMutation.isPending}
           />
+          <ProductDetailHeaderMeta detail={detail} t={t} />
           {detail.brand ? <p className="text-sm text-text-secondary">{detail.brand}</p> : null}
         </div>
       </div>

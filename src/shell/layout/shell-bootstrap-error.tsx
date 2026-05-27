@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { ServerCrash, RefreshCw, RotateCcw } from 'lucide-react'
 
 import { shellT } from '@/lib/i18n/shell-strings'
@@ -14,12 +13,9 @@ type ShellBootstrapErrorProps = {
 
 export function ShellBootstrapError({
   lang,
-  error,
   isRetrying,
   onRetry,
 }: ShellBootstrapErrorProps) {
-  const [showDetails, setShowDetails] = useState(false)
-
   return (
     <div className="flex min-h-svh w-full flex-col items-center justify-center bg-bg-base px-6 py-16 text-center">
       <div className="flex w-full max-w-md flex-col items-center gap-6">
@@ -60,24 +56,6 @@ export function ShellBootstrapError({
           </Button>
         </div>
 
-        {error ? (
-          <div className="w-full text-left">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-auto px-0 text-xs text-muted-foreground"
-              onClick={() => setShowDetails((v) => !v)}
-            >
-              {shellT(lang, showDetails ? 'shellErrorHideDetails' : 'shellErrorViewDetails')}
-            </Button>
-            {showDetails ? (
-              <pre className="mt-2 max-h-40 overflow-auto rounded-md border border-border-default bg-bg-elevated p-3 text-left text-[11px] leading-relaxed text-text-secondary">
-                {error}
-              </pre>
-            ) : null}
-          </div>
-        ) : null}
       </div>
     </div>
   )

@@ -1,7 +1,8 @@
 import type { ColumnDef } from '@tanstack/react-table'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { ProductListingApi } from '@/lib/types/catalog'
+import type { ProductListingApi, StockAlertLevel } from '@/lib/types/catalog'
+import { Badge } from '@/ui/badge'
 import { fmtCurrency } from '@/pages/reports/reports-ui-helpers'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 import { cn } from '@/lib/utils'
@@ -9,6 +10,26 @@ import { cn } from '@/lib/utils'
 import { ProductPlatformLogoName } from './product-platform-logo-name'
 
 const NUM = 'font-numeric tabular-nums'
+
+function alertRank(level: StockAlertLevel): number {
+  if (level === 'out') return 0
+  if (level === 'low') return 1
+  return 2
+}
+
+export function sortListingsByStockAlert(listings: ProductListingApi[]): ProductListingApi[] {
+  return [...listings].sort((a, b) => {
+    const d = alertRank(a.stock_alert) - alertRank(b.stock_alert)
+    if (d !== 0) return d
+    return a.platform.localeCompare(b.platform)
+  })
+}
+
+function alertLabel(t: (key: ShellStringKey) => string, level: StockAlertLevel): string {
+  if (level === 'out') return t('productsDetailStockAlertOutShort')
+  if (level === 'low') return t('productsDetailStockAlertLowShort')
+  return '—'
+}
 
 export function createProductDetailChannelsColumns(
   t: (key: ShellStringKey) => string,
@@ -47,6 +68,40 @@ export function createProductDetailChannelsColumns(
           </span>
         </div>
       ),
+    },
+    {
+      id: 'stock_quantity',
+      accessorKey: 'stock_quantity',
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          className="justify-end"
+          column={column}
+          title={t('productsDetailListingColStock')}
+        />
+      ),
+      cell: ({ row }) => (
+        <span className={cn('block w-full text-right text-sm', NUM)}>
+          {row.original.stock_quantity != null ? row.original.stock_quantity : '—'}
+        </span>
+      ),
+    },
+    {
+      id: 'stock_alert',
+      accessorKey: 'stock_alert',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsDetailListingColAlert')} />
+      ),
+      cell: ({ row }) => {
+        const level = row.original.stock_alert
+        if (level === 'none') {
+          return <span className="text-sm text-text-tertiary">—</span>
+        }
+        return (
+          <Badge variant={level === 'out' ? 'error' : 'warning'} className="text-[10px]">
+            {alertLabel(t, level)}
+          </Badge>
+        )
+      },
     },
     {
       id: 'period_sales',

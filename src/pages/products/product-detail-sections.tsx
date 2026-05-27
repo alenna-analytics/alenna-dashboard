@@ -9,6 +9,7 @@ import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-pi
 import { cn } from '@/lib/utils'
 
 import { ProductDetailChannelsTable } from './product-detail-channels-table'
+import { ProductDetailVariantsTable } from './product-detail-variants-table'
 import { ProductCostOverTimeChart } from './product-cost-over-time-chart'
 import type { ProductCostPriceChartData } from './product-cost-chart-points'
 
@@ -200,24 +201,40 @@ export function ProductDetailSections({
         </CardContent>
       </Card>
 
-      <Card className='p-0 border-none shadow-none hover:shadow-none rounded-none'>
-        <CardHeader className='p-0'>
-          <CardTitle className='text-md'>{t('productsDetailSectionChannelsTitle')}</CardTitle>
-          <CardDescription className="text-xs">{t('productsDetailSectionChannelsDescription')}</CardDescription>
-        </CardHeader>
-        <CardContent className='p-0'>
-          <ProductDetailChannelsTable
-            listings={detail.listings}
-            isLoading={false}
-            isFetching={isFetching}
-            t={t}
-            fmtBase={fmtBase}
-            emptyContent={
-              <p className="py-8 text-center text-sm text-text-tertiary">{t('productsDetailChannelsEmpty')}</p>
-            }
-          />
-        </CardContent>
-      </Card>
+      {detail.variants?.length ? (
+        <ProductDetailVariantsTable
+          detail={detail}
+          t={t}
+          baseCurrency={baseCurrency}
+          fmtBase={fmtBase}
+        />
+      ) : (
+        <Card
+          id="product-channels-table"
+          className="scroll-mt-24 rounded-none border-none p-0 shadow-none hover:shadow-none"
+        >
+          <CardHeader className="p-0">
+            <CardTitle className="text-md">{t('productsDetailSectionChannelsTitle')}</CardTitle>
+            <CardDescription className="text-xs">
+              {t('productsDetailSectionChannelsDescription')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ProductDetailChannelsTable
+              listings={detail.listings}
+              isLoading={false}
+              isFetching={isFetching}
+              t={t}
+              fmtBase={fmtBase}
+              emptyContent={
+                <p className="py-8 text-center text-sm text-text-tertiary">
+                  {t('productsDetailChannelsEmpty')}
+                </p>
+              }
+            />
+          </CardContent>
+        </Card>
+      )}
     </>
   )
 }

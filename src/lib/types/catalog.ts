@@ -1,3 +1,13 @@
+export type StockAlertLevel = 'none' | 'low' | 'out'
+
+export type StockAlertListingSummaryApi = {
+  listing_id: string
+  platform: string
+  stock_alert: StockAlertLevel
+  stock_quantity: number | null
+  prev_month_units_sold: number
+}
+
 export type ProductListingApi = {
   id: string
   platform: string
@@ -11,6 +21,10 @@ export type ProductListingApi = {
   period_sales: number
   period_orders: number
   period_units_sold: number
+  stock_quantity: number | null
+  stock_observed_at: string | null
+  prev_month_units_sold: number
+  stock_alert: StockAlertLevel
 }
 
 export type ProductListingPriceSegmentApi = {
@@ -25,6 +39,18 @@ export type ProductListingPriceSegmentApi = {
 
 export type ProductLifecycleStatus = 'active' | 'inactive' | 'archived' | 'deleted'
 
+export type ProductVariantSummaryApi = {
+  id: string
+  internal_sku: string | null
+  title: string
+  variant_label: string | null
+  image_url: string | null
+  listing_count: number
+  period_sales: number
+  period_orders: number
+  period_units_sold: number
+}
+
 export type ProductSummaryApi = {
   id: string
   internal_sku: string | null
@@ -37,6 +63,7 @@ export type ProductSummaryApi = {
   status: ProductLifecycleStatus | string
   platforms: string[]
   listing_count: number
+  variant_count: number
   cost_missing: boolean
   created_at: string
   updated_at: string
@@ -82,6 +109,12 @@ export type ProductDetailApi = {
   created_at: string
   updated_at: string
   listings: ProductListingApi[]
+  variants: ProductVariantSummaryApi[]
+  variant_count: number
+  variant_label: string | null
+  parent_product_id: string | null
+  parent_title: string | null
+  stock_alert_summary: StockAlertListingSummaryApi[]
   cost_history: ProductCostHistorySegmentApi[]
   listing_price_history: ProductListingPriceSegmentApi[]
 }

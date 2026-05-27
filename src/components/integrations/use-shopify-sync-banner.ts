@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { isStaleSyncingPlan } from '@/lib/integrations/sync-freshness'
 import {
   buildShopifyProgressSubtitle,
   buildShopifySuccessSubtitle,
@@ -21,14 +22,13 @@ function pickSyncingShopify(
 ): PlatformConnection | null {
   if (!connections?.length) return null
   for (const c of connections) {
-    if (
-      c.platform === 'shopify' &&
-      c.status === 'active' &&
-      c.connection_status === 'active' &&
-      c.sync_plan?.last_sync_status === 'syncing'
-    ) {
-      return c
+    if (c.platform !== 'shopify' || c.status !== 'active' || c.connection_status !== 'active') {
+      continue
     }
+    const plan = c.sync_plan
+    if (!plan) continue
+    if (plan.current_job_id) return c
+    if (plan.last_sync_status === 'syncing' && !isStaleSyncingPlan(c)) return c
   }
   return null
 }
@@ -39,7 +39,7 @@ export function useShopifySyncBanner(
   const { lang } = useLanguage()
   const { tenantId } = useCurrentTenant()
   const queryClient = useQueryClient()
-  const { upsertActivity } = useGlobalActivity()
+  const { upsertActivity, removeActivity, items } = useGlobalActivity()
 
   const syncingConn = useMemo(() => pickSyncingShopify(connections), [connections])
   const jobId = syncingConn?.sync_plan?.current_job_id ?? null
@@ -51,6 +51,10 @@ export function useShopifySyncBanner(
   useEffect(() => {
     if (!syncingConn) {
       lastLoadingSubtitleRef.current = null
+      const existing = items.find((x) => x.id === GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID)
+      if (existing?.phase === 'loading') {
+        removeActivity(GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID)
+      }
       return
     }
     const job = jobQuery.data
@@ -69,7 +73,7 @@ export function useShopifySyncBanner(
       subtitle,
       href: '/dashboard/integrations',
     })
-  }, [syncingConn, jobQuery.data, upsertActivity, lang])
+  }, [syncingConn, jobQuery.data, upsertActivity, removeActivity, items, lang])
 
   const settledSigRef = useRef<string | null>(null)
 

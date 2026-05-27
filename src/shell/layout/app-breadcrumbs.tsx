@@ -14,6 +14,8 @@ type Crumb = {
 type ProductDetailCrumb = {
   prefix: string
   title?: string
+  parentId?: string
+  parentTitle?: string
 }
 
 function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDetailCrumb): Crumb[] {
@@ -35,14 +37,24 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
     return [{ label: shellT(lang, 'navProducts') }]
   }
   if (/^\/dashboard\/products\/[^/]+$/.test(normalized)) {
+    const crumbs: Crumb[] = [
+      { label: shellT(lang, 'navProducts'), to: '/dashboard/products' },
+    ]
+    if (productDetail?.parentId && productDetail.parentTitle?.trim()) {
+      crumbs.push({
+        label: productDetail.parentTitle.trim(),
+        to: `/dashboard/products/${productDetail.parentId}`,
+      })
+      const variantLabel = productDetail.title?.trim() || shellT(lang, 'productsDetailBreadcrumb')
+      crumbs.push({ label: variantLabel })
+      return crumbs
+    }
     const detailLabel =
       productDetail?.title?.trim().length
         ? `${productDetail.prefix} ${productDetail.title.trim()}`
         : shellT(lang, 'productsDetailBreadcrumb')
-    return [
-      { label: shellT(lang, 'navProducts'), to: '/dashboard/products' },
-      { label: detailLabel },
-    ]
+    crumbs.push({ label: detailLabel })
+    return crumbs
   }
 
   if (normalized.startsWith('/dashboard')) {
@@ -59,11 +71,13 @@ export function AppBreadcrumbs({ className }: { className?: string }) {
   const productMatch = pathname.match(/^\/dashboard\/products\/([^/]+)$/)
   const productId = productMatch?.[1]
   const detailQuery = useProductDetailQuery(productId)
-  const productTitle = productId ? detailQuery.data?.title : undefined
+  const detail = detailQuery.data
 
   const items = crumbsForPath(pathname, lang, {
     prefix: shellT(lang, 'productsDetailTitlePrefix'),
-    title: productTitle,
+    title: detail?.variant_label ?? detail?.title,
+    parentId: detail?.parent_product_id ?? undefined,
+    parentTitle: detail?.parent_title ?? undefined,
   })
 
   return (

@@ -58,14 +58,14 @@ export function useProductDetailQuery(
 
   return useQuery({
     queryKey: ['catalog', 'product', tenantId, productId, metricsStart, metricsEnd],
-    enabled: Boolean(tenantId && productId && metricsStart && metricsEnd),
+    enabled: Boolean(tenantId && productId),
     queryFn: async (): Promise<ProductDetailApi> => {
-      const sp = new URLSearchParams({
-        metrics_start: metricsStart!,
-        metrics_end: metricsEnd!,
-      })
+      const sp = new URLSearchParams()
+      if (metricsStart) sp.set('metrics_start', metricsStart)
+      if (metricsEnd) sp.set('metrics_end', metricsEnd)
+      const qs = sp.toString()
       const res = await apiFetch(
-        `/catalog/products/${productId}?${sp.toString()}`,
+        `/catalog/products/${productId}${qs ? `?${qs}` : ''}`,
         (a) => getToken(a),
         {},
         tenantId,

@@ -225,8 +225,22 @@ function ProductDetailBody({ productId }: { productId: string }) {
   const [rangeEnd, setRangeEnd] = useState(defaultBackfillRange().end)
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
   const [skuDraft, setSkuDraft] = useState('')
+  const [skuSeed, setSkuSeed] = useState<{ productId: string; sku: string } | null>(null)
 
   const jobQuery = useCatalogJobQuery(activeJobId, Boolean(activeJobId))
+
+  const serverSku = detail?.internal_sku ?? ''
+  if (detail) {
+    const skuDirtyForReseed = skuDraft.trim() !== serverSku.trim()
+    const needsSkuReseed =
+      skuSeed === null ||
+      skuSeed.productId !== detail.id ||
+      (!skuDirtyForReseed && skuSeed.sku !== serverSku)
+    if (needsSkuReseed) {
+      setSkuSeed({ productId: detail.id, sku: serverSku })
+      setSkuDraft(serverSku)
+    }
+  }
 
   const pickerStrings: DateRangePickerStrings = useMemo(
     () => ({
@@ -344,11 +358,6 @@ function ProductDetailBody({ productId }: { productId: string }) {
     }
   }
 
-  useEffect(() => {
-    if (!detail) return
-    setSkuDraft(detail.internal_sku ?? '')
-  }, [detail?.id, detail?.internal_sku])
-
   const savedSku = detail?.internal_sku?.trim() ?? ''
   const skuDirty = detail != null && skuDraft.trim() !== savedSku
 
@@ -402,8 +411,12 @@ function ProductDetailBody({ productId }: { productId: string }) {
     return <div className="p-8 text-sm text-destructive">Failed to load product.</div>
   }
 
-  if (detailQuery.isLoading || !detail) {
+  if (!detail && (detailQuery.isPending || detailQuery.isLoading)) {
     return <ProductDetailSkeleton />
+  }
+
+  if (!detail) {
+    return <div className="p-8 text-sm text-text-secondary">Failed to load product.</div>
   }
 
   const bigCostFormatted = detail.cost != null ? fmtBase(detail.cost) : '—'
@@ -561,7 +574,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
         pickerStrings={pickerStrings}
         showInsightValues={showInsightValues}
         insightKpi={insightKpi}
-        isFetching={detailQuery.isFetching}
+        insightsFetching={detailQuery.isFetching}
         onEditCost={openEditSheet}
       />
 

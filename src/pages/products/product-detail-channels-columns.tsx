@@ -2,14 +2,14 @@ import type { ColumnDef } from '@tanstack/react-table'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductListingApi, StockAlertLevel } from '@/lib/types/catalog'
-import { Badge } from '@/ui/badge'
 import { fmtCurrency } from '@/pages/reports/reports-ui-helpers'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
-import { cn } from '@/lib/utils'
 
 import { ProductPlatformLogoName } from './product-platform-logo-name'
-
-const NUM = 'font-numeric tabular-nums'
+import {
+  ProductStockAlertBadge,
+  ProductStockQuantityCell,
+} from './product-stock-alert-ui'
 
 function alertRank(level: StockAlertLevel): number {
   if (level === 'out') return 0
@@ -23,12 +23,6 @@ export function sortListingsByStockAlert(listings: ProductListingApi[]): Product
     if (d !== 0) return d
     return a.platform.localeCompare(b.platform)
   })
-}
-
-function alertLabel(t: (key: ShellStringKey) => string, level: StockAlertLevel): string {
-  if (level === 'out') return t('productsDetailStockAlertOutShort')
-  if (level === 'low') return t('productsDetailStockAlertLowShort')
-  return '—'
 }
 
 export function createProductDetailChannelsColumns(
@@ -79,11 +73,7 @@ export function createProductDetailChannelsColumns(
           title={t('productsDetailListingColStock')}
         />
       ),
-      cell: ({ row }) => (
-        <span className={cn('block w-full text-right text-sm', NUM)}>
-          {row.original.stock_quantity != null ? row.original.stock_quantity : '—'}
-        </span>
-      ),
+      cell: ({ row }) => <ProductStockQuantityCell quantity={row.original.stock_quantity} />,
     },
     {
       id: 'stock_alert',
@@ -91,17 +81,7 @@ export function createProductDetailChannelsColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsDetailListingColAlert')} />
       ),
-      cell: ({ row }) => {
-        const level = row.original.stock_alert
-        if (level === 'none') {
-          return <span className="text-sm text-text-tertiary">—</span>
-        }
-        return (
-          <Badge variant={level === 'out' ? 'error' : 'warning'} className="text-[10px]">
-            {alertLabel(t, level)}
-          </Badge>
-        )
-      },
+      cell: ({ row }) => <ProductStockAlertBadge level={row.original.stock_alert} t={t} />,
     },
     {
       id: 'period_sales',
@@ -114,7 +94,7 @@ export function createProductDetailChannelsColumns(
         />
       ),
       cell: ({ row }) => (
-        <span className={cn('block w-full text-right text-sm', NUM)}>
+        <span className="block w-full text-right text-sm tabular-nums">
           {fmtBase(row.original.period_sales)}
         </span>
       ),
@@ -130,7 +110,7 @@ export function createProductDetailChannelsColumns(
         />
       ),
       cell: ({ row }) => (
-        <span className={cn('block w-full text-right text-sm', NUM)}>{row.original.period_orders}</span>
+        <span className="block w-full text-right text-sm tabular-nums">{row.original.period_orders}</span>
       ),
     },
     {
@@ -144,7 +124,9 @@ export function createProductDetailChannelsColumns(
         />
       ),
       cell: ({ row }) => (
-        <span className={cn('block w-full text-right text-sm', NUM)}>{row.original.period_units_sold}</span>
+        <span className="block w-full text-right text-sm tabular-nums">
+          {row.original.period_units_sold}
+        </span>
       ),
     },
     {
@@ -160,7 +142,7 @@ export function createProductDetailChannelsColumns(
       cell: ({ row }) => {
         const li = row.original
         return (
-          <span className={cn('block w-full text-right text-sm', NUM)}>
+          <span className="block w-full text-right text-sm tabular-nums">
             {li.platform_price != null && li.currency
               ? fmtCurrency(li.platform_price, li.currency)
               : '—'}

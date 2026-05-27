@@ -35,12 +35,14 @@ export function formatProductDetailDateTime(iso: string, lang: string): string {
   })
 }
 
-export function latestListingSyncIso(detail: ProductDetailApi): string {
-  let latestMs = new Date(detail.updated_at).getTime()
+/** Latest channel catalog touch across listings (Shopify, etc.); excludes Alenna manual edits. */
+export function latestListingSyncIso(detail: ProductDetailApi): string | null {
+  let latestMs: number | null = null
   for (const listing of detail.listings) {
-    if (!listing.stock_observed_at) continue
-    const ms = new Date(listing.stock_observed_at).getTime()
-    if (ms > latestMs) latestMs = ms
+    const iso = listing.platform_synced_at
+    if (!iso) continue
+    const ms = new Date(iso).getTime()
+    if (latestMs == null || ms > latestMs) latestMs = ms
   }
-  return new Date(latestMs).toISOString()
+  return latestMs != null ? new Date(latestMs).toISOString() : null
 }

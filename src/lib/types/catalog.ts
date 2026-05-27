@@ -23,6 +23,7 @@ export type ProductListingApi = {
   period_units_sold: number
   stock_quantity: number | null
   stock_observed_at: string | null
+  platform_synced_at: string | null
   prev_month_units_sold: number
   stock_alert: StockAlertLevel
 }
@@ -48,6 +49,8 @@ export type ProductVariantSummaryApi = {
   image_url: string | null
   listing_count: number
   platforms: string[]
+  stock_quantity: number | null
+  stock_alert: StockAlertLevel
   period_sales: number
   period_orders: number
   period_units_sold: number
@@ -66,6 +69,8 @@ export type ProductSummaryApi = {
   platforms: string[]
   listing_count: number
   variant_count: number
+  stock_quantity: number | null
+  stock_alert: StockAlertLevel
   cost_missing: boolean
   created_at: string
   updated_at: string

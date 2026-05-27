@@ -380,6 +380,8 @@ export function ProductsDataTable({
                 `${t("productsTablePageLabel")} ${page} ${t("productsTableOf")} ${totalPages}`,
               pageButtonAria: (page, totalPages) =>
                 `${t("productsTablePageLabel")} ${page} ${t("productsTableOf")} ${totalPages}`,
+              goToPageLabel: t("productsTableGoToPage"),
+              goToPageAria: t("productsTableGoToPageAria"),
             }}
           />
         }

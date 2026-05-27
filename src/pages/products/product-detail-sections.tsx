@@ -4,6 +4,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
+import { Skeleton } from '@/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 import { ProductDetailChannelsTable } from './product-detail-channels-table'
@@ -32,7 +33,7 @@ type ProductDetailSectionsProps = {
   pickerStrings: DateRangePickerStrings
   showInsightValues: boolean
   insightKpi: (value: ReactNode) => ReactNode
-  isFetching: boolean
+  insightsFetching: boolean
   onEditCost: () => void
 }
 
@@ -55,7 +56,7 @@ export function ProductDetailSections({
   pickerStrings,
   showInsightValues,
   insightKpi,
-  isFetching,
+  insightsFetching,
   onEditCost,
 }: ProductDetailSectionsProps) {
   const hasVariants = (detail.variants?.length ?? 0) > 0
@@ -128,28 +129,18 @@ export function ProductDetailSections({
                 className="rounded-md border border-border-subtle bg-muted/20 px-3 py-2.5"
               >
                 <p className="text-xs font-medium text-text-secondary">{kpi.label}</p>
-                <p className={kpiClass(showInsightValues)}>{kpi.value}</p>
+                <p className={kpiClass(showInsightValues)}>
+                  {insightsFetching ? (
+                    <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
+                  ) : (
+                    kpi.value
+                  )}
+                </p>
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
-
-      {!hasVariants ? (
-        <ProductDetailConfigSection
-          t={t}
-          baseCurrency={baseCurrency}
-          bigCostFormatted={bigCostFormatted}
-          updatedBadge={updatedBadge}
-          effectiveSinceLabel={effectiveSinceLabel}
-          avgHistory={avgHistory}
-          chartData={chartData}
-          costAmountWithBaseCode={costAmountWithBaseCode}
-          fmtBase={fmtBase}
-          updatedAtIso={detail.updated_at}
-          onEditCost={onEditCost}
-        />
-      ) : null}
 
       {hasVariants ? (
         <ProductDetailVariantsTable
@@ -173,7 +164,7 @@ export function ProductDetailSections({
             <ProductDetailChannelsTable
               listings={detail.listings}
               isLoading={false}
-              isFetching={isFetching}
+              isFetching={insightsFetching}
               t={t}
               fmtBase={fmtBase}
               emptyContent={
@@ -185,6 +176,22 @@ export function ProductDetailSections({
           </CardContent>
         </Card>
       )}
+
+      {!hasVariants ? (
+        <ProductDetailConfigSection
+          t={t}
+          baseCurrency={baseCurrency}
+          bigCostFormatted={bigCostFormatted}
+          updatedBadge={updatedBadge}
+          effectiveSinceLabel={effectiveSinceLabel}
+          avgHistory={avgHistory}
+          chartData={chartData}
+          costAmountWithBaseCode={costAmountWithBaseCode}
+          fmtBase={fmtBase}
+          updatedAtIso={detail.updated_at}
+          onEditCost={onEditCost}
+        />
+      ) : null}
     </div>
   )
 }

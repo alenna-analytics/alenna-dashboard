@@ -20,6 +20,7 @@ import {
 } from "@/ui/dropdown-menu"
 
 import { ProductPlatformLogoName } from "./product-platform-logo-name"
+import { ProductStockAlertBadge } from "./product-stock-alert-ui"
 import { ProductTableThumb } from "./product-table-thumb"
 
 const EMPTY_CELL = "—"
@@ -146,11 +147,19 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
       cell: ({ row }) => {
         const st = row.original.status
         return (
-          <Badge variant={statusBadgeVariant(st)} className="uppercase tracking-wide">
-            {statusLabel(t, st)}
-          </Badge>
+          <Badge variant={statusBadgeVariant(st)}>{statusLabel(t, st)}</Badge>
         )
       },
+      enableHiding: true,
+    },
+    {
+      accessorKey: "stock_alert",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("productsDetailListingColAlert")} />
+      ),
+      cell: ({ row }) => (
+        <ProductStockAlertBadge level={row.original.stock_alert ?? "none"} t={t} />
+      ),
       enableHiding: true,
     },
     {

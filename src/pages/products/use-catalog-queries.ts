@@ -59,6 +59,7 @@ export function useProductDetailQuery(
   return useQuery({
     queryKey: ['catalog', 'product', tenantId, productId, metricsStart, metricsEnd],
     enabled: Boolean(tenantId && productId),
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<ProductDetailApi> => {
       const sp = new URLSearchParams()
       if (metricsStart) sp.set('metrics_start', metricsStart)

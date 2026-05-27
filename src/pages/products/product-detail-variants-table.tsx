@@ -13,13 +13,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/ui/table'
-import { cn } from '@/lib/utils'
 
 import { ProductTableThumb } from './product-table-thumb'
 import { productDetailChannelPillClassName } from './product-detail-platform-badges'
 import { productPlatformLabel } from './product-platform-label'
-
-const NUM = 'font-numeric tabular-nums'
+import { ProductStockAlertBadge, ProductStockQuantityCell } from './product-stock-alert-ui'
 
 type ProductDetailVariantsTableProps = {
   detail: ProductDetailApi
@@ -49,6 +47,8 @@ export function ProductDetailVariantsTable({
               <TableHead className="w-12" />
               <TableHead>{t('productsDetailVariantsColName')}</TableHead>
               <TableHead>{t('productsDetailVariantsColChannel')}</TableHead>
+              <TableHead className="text-right">{t('productsDetailListingColStock')}</TableHead>
+              <TableHead>{t('productsDetailListingColAlert')}</TableHead>
               <TableHead className="text-right">{t('productsDetailKpiSales')}</TableHead>
               <TableHead className="text-right">{t('productsDetailKpiOrders')}</TableHead>
               <TableHead className="text-right">{t('productsDetailKpiUnitsSold')}</TableHead>
@@ -100,13 +100,19 @@ export function ProductDetailVariantsTable({
                       <span className="text-text-tertiary">—</span>
                     )}
                   </TableCell>
-                  <TableCell className={cn('text-right', NUM)}>
+                  <TableCell>
+                    <ProductStockQuantityCell quantity={variant.stock_quantity} />
+                  </TableCell>
+                  <TableCell>
+                    <ProductStockAlertBadge level={variant.stock_alert ?? 'none'} t={t} />
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {fmtBase(variant.period_sales)} {baseCurrency}
                   </TableCell>
-                  <TableCell className={cn('text-right', NUM)}>
+                  <TableCell className="text-right tabular-nums">
                     {variant.period_orders}
                   </TableCell>
-                  <TableCell className={cn('text-right', NUM)}>
+                  <TableCell className="text-right tabular-nums">
                     {variant.period_units_sold}
                   </TableCell>
                 </TableRow>

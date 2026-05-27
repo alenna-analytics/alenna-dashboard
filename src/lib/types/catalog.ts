@@ -31,6 +31,7 @@ export type ProductListingPriceSegmentApi = {
   listing_id: string
   platform: string
   platform_sku: string
+  variant_label?: string | null
   currency: string
   effective_from: string
   effective_to: string | null
@@ -46,6 +47,7 @@ export type ProductVariantSummaryApi = {
   variant_label: string | null
   image_url: string | null
   listing_count: number
+  platforms: string[]
   period_sales: number
   period_orders: number
   period_units_sold: number

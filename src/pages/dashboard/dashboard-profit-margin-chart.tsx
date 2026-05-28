@@ -3,8 +3,9 @@ import { useMemo, useState } from 'react'
 import {
   CHART_LINE_MAIN_MS,
   CHART_LINE_MINI_MS,
-  useChartLineLoadAnimation,
-} from '@/pages/dashboard/use-chart-line-load-animation'
+  createLeadingEdgeDot,
+  useProgressivePointReveal,
+} from '@/pages/dashboard/chart-progressive-reveal'
 
 import type { Locale } from 'date-fns'
 import type { ChannelTimeSeriesRow, RevenueSeriesGranularity } from '@/lib/types/reports'
@@ -60,7 +61,7 @@ function ProfitMarginTooltip({
   if (!active || !payload?.length) return null
   const title = label !== undefined && label !== null ? String(label) : ''
   return (
-    <div className="rounded-md border border-border-default bg-background px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
+    <div className="rounded-md border border-border-default bg-[var(--platinum-blonde-400)] px-3.5 py-3 text-xs shadow-[var(--shadow-ink-md)]">
       {title ? <div className="mb-1.5 font-medium text-text-primary">{title}</div> : null}
       <div className="space-y-1 leading-snug">
         {payload.map((entry, i) => {
@@ -157,17 +158,17 @@ export function DashboardProfitMarginChart({
     })
   }, [convertValue, dateLocale, endDate, granularity, rows, startDate])
 
-  const zoomResetKey = useMemo(
-    () => `${startDate}|${endDate}|${granularity}|${fullRows.length}`,
-    [endDate, fullRows.length, granularity, startDate],
-  )
+  const zoomResetKey = useMemo(() => {
+    const sig = fullRows
+      .map((r) => `${r.label}:${r.marginPct}:${r.ovTotGross}`)
+      .join(';')
+    return `${startDate}|${endDate}|${granularity}|${sig}`
+  }, [endDate, fullRows, granularity, startDate])
 
   const [zoomRangeKey, setZoomRangeKey] = useState(zoomResetKey)
   const [zoomStart, setZoomStart] = useState(0)
   const [zoomEnd, setZoomEnd] = useState(() => Math.max(0, fullRows.length - 1))
   const [hiddenKeys, setHiddenKeys] = useState<Record<string, boolean>>({})
-
-  const chartLoadAnim = useChartLineLoadAnimation(zoomResetKey, CHART_LINE_MAIN_MS)
 
   const toggleLegendKey = (key: string) => {
     setHiddenKeys((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -187,15 +188,26 @@ export function DashboardProfitMarginChart({
     return fullRows.slice(start, end + 1)
   }, [fullRows, zoomStart, zoomEnd])
 
+  const { revealed: progressiveVisible, leadingIndex } = useProgressivePointReveal(
+    visibleData,
+    zoomResetKey,
+    CHART_LINE_MAIN_MS,
+  )
+  const { revealed: overviewVisibleData } = useProgressivePointReveal(
+    fullRows,
+    zoomResetKey,
+    CHART_LINE_MINI_MS,
+  )
+
   const composedChartData = useMemo(
     () =>
-      visibleData.map((row) => ({
+      progressiveVisible.map((row) => ({
         ...row,
         stkProfit: hiddenKeys.stkProfit ? 0 : row.stkProfit,
         stkMid: hiddenKeys.stkMid ? 0 : row.stkMid,
         stkTop: hiddenKeys.stkTop ? 0 : row.stkTop,
       })),
-    [hiddenKeys, visibleData],
+    [hiddenKeys, progressiveVisible],
   )
 
   const denseMain = visibleData.length > 18
@@ -238,7 +250,12 @@ export function DashboardProfitMarginChart({
                 marginPctLabel={t('reportsMonthlyLegendGrossMarginPct')}
               />
             }
-            wrapperStyle={{ outline: 'none' }}
+            wrapperStyle={{
+              outline: 'none',
+              background: 'transparent',
+              border: 'none',
+              boxShadow: 'none',
+            }}
             contentStyle={{
               margin: 0,
               padding: 0,
@@ -246,6 +263,7 @@ export function DashboardProfitMarginChart({
               border: 'none',
               borderRadius: 0,
               boxShadow: 'none',
+              backdropFilter: 'none',
             }}
           />
           <Bar
@@ -255,9 +273,7 @@ export function DashboardProfitMarginChart({
             stackId="tot"
             fill="var(--chart-4)"
             radius={[0, 0, 0, 0]}
-            isAnimationActive={chartLoadAnim}
-            animationDuration={CHART_LINE_MAIN_MS}
-            animationEasing="ease-out"
+            isAnimationActive={false}
           />
           <Bar
             yAxisId="left"
@@ -265,9 +281,7 @@ export function DashboardProfitMarginChart({
             name={t('dashboardProfitStackNetMinusProfit')}
             stackId="tot"
             fill="var(--chart-3)"
-            isAnimationActive={chartLoadAnim}
-            animationDuration={CHART_LINE_MAIN_MS}
-            animationEasing="ease-out"
+            isAnimationActive={false}
           />
           <Bar
             yAxisId="left"
@@ -276,9 +290,7 @@ export function DashboardProfitMarginChart({
             stackId="tot"
             fill="var(--chart-1)"
             radius={[4, 4, 0, 0]}
-            isAnimationActive={chartLoadAnim}
-            animationDuration={CHART_LINE_MAIN_MS}
-            animationEasing="ease-out"
+            isAnimationActive={false}
           />
           <Line
             yAxisId="right"
@@ -287,18 +299,15 @@ export function DashboardProfitMarginChart({
             name={t('reportsMonthlyLegendGrossMarginPct')}
             stroke="var(--danger)"
             strokeWidth={2.5}
-            dot={{ r: 3, fill: 'var(--danger)', strokeWidth: 0 }}
+            dot={createLeadingEdgeDot(leadingIndex, 'var(--danger)', 4)}
             opacity={hiddenKeys.marginPct ? 0.18 : 1}
-            isAnimationActive={chartLoadAnim}
-            animationBegin={200}
-            animationDuration={CHART_LINE_MAIN_MS}
-            animationEasing="ease-out"
+            isAnimationActive={false}
           />
         </ComposedChart>
       </ResponsiveContainer>
 
       <DashboardZoomStrip
-        dataWithIdx={fullRows}
+        dataWithIdx={overviewVisibleData}
         zoomStart={zoomStart}
         zoomEnd={zoomEnd}
         onBrushChange={(s, e) => {
@@ -314,9 +323,7 @@ export function DashboardProfitMarginChart({
               stroke="var(--chart-1)"
               strokeWidth={1.25}
               dot={false}
-              isAnimationActive={chartLoadAnim}
-              animationDuration={CHART_LINE_MINI_MS}
-              animationEasing="ease-out"
+              isAnimationActive={false}
             />
             <Line
               type="monotone"
@@ -325,10 +332,7 @@ export function DashboardProfitMarginChart({
               strokeWidth={1.25}
               strokeDasharray="4 3"
               dot={false}
-              isAnimationActive={chartLoadAnim}
-              animationBegin={100}
-              animationDuration={CHART_LINE_MINI_MS}
-              animationEasing="ease-out"
+              isAnimationActive={false}
             />
           </>
         }

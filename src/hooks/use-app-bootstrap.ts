@@ -7,7 +7,17 @@ import {
   type TenantSummary,
 } from '@/auth/hooks'
 import { apiFetch } from '@/lib/api'
+import { parseModuleIds } from '@/lib/modules/types'
 import type { MeResponse } from '@/lib/types/me-types'
+
+function normalizeMeResponse(raw: MeResponse): MeResponse {
+  return {
+    ...raw,
+    modules: parseModuleIds(Array.isArray(raw.modules) ? raw.modules : []),
+    trial_ends_at: raw.trial_ends_at ?? null,
+    trial_expired: Boolean(raw.trial_expired),
+  }
+}
 
 export function useAppBootstrap(): {
   tenants: TenantSummary[]
@@ -71,7 +81,7 @@ export function useAppBootstrap(): {
         const text = await res.text()
         throw new Error(text || res.statusText)
       }
-      const data = (await res.json()) as MeResponse
+      const data = normalizeMeResponse((await res.json()) as MeResponse)
       setMe(data)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Request failed')

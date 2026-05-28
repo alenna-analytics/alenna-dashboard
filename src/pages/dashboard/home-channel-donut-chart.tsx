@@ -1,6 +1,10 @@
 import { useMemo } from 'react'
 
-import { useChartLineLoadAnimation } from '@/pages/dashboard/use-chart-line-load-animation'
+import {
+  CHART_PIE_REVEAL_MS,
+  useProgressivePointReveal,
+  useRevealProgress,
+} from '@/pages/dashboard/chart-progressive-reveal'
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
@@ -16,8 +20,6 @@ const PALETTE = [
 ]
 const OVERFLOW_COLOR = 'var(--text-tertiary, #9aa0a6)'
 const TOP_N = 5
-const PIE_LOAD_MS = 1000
-
 export type HomeChannelDonutChartProps = {
   rows: ChannelBreakdownRow[]
   /** Convert a base-currency amount to display currency. */
@@ -27,6 +29,7 @@ export type HomeChannelDonutChartProps = {
   t: (key: ShellStringKey) => string
   /** Match adjacent chart height (e.g. top products column). */
   minBodyHeightPx?: number
+  isLoading?: boolean
 }
 
 type Slice = {
@@ -65,6 +68,7 @@ export function HomeChannelDonutChart({
   formatValue,
   t,
   minBodyHeightPx,
+  isLoading = false,
 }: HomeChannelDonutChartProps) {
   const slices = useMemo<Slice[]>(() => {
     const sorted = [...rows].sort((a, b) => b.gross_revenue - a.gross_revenue)
@@ -92,18 +96,47 @@ export function HomeChannelDonutChart({
     return head.filter((s) => s.value > 0)
   }, [rows, convertValue, t])
 
-  const pieAnimKey = useMemo(
-    () => slices.map((s) => `${s.key}:${s.value.toFixed(4)}`).join('|'),
-    [slices],
-  )
-  const pieLoadAnim = useChartLineLoadAnimation(pieAnimKey, PIE_LOAD_MS)
+  const pieAnimKey = useMemo(() => {
+    if (isLoading && slices.length === 0) return '__loading__'
+    return slices.map((s) => `${s.key}:${s.value.toFixed(4)}`).join('|')
+  }, [isLoading, slices])
+  const revealProgress = useRevealProgress(pieAnimKey, CHART_PIE_REVEAL_MS)
 
   const total = useMemo(
     () => slices.reduce((acc, s) => acc + s.value, 0),
     [slices],
   )
 
-  if (slices.length === 0 || total === 0) {
+  const isLoadingPlaceholder = isLoading && slices.length === 0
+
+  const { revealed: progressiveSlices } = useProgressivePointReveal(
+    slices,
+    pieAnimKey,
+    CHART_PIE_REVEAL_MS,
+  )
+
+  const displaySlices = useMemo(() => {
+    if (isLoadingPlaceholder) {
+      return [
+        {
+          key: '__loading__',
+          label: '',
+          value: revealProgress,
+          fill: 'var(--muted)',
+          isOverflow: false,
+        },
+      ]
+    }
+    return progressiveSlices
+  }, [isLoadingPlaceholder, progressiveSlices, revealProgress])
+
+  const displayTotal = useMemo(() => {
+    if (isLoadingPlaceholder) return 0
+    const sum = displaySlices.reduce((acc, s) => acc + s.value, 0)
+    return sum > 0 ? sum : total
+  }, [displaySlices, isLoadingPlaceholder, total])
+
+  if (!isLoading && (slices.length === 0 || total === 0)) {
     return (
       <p className="rounded-md px-2 py-10 text-center text-sm text-text-secondary">
         {t('homeChannelDonutEmpty')}
@@ -125,26 +158,26 @@ export function HomeChannelDonutChart({
             {t('homeChannelDonutCenterLabel')}
           </span>
           <span className="text-lg font-semibold tracking-tight text-text-primary">
-            {formatValue(total)}
+            {displayTotal > 0 ? formatValue(displayTotal) : '—'}
           </span>
         </div>
         <div className="relative z-[5] h-full min-h-0 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
+            <PieChart key={pieAnimKey}>
               <Pie
-                data={slices}
+                data={displaySlices}
                 dataKey="value"
                 nameKey="label"
                 innerRadius="60%"
                 outerRadius="90%"
                 stroke="var(--bg-default, #fff)"
                 strokeWidth={2}
-                paddingAngle={1}
-                isAnimationActive={pieLoadAnim}
-                animationDuration={PIE_LOAD_MS}
-                animationEasing="ease-out"
+                paddingAngle={displaySlices.length > 1 ? 1 : 0}
+                isAnimationActive={false}
+                startAngle={90}
+                endAngle={-270}
               >
-                {slices.map((s) => (
+                {displaySlices.map((s) => (
                   <Cell key={s.key} fill={s.fill} />
                 ))}
               </Pie>
@@ -171,9 +204,10 @@ export function HomeChannelDonutChart({
           </ResponsiveContainer>
         </div>
       </div>
-      <ul className="flex flex-1 flex-col gap-2 text-sm">
-        {slices.map((s) => {
-          const pct = total > 0 ? (s.value / total) * 100 : 0
+      <ul className="flex flex-1 flex-col gap-2 text-sm" aria-busy={isLoading || undefined}>
+        {displaySlices.map((s) => {
+          if (s.key === '__loading__') return null
+          const pct = displayTotal > 0 ? (s.value / displayTotal) * 100 : 0
           return (
             <li key={s.key} className="flex items-center gap-2">
               <span

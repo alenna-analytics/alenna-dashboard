@@ -12,7 +12,7 @@ import { useMoney } from '@/hooks/use-money'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { Button } from '@/ui/button'
-import { Card, CardContent, CardHeader } from '@/ui/card'
+import { Card, CardContent } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Input } from '@/ui/input'
 import {
@@ -35,9 +35,12 @@ import {
 } from '@/shell/providers/global-activity-provider'
 
 import { buildProductCostPriceChartData } from './product-cost-chart-points'
+import { productChannelSeriesLabel } from './product-platform-label'
 import { ProductDetailSections } from './product-detail-sections'
-import { ProductDetailSkuRow } from './product-detail-sku-row'
+import { ProductDetailHeader } from './product-detail-header'
+import { ProductDetailUnsavedBar } from './product-detail-unsaved-bar'
 import { defaultProductInsightRange } from './product-detail-range'
+import { productDetailDateLocale } from './product-detail-header-utils'
 import {
   useCatalogJobQuery,
   useEnqueueCogsBackfillMutation,
@@ -105,15 +108,20 @@ export function ProductDetailPage() {
   return <ProductDetailBody key={productId} productId={productId} />
 }
 
-function ProductThumbSm({ url, title }: { url: string | null; title: string }) {
+function ProductDetailHeaderThumb({ url, title }: { url: string | null; title: string }) {
   const [broken, setBroken] = useState(!url)
+  const thumbClass =
+    'size-[150px] shrink-0 rounded-md border border-border-subtle object-cover'
   if (!url || broken) {
     return (
       <div
-        className="flex size-16 shrink-0 items-center justify-center rounded-md border border-border-subtle bg-muted/50 text-text-tertiary"
+        className={cn(
+          'flex items-center justify-center bg-muted/50 text-text-tertiary',
+          thumbClass,
+        )}
         aria-hidden
       >
-        <ImageIcon className="size-6 opacity-70" />
+        <ImageIcon className="size-10 opacity-70" />
       </div>
     )
   }
@@ -121,7 +129,9 @@ function ProductThumbSm({ url, title }: { url: string | null; title: string }) {
     <img
       src={url}
       alt={title}
-      className="size-16 shrink-0 rounded-md border border-border-subtle object-cover"
+      className={thumbClass}
+      width={150}
+      height={150}
       loading="eager"
       onError={() => setBroken(true)}
     />
@@ -131,43 +141,27 @@ function ProductThumbSm({ url, title }: { url: string | null; title: string }) {
 function ProductDetailSkeleton() {
   return (
     <DashboardPage className="flex flex-1 flex-col gap-6 lg:gap-8">
-      <div className="flex min-w-0 gap-4 border-b border-border-subtle pb-6">
-        <Skeleton className="size-16 shrink-0 rounded-md" />
-        <div className="min-w-0 flex-1 space-y-2">
+      <div className="flex min-w-0 items-start justify-between gap-6 border-b border-border-subtle pb-6">
+        <div className="min-w-0 flex-1 space-y-3">
           <Skeleton className="h-9 w-full max-w-lg" />
-          <Skeleton className="h-8 w-full max-w-sm" />
-          <Skeleton className="h-4 w-44" />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-row flex-wrap items-center justify-between gap-3">
-          <Skeleton className="h-8 w-64 max-w-full" />
-          <Skeleton className="h-10 w-44 shrink-0" />
-        </div>
-        <div className="grid gap-4 lg:grid-cols-3 lg:items-stretch">
-          <div className="flex flex-col gap-3 lg:col-span-1">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <Card key={i} size="sm" className="flex-1">
-                <CardHeader className="pb-2">
-                  <Skeleton className="h-3 w-28" />
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Skeleton className="h-10 w-40" />
-                  <Skeleton className="h-3 w-full max-w-[12rem]" />
-                  <Skeleton className="h-7 w-36 rounded-full" />
-                </CardContent>
-              </Card>
+          <div className="flex gap-2">
+            <Skeleton className="h-7 w-24 rounded-md" />
+            <Skeleton className="h-7 w-24 rounded-md" />
+          </div>
+          <div className="flex w-full gap-4 pt-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex flex-1 flex-col gap-1.5 border-l border-border-subtle pl-5 first:border-l-0 first:pl-0">
+                <Skeleton className="h-3 w-14" />
+                <Skeleton className="h-4 w-20" />
+              </div>
             ))}
           </div>
-          <div className="flex min-w-0 flex-col lg:col-span-2">
-            <Skeleton className="mb-2 h-4 w-48" />
-            <Skeleton className="min-h-64 flex-1 w-full rounded-md" />
-          </div>
+          <Skeleton className="h-9 w-full max-w-xl rounded-md" />
         </div>
+        <Skeleton className="size-[150px] shrink-0 rounded-md" />
       </div>
 
-      <div className="flex flex-col gap-4 rounded-none border-0 p-0 shadow-none">
+      <div className="flex flex-col gap-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
             <Skeleton className="h-7 w-40" />
@@ -186,16 +180,16 @@ function ProductDetailSkeleton() {
             </div>
           ))}
         </div>
-      </div>
 
-      <div className="flex flex-col gap-3 rounded-none border-0 p-0 shadow-none">
-        <Skeleton className="h-6 w-56" />
-        <Skeleton className="h-3 w-72 max-w-full" />
-        <div className="overflow-hidden rounded-md border border-border-subtle">
-          <Skeleton className="h-10 w-full rounded-none" />
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-11 w-full rounded-none border-t border-border-subtle" />
-          ))}
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-6 w-56" />
+          <Skeleton className="h-3 w-72 max-w-full" />
+          <div className="overflow-hidden rounded-md border border-border-subtle">
+            <Skeleton className="h-10 w-full rounded-none" />
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-11 w-full rounded-none border-t border-border-subtle" />
+            ))}
+          </div>
         </div>
       </div>
     </DashboardPage>
@@ -231,10 +225,23 @@ function ProductDetailBody({ productId }: { productId: string }) {
   const [rangeStart, setRangeStart] = useState(defaultBackfillRange().start)
   const [rangeEnd, setRangeEnd] = useState(defaultBackfillRange().end)
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
-  const [editingSku, setEditingSku] = useState(false)
   const [skuDraft, setSkuDraft] = useState('')
+  const [skuSeed, setSkuSeed] = useState<{ productId: string; sku: string } | null>(null)
 
   const jobQuery = useCatalogJobQuery(activeJobId, Boolean(activeJobId))
+
+  const serverSku = detail?.internal_sku ?? ''
+  if (detail) {
+    const skuDirtyForReseed = skuDraft.trim() !== serverSku.trim()
+    const needsSkuReseed =
+      skuSeed === null ||
+      skuSeed.productId !== detail.id ||
+      (!skuDirtyForReseed && skuSeed.sku !== serverSku)
+    if (needsSkuReseed) {
+      setSkuSeed({ productId: detail.id, sku: serverSku })
+      setSkuDraft(serverSku)
+    }
+  }
 
   const pickerStrings: DateRangePickerStrings = useMemo(
     () => ({
@@ -281,8 +288,10 @@ function ProductDetailBody({ productId }: { productId: string }) {
     return buildProductCostPriceChartData(detail.cost_history, detail.listing_price_history, {
       todayYmd: t0,
       baseCurrency,
+      channelSeriesLabel: (platform, variantLabel) =>
+        productChannelSeriesLabel(platform, variantLabel, t),
     })
-  }, [detail, baseCurrency])
+  }, [detail, baseCurrency, t])
 
   const avgHistory = useMemo(
     () => (detail ? avgCostFromHistory(detail.cost_history, baseCurrency) : null),
@@ -350,12 +359,19 @@ function ProductDetailBody({ productId }: { productId: string }) {
     }
   }
 
+  const savedSku = detail?.internal_sku?.trim() ?? ''
+  const skuDirty = detail != null && skuDraft.trim() !== savedSku
+
+  const handleSkuDiscard = useCallback(() => {
+    if (!detail) return
+    setSkuDraft(detail.internal_sku ?? '')
+  }, [detail])
+
   const handleSkuSave = async () => {
     const trimmed = skuDraft.trim()
     try {
       await patchMutation.mutateAsync({ internal_sku: trimmed.length > 0 ? trimmed : null })
       toast.success(t('productsDetailToastSkuSaved'))
-      setEditingSku(false)
     } catch {
       toast.error(t('productsDetailToastSaveFailed'))
     }
@@ -396,8 +412,12 @@ function ProductDetailBody({ productId }: { productId: string }) {
     return <div className="p-8 text-sm text-destructive">Failed to load product.</div>
   }
 
-  if (detailQuery.isLoading || !detail) {
+  if (!detail && detailQuery.isPending) {
     return <ProductDetailSkeleton />
+  }
+
+  if (!detail) {
+    return <div className="p-8 text-sm text-text-secondary">Failed to load product.</div>
   }
 
   const bigCostFormatted = detail.cost != null ? fmtBase(detail.cost) : '—'
@@ -410,9 +430,9 @@ function ProductDetailBody({ productId }: { productId: string }) {
   const hasInsightData =
     detail.period_start != null ||
     detail.period_sales > 0 ||
-    detail.period_orders > 0 ||
     detail.period_units_sold > 0 ||
-    Number(detail.period_cogs) > 0
+    detail.consolidated_stock_quantity != null ||
+    detail.inventory_days != null
   const showInsightValues = hasInsightData || Boolean(insightStart && insightEnd)
 
   const sheetBusy = patchMutation.isPending || backfillMutation.isPending
@@ -421,7 +441,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
     showInsightValues ? value : t('productsDetailKpiNoData')
 
   return (
-    <DashboardPage className="flex flex-1 flex-col gap-6 lg:gap-8">
+    <DashboardPage className="flex min-h-full flex-1 flex-col gap-6 lg:gap-8">
       <Sheet open={sheetOpen} onOpenChange={handleSheetOpenChange}>
         <SheetContent side="right" className="max-w-md">
           <SheetHeader>
@@ -519,29 +539,14 @@ function ProductDetailBody({ productId }: { productId: string }) {
         </SheetContent>
       </Sheet>
 
-      <div className="flex min-w-0 gap-4 border-b border-border-subtle pb-6">
-        <ProductThumbSm url={detail.image_url} title={detail.title} />
-        <div className="min-w-0 space-y-2">
-          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[var(--color-text-primary)] sm:text-3xl">
-            {detail.title}
-          </h1>
-          <ProductDetailSkuRow
-            internalSku={detail.internal_sku}
-            t={t}
-            editing={editingSku}
-            draft={skuDraft}
-            onDraftChange={setSkuDraft}
-            onStartEdit={() => {
-              setSkuDraft(detail.internal_sku ?? '')
-              setEditingSku(true)
-            }}
-            onCancelEdit={() => setEditingSku(false)}
-            onSave={() => void handleSkuSave()}
-            savePending={patchMutation.isPending}
-          />
-          {detail.brand ? <p className="text-sm text-text-secondary">{detail.brand}</p> : null}
-        </div>
-      </div>
+      <ProductDetailHeader
+        detail={detail}
+        t={t}
+        lang={lang}
+        thumb={<ProductDetailHeaderThumb url={detail.image_url} title={detail.title} />}
+        skuDraft={skuDraft}
+        onSkuDraftChange={setSkuDraft}
+      />
 
       {futureSegment ? (
         <Card size="sm" variant="solid" className="border-amber-500/30 bg-amber-500/10">
@@ -570,8 +575,17 @@ function ProductDetailBody({ productId }: { productId: string }) {
         pickerStrings={pickerStrings}
         showInsightValues={showInsightValues}
         insightKpi={insightKpi}
-        isFetching={detailQuery.isFetching}
+        insightsFetching={detailQuery.isFetching}
         onEditCost={openEditSheet}
+        dateLocale={productDetailDateLocale(lang)}
+      />
+
+      <ProductDetailUnsavedBar
+        open={skuDirty}
+        t={t}
+        onDiscard={handleSkuDiscard}
+        onSave={() => void handleSkuSave()}
+        savePending={patchMutation.isPending}
       />
     </DashboardPage>
   )

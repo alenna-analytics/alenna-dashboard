@@ -10,7 +10,6 @@ import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/ui/card'
 import { Switch } from '@/ui/switch'
-import { cn } from '@/lib/utils'
 
 import {
   integrationDescription,
@@ -78,9 +77,7 @@ export function IntegrationListCard({
     <li>
       <Card
         size="sm"
-        className={cn(
-          'h-full transition-shadow hover:shadow-[var(--glass-shadow-hover)]',
-        )}
+        className="h-full hover:shadow-[var(--shadow-ink-sm)]"
       >
         <CardHeader className="flex flex-col items-start gap-3 border-0 pb-0">
           <IntegrationLogo src={integration.logoSrc} alt={name} size="xl" />

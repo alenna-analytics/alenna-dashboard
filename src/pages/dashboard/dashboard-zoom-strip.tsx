@@ -12,7 +12,7 @@ import {
 export type ZoomStripDatum = { label: string; __idx: number }
 
 type DashboardZoomStripProps = {
-  dataWithIdx: ZoomStripDatum[]
+  dataWithIdx: readonly ZoomStripDatum[]
   zoomStart: number
   zoomEnd: number
   onBrushChange: (startIndex: number, endIndex: number) => void

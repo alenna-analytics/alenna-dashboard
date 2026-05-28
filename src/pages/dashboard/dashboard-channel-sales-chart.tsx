@@ -3,8 +3,9 @@ import { useMemo, useState } from 'react'
 import {
   CHART_LINE_MAIN_MS,
   CHART_LINE_MINI_MS,
-  useChartLineLoadAnimation,
-} from '@/pages/dashboard/use-chart-line-load-animation'
+  createLeadingEdgeDot,
+  useProgressivePointReveal,
+} from '@/pages/dashboard/chart-progressive-reveal'
 
 import type { Locale } from 'date-fns'
 import type { ChannelTimeSeriesRow, RevenueSeriesGranularity } from '@/lib/types/reports'
@@ -197,18 +198,17 @@ export function DashboardChannelSalesChart({
     })
   }, [channelsOrdered, convertValue, dateLocale, endDate, granularity, rows, startDate])
 
-  const zoomResetKey = useMemo(
-    () =>
-      `${startDate}|${endDate}|${granularity}|${channelsOrdered.length}|${fullRows.length}`,
-    [channelsOrdered.length, endDate, fullRows.length, granularity, startDate],
-  )
+  const zoomResetKey = useMemo(() => {
+    const sig = fullRows
+      .map((r) => `${String(r.label)}:${String(r.ovTotGross)}:${String(r.ovTotNet)}`)
+      .join(';')
+    return `${startDate}|${endDate}|${granularity}|${channelsOrdered.length}|${sig}`
+  }, [channelsOrdered.length, endDate, fullRows, granularity, startDate])
 
   const [zoomRangeKey, setZoomRangeKey] = useState(zoomResetKey)
   const [zoomStart, setZoomStart] = useState(0)
   const [zoomEnd, setZoomEnd] = useState(() => Math.max(0, fullRows.length - 1))
   const [hiddenKeys, setHiddenKeys] = useState<Record<string, boolean>>({})
-
-  const lineLoadAnim = useChartLineLoadAnimation(zoomResetKey, CHART_LINE_MAIN_MS)
 
   const toggleLegendKey = (key: string) => {
     setHiddenKeys((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -230,6 +230,17 @@ export function DashboardChannelSalesChart({
 
   const denseMain = visibleData.length > 18
 
+  const { revealed: chartVisibleData, leadingIndex } = useProgressivePointReveal(
+    visibleData,
+    zoomResetKey,
+    CHART_LINE_MAIN_MS,
+  )
+  const { revealed: overviewVisibleData } = useProgressivePointReveal(
+    fullRows,
+    zoomResetKey,
+    CHART_LINE_MINI_MS,
+  )
+
   if (channelsOrdered.length === 0) {
     return (
       <p className="rounded-md px-2 py-10 text-center text-sm text-text-secondary">
@@ -243,6 +254,7 @@ export function DashboardChannelSalesChart({
     const stroke = PALETTE[i % PALETTE.length]
     const gKey = `g${i}`
     const nKey = `n${i}`
+    const showLeadingDot = i === 0
     return [
       <Line
         key={`g-${ch.connection_id}`}
@@ -251,11 +263,9 @@ export function DashboardChannelSalesChart({
         name={`${lbl} · ${t('reportsGrossRevenue')}`}
         stroke={stroke}
         strokeWidth={2}
-        dot={{ r: 2, fill: stroke, strokeWidth: 0 }}
+        dot={showLeadingDot ? createLeadingEdgeDot(leadingIndex, stroke, 3) : false}
         opacity={hiddenKeys[gKey] ? 0.18 : 1}
-        isAnimationActive={lineLoadAnim}
-        animationDuration={CHART_LINE_MAIN_MS}
-        animationEasing="ease-out"
+        isAnimationActive={false}
       />,
       <Line
         key={`n-${ch.connection_id}`}
@@ -265,11 +275,9 @@ export function DashboardChannelSalesChart({
         stroke={stroke}
         strokeWidth={2}
         strokeDasharray="6 4"
-        dot={{ r: 2, fill: stroke, strokeWidth: 0 }}
+        dot={false}
         opacity={hiddenKeys[nKey] ? 0.18 : 1}
-        isAnimationActive={lineLoadAnim}
-        animationDuration={CHART_LINE_MAIN_MS}
-        animationEasing="ease-out"
+        isAnimationActive={false}
       />,
     ]
   })
@@ -281,7 +289,7 @@ export function DashboardChannelSalesChart({
       )}
     >
       <ResponsiveContainer width="100%" height={312}>
-        <LineChart data={visibleData} margin={{ top: 8, right: 8, left: 4, bottom: 4 }}>
+        <LineChart data={chartVisibleData} margin={{ top: 8, right: 8, left: 4, bottom: 4 }}>
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="label"
@@ -313,7 +321,7 @@ export function DashboardChannelSalesChart({
       </ResponsiveContainer>
 
       <DashboardZoomStrip
-        dataWithIdx={fullRows}
+        dataWithIdx={overviewVisibleData}
         zoomStart={zoomStart}
         zoomEnd={zoomEnd}
         onBrushChange={(s, e) => {
@@ -329,9 +337,7 @@ export function DashboardChannelSalesChart({
               stroke="var(--chart-1)"
               strokeWidth={1.25}
               dot={false}
-              isAnimationActive={lineLoadAnim}
-              animationDuration={CHART_LINE_MINI_MS}
-              animationEasing="ease-out"
+              isAnimationActive={false}
             />
             <Line
               type="monotone"
@@ -340,10 +346,7 @@ export function DashboardChannelSalesChart({
               strokeWidth={1.25}
               strokeDasharray="4 3"
               dot={false}
-              isAnimationActive={lineLoadAnim}
-              animationBegin={100}
-              animationDuration={CHART_LINE_MINI_MS}
-              animationEasing="ease-out"
+              isAnimationActive={false}
             />
           </>
         }

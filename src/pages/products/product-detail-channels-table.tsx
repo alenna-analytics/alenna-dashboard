@@ -5,7 +5,10 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductListingApi } from '@/lib/types/catalog'
 import { DataTable } from '@/ui/data-table/data-table'
 
-import { createProductDetailChannelsColumns } from './product-detail-channels-columns'
+import {
+  createProductDetailChannelsColumns,
+  sortListingsByStockAlert,
+} from './product-detail-channels-columns'
 
 type ProductDetailChannelsTableProps = {
   listings: ProductListingApi[]
@@ -25,10 +28,11 @@ export function ProductDetailChannelsTable({
   emptyContent,
 }: ProductDetailChannelsTableProps) {
   const columns = useMemo(() => createProductDetailChannelsColumns(t, fmtBase), [t, fmtBase])
+  const sortedListings = useMemo(() => sortListingsByStockAlert(listings), [listings])
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
   const table = useReactTable({
-    data: listings,
+    data: sortedListings,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id,

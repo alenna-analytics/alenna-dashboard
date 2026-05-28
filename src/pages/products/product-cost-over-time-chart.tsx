@@ -15,8 +15,9 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
   CHART_LINE_MAIN_MS,
   CHART_LINE_MINI_MS,
-  useChartLineLoadAnimation,
-} from '@/pages/dashboard/use-chart-line-load-animation'
+  createLeadingEdgeDot,
+  useProgressivePointReveal,
+} from '@/pages/dashboard/chart-progressive-reveal'
 import { cn } from '@/lib/utils'
 import { fmtCurrency } from '@/pages/reports/reports-ui-helpers'
 
@@ -121,8 +122,6 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
     return `${meta}#${sig}`
   }, [data, series])
 
-  const lineLoadAnim = useChartLineLoadAnimation(chartResetKey, CHART_LINE_MAIN_MS)
-
   const dataWithIndex = useMemo(
     () => data.map((d, i) => ({ ...d, __idx: i })),
     [data],
@@ -133,6 +132,17 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
     const end = Math.max(start, Math.min(zoomEnd, dataWithIndex.length - 1))
     return dataWithIndex.slice(start, end + 1)
   }, [dataWithIndex, zoomStart, zoomEnd])
+
+  const { revealed: chartVisibleData, leadingIndex } = useProgressivePointReveal(
+    visibleData,
+    chartResetKey,
+    CHART_LINE_MAIN_MS,
+  )
+  const { revealed: overviewVisibleData } = useProgressivePointReveal(
+    dataWithIndex,
+    chartResetKey,
+    CHART_LINE_MINI_MS,
+  )
 
   if (data.length === 0) {
     return (
@@ -206,7 +216,7 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
         </button>
       </div>
       <ResponsiveContainer width="100%" height={280}>
-        <LineChart data={visibleData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <LineChart data={chartVisibleData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid stroke={GRID} strokeDasharray="3 6" vertical={false} />
           <XAxis
             dataKey="dateKey"
@@ -230,7 +240,7 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
             content={<ChartTooltip t={t} seriesByKey={seriesByKey} />}
             cursor={{ stroke: 'var(--color-border-default)' }}
           />
-          {series.map((s) => (
+          {series.map((s, seriesIndex) => (
             <Line
               key={s.key}
               type="stepAfter"
@@ -239,12 +249,10 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
               stroke={s.color}
               strokeWidth={2}
               strokeDasharray={s.kind === 'channel' ? '6 4' : undefined}
-              dot={false}
+              dot={seriesIndex === 0 ? createLeadingEdgeDot(leadingIndex, s.color, 4) : false}
               activeDot={{ r: 4 }}
               opacity={hiddenKeys[s.key] ? 0.18 : 1}
-              isAnimationActive={lineLoadAnim}
-              animationDuration={CHART_LINE_MAIN_MS}
-              animationEasing="ease-out"
+              isAnimationActive={false}
             />
           ))}
         </LineChart>
@@ -253,7 +261,7 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
         <div className="relative h-16 w-full">
           <div className="absolute inset-0">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dataWithIndex} margin={{ top: 4, right: 4, left: 4, bottom: 2 }}>
+              <LineChart data={overviewVisibleData} margin={{ top: 4, right: 4, left: 4, bottom: 2 }}>
                 <XAxis dataKey="dateKey" hide />
                 <YAxis hide domain={['auto', 'auto']} />
                 <ReferenceArea
@@ -273,9 +281,7 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
                     strokeWidth={1.5}
                     strokeDasharray={s.kind === 'channel' ? '4 3' : undefined}
                     dot={false}
-                    isAnimationActive={lineLoadAnim}
-                    animationDuration={CHART_LINE_MINI_MS}
-                    animationEasing="ease-out"
+                    isAnimationActive={false}
                     opacity={hiddenKeys[s.key] ? 0.2 : 0.9}
                   />
                 ))}

@@ -14,6 +14,7 @@ import { Skeleton } from '@/ui/skeleton'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
+import { useModule } from '@/lib/modules/use-modules'
 import { KpiCard } from '@/ui/kpi-card'
 
 import { DashboardChannelSalesChart } from './dashboard-channel-sales-chart'
@@ -23,6 +24,10 @@ import { HomeChannelDonutChart } from './home-channel-donut-chart'
 import { HomeProductFilter } from './home-product-filter'
 import { HomeTopProductsChart } from './home-top-products-chart'
 import { getTopProductsChartHeightPx } from './home-top-products-chart-layout'
+import { homeActiveAlertsKpiLabels } from './home-active-alerts-kpi-labels'
+import { HomeActiveAlertsKpi } from './home-active-alerts-kpi'
+import { HomeStockInventoryAlerts } from './home-stock-inventory-alerts'
+import { useProductStockAlertCountsQuery } from '@/pages/products/use-catalog-queries'
 import { MoneyDisclaimer } from '@/shell/components/money-disclaimer'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import {
@@ -156,8 +161,8 @@ function platformDisplayName(platform: string): string {
 function DashboardHomeLoadingSkeleton({ chartRegionLabel }: { chartRegionLabel: string }) {
   return (
     <>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, i) => (
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
             className="flex min-w-0 flex-col gap-2.5 rounded-md border border-[var(--shell-structure-border)] bg-white p-3.5 sm:p-4"
@@ -175,6 +180,31 @@ function DashboardHomeLoadingSkeleton({ chartRegionLabel }: { chartRegionLabel: 
                 <Skeleton className="h-6 w-12 rounded-md" />
               </div>
             </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-2 grid grid-cols-1 gap-5 lg:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <SectionContainer key={i} className="overflow-visible">
+            <div className="mb-4 space-y-2" aria-hidden>
+              <Skeleton className="h-6 w-48 max-w-[80%]" />
+              <Skeleton className="h-4 w-full max-w-xl" />
+            </div>
+            <Skeleton className="h-64 w-full rounded-md" />
+          </SectionContainer>
+        ))}
+      </div>
+
+      <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex min-w-0 flex-col gap-2 rounded-md border border-[var(--shell-structure-border)] bg-white p-3"
+            aria-hidden
+          >
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-6 w-24" />
           </div>
         ))}
       </div>
@@ -217,6 +247,7 @@ export function DashboardHomePage() {
     (k: Parameters<typeof shellT>[1]) => shellT(lang, k),
     [lang],
   )
+  const adsModule = useModule('ads')
 
   const defaultFilters = useMemo((): HomeFiltersState => {
     const today = new Date()
@@ -239,6 +270,11 @@ export function DashboardHomePage() {
   )
 
   const { startDate, endDate, connectionIds, productIds } = filters
+
+  const stockAlertCountsQuery = useProductStockAlertCountsQuery()
+  const stockAlertCounts = stockAlertCountsQuery.data
+  const inventoryAlertLowCount = stockAlertCounts?.low_count ?? 0
+  const inventoryAlertOutCount = stockAlertCounts?.out_count ?? 0
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -329,8 +365,7 @@ export function DashboardHomePage() {
     enabled: productMode && Boolean(prevPeriod),
   })
 
-  const { data: monthlyCurrent, isLoading: monthlyRevenueLoading, isError: monthlyRevenueError } =
-    useMonthlyRevenueSeries({
+  const { data: monthlyCurrent, isError: monthlyRevenueError } = useMonthlyRevenueSeries({
       connectionIds: activeConnectionIds,
       startDate,
       endDate,
@@ -338,7 +373,7 @@ export function DashboardHomePage() {
       enabled: activeConnectionIds.length > 0,
     })
 
-  const { data: monthlyPrev, isLoading: monthlyPrevLoading } = useMonthlyRevenueSeries({
+  const { data: monthlyPrev } = useMonthlyRevenueSeries({
     connectionIds: activeConnectionIds,
     startDate: revenuePrevPeriod?.start ?? '',
     endDate: revenuePrevPeriod?.end ?? '',
@@ -346,7 +381,7 @@ export function DashboardHomePage() {
     enabled: activeConnectionIds.length > 0 && Boolean(revenuePrevPeriod),
   })
 
-  const { data: channelBreakdown, isLoading: channelLoading } = useChannelBreakdown({
+  const { data: channelBreakdown, isPending: channelDonutPending } = useChannelBreakdown({
     connectionIds: activeConnectionIds,
     productIds,
     startDate,
@@ -354,11 +389,7 @@ export function DashboardHomePage() {
     enabled: activeConnectionIds.length > 0,
   })
 
-  const {
-    data: channelTimeSeries,
-    isLoading: channelTimeSeriesLoading,
-    isError: channelTimeSeriesError,
-  } = useChannelTimeSeries({
+  const { data: channelTimeSeries, isError: channelTimeSeriesError } = useChannelTimeSeries({
     connectionIds: activeConnectionIds,
     productIds,
     startDate,
@@ -367,7 +398,7 @@ export function DashboardHomePage() {
     enabled: activeConnectionIds.length > 0,
   })
 
-  const { data: topProducts, isLoading: topProductsLoading } = useTopProducts({
+  const { data: topProducts, isPending: topProductsPending } = useTopProducts({
     connectionIds: activeConnectionIds,
     productIds,
     startDate,
@@ -459,9 +490,15 @@ export function DashboardHomePage() {
 
   // Order-level deltas
   const net = displayKpi ? deltaBlock(displayKpi.net_revenue, kpiPrev?.net_revenue, 'currency') : null
+  const grossProfit = displayKpi
+    ? deltaBlock(displayKpi.gross_profit, kpiPrev?.gross_profit, 'currency')
+    : null
   const ebitda = displayKpi ? deltaBlock(displayKpi.ebitda, kpiPrev?.ebitda, 'currency') : null
-  const margin = displayKpi
-    ? deltaBlock(displayKpi.gross_margin_pct, kpiPrev?.gross_margin_pct, 'percent')
+  const unitsSold = displayKpi
+    ? deltaBlock(displayKpi.units_sold, kpiPrev?.units_sold, 'count')
+    : null
+  const cmPct = displayKpi
+    ? deltaBlock(displayKpi.contribution_margin_pct, kpiPrev?.contribution_margin_pct, 'percent')
     : null
   const ord = displayKpi ? deltaBlock(displayKpi.order_count, kpiPrev?.order_count, 'count') : null
   const aovCur = aov ?? 0
@@ -499,11 +536,9 @@ export function DashboardHomePage() {
     }))
   }, [displayKpi, t, convertFromBase])
 
-  const chartsLoading =
-    activeConnectionIds.length > 0 &&
-    (monthlyRevenueLoading || (Boolean(revenuePrevPeriod) && monthlyPrevLoading))
-
   const pairedChartBodyPx = useMemo(() => getTopProductsChartHeightPx(), [])
+
+  const revenueComparePrevious = Boolean(revenuePrevPeriod && monthlyPrev)
 
   const showTopProducts = true
 
@@ -582,6 +617,13 @@ export function DashboardHomePage() {
       ) : (
         <>
           <MoneyDisclaimer />
+          {!productMode ? (
+            <HomeStockInventoryAlerts
+              lowCount={inventoryAlertLowCount}
+              outCount={inventoryAlertOutCount}
+              t={t}
+            />
+          ) : null}
           {productMode && displayProductKpi ? (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <KpiCard
@@ -631,60 +673,51 @@ export function DashboardHomePage() {
               />
             </div>
           ) : displayKpi ? (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-              <KpiCard
-                label={t('reportsNetRevenue')}
-                helpText={t('reportsKpiHelpNetRevenue')}
-                value={formatMoney(displayKpi.net_revenue, { nativeCurrency: currency })}
-                vsPriorLabel={vsPrior}
-                priorValueDisplay={net!.priorDisplay}
-                pct={net!.pct}
-                trend={net!.trend}
-                comparisonUnavailable={net!.unavailable}
-              />
-              <KpiCard
-                label={t('reportsEbitda')}
-                helpText={t('reportsKpiHelpEbitda')}
-                value={formatMoney(displayKpi.ebitda, { nativeCurrency: currency })}
-                vsPriorLabel={vsPrior}
-                priorValueDisplay={ebitda!.priorDisplay}
-                pct={ebitda!.pct}
-                trend={ebitda!.trend}
-                comparisonUnavailable={ebitda!.unavailable}
-              />
-              <KpiCard
-                label={t('reportsKpiMargenBrutoPct')}
-                helpText={t('reportsKpiHelpMargenBrutoPct')}
-                value={`${displayKpi.gross_margin_pct.toFixed(1)}%`}
-                vsPriorLabel={vsPrior}
-                priorValueDisplay={margin!.priorDisplay}
-                pct={margin!.pct}
-                trend={margin!.trend}
-                comparisonUnavailable={margin!.unavailable}
-              />
-              <KpiCard
-                label={t('reportsOrders')}
-                helpText={t('reportsKpiHelpOrders')}
-                value={displayKpi.order_count.toLocaleString()}
-                vsPriorLabel={vsPrior}
-                priorValueDisplay={ord!.priorDisplay}
-                pct={ord!.pct}
-                trend={ord!.trend}
-                comparisonUnavailable={ord!.unavailable}
-                showComparison={orders > 0}
-              />
-              <KpiCard
-                label={t('reportsKpiAov')}
-                helpText={t('reportsKpiHelpAov')}
-                value={aov !== null ? formatMoney(aov, { nativeCurrency: currency }) : '—'}
-                vsPriorLabel={vsPrior}
-                priorValueDisplay={aovDelta?.priorDisplay ?? null}
-                pct={aovDelta?.pct ?? null}
-                trend={aovDelta?.trend ?? 'flat'}
-                comparisonUnavailable={aovDelta?.unavailable ?? true}
-                showComparison={orders > 0 && aov !== null}
-              />
-            </div>
+            <>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <KpiCard
+                  label={t('homeKpiNetSales')}
+                  helpText={t('homeKpiNetSalesHelp')}
+                  value={formatMoney(displayKpi.net_revenue, { nativeCurrency: currency })}
+                  vsPriorLabel={vsPrior}
+                  priorValueDisplay={net!.priorDisplay}
+                  pct={net!.pct}
+                  trend={net!.trend}
+                  comparisonUnavailable={net!.unavailable}
+                />
+                {adsModule?.enabled ? (
+                  <KpiCard
+                    label={t('homeKpiRoasGlobal')}
+                    helpText={t('homeKpiRoasGlobalHelp')}
+                    value="—"
+                    placeholder
+                    placeholderLabel={t('comingSoonBadge')}
+                    vsPriorLabel={vsPrior}
+                    priorValueDisplay={null}
+                    pct={null}
+                    trend="flat"
+                    comparisonUnavailable
+                    showComparison={false}
+                  />
+                ) : null}
+                <KpiCard
+                  label={t('homeKpiContributionMarginPct')}
+                  helpText={t('homeKpiContributionMarginPctHelp')}
+                  value={`${displayKpi.contribution_margin_pct.toFixed(1)}%`}
+                  vsPriorLabel={vsPrior}
+                  priorValueDisplay={cmPct!.priorDisplay}
+                  pct={cmPct!.pct}
+                  trend={cmPct!.trend}
+                  comparisonUnavailable={cmPct!.unavailable}
+                  negativeMetric
+                />
+                <HomeActiveAlertsKpi
+                  lowCount={inventoryAlertLowCount}
+                  outCount={inventoryAlertOutCount}
+                  {...homeActiveAlertsKpiLabels(t, vsPrior)}
+                />
+              </div>
+            </>
           ) : null}
 
           <div
@@ -700,20 +733,14 @@ export function DashboardHomePage() {
                   title={t('homeChannelDonutTitle')}
                   description={t('homeChannelDonutSubtitle')}
                 />
-                {channelLoading ? (
-                  <Skeleton
-                    className="w-full flex-1 rounded-md"
-                    style={{ minHeight: pairedChartBodyPx }}
-                  />
-                ) : (
-                  <HomeChannelDonutChart
-                    rows={channelBreakdown?.items ?? []}
-                    convertValue={convertFromBase}
-                    formatValue={formatInDisplay}
-                    t={t}
-                    minBodyHeightPx={showTopProducts ? pairedChartBodyPx : undefined}
-                  />
-                )}
+                <HomeChannelDonutChart
+                  rows={channelBreakdown?.items ?? []}
+                  convertValue={convertFromBase}
+                  formatValue={formatInDisplay}
+                  t={t}
+                  minBodyHeightPx={showTopProducts ? pairedChartBodyPx : undefined}
+                  isLoading={channelDonutPending}
+                />
               </SectionContainer>
             </section>
             {showTopProducts ? (
@@ -726,24 +753,85 @@ export function DashboardHomePage() {
                       String(topProducts?.items.length ?? 10),
                     )}
                   />
-                  {topProductsLoading ? (
-                    <Skeleton
-                      className="w-full flex-1 rounded-md"
-                      style={{ minHeight: pairedChartBodyPx }}
-                    />
-                  ) : (
-                    <HomeTopProductsChart
-                      rows={topProducts?.items ?? []}
-                      convertValue={convertFromBase}
-                      formatValue={formatInDisplay}
-                      formatCompact={formatCompactInDisplay}
-                      t={t}
-                    />
-                  )}
+                  <HomeTopProductsChart
+                    rows={topProducts?.items ?? []}
+                    convertValue={convertFromBase}
+                    formatValue={formatInDisplay}
+                    formatCompact={formatCompactInDisplay}
+                    t={t}
+                    isLoading={topProductsPending}
+                  />
                 </SectionContainer>
               </section>
             ) : null}
           </div>
+
+          {!productMode && displayKpi ? (
+            <>
+              <h3 className="mt-2 text-sm font-medium text-text-secondary">
+                {t('homeSecondaryKpiSectionTitle')}
+              </h3>
+              <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                <KpiCard
+                  compact
+                  label={t('reportsGrossProfit')}
+                  helpText={t('reportsKpiHelpGrossProfit')}
+                  value={formatMoney(displayKpi.gross_profit, { nativeCurrency: currency })}
+                  vsPriorLabel={vsPrior}
+                  priorValueDisplay={grossProfit!.priorDisplay}
+                  pct={grossProfit!.pct}
+                  trend={grossProfit!.trend}
+                  comparisonUnavailable={grossProfit!.unavailable}
+                />
+                <KpiCard
+                  compact
+                  label={t('reportsEbitda')}
+                  helpText={t('reportsKpiHelpEbitda')}
+                  value={formatMoney(displayKpi.ebitda, { nativeCurrency: currency })}
+                  vsPriorLabel={vsPrior}
+                  priorValueDisplay={ebitda!.priorDisplay}
+                  pct={ebitda!.pct}
+                  trend={ebitda!.trend}
+                  comparisonUnavailable={ebitda!.unavailable}
+                />
+                <KpiCard
+                  compact
+                  label={t('reportsUnits')}
+                  helpText={t('reportsKpiHelpUnits')}
+                  value={displayKpi.units_sold.toLocaleString()}
+                  vsPriorLabel={vsPrior}
+                  priorValueDisplay={unitsSold!.priorDisplay}
+                  pct={unitsSold!.pct}
+                  trend={unitsSold!.trend}
+                  comparisonUnavailable={unitsSold!.unavailable}
+                />
+                <KpiCard
+                  compact
+                  label={t('reportsOrders')}
+                  helpText={t('reportsKpiHelpOrders')}
+                  value={displayKpi.order_count.toLocaleString()}
+                  vsPriorLabel={vsPrior}
+                  priorValueDisplay={ord!.priorDisplay}
+                  pct={ord!.pct}
+                  trend={ord!.trend}
+                  comparisonUnavailable={ord!.unavailable}
+                  showComparison={orders > 0}
+                />
+                <KpiCard
+                  compact
+                  label={t('reportsKpiAov')}
+                  helpText={t('reportsKpiHelpAov')}
+                  value={aov !== null ? formatMoney(aov, { nativeCurrency: currency }) : '—'}
+                  vsPriorLabel={vsPrior}
+                  priorValueDisplay={aovDelta?.priorDisplay ?? null}
+                  pct={aovDelta?.pct ?? null}
+                  trend={aovDelta?.trend ?? 'flat'}
+                  comparisonUnavailable={aovDelta?.unavailable ?? true}
+                  showComparison={orders > 0 && aov !== null}
+                />
+              </div>
+            </>
+          ) : null}
 
           <div
             className="mt-2 flex min-w-0 flex-1 flex-col gap-5"
@@ -759,8 +847,6 @@ export function DashboardHomePage() {
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
                     {t('reportsMonthlyLoadError')}
                   </p>
-                ) : chartsLoading ? (
-                  <Skeleton className="h-80 w-full rounded-md" />
                 ) : (
                   <DashboardRevenueTrendChart
                     startDate={startDate}
@@ -770,7 +856,7 @@ export function DashboardHomePage() {
                     granularity={revenueGranularity}
                     rowsCurrent={monthlyCurrent?.months ?? []}
                     rowsPrev={monthlyPrev?.months ?? []}
-                    comparePrevious={Boolean(revenuePrevPeriod)}
+                    comparePrevious={revenueComparePrevious}
                     currency={effectiveDisplayCurrency}
                     formatValue={formatInDisplay}
                     convertValue={convertFromBase}
@@ -786,9 +872,7 @@ export function DashboardHomePage() {
                   title={t('dashboardChannelSalesTitle')}
                   description={t('dashboardChannelSalesSubtitle')}
                 />
-                {channelTimeSeriesLoading ? (
-                  <Skeleton className="h-[24rem] w-full rounded-md" />
-                ) : channelTimeSeriesError ? (
+                {channelTimeSeriesError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
                     {t('reportsMonthlyLoadError')}
                   </p>
@@ -813,9 +897,7 @@ export function DashboardHomePage() {
                   title={t('dashboardProfitMarginTitle')}
                   description={t('dashboardProfitMarginSubtitle')}
                 />
-                {channelTimeSeriesLoading ? (
-                  <Skeleton className="h-[24rem] w-full rounded-md" />
-                ) : channelTimeSeriesError ? (
+                {channelTimeSeriesError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
                     {t('reportsMonthlyLoadError')}
                   </p>

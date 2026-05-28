@@ -1,3 +1,13 @@
+export type StockAlertLevel = 'none' | 'low' | 'out'
+
+export type StockAlertListingSummaryApi = {
+  listing_id: string
+  platform: string
+  stock_alert: StockAlertLevel
+  stock_quantity: number | null
+  prev_month_units_sold: number
+}
+
 export type ProductListingApi = {
   id: string
   platform: string
@@ -11,12 +21,20 @@ export type ProductListingApi = {
   period_sales: number
   period_orders: number
   period_units_sold: number
+  velocity_units_per_day_90d: number | null
+  inventory_days: number | null
+  stock_quantity: number | null
+  stock_observed_at: string | null
+  platform_synced_at: string | null
+  prev_month_units_sold: number
+  stock_alert: StockAlertLevel
 }
 
 export type ProductListingPriceSegmentApi = {
   listing_id: string
   platform: string
   platform_sku: string
+  variant_label?: string | null
   currency: string
   effective_from: string
   effective_to: string | null
@@ -24,6 +42,23 @@ export type ProductListingPriceSegmentApi = {
 }
 
 export type ProductLifecycleStatus = 'active' | 'inactive' | 'archived' | 'deleted'
+
+export type ProductVariantSummaryApi = {
+  id: string
+  internal_sku: string | null
+  title: string
+  variant_label: string | null
+  image_url: string | null
+  listing_count: number
+  platforms: string[]
+  stock_quantity: number | null
+  stock_alert: StockAlertLevel
+  period_sales: number
+  period_orders: number
+  period_units_sold: number
+  velocity_units_per_day_90d: number | null
+  inventory_days: number | null
+}
 
 export type ProductSummaryApi = {
   id: string
@@ -37,9 +72,17 @@ export type ProductSummaryApi = {
   status: ProductLifecycleStatus | string
   platforms: string[]
   listing_count: number
+  variant_count: number
+  stock_quantity: number | null
+  stock_alert: StockAlertLevel
   cost_missing: boolean
   created_at: string
   updated_at: string
+}
+
+export type ProductStockAlertCountsApi = {
+  low_count: number
+  out_count: number
 }
 
 export type ProductListResponse = {
@@ -60,6 +103,17 @@ export type ProductCostHistorySegmentApi = {
   effective_to: string | null
 }
 
+export type ProductWeeklyNetSalesPointApi = {
+  week_start: string
+  gross_revenue: number
+}
+
+export type ProductPlatformPeriodApi = {
+  platform: string
+  sales: number
+  units_sold: number
+}
+
 export type ProductDetailApi = {
   id: string
   internal_sku: string | null
@@ -69,6 +123,14 @@ export type ProductDetailApi = {
   period_orders: number
   period_start: string | null
   period_end: string | null
+  gross_profit: number
+  gross_margin_pct: number
+  velocity_units_per_day_90d: number | null
+  consolidated_stock_quantity: number | null
+  inventory_days: number | null
+  velocity_window_days: number
+  period_by_platform: ProductPlatformPeriodApi[]
+  weekly_net_sales: ProductWeeklyNetSalesPointApi[]
   title: string
   brand: string | null
   cost: number | null
@@ -82,6 +144,12 @@ export type ProductDetailApi = {
   created_at: string
   updated_at: string
   listings: ProductListingApi[]
+  variants: ProductVariantSummaryApi[]
+  variant_count: number
+  variant_label: string | null
+  parent_product_id: string | null
+  parent_title: string | null
+  stock_alert_summary: StockAlertListingSummaryApi[]
   cost_history: ProductCostHistorySegmentApi[]
   listing_price_history: ProductListingPriceSegmentApi[]
 }

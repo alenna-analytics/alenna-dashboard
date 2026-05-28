@@ -71,22 +71,18 @@ export function fillSeriesForDates(
   return out
 }
 
-function platformLabel(slug: string): string {
-  return slug
-    .split(/[_-]+/)
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(' ')
-}
-
 const PRICE_COLORS = ['#2563eb', '#dc2626', '#16a34a', '#9333ea', '#ea580c', '#0891b2']
 
 export function buildProductCostPriceChartData(
   costSegments: readonly ProductCostHistorySegmentApi[],
   listingPriceSegments: readonly ProductListingPriceSegmentApi[],
-  options: { todayYmd: string; baseCurrency: string },
+  options: {
+    todayYmd: string
+    baseCurrency: string
+    channelSeriesLabel: (platform: string, variantLabel: string | null | undefined) => string
+  },
 ): ProductCostPriceChartData {
-  const { todayYmd, baseCurrency } = options
+  const { todayYmd, baseCurrency, channelSeriesLabel } = options
   const boundaryDates = new Set<string>([todayYmd])
   for (const s of costSegments) {
     boundaryDates.add(s.effective_from)
@@ -132,7 +128,7 @@ export function buildProductCostPriceChartData(
     const key = `price:${groupKey}`
     seriesMeta.push({
       key,
-      label: platformLabel(first.platform),
+      label: channelSeriesLabel(first.platform, first.variant_label),
       currency: first.currency,
       color: PRICE_COLORS[colorIdx % PRICE_COLORS.length],
       kind: 'channel',

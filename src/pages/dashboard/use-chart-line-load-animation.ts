@@ -5,48 +5,36 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-/**
- * Turns on Recharts line / path draw animation once per `resetKey` (e.g. new date range),
- * then off so brush zoom does not replay the animation.
- */
-export function useChartLineLoadAnimation(
-  resetKey: string,
-  durationMs: number,
-): boolean {
-  const [active, setActive] = useState(false)
-
-  useEffect(() => {
-    let cancelled = false
-    let endTimer: ReturnType<typeof window.setTimeout> | undefined
-    const startTimer = window.setTimeout(() => {
-      if (cancelled) return
-      if (prefersReducedMotion()) {
-        setActive(false)
-        return
-      }
-      setActive(true)
-      endTimer = window.setTimeout(() => {
-        if (!cancelled) setActive(false)
-      }, durationMs + 80)
-    }, 0)
-    return () => {
-      cancelled = true
-      window.clearTimeout(startTimer)
-      if (endTimer !== undefined) window.clearTimeout(endTimer)
-    }
-  }, [resetKey, durationMs])
-
-  return active
+export function chartMotionEnabled(): boolean {
+  return !prefersReducedMotion()
 }
 
-export const CHART_LINE_MAIN_MS = 800
-export const CHART_LINE_MINI_MS = 500
+export const CHART_LINE_MAIN_MS = 600
+export const CHART_LINE_MINI_MS = 400
+export const CHART_BAR_MS = 450
+export const CHART_PIE_REVEAL_MS = 500
+
+export type RechartsEnterAnimationProps = {
+  isAnimationActive: boolean
+  animationDuration: number
+  animationEasing: 'ease-out'
+  animationBegin: number
+}
+
+/** Recharts only draws enter animation when the series mounts with this enabled (toggling later does nothing). */
+export function rechartsEnterAnimationProps(durationMs: number): RechartsEnterAnimationProps {
+  return {
+    isAnimationActive: chartMotionEnabled(),
+    animationDuration: durationMs,
+    animationEasing: 'ease-out',
+    animationBegin: 0,
+  }
+}
 
 /**
- * Drives CSS width transitions for horizontal bar charts (top products).
- * Returns true once bars should show their target width for the current `resetKey`.
+ * Staggered scaleX reveal for horizontal bar rows (compositor-friendly).
  */
-export function useBarWidthLoadAnimation(resetKey: string, durationMs: number): boolean {
+export function useBarWidthLoadAnimation(resetKey: string): boolean {
   const motionReduced = prefersReducedMotion()
   const [showFull, setShowFull] = useState(motionReduced)
 
@@ -67,7 +55,7 @@ export function useBarWidthLoadAnimation(resetKey: string, durationMs: number): 
       window.clearTimeout(startTimer)
       if (rafId) window.cancelAnimationFrame(rafId)
     }
-  }, [resetKey, durationMs, motionReduced])
+  }, [resetKey, motionReduced])
 
   return motionReduced || showFull
 }

@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
 
+import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import {
   CHART_LINE_MAIN_MS,
   CHART_LINE_MINI_MS,
-  createLeadingEdgeDot,
-  useProgressivePointReveal,
-} from '@/pages/dashboard/chart-progressive-reveal'
+  rechartsEnterAnimationProps,
+} from '@/pages/dashboard/use-chart-line-load-animation'
 
 import type { Locale } from 'date-fns'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
@@ -232,16 +232,8 @@ export function DashboardRevenueTrendChart({
 
   const denseMain = visibleData.length > 18
 
-  const { revealed: chartVisibleData, leadingIndex } = useProgressivePointReveal(
-    visibleData,
-    zoomResetKey,
-    CHART_LINE_MAIN_MS,
-  )
-  const { revealed: overviewVisibleData } = useProgressivePointReveal(
-    dataWithIndex,
-    zoomResetKey,
-    CHART_LINE_MINI_MS,
-  )
+  const mainAnimProps = rechartsEnterAnimationProps(CHART_LINE_MAIN_MS)
+  const miniAnimProps = rechartsEnterAnimationProps(CHART_LINE_MINI_MS)
 
   return (
     <div
@@ -250,7 +242,11 @@ export function DashboardRevenueTrendChart({
       )}
     >
       <ResponsiveContainer width="100%" height={312}>
-        <LineChart data={chartVisibleData} margin={{ top: 8, right: 8, left: 4, bottom: 4 }}>
+        <LineChart
+          key={zoomResetKey}
+          data={visibleData}
+          margin={{ top: 8, right: 8, left: 4, bottom: 4 }}
+        >
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="label"
@@ -283,10 +279,10 @@ export function DashboardRevenueTrendChart({
             name={t('dashboardRevenueSeriesCurrent')}
             stroke="var(--chart-3)"
             strokeWidth={2.5}
-            dot={createLeadingEdgeDot(leadingIndex, 'var(--chart-3)', 4)}
-            activeDot={{ r: 5 }}
+            dot={chartLineDot('var(--chart-3)')}
+            activeDot={chartLineActiveDot('var(--chart-3)')}
             opacity={hiddenKeys.current ? 0.18 : 1}
-            isAnimationActive={false}
+            {...mainAnimProps}
           />
           {comparePrevious ? (
             <Line
@@ -296,10 +292,10 @@ export function DashboardRevenueTrendChart({
               stroke="var(--chart-line-secondary)"
               strokeWidth={2}
               strokeDasharray="6 4"
-              dot={createLeadingEdgeDot(leadingIndex, 'var(--chart-line-secondary)', 3)}
+              dot={false}
               connectNulls={false}
               opacity={hiddenKeys.previous ? 0.18 : 1}
-              isAnimationActive={false}
+              {...mainAnimProps}
             />
           ) : null}
         </LineChart>
@@ -310,7 +306,11 @@ export function DashboardRevenueTrendChart({
           <div className="relative h-16 w-full">
             <div className="absolute inset-0">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={overviewVisibleData} margin={{ top: 4, right: 4, left: 4, bottom: 2 }}>
+                <LineChart
+                  key={`${zoomResetKey}-mini`}
+                  data={dataWithIndex}
+                  margin={{ top: 4, right: 4, left: 4, bottom: 2 }}
+                >
                   <XAxis dataKey="label" hide />
                   <YAxis hide domain={['auto', 'auto']} />
                   {x1Label !== undefined && x2Label !== undefined ? (
@@ -330,7 +330,7 @@ export function DashboardRevenueTrendChart({
                     strokeWidth={1.5}
                     dot={false}
                     opacity={hiddenKeys.current ? 0.2 : 0.9}
-                    isAnimationActive={false}
+                    {...miniAnimProps}
                   />
                   {comparePrevious ? (
                     <Line
@@ -342,7 +342,7 @@ export function DashboardRevenueTrendChart({
                       dot={false}
                       connectNulls={false}
                       opacity={hiddenKeys.previous ? 0.2 : 0.9}
-                      isAnimationActive={false}
+                      {...miniAnimProps}
                     />
                   ) : null}
                 </LineChart>

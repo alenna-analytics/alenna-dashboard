@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
 
+import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import {
   CHART_LINE_MAIN_MS,
   CHART_LINE_MINI_MS,
-  createLeadingEdgeDot,
-  useProgressivePointReveal,
-} from '@/pages/dashboard/chart-progressive-reveal'
+  rechartsEnterAnimationProps,
+} from '@/pages/dashboard/use-chart-line-load-animation'
 
 import type { Locale } from 'date-fns'
 import type { ChannelTimeSeriesRow, RevenueSeriesGranularity } from '@/lib/types/reports'
@@ -230,16 +230,8 @@ export function DashboardChannelSalesChart({
 
   const denseMain = visibleData.length > 18
 
-  const { revealed: chartVisibleData, leadingIndex } = useProgressivePointReveal(
-    visibleData,
-    zoomResetKey,
-    CHART_LINE_MAIN_MS,
-  )
-  const { revealed: overviewVisibleData } = useProgressivePointReveal(
-    fullRows,
-    zoomResetKey,
-    CHART_LINE_MINI_MS,
-  )
+  const mainAnimProps = rechartsEnterAnimationProps(CHART_LINE_MAIN_MS)
+  const miniAnimProps = rechartsEnterAnimationProps(CHART_LINE_MINI_MS)
 
   if (channelsOrdered.length === 0) {
     return (
@@ -254,7 +246,6 @@ export function DashboardChannelSalesChart({
     const stroke = PALETTE[i % PALETTE.length]
     const gKey = `g${i}`
     const nKey = `n${i}`
-    const showLeadingDot = i === 0
     return [
       <Line
         key={`g-${ch.connection_id}`}
@@ -263,9 +254,10 @@ export function DashboardChannelSalesChart({
         name={`${lbl} · ${t('reportsGrossRevenue')}`}
         stroke={stroke}
         strokeWidth={2}
-        dot={showLeadingDot ? createLeadingEdgeDot(leadingIndex, stroke, 3) : false}
+        dot={chartLineDot(stroke)}
+        activeDot={chartLineActiveDot(stroke)}
         opacity={hiddenKeys[gKey] ? 0.18 : 1}
-        isAnimationActive={false}
+        {...mainAnimProps}
       />,
       <Line
         key={`n-${ch.connection_id}`}
@@ -276,8 +268,9 @@ export function DashboardChannelSalesChart({
         strokeWidth={2}
         strokeDasharray="6 4"
         dot={false}
+        activeDot={chartLineActiveDot(stroke)}
         opacity={hiddenKeys[nKey] ? 0.18 : 1}
-        isAnimationActive={false}
+        {...mainAnimProps}
       />,
     ]
   })
@@ -289,7 +282,11 @@ export function DashboardChannelSalesChart({
       )}
     >
       <ResponsiveContainer width="100%" height={312}>
-        <LineChart data={chartVisibleData} margin={{ top: 8, right: 8, left: 4, bottom: 4 }}>
+        <LineChart
+          key={zoomResetKey}
+          data={visibleData}
+          margin={{ top: 8, right: 8, left: 4, bottom: 4 }}
+        >
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="label"
@@ -321,7 +318,7 @@ export function DashboardChannelSalesChart({
       </ResponsiveContainer>
 
       <DashboardZoomStrip
-        dataWithIdx={overviewVisibleData}
+        dataWithIdx={fullRows}
         zoomStart={zoomStart}
         zoomEnd={zoomEnd}
         onBrushChange={(s, e) => {
@@ -337,7 +334,7 @@ export function DashboardChannelSalesChart({
               stroke="var(--chart-1)"
               strokeWidth={1.25}
               dot={false}
-              isAnimationActive={false}
+              {...miniAnimProps}
             />
             <Line
               type="monotone"
@@ -346,7 +343,7 @@ export function DashboardChannelSalesChart({
               strokeWidth={1.25}
               strokeDasharray="4 3"
               dot={false}
-              isAnimationActive={false}
+              {...miniAnimProps}
             />
           </>
         }

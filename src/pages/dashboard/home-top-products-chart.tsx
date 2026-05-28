@@ -4,7 +4,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { TopProductRow } from '@/lib/types/reports'
 
 import {
-  CHART_LINE_MAIN_MS,
+  CHART_BAR_MS,
   useBarWidthLoadAnimation,
 } from '@/pages/dashboard/use-chart-line-load-animation'
 
@@ -29,18 +29,23 @@ type BarRow = {
 }
 
 const scrollMaxHeightPx = TOP_PRODUCTS_SCROLL_VISIBLE_ROWS * TOP_PRODUCTS_BAR_ROW_PX
+const BAR_STAGGER_MS = 40
 
 function TopProductChartRow({
   row,
   widthPct,
   formatCompact,
   barsReady,
+  staggerIndex,
 }: {
   row: BarRow
   widthPct: number
   formatCompact: (value: number) => string
   barsReady: boolean
+  staggerIndex: number
 }) {
+  const scale = barsReady && widthPct > 0 ? widthPct / 100 : 0
+
   return (
     <li className="flex min-h-0" style={{ minHeight: TOP_PRODUCTS_BAR_ROW_PX }}>
       <div className="flex w-full flex-1 flex-col justify-center rounded-md px-1 py-2">
@@ -57,11 +62,13 @@ function TopProductChartRow({
         <div className="flex min-h-4.5 items-center gap-2.5">
           <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted/55">
             <div
-              className="h-full min-w-px rounded-r-full bg-[var(--country-green-base)] ease-out"
+              className="h-full w-full origin-left rounded-r-full bg-[var(--country-green-base)] will-change-transform motion-reduce:transition-none"
               style={{
-                width: barsReady ? `${widthPct}%` : '0%',
-                transitionProperty: 'width',
-                transitionDuration: `${CHART_LINE_MAIN_MS}ms`,
+                transform: `scaleX(${scale})`,
+                transitionProperty: 'transform',
+                transitionDuration: `${CHART_BAR_MS}ms`,
+                transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)',
+                transitionDelay: barsReady ? `${staggerIndex * BAR_STAGGER_MS}ms` : '0ms',
               }}
               aria-hidden
             />
@@ -98,7 +105,7 @@ export function HomeTopProductsChart({
     () => data.map((r) => `${r.productId}:${r.revenue.toFixed(4)}`).join('|'),
     [data],
   )
-  const barsReady = useBarWidthLoadAnimation(barResetKey, CHART_LINE_MAIN_MS)
+  const barsReady = useBarWidthLoadAnimation(barResetKey)
 
   const maxRevenue = useMemo(() => Math.max(...data.map((r) => r.revenue), 1), [data])
 
@@ -126,6 +133,7 @@ export function HomeTopProductsChart({
               widthPct={0}
               formatCompact={formatCompact}
               barsReady={false}
+              staggerIndex={i}
             />
           ))}
         </ul>
@@ -149,6 +157,7 @@ export function HomeTopProductsChart({
               widthPct={widthPct}
               formatCompact={formatCompact}
               barsReady={barsReady}
+              staggerIndex={index}
             />
           )
         })}

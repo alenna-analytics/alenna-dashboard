@@ -13,7 +13,8 @@ import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { Skeleton } from '@/ui/skeleton'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
-import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
+import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
+import { revenueTrendSubtitleForGranularity } from '@/pages/dashboard/revenue-trend-subtitle'
 import { useModule } from '@/lib/modules/use-modules'
 import { KpiCard } from '@/ui/kpi-card'
 
@@ -316,26 +317,21 @@ export function DashboardHomePage() {
 
   const prevPeriod = useMemo(() => computePreviousPeriod(startDate, endDate), [startDate, endDate])
 
-  const [revenueGranularity, setRevenueGranularity] = useState<RevenueSeriesGranularity>('month')
+  const [revenueTrendGranularity, setRevenueTrendGranularity] =
+    useState<RevenueSeriesGranularity>('month')
+  const [channelSalesGranularity, setChannelSalesGranularity] =
+    useState<RevenueSeriesGranularity>('month')
+  const [profitMarginGranularity, setProfitMarginGranularity] =
+    useState<RevenueSeriesGranularity>('month')
 
   const revenuePrevPeriod = useMemo(() => {
-    if (revenueGranularity === 'month') return computePreviousPeriod(startDate, endDate)
+    if (revenueTrendGranularity === 'month') return computePreviousPeriod(startDate, endDate)
     return computeShiftedPreviousPeriod(startDate, endDate)
-  }, [startDate, endDate, revenueGranularity])
+  }, [startDate, endDate, revenueTrendGranularity])
 
-  const revenueTrendSubtitle = useMemo(() => {
-    if (revenueGranularity === 'week') return t('dashboardRevenueTrendSubtitleWeek')
-    if (revenueGranularity === 'day') return t('dashboardRevenueTrendSubtitleDay')
-    return t('dashboardRevenueTrendSubtitleMonth')
-  }, [revenueGranularity, t])
-
-  const revenueGranularityOptions = useMemo(
-    () => [
-      { value: 'month', label: t('dashboardRevenueGranularityMonth') },
-      { value: 'week', label: t('dashboardRevenueGranularityWeek') },
-      { value: 'day', label: t('dashboardRevenueGranularityDay') },
-    ],
-    [t],
+  const revenueTrendSubtitle = useMemo(
+    () => revenueTrendSubtitleForGranularity(revenueTrendGranularity, t),
+    [revenueTrendGranularity, t],
   )
 
   // Order-level KPIs (no product selected)
@@ -377,7 +373,7 @@ export function DashboardHomePage() {
     productIds: productMode ? productIds : undefined,
     startDate,
     endDate,
-    granularity: revenueGranularity,
+    granularity: revenueTrendGranularity,
     enabled: activeConnectionIds.length > 0,
   })
 
@@ -386,7 +382,7 @@ export function DashboardHomePage() {
     productIds: productMode ? productIds : undefined,
     startDate: revenuePrevPeriod?.start ?? '',
     endDate: revenuePrevPeriod?.end ?? '',
-    granularity: revenueGranularity,
+    granularity: revenueTrendGranularity,
     enabled:
       activeConnectionIds.length > 0 && Boolean(revenuePrevPeriod) && monthlyCurrentReady,
   })
@@ -399,12 +395,27 @@ export function DashboardHomePage() {
     enabled: activeConnectionIds.length > 0,
   })
 
-  const { data: channelTimeSeries, isError: channelTimeSeriesError } = useChannelTimeSeries({
+  const {
+    data: channelSalesTimeSeries,
+    isError: channelSalesTimeSeriesError,
+  } = useChannelTimeSeries({
     connectionIds: activeConnectionIds,
     productIds,
     startDate,
     endDate,
-    granularity: revenueGranularity,
+    granularity: channelSalesGranularity,
+    enabled: activeConnectionIds.length > 0,
+  })
+
+  const {
+    data: profitMarginTimeSeries,
+    isError: profitMarginTimeSeriesError,
+  } = useChannelTimeSeries({
+    connectionIds: activeConnectionIds,
+    productIds,
+    startDate,
+    endDate,
+    granularity: profitMarginGranularity,
     enabled: activeConnectionIds.length > 0,
   })
 
@@ -644,20 +655,6 @@ export function DashboardHomePage() {
             deselectAllContainingLabel={t('homeFilterDeselectAllContaining')}
             allContainingSummaryLabel={t('homeFilterAllContainingSummary')}
           />
-          <div className="min-w-[10.5rem] shrink-0">
-            <FilterComboboxSingle
-              label={t('dashboardRevenueGranularityLabel')}
-              options={revenueGranularityOptions}
-              value={revenueGranularity}
-              onValueChange={(v) => {
-                if (v === 'month' || v === 'week' || v === 'day') setRevenueGranularity(v)
-              }}
-              applyLabel={t('datePickerApply')}
-              searchPlaceholder={t('filterSearch')}
-              emptyLabel={t('filterComingSoon')}
-              allowClear={false}
-            />
-          </div>
         </div>
       </header>
 
@@ -857,6 +854,13 @@ export function DashboardHomePage() {
                 <SectionHeader
                   title={t('dashboardRevenueTrendTitle')}
                   description={revenueTrendSubtitle}
+                  aside={
+                    <ChartGranularityFilter
+                      value={revenueTrendGranularity}
+                      onChange={setRevenueTrendGranularity}
+                      t={t}
+                    />
+                  }
                 />
                 {monthlyRevenueError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
@@ -868,7 +872,7 @@ export function DashboardHomePage() {
                     endDate={endDate}
                     prevStart={revenuePrevPeriod?.start ?? ''}
                     prevEnd={revenuePrevPeriod?.end ?? ''}
-                    granularity={revenueGranularity}
+                    granularity={revenueTrendGranularity}
                     rowsCurrent={monthlyCurrent?.months ?? []}
                     rowsPrev={monthlyPrev?.months ?? []}
                     comparePrevious={revenueComparePrevious}
@@ -886,8 +890,15 @@ export function DashboardHomePage() {
                 <SectionHeader
                   title={t('dashboardChannelSalesTitle')}
                   description={t('dashboardChannelSalesSubtitle')}
+                  aside={
+                    <ChartGranularityFilter
+                      value={channelSalesGranularity}
+                      onChange={setChannelSalesGranularity}
+                      t={t}
+                    />
+                  }
                 />
-                {channelTimeSeriesError ? (
+                {channelSalesTimeSeriesError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
                     {t('reportsMonthlyLoadError')}
                   </p>
@@ -895,8 +906,8 @@ export function DashboardHomePage() {
                   <DashboardChannelSalesChart
                     startDate={startDate}
                     endDate={endDate}
-                    granularity={revenueGranularity}
-                    rows={channelTimeSeries?.rows ?? []}
+                    granularity={channelSalesGranularity}
+                    rows={channelSalesTimeSeries?.rows ?? []}
                     currency={effectiveDisplayCurrency}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}
@@ -911,8 +922,15 @@ export function DashboardHomePage() {
                 <SectionHeader
                   title={t('dashboardProfitMarginTitle')}
                   description={t('dashboardProfitMarginSubtitle')}
+                  aside={
+                    <ChartGranularityFilter
+                      value={profitMarginGranularity}
+                      onChange={setProfitMarginGranularity}
+                      t={t}
+                    />
+                  }
                 />
-                {channelTimeSeriesError ? (
+                {profitMarginTimeSeriesError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
                     {t('reportsMonthlyLoadError')}
                   </p>
@@ -920,8 +938,8 @@ export function DashboardHomePage() {
                   <DashboardProfitMarginChart
                     startDate={startDate}
                     endDate={endDate}
-                    granularity={revenueGranularity}
-                    rows={channelTimeSeries?.rows ?? []}
+                    granularity={profitMarginGranularity}
+                    rows={profitMarginTimeSeries?.rows ?? []}
                     currency={effectiveDisplayCurrency}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}

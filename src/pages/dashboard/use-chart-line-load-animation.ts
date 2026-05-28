@@ -39,8 +39,8 @@ export function useChartLineLoadAnimation(
   return active
 }
 
-export const CHART_LINE_MAIN_MS = 1500
-export const CHART_LINE_MINI_MS = 900
+export const CHART_LINE_MAIN_MS = 800
+export const CHART_LINE_MINI_MS = 500
 
 /**
  * Drives CSS width transitions for horizontal bar charts (top products).

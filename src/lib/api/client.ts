@@ -39,7 +39,7 @@ export async function apiFetch(
   if (tid) {
     headers.set('X-Tenant-ID', tid)
   }
-  const token = await getToken({ skipCache: true })
+  const token = await getToken()
   if (token) {
     headers.set('Authorization', `Bearer ${token}`)
   }

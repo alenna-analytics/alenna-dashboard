@@ -23,6 +23,7 @@ import { Badge } from '@/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { useShopifySyncBanner } from '@/components/integrations/use-shopify-sync-banner'
+import { useNowMinuteTick } from '@/hooks/use-now-minute-tick'
 
 export function SyncFreshnessHeaderPill() {
   const { lang } = useLanguage()
@@ -30,10 +31,12 @@ export function SyncFreshnessHeaderPill() {
   const { tenantId } = useCurrentTenant()
   const [pillTooltipOpen, setPillTooltipOpen] = useState(false)
   const { restoreAllActivities, upsertActivity } = useGlobalActivity()
+  const nowMs = useNowMinuteTick()
 
   const { data: connections } = useQuery({
     queryKey: ['connectors', tenantId],
     enabled: Boolean(tenantId),
+    refetchOnWindowFocus: true,
     refetchInterval: (query) =>
       connectorsQueryRefetchIntervalMs(query.state.data),
     queryFn: async (): Promise<PlatformConnection[]> => {
@@ -48,7 +51,7 @@ export function SyncFreshnessHeaderPill() {
 
   useShopifySyncBanner(connections)
 
-  const pill = resolveSyncFreshnessPillContent(connections ?? [])
+  const pill = resolveSyncFreshnessPillContent(connections ?? [], { nowMs })
   const isSyncing = pill?.kind === 'syncing'
 
   if (!pill) return null

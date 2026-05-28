@@ -37,6 +37,7 @@ export function useReports({
 
   return useQuery({
     queryKey: ['reports', 'kpis', tenantId, scopeKey, startDate, endDate],
+    staleTime: 300_000,
     enabled: Boolean(
       enabled &&
         tenantId &&

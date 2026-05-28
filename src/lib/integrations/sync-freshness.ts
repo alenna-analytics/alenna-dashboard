@@ -19,6 +19,17 @@ function isActiveShopifyConnection(conn: PlatformConnection): boolean {
   )
 }
 
+export function isStaleSyncingPlan(conn: PlatformConnection): boolean {
+  const plan = conn.sync_plan
+  if (!plan || plan.last_sync_status !== 'syncing') return false
+  if (plan.current_job_id) return false
+  if (plan.last_sync_completed_at) return true
+  const started = plan.last_sync_started_at
+  if (!started) return true
+  const age = Date.now() - new Date(started).getTime()
+  return Number.isNaN(age) || age > SYNC_STALE_AFTER_MS
+}
+
 function hasCompletedInitialSync(conn: PlatformConnection): boolean {
   if (conn.orders_watermark_at) return true
   if (conn.orders_backfill_completed_through) return true
@@ -32,7 +43,8 @@ export function deriveConnectionSyncFreshness(
 ): SyncFreshnessState | null {
   if (!conn || !isActiveShopifyConnection(conn)) return null
 
-  if (options?.forceSyncing || conn.sync_plan?.last_sync_status === 'syncing') {
+  if (options?.forceSyncing) return 'syncing'
+  if (conn.sync_plan?.last_sync_status === 'syncing' && !isStaleSyncingPlan(conn)) {
     return 'syncing'
   }
 

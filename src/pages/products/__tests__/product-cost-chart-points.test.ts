@@ -40,7 +40,11 @@ describe('buildProductCostPriceChartData', () => {
           price: 746.4,
         },
       ],
-      { todayYmd: '2025-04-14', baseCurrency: 'MXN' },
+      {
+        todayYmd: '2025-04-14',
+        baseCurrency: 'MXN',
+        channelSeriesLabel: (platform) => platform,
+      },
     )
     const shopKey = series.find((s) => s.kind === 'channel')?.key
     expect(shopKey).toBeDefined()
@@ -48,5 +52,41 @@ describe('buildProductCostPriceChartData', () => {
     const apr12 = points.find((p) => p.dateKey === '2025-04-12')
     expect(apr11?.values[shopKey!]).toBeCloseTo(1077.7, 4)
     expect(apr12?.values[shopKey!]).toBeCloseTo(746.4, 4)
+  })
+
+  it('uses variant label in channel series legend when provided', () => {
+    const { series } = buildProductCostPriceChartData(
+      [],
+      [
+        {
+          listing_id: '00000000-0000-0000-0000-000000000001',
+          platform: 'shopify',
+          platform_sku: 'a',
+          variant_label: '120 cápsulas',
+          currency: 'MXN',
+          effective_from: '2025-04-10',
+          effective_to: null,
+          price: 100,
+        },
+        {
+          listing_id: '00000000-0000-0000-0000-000000000002',
+          platform: 'shopify',
+          platform_sku: 'b',
+          variant_label: '60 cápsulas',
+          currency: 'MXN',
+          effective_from: '2025-04-10',
+          effective_to: null,
+          price: 80,
+        },
+      ],
+      {
+        todayYmd: '2025-04-14',
+        baseCurrency: 'MXN',
+        channelSeriesLabel: (platform, variantLabel) =>
+          variantLabel ? `Shopify: ${variantLabel}` : platform,
+      },
+    )
+    const channelLabels = series.filter((s) => s.kind === 'channel').map((s) => s.label)
+    expect(channelLabels).toEqual(['Shopify: 120 cápsulas', 'Shopify: 60 cápsulas'])
   })
 })

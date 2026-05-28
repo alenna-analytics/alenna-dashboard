@@ -32,6 +32,8 @@ export function buildShopifyProgressSubtitle(
 ): string {
   if (job.status === 'queued') return shellT(lang, 'shopifySyncProgressQueued')
   if (job.status !== 'running') return shellT(lang, 'syncRunning')
+  const phase = job.progress?.phase
+  if (phase === 'catalog') return shellT(lang, 'shopifySyncProgressCatalog')
   const { ordersProcessed, oldestProcessedYear } = extractShopifyJobProgressInfo(job)
   if (
     ordersProcessed != null &&

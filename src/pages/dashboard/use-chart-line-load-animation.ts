@@ -41,3 +41,33 @@ export function useChartLineLoadAnimation(
 
 export const CHART_LINE_MAIN_MS = 1500
 export const CHART_LINE_MINI_MS = 900
+
+/**
+ * Drives CSS width transitions for horizontal bar charts (top products).
+ * Returns true once bars should show their target width for the current `resetKey`.
+ */
+export function useBarWidthLoadAnimation(resetKey: string, durationMs: number): boolean {
+  const motionReduced = prefersReducedMotion()
+  const [showFull, setShowFull] = useState(motionReduced)
+
+  useEffect(() => {
+    if (motionReduced) return
+
+    let cancelled = false
+    let rafId = 0
+    const startTimer = window.setTimeout(() => {
+      if (cancelled) return
+      setShowFull(false)
+      rafId = window.requestAnimationFrame(() => {
+        if (!cancelled) setShowFull(true)
+      })
+    }, 0)
+    return () => {
+      cancelled = true
+      window.clearTimeout(startTimer)
+      if (rafId) window.cancelAnimationFrame(rafId)
+    }
+  }, [resetKey, durationMs, motionReduced])
+
+  return motionReduced || showFull
+}

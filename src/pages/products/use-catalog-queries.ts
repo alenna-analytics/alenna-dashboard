@@ -3,7 +3,13 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch, apiPatchJson, apiPostJson } from '@/lib/api'
-import type { CatalogJobApi, ProductDetailApi, ProductListResponse } from '@/lib/types/catalog'
+import type {
+  CatalogJobApi,
+  ProductDetailApi,
+  ProductListResponse,
+  ProductStockAlertCountsApi,
+  StockAlertLevel,
+} from '@/lib/types/catalog'
 
 export type ProductListQueryParams = {
   q: string
@@ -11,15 +17,51 @@ export type ProductListQueryParams = {
   offset: number
   sortBy: string
   sortDir: 'asc' | 'desc'
+  statuses: string[]
+  platforms: string[]
+  stockAlertLevels: StockAlertLevel[]
+}
+
+export function useProductStockAlertCountsQuery() {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+
+  return useQuery({
+    queryKey: ['catalog', 'stock-alert-counts', tenantId],
+    enabled: Boolean(tenantId),
+    staleTime: 60_000,
+    queryFn: async (): Promise<ProductStockAlertCountsApi> => {
+      const res = await apiFetch(
+        '/catalog/products/stock-alert-counts',
+        (a) => getToken(a),
+        {},
+        tenantId,
+      )
+      if (!res.ok) throw new Error(await res.text())
+      return (await res.json()) as ProductStockAlertCountsApi
+    },
+  })
 }
 
 export function useProductListQuery(params: ProductListQueryParams) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
-  const { q, limit, offset, sortBy, sortDir } = params
+  const { q, limit, offset, sortBy, sortDir, statuses, platforms, stockAlertLevels } = params
 
   return useQuery({
-    queryKey: ['catalog', 'products', tenantId, q, limit, offset, sortBy, sortDir],
+    queryKey: [
+      'catalog',
+      'products',
+      tenantId,
+      q,
+      limit,
+      offset,
+      sortBy,
+      sortDir,
+      statuses,
+      platforms,
+      stockAlertLevels,
+    ],
     enabled: Boolean(tenantId),
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<ProductListResponse> => {
@@ -30,6 +72,15 @@ export function useProductListQuery(params: ProductListQueryParams) {
         sort_dir: sortDir,
       })
       if (q.trim()) sp.set('q', q.trim())
+      for (const st of statuses) {
+        if (st === 'active' || st === 'inactive') sp.append('status', st)
+      }
+      for (const plat of platforms) {
+        if (plat.trim()) sp.append('platform', plat.trim().toLowerCase())
+      }
+      for (const level of stockAlertLevels) {
+        sp.append('stock_alert', level)
+      }
       const res = await apiFetch(
         `/catalog/products?${sp.toString()}`,
         (a) => getToken(a),
@@ -47,25 +98,46 @@ export type ProductDetailMetricsParams = {
   metricsEnd: string
 }
 
+/** Optional weekly chart scope (defaults: all channels / all variants). */
+export type ProductDetailWeeklyChartParams = {
+  weeklyPlatform?: string[]
+  weeklyVariantId?: string[]
+}
+
 export function useProductDetailQuery(
   productId: string | undefined,
   metrics?: ProductDetailMetricsParams,
+  weeklyChart?: ProductDetailWeeklyChartParams,
 ) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const metricsStart = metrics?.metricsStart
   const metricsEnd = metrics?.metricsEnd
+  const weeklyPlatform = weeklyChart?.weeklyPlatform
+  const weeklyVariantId = weeklyChart?.weeklyVariantId
 
   return useQuery({
-    queryKey: ['catalog', 'product', tenantId, productId, metricsStart, metricsEnd],
-    enabled: Boolean(tenantId && productId && metricsStart && metricsEnd),
+    queryKey: [
+      'catalog',
+      'product',
+      tenantId,
+      productId,
+      metricsStart,
+      metricsEnd,
+      weeklyPlatform,
+      weeklyVariantId,
+    ],
+    enabled: Boolean(tenantId && productId),
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<ProductDetailApi> => {
-      const sp = new URLSearchParams({
-        metrics_start: metricsStart!,
-        metrics_end: metricsEnd!,
-      })
+      const sp = new URLSearchParams()
+      if (metricsStart) sp.set('metrics_start', metricsStart)
+      if (metricsEnd) sp.set('metrics_end', metricsEnd)
+      weeklyPlatform?.forEach((p) => sp.append('weekly_platform', p))
+      weeklyVariantId?.forEach((id) => sp.append('weekly_variant_id', id))
+      const qs = sp.toString()
       const res = await apiFetch(
-        `/catalog/products/${productId}?${sp.toString()}`,
+        `/catalog/products/${productId}${qs ? `?${qs}` : ''}`,
         (a) => getToken(a),
         {},
         tenantId,
@@ -105,6 +177,7 @@ export function usePatchProductCostMutation(productId: string | undefined) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
       void qc.invalidateQueries({ queryKey: ['catalog', 'products', tenantId] })
+      void qc.invalidateQueries({ queryKey: ['catalog', 'stock-alert-counts', tenantId] })
     },
   })
 }

@@ -7,11 +7,14 @@ import { formatTenantPlan } from '@/lib/utils'
 import { AppBootLoader } from '@/shell/layout/app-boot-loader'
 import { AppHeader } from '@/shell/layout/app-header'
 import { AppSidebar } from '@/shell/layout/app-sidebar'
+import { AppSidebarDrawer } from '@/shell/layout/app-sidebar-drawer'
 import { ShellBootstrapError } from '@/shell/layout/shell-bootstrap-error'
 import { DisplayCurrencyProvider } from '@/shell/providers/display-currency-provider'
 import { GlobalActivityProvider } from '@/shell/providers/global-activity-provider'
 import { WorkspaceProvider } from '@/shell/providers/workspace-context'
 import { GlobalActivityBar } from '@/shell/layout/global-activity-bar'
+import { TrialExpiredScreen } from '@/shell/trial-expired-screen'
+import { onTrialExpired } from '@/lib/trial-expired-signal'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { TooltipProvider } from '@/ui/tooltip'
@@ -41,6 +44,18 @@ export function AppShellLayout() {
   const { lang } = useLanguage()
   const { tenantId } = useCurrentTenant()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readInitialSidebarCollapsed)
+  const [mobileNavPath, setMobileNavPath] = useState<string | null>(null)
+  const [trialForced, setTrialForced] = useState(false)
+
+  const mobileNavOpen = mobileNavPath === location.pathname
+  const setMobileNavOpen = useCallback((open: boolean) => {
+    setMobileNavPath(open ? location.pathname : null)
+  }, [location.pathname])
+  const openMobileNav = useCallback(() => {
+    setMobileNavPath(location.pathname)
+  }, [location.pathname])
+
+  useEffect(() => onTrialExpired(() => setTrialForced(true)), [])
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsed((c) => {
       const next = !c
@@ -108,50 +123,64 @@ export function AppShellLayout() {
     )
   }
 
+  if (me?.trial_expired || trialForced) {
+    return <TrialExpiredScreen />
+  }
+
   return (
     <WorkspaceProvider value={workspaceValue}>
       <DisplayCurrencyProvider me={me} refetchMe={refetchMe}>
-      <GlobalActivityProvider>
-      <TooltipProvider delayDuration={200}>
-        <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh gap-3 overflow-hidden bg-[var(--bg-base)] px-3 py-3 lg:gap-4 lg:px-4 lg:py-4">
-          <AppSidebar
-            collapsed={sidebarCollapsed}
-            onToggle={toggleSidebar}
-            companyName={sidebarCompanyName}
-            companySubtitle={sidebarCompanySubtitle}
-          />
-          <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-[var(--shell-structure-border)] bg-white">
-            <div className="sticky top-0 z-30 shrink-0 bg-card">
-              <AppHeader className="border-b border-[var(--shell-structure-border)]" />
-              <GlobalActivityBar />
-            </div>
-            <main
-              ref={mainRef}
-              className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
-            >
-              <div
-                className={cn(
-                  WORKSPACE_SHELL_COLUMN_CLASS,
-                  'min-h-full py-4 lg:py-5',
-                )}
-              >
-                {!tenantId && tenants.length > 1 ? (
-                  <p className="mb-4 text-sm text-text-secondary">
-                    Select a workspace in your account menu if prompted.
-                  </p>
-                ) : null}
-                <div
-                  key={location.pathname}
-                  className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-300 motion-safe:fill-mode-both"
-                >
-                  <Outlet />
+        <GlobalActivityProvider>
+          <TooltipProvider delayDuration={200}>
+            <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh gap-0 overflow-hidden bg-[var(--bg-base)] p-2 lg:gap-3 lg:p-3">
+              <AppSidebar
+                className="hidden lg:flex"
+                collapsed={sidebarCollapsed}
+                onToggle={toggleSidebar}
+                companyName={sidebarCompanyName}
+                companySubtitle={sidebarCompanySubtitle}
+              />
+              <AppSidebarDrawer
+                open={mobileNavOpen}
+                onOpenChange={setMobileNavOpen}
+                companyName={sidebarCompanyName}
+                companySubtitle={sidebarCompanySubtitle}
+              />
+              <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-[var(--shell-structure-border)] bg-white">
+                <div className="sticky top-0 z-30 shrink-0 bg-card">
+                  <AppHeader
+                    className="border-b border-[var(--shell-structure-border)]"
+                    onOpenMobileNav={openMobileNav}
+                  />
+                  <GlobalActivityBar className="hidden lg:block" />
                 </div>
-              </div>
-            </main>
-          </section>
-        </div>
-      </TooltipProvider>
-      </GlobalActivityProvider>
+                <main
+                  ref={mainRef}
+                  className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
+                >
+                  <div
+                    className={cn(
+                      WORKSPACE_SHELL_COLUMN_CLASS,
+                      'min-h-full py-4 lg:py-5',
+                    )}
+                  >
+                    {!tenantId && tenants.length > 1 ? (
+                      <p className="mb-4 text-sm text-text-secondary">
+                        Select a workspace in your account menu if prompted.
+                      </p>
+                    ) : null}
+                    <div
+                      key={location.pathname}
+                      className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-300 motion-safe:fill-mode-both"
+                    >
+                      <Outlet />
+                    </div>
+                  </div>
+                </main>
+              </section>
+            </div>
+          </TooltipProvider>
+        </GlobalActivityProvider>
       </DisplayCurrencyProvider>
     </WorkspaceProvider>
   )

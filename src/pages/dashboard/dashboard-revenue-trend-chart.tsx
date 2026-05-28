@@ -3,8 +3,9 @@ import { useMemo, useState } from 'react'
 import {
   CHART_LINE_MAIN_MS,
   CHART_LINE_MINI_MS,
-  useChartLineLoadAnimation,
-} from '@/pages/dashboard/use-chart-line-load-animation'
+  createLeadingEdgeDot,
+  useProgressivePointReveal,
+} from '@/pages/dashboard/chart-progressive-reveal'
 
 import type { Locale } from 'date-fns'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
@@ -188,26 +189,25 @@ export function DashboardRevenueTrendChart({
     [data],
   )
 
-  const zoomResetKey = useMemo(
-    () =>
-      `${startDate}|${endDate}|${prevStart}|${prevEnd}|${granularity}|${String(comparePrevious)}|${dataWithIndex.length}`,
-    [
-      startDate,
-      endDate,
-      prevStart,
-      prevEnd,
-      granularity,
-      comparePrevious,
-      dataWithIndex.length,
-    ],
-  )
+  const zoomResetKey = useMemo(() => {
+    const sig = data
+      .map((d) => `${d.label}:${d.current}:${d.previous ?? ''}`)
+      .join(';')
+    return `${startDate}|${endDate}|${prevStart}|${prevEnd}|${granularity}|${String(comparePrevious)}|${sig}`
+  }, [
+    startDate,
+    endDate,
+    prevStart,
+    prevEnd,
+    granularity,
+    comparePrevious,
+    data,
+  ])
 
   const [zoomRangeKey, setZoomRangeKey] = useState(zoomResetKey)
   const [zoomStart, setZoomStart] = useState(0)
   const [zoomEnd, setZoomEnd] = useState(() => Math.max(0, data.length - 1))
   const [hiddenKeys, setHiddenKeys] = useState<Record<string, boolean>>({})
-
-  const lineLoadAnim = useChartLineLoadAnimation(zoomResetKey, CHART_LINE_MAIN_MS)
 
   const toggleLegendKey = (key: string) => {
     setHiddenKeys((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -232,6 +232,17 @@ export function DashboardRevenueTrendChart({
 
   const denseMain = visibleData.length > 18
 
+  const { revealed: chartVisibleData, leadingIndex } = useProgressivePointReveal(
+    visibleData,
+    zoomResetKey,
+    CHART_LINE_MAIN_MS,
+  )
+  const { revealed: overviewVisibleData } = useProgressivePointReveal(
+    dataWithIndex,
+    zoomResetKey,
+    CHART_LINE_MINI_MS,
+  )
+
   return (
     <div
       className={cn(
@@ -239,7 +250,7 @@ export function DashboardRevenueTrendChart({
       )}
     >
       <ResponsiveContainer width="100%" height={312}>
-        <LineChart data={visibleData} margin={{ top: 8, right: 8, left: 4, bottom: 4 }}>
+        <LineChart data={chartVisibleData} margin={{ top: 8, right: 8, left: 4, bottom: 4 }}>
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="label"
@@ -272,12 +283,10 @@ export function DashboardRevenueTrendChart({
             name={t('dashboardRevenueSeriesCurrent')}
             stroke="var(--chart-3)"
             strokeWidth={2.5}
-            dot={{ r: 3, fill: 'var(--chart-3)', strokeWidth: 0 }}
+            dot={createLeadingEdgeDot(leadingIndex, 'var(--chart-3)', 4)}
             activeDot={{ r: 5 }}
             opacity={hiddenKeys.current ? 0.18 : 1}
-            isAnimationActive={lineLoadAnim}
-            animationDuration={CHART_LINE_MAIN_MS}
-            animationEasing="ease-out"
+            isAnimationActive={false}
           />
           {comparePrevious ? (
             <Line
@@ -287,13 +296,10 @@ export function DashboardRevenueTrendChart({
               stroke="var(--chart-line-secondary)"
               strokeWidth={2}
               strokeDasharray="6 4"
-              dot={{ r: 2.5, fill: 'var(--chart-line-secondary)', strokeWidth: 0 }}
+              dot={createLeadingEdgeDot(leadingIndex, 'var(--chart-line-secondary)', 3)}
               connectNulls={false}
               opacity={hiddenKeys.previous ? 0.18 : 1}
-              isAnimationActive={lineLoadAnim}
-              animationBegin={180}
-              animationDuration={CHART_LINE_MAIN_MS}
-              animationEasing="ease-out"
+              isAnimationActive={false}
             />
           ) : null}
         </LineChart>
@@ -304,7 +310,7 @@ export function DashboardRevenueTrendChart({
           <div className="relative h-16 w-full">
             <div className="absolute inset-0">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dataWithIndex} margin={{ top: 4, right: 4, left: 4, bottom: 2 }}>
+                <LineChart data={overviewVisibleData} margin={{ top: 4, right: 4, left: 4, bottom: 2 }}>
                   <XAxis dataKey="label" hide />
                   <YAxis hide domain={['auto', 'auto']} />
                   {x1Label !== undefined && x2Label !== undefined ? (
@@ -324,9 +330,7 @@ export function DashboardRevenueTrendChart({
                     strokeWidth={1.5}
                     dot={false}
                     opacity={hiddenKeys.current ? 0.2 : 0.9}
-                    isAnimationActive={lineLoadAnim}
-                    animationDuration={CHART_LINE_MINI_MS}
-                    animationEasing="ease-out"
+                    isAnimationActive={false}
                   />
                   {comparePrevious ? (
                     <Line
@@ -338,10 +342,7 @@ export function DashboardRevenueTrendChart({
                       dot={false}
                       connectNulls={false}
                       opacity={hiddenKeys.previous ? 0.2 : 0.9}
-                      isAnimationActive={lineLoadAnim}
-                      animationBegin={120}
-                      animationDuration={CHART_LINE_MINI_MS}
-                      animationEasing="ease-out"
+                      isAnimationActive={false}
                     />
                   ) : null}
                 </LineChart>

@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/react'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch } from '@/lib/api'
@@ -33,6 +33,7 @@ export function useMonthlyRevenueSeries({
 
   return useQuery({
     queryKey: ['reports', 'monthly-revenue', tenantId, scopeKey, startDate, endDate, granularity],
+    placeholderData: keepPreviousData,
     enabled: Boolean(
       enabled && tenantId && startDate && endDate && (ids || connectionId),
     ),

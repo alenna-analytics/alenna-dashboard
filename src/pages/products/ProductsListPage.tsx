@@ -4,11 +4,14 @@ import { shellT } from "@/lib/i18n/shell-strings"
 import { useLanguage } from "@/shell/providers/language-provider"
 import { DashboardPage } from "@/shell/layout/dashboard-page"
 import { ProductsDataTable } from "./ProductsDataTable"
+import { EMPTY_PRODUCTS_LIST_FILTERS, type ProductsListFiltersState } from "./products-list-filter-state"
+import { ProductsListFilters } from "./products-list-filters"
 
 export function ProductsListPage() {
   const { lang } = useLanguage()
   const t = (k: Parameters<typeof shellT>[1]) => shellT(lang, k)
   const [q, setQ] = useState("")
+  const [filters, setFilters] = useState<ProductsListFiltersState>(EMPTY_PRODUCTS_LIST_FILTERS)
 
   const empty = <p className="text-sm text-text-secondary">{t("productsCatalogEmptyTitle")}</p>
 
@@ -23,11 +26,21 @@ export function ProductsListPage() {
           </h1>
           <p className="max-w-2xl text-sm text-text-secondary">{t("productsPageSubtitle")}</p>
         </div>
+        <div className="flex w-full flex-wrap items-center gap-2">
+          <ProductsListFilters
+            filters={filters}
+            onFiltersChange={(patch: Partial<ProductsListFiltersState>) =>
+              setFilters((prev) => ({ ...prev, ...patch }))
+            }
+            t={t}
+          />
+        </div>
       </header>
 
       <ProductsDataTable
         searchQ={q}
         onSearchQChange={setQ}
+        filters={filters}
         t={t}
         emptyContent={empty}
         errorContent={errorContent}

@@ -187,6 +187,31 @@
     transparent
   );
 
+  /** Stock alert severity text (home KPI breakdown, banners). */
+  --stock-alert-info: #16b674;
+  --stock-alert-warning: #dc7b18;
+  --stock-alert-critical: #ca3214;
+  --stock-alert-warning-bg: color-mix(
+    in srgb,
+    var(--stock-alert-warning) 10%,
+    white
+  );
+  --stock-alert-critical-bg: color-mix(
+    in srgb,
+    var(--stock-alert-critical) 10%,
+    white
+  );
+  --stock-alert-warning-border: color-mix(
+    in srgb,
+    var(--stock-alert-warning) 22%,
+    transparent
+  );
+  --stock-alert-critical-border: color-mix(
+    in srgb,
+    var(--stock-alert-critical) 22%,
+    transparent
+  );
+
   --ink: var(--african-turquoise-base);
   --ink-rgb: 0, 0, 0;
 
@@ -280,7 +305,7 @@
   --info: var(--status-blue-600);
   --info-dim: color-mix(in srgb, var(--status-blue-500) 14%, transparent);
 
-  --chart-1: var(--firefly-base);
+  --chart-1: var(--country-green-base);
   --chart-2: var(--brand);
   --chart-3: #6e8f40;
   --chart-4: #c2bea8;
@@ -329,6 +354,8 @@
     var(--color-accent-forest) 26%,
     transparent
   );
+  /** Sidebar workspace header + main AppHeader share this height so border-b lines align. */
+  --shell-chrome-header-height: 3.5rem;
 
   /** Global activity bar + header chip (Shopify sync, COGS backfill, etc.). */
   --global-activity-loading-bg: var(--status-blue-600);
@@ -394,22 +421,14 @@
 
   --sidebar: transparent;
   --sidebar-foreground: var(--text-primary);
-  --sidebar-primary: var(--country-green-base);
+  --sidebar-primary: var(--firefly-base);
   --sidebar-primary-foreground: var(--platinum-blonde-400);
-  --sidebar-active-bg: color-mix(
-    in srgb,
-    var(--platinum-blonde-base) 100%,
-    transparent
-  );
-  --sidebar-active-foreground: var(--country-green-base);
-  --sidebar-accent: color-mix(
-    in srgb,
-    var(--platinum-blonde-base) 50%,
-    transparent
-  );
-  --sidebar-accent-foreground: var(--country-green-base);
+  --sidebar-active-bg: #ebebeb;
+  --sidebar-active-foreground: var(--firefly-base);
+  --sidebar-accent: #ebebeb;
+  --sidebar-accent-foreground: var(--firefly-base);
   --sidebar-border: transparent;
-  --sidebar-ring: var(--country-green-base);
+  --sidebar-ring: var(--firefly-base);
 
   --shadow-ink-xs: 0 10px 24px rgba(71, 77, 48, 0.06);
   --shadow-ink-sm: 0 8px 18px rgba(71, 77, 48, 0.05);

@@ -86,7 +86,7 @@ function ActivityRow({ item }: { item: GlobalActivityItem }) {
   )
 }
 
-export function GlobalActivityBar() {
+export function GlobalActivityBar({ className }: { className?: string }) {
   const { visibleItems } = useGlobalActivity()
   const open = visibleItems.length > 0
 
@@ -95,6 +95,7 @@ export function GlobalActivityBar() {
       className={cn(
         'overflow-hidden transition-[max-height,opacity] duration-300 ease-out motion-reduce:transition-none',
         open ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0',
+        className,
       )}
       aria-hidden={!open}
     >

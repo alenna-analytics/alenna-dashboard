@@ -5,10 +5,15 @@ export type LatestFxForDisplay = {
   to: string
 }
 
+import type { ModuleId } from '@/lib/modules/types'
+
 export type MeResponse = {
   tenant_id: string
   tenant_name: string
   plan: string
+  modules: ModuleId[]
+  trial_ends_at: string | null
+  trial_expired: boolean
   user_id: string
   clerk_user_id: string
   email: string

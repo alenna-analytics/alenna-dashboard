@@ -22,8 +22,10 @@ export function AppSidebar({
   return (
     <aside
       className={cn(
-        'flex shrink-0 flex-col transition-[width] duration-200 ease-out',
-        collapsed ? 'w-[3.75rem]' : 'w-[240px] min-w-[240px]',
+        'flex shrink-0 flex-col overflow-hidden motion-reduce:transition-none',
+        'transition-[width] duration-150 ease-[cubic-bezier(0.32,0.72,0,1)]',
+        '[contain:layout]',
+        collapsed ? 'w-[3.75rem]' : 'w-[240px]',
         className,
       )}
     >

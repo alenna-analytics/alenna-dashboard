@@ -22,17 +22,23 @@ export type ProductListQueryParams = {
   stockAlertLevels: StockAlertLevel[]
 }
 
-export function useProductStockAlertCountsQuery() {
+export function useProductStockAlertCountsQuery(productIds?: string[]) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const scopeKey = productIds?.length ? productIds.slice().sort().join(',') : ''
 
   return useQuery({
-    queryKey: ['catalog', 'stock-alert-counts', tenantId],
+    queryKey: ['catalog', 'stock-alert-counts', tenantId, scopeKey],
     enabled: Boolean(tenantId),
     staleTime: 120_000,
     queryFn: async (): Promise<ProductStockAlertCountsApi> => {
+      const params = new URLSearchParams()
+      if (productIds?.length) {
+        for (const id of productIds) params.append('product_ids', id)
+      }
+      const qs = params.toString()
       const res = await apiFetch(
-        '/catalog/products/stock-alert-counts',
+        `/catalog/products/stock-alert-counts${qs ? `?${qs}` : ''}`,
         (a) => getToken(a),
         {},
         tenantId,

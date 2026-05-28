@@ -39,6 +39,8 @@ export type FilterComboboxSingleProps = {
   loadingLabel?: string
   /** When false, the pill cannot be cleared (required selection). */
   allowClear?: boolean
+  popoverAlign?: 'start' | 'center' | 'end'
+  popoverSide?: 'top' | 'bottom' | 'left' | 'right'
 }
 
 export function FilterComboboxSingle({
@@ -55,6 +57,8 @@ export function FilterComboboxSingle({
   loading = false,
   loadingLabel,
   allowClear = true,
+  popoverAlign = 'start',
+  popoverSide = 'bottom',
 }: FilterComboboxSingleProps) {
   const [open, setOpen] = React.useState(false)
   const [draftValue, setDraftValue] = React.useState(value)
@@ -81,12 +85,13 @@ export function FilterComboboxSingle({
         triggerClassName={triggerClassName}
       />
       <PopoverContent
-        align="start"
+        align={popoverAlign}
+        side={popoverSide}
         sideOffset={6}
         positionMethod="fixed"
         collisionPadding={12}
-        collisionAvoidance={{ side: 'shift', align: 'none', fallbackAxisSide: 'none' }}
-        className="w-[min(calc(100vw-24px),18rem)] border-border-subtle shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)] p-0"
+        collisionAvoidance={{ side: 'shift', align: 'shift', fallbackAxisSide: 'end' }}
+        className="w-[min(calc(100vw-24px),18rem)] border-border-subtle bg-popover shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)] p-0 backdrop-blur-none"
       >
         <Command shouldFilter={!serverSide}>
           <CommandInput

@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
 
+import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import {
   CHART_LINE_MAIN_MS,
   CHART_LINE_MINI_MS,
-  createLeadingEdgeDot,
-  useProgressivePointReveal,
-} from '@/pages/dashboard/chart-progressive-reveal'
+  rechartsEnterAnimationProps,
+} from '@/pages/dashboard/use-chart-line-load-animation'
 
 import type { Locale } from 'date-fns'
 import type { ChannelTimeSeriesRow, RevenueSeriesGranularity } from '@/lib/types/reports'
@@ -188,26 +188,18 @@ export function DashboardProfitMarginChart({
     return fullRows.slice(start, end + 1)
   }, [fullRows, zoomStart, zoomEnd])
 
-  const { revealed: progressiveVisible, leadingIndex } = useProgressivePointReveal(
-    visibleData,
-    zoomResetKey,
-    CHART_LINE_MAIN_MS,
-  )
-  const { revealed: overviewVisibleData } = useProgressivePointReveal(
-    fullRows,
-    zoomResetKey,
-    CHART_LINE_MINI_MS,
-  )
+  const mainAnimProps = rechartsEnterAnimationProps(CHART_LINE_MAIN_MS)
+  const miniAnimProps = rechartsEnterAnimationProps(CHART_LINE_MINI_MS)
 
   const composedChartData = useMemo(
     () =>
-      progressiveVisible.map((row) => ({
+      visibleData.map((row) => ({
         ...row,
         stkProfit: hiddenKeys.stkProfit ? 0 : row.stkProfit,
         stkMid: hiddenKeys.stkMid ? 0 : row.stkMid,
         stkTop: hiddenKeys.stkTop ? 0 : row.stkTop,
       })),
-    [hiddenKeys, progressiveVisible],
+    [hiddenKeys, visibleData],
   )
 
   const denseMain = visibleData.length > 18
@@ -219,7 +211,11 @@ export function DashboardProfitMarginChart({
       )}
     >
       <ResponsiveContainer width="100%" height={312}>
-        <ComposedChart data={composedChartData} margin={{ top: 8, right: 12, left: 4, bottom: 4 }}>
+        <ComposedChart
+          key={zoomResetKey}
+          data={composedChartData}
+          margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+        >
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="label"
@@ -299,15 +295,16 @@ export function DashboardProfitMarginChart({
             name={t('reportsMonthlyLegendGrossMarginPct')}
             stroke="var(--danger)"
             strokeWidth={2.5}
-            dot={createLeadingEdgeDot(leadingIndex, 'var(--danger)', 4)}
+            dot={chartLineDot('var(--danger)')}
+            activeDot={chartLineActiveDot('var(--danger)')}
             opacity={hiddenKeys.marginPct ? 0.18 : 1}
-            isAnimationActive={false}
+            {...mainAnimProps}
           />
         </ComposedChart>
       </ResponsiveContainer>
 
       <DashboardZoomStrip
-        dataWithIdx={overviewVisibleData}
+        dataWithIdx={fullRows}
         zoomStart={zoomStart}
         zoomEnd={zoomEnd}
         onBrushChange={(s, e) => {
@@ -323,7 +320,7 @@ export function DashboardProfitMarginChart({
               stroke="var(--chart-1)"
               strokeWidth={1.25}
               dot={false}
-              isAnimationActive={false}
+              {...miniAnimProps}
             />
             <Line
               type="monotone"
@@ -332,7 +329,7 @@ export function DashboardProfitMarginChart({
               strokeWidth={1.25}
               strokeDasharray="4 3"
               dot={false}
-              isAnimationActive={false}
+              {...miniAnimProps}
             />
           </>
         }

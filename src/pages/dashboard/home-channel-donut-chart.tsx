@@ -2,9 +2,8 @@ import { useMemo } from 'react'
 
 import {
   CHART_PIE_REVEAL_MS,
-  useProgressivePointReveal,
-  useRevealProgress,
-} from '@/pages/dashboard/chart-progressive-reveal'
+  rechartsEnterAnimationProps,
+} from '@/pages/dashboard/use-chart-line-load-animation'
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
@@ -100,7 +99,7 @@ export function HomeChannelDonutChart({
     if (isLoading && slices.length === 0) return '__loading__'
     return slices.map((s) => `${s.key}:${s.value.toFixed(4)}`).join('|')
   }, [isLoading, slices])
-  const revealProgress = useRevealProgress(pieAnimKey, CHART_PIE_REVEAL_MS)
+  const pieAnimProps = rechartsEnterAnimationProps(CHART_PIE_REVEAL_MS)
 
   const total = useMemo(
     () => slices.reduce((acc, s) => acc + s.value, 0),
@@ -109,32 +108,22 @@ export function HomeChannelDonutChart({
 
   const isLoadingPlaceholder = isLoading && slices.length === 0
 
-  const { revealed: progressiveSlices } = useProgressivePointReveal(
-    slices,
-    pieAnimKey,
-    CHART_PIE_REVEAL_MS,
-  )
-
   const displaySlices = useMemo(() => {
     if (isLoadingPlaceholder) {
       return [
         {
           key: '__loading__',
           label: '',
-          value: revealProgress,
+          value: 1,
           fill: 'var(--muted)',
           isOverflow: false,
         },
       ]
     }
-    return progressiveSlices
-  }, [isLoadingPlaceholder, progressiveSlices, revealProgress])
+    return slices
+  }, [isLoadingPlaceholder, slices])
 
-  const displayTotal = useMemo(() => {
-    if (isLoadingPlaceholder) return 0
-    const sum = displaySlices.reduce((acc, s) => acc + s.value, 0)
-    return sum > 0 ? sum : total
-  }, [displaySlices, isLoadingPlaceholder, total])
+  const displayTotal = isLoadingPlaceholder ? 0 : total
 
   if (!isLoading && (slices.length === 0 || total === 0)) {
     return (
@@ -173,7 +162,7 @@ export function HomeChannelDonutChart({
                 stroke="var(--bg-default, #fff)"
                 strokeWidth={2}
                 paddingAngle={displaySlices.length > 1 ? 1 : 0}
-                isAnimationActive={false}
+                {...(isLoadingPlaceholder ? { isAnimationActive: false } : pieAnimProps)}
                 startAngle={90}
                 endAngle={-270}
               >

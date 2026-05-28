@@ -25,6 +25,17 @@ pnpm lint
 pnpm typecheck
 ```
 
+## Git hooks (local CI checks)
+
+[Husky](https://typicode.github.io/husky/) runs after `pnpm install` (`prepare` script).
+
+| When | What runs |
+| --- | --- |
+| **commit** | ESLint on staged `.ts`/`.tsx` (lint-staged), full **typecheck** |
+| **push** | ESLint (full tree), typecheck, **production build** (same dummy Clerk key as CI) |
+
+Skip once: `git commit --no-verify` / `git push --no-verify`.
+
 ## Routing
 
 - `/` — sign-in (Clerk) or redirect to `/dashboard` when signed in

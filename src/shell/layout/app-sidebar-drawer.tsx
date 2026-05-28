@@ -6,6 +6,7 @@ type AppSidebarDrawerProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   companyName: string
+  companyLogoUrl?: string | null
   companySubtitle: string
 }
 
@@ -13,6 +14,7 @@ export function AppSidebarDrawer({
   open,
   onOpenChange,
   companyName,
+  companyLogoUrl,
   companySubtitle,
 }: AppSidebarDrawerProps) {
   const close = () => onOpenChange(false)
@@ -27,6 +29,7 @@ export function AppSidebarDrawer({
         <AppSidebarPanel
           collapsed={false}
           companyName={companyName}
+          companyLogoUrl={companyLogoUrl}
           companySubtitle={companySubtitle}
           hideCollapseToggle
           onNavigate={close}

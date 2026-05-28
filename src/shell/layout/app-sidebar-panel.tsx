@@ -12,9 +12,12 @@ import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
+const TENANT_FAVICON_SRC = '/favicon.svg'
+
 export type AppSidebarPanelProps = {
   collapsed: boolean
   companyName: string
+  companyLogoUrl?: string | null
   companySubtitle: string
   onToggle?: () => void
   hideCollapseToggle?: boolean
@@ -120,17 +123,25 @@ function NavItem({
   )
 }
 
-function TenantMark({ name, className }: { name: string; className?: string }) {
-  const initial = name.trim().charAt(0).toUpperCase() || '·'
+function TenantMark({
+  logoUrl,
+  className,
+}: {
+  logoUrl?: string | null
+  className?: string
+}) {
+  const trimmedLogo = logoUrl?.trim() ?? ''
+  const src = trimmedLogo.length > 0 ? trimmedLogo : TENANT_FAVICON_SRC
+
   return (
     <div
       className={cn(
-        'flex size-9 shrink-0 items-center justify-center rounded-sm bg-[var(--color-text-primary)] text-sm font-bold text-white',
+        'flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-[var(--color-text-primary)] p-1',
         className,
       )}
       aria-hidden
     >
-      {initial}
+      <img src={src} alt="" className="size-5 object-contain" draggable={false} />
     </div>
   )
 }
@@ -175,6 +186,7 @@ export function AppSidebarPanel({
   collapsed,
   onToggle,
   companyName,
+  companyLogoUrl,
   companySubtitle,
   hideCollapseToggle = false,
   onNavigate,
@@ -207,7 +219,7 @@ export function AppSidebarPanel({
           <Tooltip>
             <TooltipTrigger asChild>
               <div>
-                <TenantMark name={companyName} className="size-8 text-xs" />
+                <TenantMark logoUrl={companyLogoUrl} className="size-8" />
               </div>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={8} className="max-w-[14rem]">
@@ -219,7 +231,7 @@ export function AppSidebarPanel({
           </Tooltip>
         ) : (
           <>
-            <TenantMark name={companyName} />
+            <TenantMark logoUrl={companyLogoUrl} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold leading-tight text-text-primary">
                 {companyName}

@@ -29,8 +29,8 @@ function AlertBanner({
       className={cn(
         'flex flex-wrap items-center justify-between gap-3 rounded-md border px-3 py-3 text-sm',
         isOut
-          ? 'border-[var(--stock-alert-critical-border)] bg-[var(--stock-alert-critical-bg)] text-[var(--stock-alert-critical)]'
-          : 'border-[var(--stock-alert-warning-border)] bg-[var(--stock-alert-warning-bg)] text-[var(--stock-alert-warning)]',
+          ? 'bg-[var(--stock-alert-critical-bg)] text-[var(--stock-alert-critical)]'
+          : 'bg-[var(--stock-alert-warning-bg)] text-[var(--stock-alert-warning)]',
       )}
       role="status"
     >

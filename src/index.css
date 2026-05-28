@@ -191,8 +191,16 @@
   --stock-alert-info: #16b674;
   --stock-alert-warning: #dc7b18;
   --stock-alert-critical: #ca3214;
-  --stock-alert-warning-bg: color-mix(in srgb, var(--stock-alert-warning) 10%, white);
-  --stock-alert-critical-bg: color-mix(in srgb, var(--stock-alert-critical) 10%, white);
+  --stock-alert-warning-bg: color-mix(
+    in srgb,
+    var(--stock-alert-warning) 10%,
+    white
+  );
+  --stock-alert-critical-bg: color-mix(
+    in srgb,
+    var(--stock-alert-critical) 10%,
+    white
+  );
   --stock-alert-warning-border: color-mix(
     in srgb,
     var(--stock-alert-warning) 22%,
@@ -297,7 +305,7 @@
   --info: var(--status-blue-600);
   --info-dim: color-mix(in srgb, var(--status-blue-500) 14%, transparent);
 
-  --chart-1: var(--firefly-base);
+  --chart-1: var(--country-green-base);
   --chart-2: var(--brand);
   --chart-3: #6e8f40;
   --chart-4: #c2bea8;

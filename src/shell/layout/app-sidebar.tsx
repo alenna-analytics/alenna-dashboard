@@ -6,6 +6,7 @@ type AppSidebarProps = {
   collapsed: boolean
   onToggle: () => void
   companyName: string
+  companyLogoUrl?: string | null
   companySubtitle: string
   className?: string
 }
@@ -14,6 +15,7 @@ export function AppSidebar({
   collapsed,
   onToggle,
   companyName,
+  companyLogoUrl,
   companySubtitle,
   className,
 }: AppSidebarProps) {
@@ -29,6 +31,7 @@ export function AppSidebar({
         collapsed={collapsed}
         onToggle={onToggle}
         companyName={companyName}
+        companyLogoUrl={companyLogoUrl}
         companySubtitle={companySubtitle}
         className="h-full"
       />

@@ -24,6 +24,11 @@ export function ProductStockAlertBadge({
   )
 }
 
+export function displayStockQuantity(quantity: number | null | undefined): number | null {
+  if (quantity == null) return null
+  return Math.max(0, Math.trunc(quantity))
+}
+
 export function ProductStockQuantityCell({
   quantity,
   className,
@@ -31,9 +36,10 @@ export function ProductStockQuantityCell({
   quantity: number | null | undefined
   className?: string
 }) {
+  const display = displayStockQuantity(quantity)
   return (
     <div className={cn('flex w-full justify-end', className)}>
-      <span className="text-sm tabular-nums">{quantity != null ? quantity : '—'}</span>
+      <span className="text-sm tabular-nums">{display != null ? display : '—'}</span>
     </div>
   )
 }

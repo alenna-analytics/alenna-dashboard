@@ -45,7 +45,14 @@ function TopProductChartRow({
     <li className="flex min-h-0" style={{ minHeight: TOP_PRODUCTS_BAR_ROW_PX }}>
       <div className="flex w-full flex-1 flex-col justify-center rounded-md px-1 py-2">
         <p className="mb-1 truncate text-xs text-text-secondary" title={row.title}>
-          {row.title}
+          <a
+            href={`/dashboard/products/${row.productId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-text-secondary underline-offset-2 hover:text-[var(--country-green-base)] hover:underline"
+          >
+            {row.title}
+          </a>
         </p>
         <div className="flex min-h-4.5 items-center gap-2.5">
           <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted/55">

@@ -61,6 +61,7 @@ export function FilterComboboxMulti({
   clearAriaLabel = 'Clear filter',
   onSearchChange,
   loading = false,
+  loadingLabel,
   showSelectAllToggle = true,
   showSelectAllContainingToggle = false,
   selectAllLabel = 'Select all',
@@ -180,14 +181,19 @@ export function FilterComboboxMulti({
           <CommandList className="max-h-72 overflow-y-auto">
             <CommandEmpty>
               {loading ? (
-                <span className="flex w-full items-center justify-center py-5 text-text-secondary">
-                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                <span
+                  className="flex w-full items-center justify-center gap-2 py-8 text-sm text-text-secondary"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+                  <span>{loadingLabel ?? searchPlaceholder}</span>
                 </span>
               ) : (
                 emptyLabel
               )}
             </CommandEmpty>
-            {(showSelectAllToggle || showSelectAllContainingToggle) && (
+            {(showSelectAllToggle || showSelectAllContainingToggle) && !loading ? (
               <CommandGroup>
                 {showSelectAllToggle && (
                   <CommandItem
@@ -214,9 +220,10 @@ export function FilterComboboxMulti({
                   </CommandItem>
                 )}
               </CommandGroup>
-            )}
+            ) : null}
             <CommandGroup>
-              {filteredOptions.map((o) => {
+              {!loading &&
+                filteredOptions.map((o) => {
                 const checked = draftValues.includes(o.value)
                 return (
                   <CommandItem
@@ -241,7 +248,7 @@ export function FilterComboboxMulti({
                     <TruncatedOptionLabel label={o.label} />
                   </CommandItem>
                 )
-              })}
+                })}
             </CommandGroup>
           </CommandList>
           <div className="border-t border-border-default p-2">

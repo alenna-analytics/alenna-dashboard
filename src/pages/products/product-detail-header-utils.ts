@@ -13,8 +13,12 @@ export function uniqueActivePlatforms(listings: readonly ProductListingApi[]): s
   return out
 }
 
-function detailLocale(lang: string): string {
+export function productDetailDateLocale(lang: string): string {
   return lang === 'en' ? 'en-US' : 'es-MX'
+}
+
+function detailLocale(lang: string): string {
+  return productDetailDateLocale(lang)
 }
 
 export function formatProductDetailDate(iso: string, lang: string): string {

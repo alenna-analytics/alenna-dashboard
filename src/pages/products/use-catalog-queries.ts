@@ -98,23 +98,43 @@ export type ProductDetailMetricsParams = {
   metricsEnd: string
 }
 
+/** Optional weekly chart scope (defaults: all channels / all variants). */
+export type ProductDetailWeeklyChartParams = {
+  weeklyPlatform?: string[]
+  weeklyVariantId?: string[]
+}
+
 export function useProductDetailQuery(
   productId: string | undefined,
   metrics?: ProductDetailMetricsParams,
+  weeklyChart?: ProductDetailWeeklyChartParams,
 ) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const metricsStart = metrics?.metricsStart
   const metricsEnd = metrics?.metricsEnd
+  const weeklyPlatform = weeklyChart?.weeklyPlatform
+  const weeklyVariantId = weeklyChart?.weeklyVariantId
 
   return useQuery({
-    queryKey: ['catalog', 'product', tenantId, productId, metricsStart, metricsEnd],
+    queryKey: [
+      'catalog',
+      'product',
+      tenantId,
+      productId,
+      metricsStart,
+      metricsEnd,
+      weeklyPlatform,
+      weeklyVariantId,
+    ],
     enabled: Boolean(tenantId && productId),
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<ProductDetailApi> => {
       const sp = new URLSearchParams()
       if (metricsStart) sp.set('metrics_start', metricsStart)
       if (metricsEnd) sp.set('metrics_end', metricsEnd)
+      weeklyPlatform?.forEach((p) => sp.append('weekly_platform', p))
+      weeklyVariantId?.forEach((id) => sp.append('weekly_variant_id', id))
       const qs = sp.toString()
       const res = await apiFetch(
         `/catalog/products/${productId}${qs ? `?${qs}` : ''}`,

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useCallback, type ReactNode } from 'react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
@@ -12,6 +12,7 @@ import type { ProductCostPriceChartData } from './product-cost-chart-points'
 import { formatInventoryDays } from './product-detail-format-inventory-days'
 import { ProductDetailInsightKpiTile } from './product-detail-insight-kpi-tile'
 import { ProductDetailKpiPlatformBreakdown } from './product-detail-kpi-platform-breakdown'
+import { ProductDetailWeeklyNetSalesChart } from './product-detail-weekly-net-sales-chart'
 
 type ProductDetailSectionsProps = {
   detail: ProductDetailApi
@@ -34,6 +35,7 @@ type ProductDetailSectionsProps = {
   insightKpi: (value: ReactNode) => ReactNode
   insightsFetching: boolean
   onEditCost: () => void
+  dateLocale: string
 }
 
 export function ProductDetailSections({
@@ -57,8 +59,24 @@ export function ProductDetailSections({
   insightKpi,
   insightsFetching,
   onEditCost,
+  dateLocale,
 }: ProductDetailSectionsProps) {
   const hasVariants = (detail.variants?.length ?? 0) > 0
+  const isVariantChild = Boolean(detail.parent_product_id)
+
+  const weekLabelFor = useCallback(
+    (weekStart: string) => {
+      const d = new Date(`${weekStart}T12:00:00`)
+      return d.toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' })
+    },
+    [dateLocale],
+  )
+
+  const weeklyChartSubtitle = isVariantChild
+    ? t('productsDetailWeeklyNetSalesSubtitleVariant')
+    : hasVariants
+      ? t('productsDetailWeeklyNetSalesSubtitleParent')
+      : t('productsDetailWeeklyNetSalesSubtitle')
 
   const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
 
@@ -158,6 +176,24 @@ export function ProductDetailSections({
                 value={kpi.value}
               />
             ))}
+          </div>
+          <div className="mt-4 border-t border-border-subtle/60 pt-4">
+            <p className="text-sm font-semibold text-text-primary">
+              {t('productsDetailWeeklyNetSalesTitle')}
+            </p>
+            <p className="mb-3 text-xs text-text-secondary">
+              {weeklyChartSubtitle}
+            </p>
+            <ProductDetailWeeklyNetSalesChart
+              points={detail.weekly_net_sales ?? []}
+              weekLabelFor={weekLabelFor}
+              formatValue={fmtBase}
+              ariaLabel={t('productsDetailWeeklyNetSalesAria')}
+              tooltipLabels={{
+                week: t('productsDetailWeeklyNetSalesTooltipWeek'),
+                sales: t('productsDetailWeeklyNetSalesTooltipSales'),
+              }}
+            />
           </div>
         </CardContent>
       </Card>

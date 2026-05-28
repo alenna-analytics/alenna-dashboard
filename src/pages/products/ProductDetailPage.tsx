@@ -40,6 +40,7 @@ import { ProductDetailSections } from './product-detail-sections'
 import { ProductDetailHeader } from './product-detail-header'
 import { ProductDetailUnsavedBar } from './product-detail-unsaved-bar'
 import { defaultProductInsightRange } from './product-detail-range'
+import { productDetailDateLocale } from './product-detail-header-utils'
 import {
   useCatalogJobQuery,
   useEnqueueCogsBackfillMutation,
@@ -110,7 +111,7 @@ export function ProductDetailPage() {
 function ProductDetailHeaderThumb({ url, title }: { url: string | null; title: string }) {
   const [broken, setBroken] = useState(!url)
   const thumbClass =
-    'size-[150px] shrink-0 rounded-md border border-border-subtle object-cover shadow-sm'
+    'size-[150px] shrink-0 rounded-md border border-border-subtle object-cover'
   if (!url || broken) {
     return (
       <div
@@ -576,6 +577,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
         insightKpi={insightKpi}
         insightsFetching={detailQuery.isFetching}
         onEditCost={openEditSheet}
+        dateLocale={productDetailDateLocale(lang)}
       />
 
       <ProductDetailUnsavedBar

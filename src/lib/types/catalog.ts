@@ -103,6 +103,11 @@ export type ProductCostHistorySegmentApi = {
   effective_to: string | null
 }
 
+export type ProductWeeklyNetSalesPointApi = {
+  week_start: string
+  gross_revenue: number
+}
+
 export type ProductPlatformPeriodApi = {
   platform: string
   sales: number
@@ -125,6 +130,7 @@ export type ProductDetailApi = {
   inventory_days: number | null
   velocity_window_days: number
   period_by_platform: ProductPlatformPeriodApi[]
+  weekly_net_sales: ProductWeeklyNetSalesPointApi[]
   title: string
   brand: string | null
   cost: number | null

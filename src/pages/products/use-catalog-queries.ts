@@ -29,7 +29,7 @@ export function useProductStockAlertCountsQuery() {
   return useQuery({
     queryKey: ['catalog', 'stock-alert-counts', tenantId],
     enabled: Boolean(tenantId),
-    staleTime: 60_000,
+    staleTime: 120_000,
     queryFn: async (): Promise<ProductStockAlertCountsApi> => {
       const res = await apiFetch(
         '/catalog/products/stock-alert-counts',
@@ -63,6 +63,7 @@ export function useProductListQuery(params: ProductListQueryParams) {
       stockAlertLevels,
     ],
     enabled: Boolean(tenantId),
+    staleTime: 120_000,
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<ProductListResponse> => {
       const sp = new URLSearchParams({

@@ -5,3 +5,4 @@ root="$(git rev-parse --show-toplevel)"
 cd "$root" || exit 1
 pnpm lint
 pnpm run typecheck
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_dummy_ci_only pnpm build

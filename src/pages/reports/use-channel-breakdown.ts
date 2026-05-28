@@ -26,6 +26,7 @@ export function useChannelBreakdown({
   const scopeKey = connectionIds.join(',')
 
   return useQuery({
+    staleTime: 300_000,
     queryKey: [
       'reports',
       'channel-breakdown',

@@ -32,6 +32,7 @@ export function useMonthlyRevenueSeries({
   const scopeKey = ids ? ids.join(',') : (connectionId ?? null)
 
   return useQuery({
+    staleTime: 300_000,
     queryKey: ['reports', 'monthly-revenue', tenantId, scopeKey, startDate, endDate, granularity],
     placeholderData: keepPreviousData,
     enabled: Boolean(

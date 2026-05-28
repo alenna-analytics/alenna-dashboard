@@ -30,6 +30,7 @@ export function useChannelTimeSeries({
   const productKey = productIds?.length ? productIds.slice().sort().join(',') : ''
 
   return useQuery({
+    staleTime: 300_000,
     queryKey: [
       'reports',
       'channel-time-series',

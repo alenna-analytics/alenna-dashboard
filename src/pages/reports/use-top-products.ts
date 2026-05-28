@@ -28,6 +28,7 @@ export function useTopProducts({
   const scopeKey = connectionIds.join(',')
 
   return useQuery({
+    staleTime: 300_000,
     queryKey: [
       'reports',
       'top-products',

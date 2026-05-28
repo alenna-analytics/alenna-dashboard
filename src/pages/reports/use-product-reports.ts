@@ -31,6 +31,7 @@ export function useProductReports({
   const scopeKey = connectionIds.join(',')
 
   return useQuery({
+    staleTime: 300_000,
     queryKey: [
       'reports',
       'kpis-by-product',

@@ -336,7 +336,7 @@ export function DashboardHomePage() {
   const productMode = productIds.length > 0
 
   // Order-level KPIs (no product selected)
-  const { data: kpi, isLoading: kpiLoading } = useReports({
+  const { data: kpi, isLoading: kpiLoading, isSuccess: kpiReady } = useReports({
     connectionIds: activeConnectionIds,
     startDate,
     endDate,
@@ -346,11 +346,11 @@ export function DashboardHomePage() {
     connectionIds: activeConnectionIds,
     startDate: prevPeriod?.start ?? '',
     endDate: prevPeriod?.end ?? '',
-    enabled: !productMode && Boolean(prevPeriod),
+    enabled: !productMode && Boolean(prevPeriod) && kpiReady,
   })
 
   // Product-scoped KPIs (single product selected)
-  const { data: pkpi, isLoading: pkpiLoading } = useProductReports({
+  const { data: pkpi, isLoading: pkpiLoading, isSuccess: pkpiReady } = useProductReports({
     connectionIds: activeConnectionIds,
     productIds,
     startDate,
@@ -362,23 +362,28 @@ export function DashboardHomePage() {
     productIds,
     startDate: prevPeriod?.start ?? '',
     endDate: prevPeriod?.end ?? '',
-    enabled: productMode && Boolean(prevPeriod),
+    enabled: productMode && Boolean(prevPeriod) && pkpiReady,
   })
 
-  const { data: monthlyCurrent, isError: monthlyRevenueError } = useMonthlyRevenueSeries({
-      connectionIds: activeConnectionIds,
-      startDate,
-      endDate,
-      granularity: revenueGranularity,
-      enabled: activeConnectionIds.length > 0,
-    })
+  const {
+    data: monthlyCurrent,
+    isError: monthlyRevenueError,
+    isSuccess: monthlyCurrentReady,
+  } = useMonthlyRevenueSeries({
+    connectionIds: activeConnectionIds,
+    startDate,
+    endDate,
+    granularity: revenueGranularity,
+    enabled: activeConnectionIds.length > 0,
+  })
 
   const { data: monthlyPrev } = useMonthlyRevenueSeries({
     connectionIds: activeConnectionIds,
     startDate: revenuePrevPeriod?.start ?? '',
     endDate: revenuePrevPeriod?.end ?? '',
     granularity: revenueGranularity,
-    enabled: activeConnectionIds.length > 0 && Boolean(revenuePrevPeriod),
+    enabled:
+      activeConnectionIds.length > 0 && Boolean(revenuePrevPeriod) && monthlyCurrentReady,
   })
 
   const { data: channelBreakdown, isPending: channelDonutPending } = useChannelBreakdown({

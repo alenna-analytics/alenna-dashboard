@@ -108,6 +108,12 @@ export type ProductDetailApi = {
   period_orders: number
   period_start: string | null
   period_end: string | null
+  gross_profit: number
+  gross_margin_pct: number
+  velocity_units_per_day_90d: number | null
+  consolidated_stock_quantity: number | null
+  inventory_days: number | null
+  velocity_window_days: number
   title: string
   brand: string | null
   cost: number | null

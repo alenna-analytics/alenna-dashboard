@@ -429,9 +429,9 @@ function ProductDetailBody({ productId }: { productId: string }) {
   const hasInsightData =
     detail.period_start != null ||
     detail.period_sales > 0 ||
-    detail.period_orders > 0 ||
     detail.period_units_sold > 0 ||
-    Number(detail.period_cogs) > 0
+    detail.consolidated_stock_quantity != null ||
+    detail.inventory_days != null
   const showInsightValues = hasInsightData || Boolean(insightStart && insightEnd)
 
   const sheetBusy = patchMutation.isPending || backfillMutation.isPending

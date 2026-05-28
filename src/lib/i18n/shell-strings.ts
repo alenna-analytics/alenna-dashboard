@@ -518,6 +518,18 @@ const SHELL_STRINGS = {
     productsDetailKpiCogsTotal: 'COGS (periodo)',
     productsDetailKpiSales: 'Ventas',
     productsDetailKpiOrders: 'Pedidos',
+    productsDetailKpiNetSales: 'Ventas Netas',
+    productsDetailKpiNetSalesHelp:
+      'Ingreso bruto del producto en el rango (agregados diarios). No incluye prorrateo de reembolsos ni comisiones a nivel pedido.',
+    productsDetailKpiContributionMarginPct: 'Contribución marginal %',
+    productsDetailKpiContributionMarginPctHelp:
+      'Margen bruto del producto: utilidad bruta ÷ ventas del rango. No incluye ads, envío ni gastos fijos.',
+    productsDetailKpiInventoryDays: 'Días de inventario',
+    productsDetailKpiInventoryDaysHelp:
+      'Stock consolidado en todos los canales ÷ velocidad de venta diaria (unidades de los últimos 90 días).',
+    productsDetailKpiInventoryDaysWindow: 'Últimos 90 días',
+    productsDetailKpiInventoryDaysNoSales: 'Sin ventas (90d)',
+    productsDetailKpiInventoryDaysSuffix: 'días',
     productsDetailKpiNoData: 'Sin datos',
     productsDetailSectionProductConfigTitle: 'Configuración de producto',
     productsDetailSectionInsightsTitle: 'Analítica',
@@ -1166,6 +1178,18 @@ const SHELL_STRINGS = {
     productsDetailKpiCogsTotal: 'COGS (period)',
     productsDetailKpiSales: 'Sales',
     productsDetailKpiOrders: 'Orders',
+    productsDetailKpiNetSales: 'Net sales',
+    productsDetailKpiNetSalesHelp:
+      'Product gross revenue in the range (daily aggregates). Does not prorate order-level refunds or fees.',
+    productsDetailKpiContributionMarginPct: 'Contribution margin %',
+    productsDetailKpiContributionMarginPctHelp:
+      'Product gross margin: gross profit ÷ range sales. Excludes ads, shipping, and fixed opex.',
+    productsDetailKpiInventoryDays: 'Days of inventory',
+    productsDetailKpiInventoryDaysHelp:
+      'Consolidated stock across channels ÷ daily sell-through (units from the last 90 days).',
+    productsDetailKpiInventoryDaysWindow: 'Last 90 days',
+    productsDetailKpiInventoryDaysNoSales: 'No sales (90d)',
+    productsDetailKpiInventoryDaysSuffix: 'days',
     productsDetailKpiNoData: 'No data',
     productsDetailSectionProductConfigTitle: 'Product configuration',
     productsDetailSectionInsightsTitle: 'Insights',

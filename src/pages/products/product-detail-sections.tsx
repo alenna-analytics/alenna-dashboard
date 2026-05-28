@@ -5,14 +5,12 @@ import type { ProductDetailApi } from '@/lib/types/catalog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Skeleton } from '@/ui/skeleton'
-import { cn } from '@/lib/utils'
-
 import { ProductDetailChannelsTable } from './product-detail-channels-table'
 import { ProductDetailVariantsTable } from './product-detail-variants-table'
 import { ProductDetailConfigSection } from './product-detail-config-section'
 import type { ProductCostPriceChartData } from './product-cost-chart-points'
-
-const NUM = 'font-numeric tabular-nums'
+import { formatInventoryDays } from './product-detail-format-inventory-days'
+import { ProductDetailInsightKpiTile } from './product-detail-insight-kpi-tile'
 
 type ProductDetailSectionsProps = {
   detail: ProductDetailApi
@@ -61,33 +59,34 @@ export function ProductDetailSections({
 }: ProductDetailSectionsProps) {
   const hasVariants = (detail.variants?.length ?? 0) > 0
 
-  const kpiClass = (hasValue: boolean) =>
-    cn(
-      'text-lg font-semibold sm:text-xl',
-      hasValue ? 'text-text-primary' : 'text-text-tertiary',
-      NUM,
-    )
+  const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
 
   const insightKpis = [
     {
-      label: t('productsDetailKpiSales'),
+      key: 'net-sales',
+      label: t('productsDetailKpiNetSales'),
+      helpText: t('productsDetailKpiNetSalesHelp'),
       value: insightKpi(
         costAmountWithBaseCode(fmtBase(detail.period_sales), baseCurrency, 'text-xs'),
       ),
     },
     {
-      label: t('productsDetailKpiOrders'),
-      value: insightKpi(String(detail.period_orders)),
-    },
-    {
+      key: 'units',
       label: t('productsDetailKpiUnitsSold'),
-      value: insightKpi(String(detail.period_units_sold)),
+      value: insightKpi(detail.period_units_sold.toLocaleString()),
     },
     {
-      label: t('productsDetailKpiCogsTotal'),
-      value: insightKpi(
-        costAmountWithBaseCode(fmtBase(detail.period_cogs), baseCurrency, 'text-xs'),
-      ),
+      key: 'margin',
+      label: t('productsDetailKpiContributionMarginPct'),
+      helpText: t('productsDetailKpiContributionMarginPctHelp'),
+      value: insightKpi(`${Number(detail.gross_margin_pct).toFixed(1)}%`),
+    },
+    {
+      key: 'inventory-days',
+      label: t('productsDetailKpiInventoryDays'),
+      helpText: t('productsDetailKpiInventoryDaysHelp'),
+      footer: t('productsDetailKpiInventoryDaysWindow'),
+      value: insightKpi(formatInventoryDays(detail, t)),
     },
   ]
 
@@ -124,19 +123,16 @@ export function ProductDetailSections({
         <CardContent className="p-0">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {insightKpis.map((kpi) => (
-              <div
-                key={kpi.label}
-                className="rounded-md border border-border-subtle bg-muted/20 px-3 py-2.5"
-              >
-                <p className="text-xs font-medium text-text-secondary">{kpi.label}</p>
-                <p className={kpiClass(showInsightValues)}>
-                  {insightsFetching ? (
-                    <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
-                  ) : (
-                    kpi.value
-                  )}
-                </p>
-              </div>
+              <ProductDetailInsightKpiTile
+                key={kpi.key}
+                label={kpi.label}
+                helpText={kpi.helpText}
+                footer={kpi.footer}
+                showValues={showInsightValues}
+                isFetching={insightsFetching}
+                skeleton={kpiSkeleton}
+                value={kpi.value}
+              />
             ))}
           </div>
         </CardContent>

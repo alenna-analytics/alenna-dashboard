@@ -21,6 +21,8 @@ export type ProductListingApi = {
   period_sales: number
   period_orders: number
   period_units_sold: number
+  velocity_units_per_day_90d: number | null
+  inventory_days: number | null
   stock_quantity: number | null
   stock_observed_at: string | null
   platform_synced_at: string | null
@@ -54,6 +56,8 @@ export type ProductVariantSummaryApi = {
   period_sales: number
   period_orders: number
   period_units_sold: number
+  velocity_units_per_day_90d: number | null
+  inventory_days: number | null
 }
 
 export type ProductSummaryApi = {
@@ -99,6 +103,12 @@ export type ProductCostHistorySegmentApi = {
   effective_to: string | null
 }
 
+export type ProductPlatformPeriodApi = {
+  platform: string
+  sales: number
+  units_sold: number
+}
+
 export type ProductDetailApi = {
   id: string
   internal_sku: string | null
@@ -114,6 +124,7 @@ export type ProductDetailApi = {
   consolidated_stock_quantity: number | null
   inventory_days: number | null
   velocity_window_days: number
+  period_by_platform: ProductPlatformPeriodApi[]
   title: string
   brand: string | null
   cost: number | null

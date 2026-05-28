@@ -535,8 +535,13 @@ const SHELL_STRINGS = {
     productsDetailSectionProductConfigTitle: 'Configuración de producto',
     productsDetailSectionInsightsTitle: 'Analítica',
     productsDetailSectionInsightsDescription: 'Métricas de ventas en el rango seleccionado (moneda base).',
-    productsDetailSectionChannelsTitle: 'Conexiones de plataforma',
-    productsDetailSectionChannelsDescription: 'Publicaciones por canal con rendimiento en el mismo rango.',
+    productsDetailSectionChannelsTitle: 'Canales',
+    productsDetailSectionChannelsDescription: 'Publicaciones por canal del producto',
+    productsDetailListingColChannel: 'Canal',
+    productsDetailListingColVelocityPerDay: 'Velocidad/día',
+    productsDetailListingColVelocityPerDayHelp:
+      'Unidades vendidas por día en promedio, últimos 90 días.',
+    productsDetailListingColInventoryDays: 'Días inv',
     productsDetailVariantsTitle: 'Variantes',
     productsDetailVariantsDescription:
       'Cada variante tiene su propio SKU, stock, COGS y conexiones por canal.',
@@ -1196,8 +1201,13 @@ const SHELL_STRINGS = {
     productsDetailSectionProductConfigTitle: 'Product configuration',
     productsDetailSectionInsightsTitle: 'Insights',
     productsDetailSectionInsightsDescription: 'Sales metrics for the selected range (base currency).',
-    productsDetailSectionChannelsTitle: 'Platform connections',
-    productsDetailSectionChannelsDescription: 'Channel listings with performance for the same range.',
+    productsDetailSectionChannelsTitle: 'Channels',
+    productsDetailSectionChannelsDescription: 'Product listings by channel',
+    productsDetailListingColChannel: 'Channel',
+    productsDetailListingColVelocityPerDay: 'Velocity/day',
+    productsDetailListingColVelocityPerDayHelp:
+      'Average units sold per day over the last 90 days.',
+    productsDetailListingColInventoryDays: 'Inv. days',
     productsDetailVariantsTitle: 'Variants',
     productsDetailVariantsDescription:
       'Each variant has its own SKU, stock, COGS, and per-channel connections.',

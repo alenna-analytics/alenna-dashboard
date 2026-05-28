@@ -11,6 +11,7 @@ import { ProductDetailConfigSection } from './product-detail-config-section'
 import type { ProductCostPriceChartData } from './product-cost-chart-points'
 import { formatInventoryDays } from './product-detail-format-inventory-days'
 import { ProductDetailInsightKpiTile } from './product-detail-insight-kpi-tile'
+import { ProductDetailKpiPlatformBreakdown } from './product-detail-kpi-platform-breakdown'
 
 type ProductDetailSectionsProps = {
   detail: ProductDetailApi
@@ -61,6 +62,26 @@ export function ProductDetailSections({
 
   const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
 
+  const periodByPlatform = detail.period_by_platform ?? []
+
+  const platformSalesBreakdown =
+    periodByPlatform.length > 0 ? (
+      <ProductDetailKpiPlatformBreakdown
+        rows={periodByPlatform}
+        t={t}
+        formatValue={(row) => fmtBase(row.sales)}
+      />
+    ) : undefined
+
+  const platformUnitsBreakdown =
+    periodByPlatform.length > 0 ? (
+      <ProductDetailKpiPlatformBreakdown
+        rows={periodByPlatform}
+        t={t}
+        formatValue={(row) => row.units_sold.toLocaleString()}
+      />
+    ) : undefined
+
   const insightKpis = [
     {
       key: 'net-sales',
@@ -69,11 +90,13 @@ export function ProductDetailSections({
       value: insightKpi(
         costAmountWithBaseCode(fmtBase(detail.period_sales), baseCurrency, 'text-xs'),
       ),
+      breakdown: platformSalesBreakdown,
     },
     {
       key: 'units',
       label: t('productsDetailKpiUnitsSold'),
       value: insightKpi(detail.period_units_sold.toLocaleString()),
+      breakdown: platformUnitsBreakdown,
     },
     {
       key: 'margin',
@@ -128,6 +151,7 @@ export function ProductDetailSections({
                 label={kpi.label}
                 helpText={kpi.helpText}
                 footer={kpi.footer}
+                breakdown={kpi.breakdown}
                 showValues={showInsightValues}
                 isFetching={insightsFetching}
                 skeleton={kpiSkeleton}
@@ -139,19 +163,14 @@ export function ProductDetailSections({
       </Card>
 
       {hasVariants ? (
-        <ProductDetailVariantsTable
-          detail={detail}
-          t={t}
-          baseCurrency={baseCurrency}
-          fmtBase={fmtBase}
-        />
+        <ProductDetailVariantsTable variants={detail.variants} t={t} fmtBase={fmtBase} />
       ) : (
         <Card
           id="product-channels-table"
           className="scroll-mt-24 rounded-none border-none p-0 shadow-none hover:shadow-none"
         >
           <CardHeader className="p-0">
-            <CardTitle className="text-md">{t('productsDetailSectionChannelsTitle')}</CardTitle>
+            <CardTitle className="text-xl">{t('productsDetailSectionChannelsTitle')}</CardTitle>
             <CardDescription className="text-xs">
               {t('productsDetailSectionChannelsDescription')}
             </CardDescription>
@@ -160,7 +179,7 @@ export function ProductDetailSections({
             <ProductDetailChannelsTable
               listings={detail.listings}
               isLoading={false}
-              isFetching={insightsFetching}
+              isFetching={false}
               t={t}
               fmtBase={fmtBase}
               emptyContent={

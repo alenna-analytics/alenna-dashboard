@@ -1,15 +1,20 @@
 import type { ColumnDef } from '@tanstack/react-table'
+import { Link } from 'react-router-dom'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { ProductListingApi, StockAlertLevel } from '@/lib/types/catalog'
+import { INTEGRATION_UI } from '@/lib/integrations/catalog'
+import type { ProductVariantSummaryApi, StockAlertLevel } from '@/lib/types/catalog'
+import { Badge } from '@/ui/badge'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 
 import { ProductDetailColumnHeaderWithHelp } from './product-detail-column-header-with-help'
+import { productDetailChannelPillClassName } from './product-detail-platform-badges'
 import {
   formatListingInventoryDays,
   formatListingVelocityPerDay,
 } from './product-detail-listing-channel-format'
-import { ProductPlatformLogoName } from './product-platform-logo-name'
+import { productPlatformLabel } from './product-platform-label'
+import { ProductTableThumb } from './product-table-thumb'
 import {
   ProductStockAlertBadge,
   ProductStockQuantityCell,
@@ -30,53 +35,88 @@ function alertRank(level: StockAlertLevel): number {
   return 2
 }
 
-export function sortListingsByStockAlert(listings: ProductListingApi[]): ProductListingApi[] {
-  return [...listings].sort((a, b) => {
+export function sortVariantsByStockAlert(
+  variants: ProductVariantSummaryApi[],
+): ProductVariantSummaryApi[] {
+  return [...variants].sort((a, b) => {
     const d = alertRank(a.stock_alert) - alertRank(b.stock_alert)
     if (d !== 0) return d
-    return a.platform.localeCompare(b.platform)
+    const labelA = a.variant_label ?? a.title
+    const labelB = b.variant_label ?? b.title
+    return labelA.localeCompare(labelB)
   })
 }
 
-export function createProductDetailChannelsColumns(
+export function createProductDetailVariantsColumns(
   t: (key: ShellStringKey) => string,
   fmtBase: (value: number) => string,
-): ColumnDef<ProductListingApi>[] {
+): ColumnDef<ProductVariantSummaryApi>[] {
   return [
     {
-      id: 'platform',
-      accessorKey: 'platform',
-      meta: TEXT_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('productsDetailListingColChannel')} />
-      ),
-      cell: ({ row }) => (
-        <ProductPlatformLogoName
-          platformSlug={row.original.platform}
-          t={t}
-          className="max-w-56 text-sm text-text-primary"
-        />
-      ),
-    },
-    {
-      id: 'platform_sku',
-      accessorKey: 'platform_sku',
+      id: 'variant',
+      accessorFn: (row) => row.variant_label ?? row.title,
       meta: {
         ...TEXT_CELL_META,
-        headerClassName: 'min-w-[14rem]',
-        cellClassName: 'min-w-[14rem] [&>div]:justify-start',
+        headerClassName: 'min-w-[12rem]',
+        cellClassName: 'min-w-[12rem] [&>div]:justify-start',
       },
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('productsDetailListingColSku')} />
+        <DataTableColumnHeader column={column} title={t('productsDetailVariantsColName')} />
       ),
-      cell: ({ row }) => (
-        <span
-          className="block min-w-0 max-w-[18rem] truncate font-mono text-sm leading-normal"
-          title={row.original.platform_sku}
-        >
-          {row.original.platform_sku}
-        </span>
+      cell: ({ row }) => {
+        const label = row.original.variant_label ?? row.original.title
+        return (
+          <div className="flex min-w-0 items-center gap-2">
+            <ProductTableThumb url={row.original.image_url} alt={label} />
+            <Link
+              to={`/dashboard/products/${row.original.id}`}
+              className="min-w-0 truncate font-medium text-[var(--country-green-base)] hover:text-[var(--country-green-100)] hover:underline"
+              title={label}
+            >
+              {label}
+            </Link>
+          </div>
+        )
+      },
+    },
+    {
+      id: 'platforms',
+      accessorKey: 'platforms',
+      meta: TEXT_CELL_META,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsColChannels')} />
       ),
+      cell: ({ row }) => {
+        const platforms = row.original.platforms ?? []
+        if (platforms.length === 0) {
+          return <span className="text-sm text-text-tertiary">—</span>
+        }
+        return (
+          <div className="flex flex-wrap gap-1">
+            {platforms.map((platform) => {
+              const slug = platform.trim().toLowerCase()
+              const ui = slug ? INTEGRATION_UI[slug] : undefined
+              return (
+                <Badge
+                  key={platform}
+                  variant="outline"
+                  className={productDetailChannelPillClassName}
+                >
+                  {ui?.logoSrc != null ? (
+                    <img
+                      src={ui.logoSrc}
+                      alt=""
+                      className="size-4 shrink-0 object-contain"
+                      aria-hidden
+                    />
+                  ) : null}
+                  <span>{productPlatformLabel(platform, t)}</span>
+                </Badge>
+              )
+            })}
+          </div>
+        )
+      },
     },
     {
       id: 'stock_quantity',
@@ -98,7 +138,9 @@ export function createProductDetailChannelsColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsDetailListingColAlert')} />
       ),
-      cell: ({ row }) => <ProductStockAlertBadge level={row.original.stock_alert} t={t} />,
+      cell: ({ row }) => (
+        <ProductStockAlertBadge level={row.original.stock_alert ?? 'none'} t={t} />
+      ),
     },
     {
       id: 'velocity_units_per_day_90d',
@@ -130,7 +172,9 @@ export function createProductDetailChannelsColumns(
         />
       ),
       cell: ({ row }) => (
-        <span className="text-sm tabular-nums">{formatListingInventoryDays(row.original, t)}</span>
+        <span className="text-sm tabular-nums">
+          {formatListingInventoryDays(row.original, t)}
+        </span>
       ),
     },
     {

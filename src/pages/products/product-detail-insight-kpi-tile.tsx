@@ -10,6 +10,7 @@ type ProductDetailInsightKpiTileProps = {
   label: string
   helpText?: string
   value: ReactNode
+  breakdown?: ReactNode
   footer?: ReactNode
   showValues: boolean
   isFetching: boolean
@@ -20,6 +21,7 @@ export function ProductDetailInsightKpiTile({
   label,
   helpText,
   value,
+  breakdown,
   footer,
   showValues,
   isFetching,
@@ -55,6 +57,7 @@ export function ProductDetailInsightKpiTile({
       >
         {isFetching ? skeleton : value}
       </p>
+      {!isFetching && breakdown ? breakdown : null}
       {footer ? <p className="mt-1 text-[0.65rem] leading-tight text-text-tertiary">{footer}</p> : null}
     </div>
   )

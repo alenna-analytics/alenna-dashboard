@@ -20,25 +20,17 @@ function BreakdownRow({
   count: number
   tone: 'low' | 'critical'
 }) {
-  const isCritical = tone === 'critical'
+  const colorClass =
+    tone === 'critical'
+      ? 'text-[var(--stock-alert-critical)]'
+      : 'text-[var(--stock-alert-warning)]'
   return (
     <div className="flex items-center justify-between gap-3">
-      <span
-        className={cn(
-          'text-sm font-medium leading-tight',
-          isCritical
-            ? 'text-[var(--pill-error-text)]'
-            : 'text-[var(--status-amber-900)]',
-        )}
-      >
-        {label}
-      </span>
+      <span className={cn('text-sm font-medium leading-tight', colorClass)}>{label}</span>
       <span
         className={cn(
           'font-numeric text-lg font-semibold tabular-nums leading-none',
-          isCritical
-            ? 'text-[var(--pill-error-text)]'
-            : 'text-[var(--status-amber-900)]',
+          colorClass,
         )}
       >
         {count.toLocaleString()}

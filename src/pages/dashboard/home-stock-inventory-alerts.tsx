@@ -29,8 +29,8 @@ function AlertBanner({
       className={cn(
         'flex flex-wrap items-center justify-between gap-3 rounded-md border px-3 py-3 text-sm',
         isOut
-          ? 'border-[color-mix(in_srgb,var(--pill-error-text)_22%,transparent)] bg-[var(--pill-error-bg)] text-[var(--pill-error-text)]'
-          : 'border-[color-mix(in_srgb,var(--status-amber-600)_22%,transparent)] bg-[var(--status-amber-50)] text-[var(--status-amber-900)]',
+          ? 'border-[var(--stock-alert-critical-border)] bg-[var(--stock-alert-critical-bg)] text-[var(--stock-alert-critical)]'
+          : 'border-[var(--stock-alert-warning-border)] bg-[var(--stock-alert-warning-bg)] text-[var(--stock-alert-warning)]',
       )}
       role="status"
     >
@@ -42,7 +42,9 @@ function AlertBanner({
         to="/dashboard/products"
         className={cn(
           'shrink-0 text-sm font-medium underline underline-offset-2',
-          isOut ? 'text-[var(--pill-error-text)]' : 'text-[var(--status-amber-900)]',
+          isOut
+            ? 'text-[var(--stock-alert-critical)]'
+            : 'text-[var(--stock-alert-warning)]',
         )}
       >
         {viewLabel}

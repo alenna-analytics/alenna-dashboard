@@ -187,6 +187,23 @@
     transparent
   );
 
+  /** Stock alert severity text (home KPI breakdown, banners). */
+  --stock-alert-info: #16b674;
+  --stock-alert-warning: #dc7b18;
+  --stock-alert-critical: #ca3214;
+  --stock-alert-warning-bg: color-mix(in srgb, var(--stock-alert-warning) 10%, white);
+  --stock-alert-critical-bg: color-mix(in srgb, var(--stock-alert-critical) 10%, white);
+  --stock-alert-warning-border: color-mix(
+    in srgb,
+    var(--stock-alert-warning) 22%,
+    transparent
+  );
+  --stock-alert-critical-border: color-mix(
+    in srgb,
+    var(--stock-alert-critical) 22%,
+    transparent
+  );
+
   --ink: var(--african-turquoise-base);
   --ink-rgb: 0, 0, 0;
 

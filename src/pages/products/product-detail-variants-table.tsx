@@ -1,125 +1,62 @@
-import { Link } from 'react-router-dom'
+import { useMemo } from 'react'
+import { getCoreRowModel, useReactTable } from '@tanstack/react-table'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { ProductDetailApi } from '@/lib/types/catalog'
-import { INTEGRATION_UI } from '@/lib/integrations/catalog'
+import type { ProductVariantSummaryApi } from '@/lib/types/catalog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
-import { Badge } from '@/ui/badge'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/ui/table'
+import { DataTable } from '@/ui/data-table/data-table'
 
-import { ProductTableThumb } from './product-table-thumb'
-import { productDetailChannelPillClassName } from './product-detail-platform-badges'
-import { productPlatformLabel } from './product-platform-label'
-import { ProductStockAlertBadge, ProductStockQuantityCell } from './product-stock-alert-ui'
+import {
+  createProductDetailVariantsColumns,
+  sortVariantsByStockAlert,
+} from './product-detail-variants-columns'
 
 type ProductDetailVariantsTableProps = {
-  detail: ProductDetailApi
+  variants: ProductVariantSummaryApi[]
   t: (key: ShellStringKey) => string
-  baseCurrency: string
   fmtBase: (value: number) => string
 }
 
 export function ProductDetailVariantsTable({
-  detail,
+  variants,
   t,
-  baseCurrency,
   fmtBase,
 }: ProductDetailVariantsTableProps) {
-  if (!detail.variants?.length) return null
+  const columns = useMemo(() => createProductDetailVariantsColumns(t, fmtBase), [t, fmtBase])
+  const sortedVariants = useMemo(() => sortVariantsByStockAlert(variants), [variants])
+
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
+  const table = useReactTable({
+    data: sortedVariants,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getRowId: (row) => row.id,
+  })
+
+  if (variants.length === 0) {
+    return null
+  }
 
   return (
-    <Card id="product-variants-section">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">{t('productsDetailVariantsTitle')}</CardTitle>
-        <CardDescription>{t('productsDetailVariantsDescription')}</CardDescription>
+    <Card
+      id="product-variants-section"
+      className="scroll-mt-24 rounded-none border-none p-0 shadow-none hover:shadow-none"
+    >
+      <CardHeader className="p-0">
+        <CardTitle className="text-xl">{t('productsDetailVariantsTitle')}</CardTitle>
+        <CardDescription className="text-xs">{t('productsDetailVariantsDescription')}</CardDescription>
       </CardHeader>
-      <CardContent className="pt-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12" />
-              <TableHead>{t('productsDetailVariantsColName')}</TableHead>
-              <TableHead>{t('productsDetailVariantsColChannel')}</TableHead>
-              <TableHead className="text-right">{t('productsDetailListingColStock')}</TableHead>
-              <TableHead>{t('productsDetailListingColAlert')}</TableHead>
-              <TableHead className="text-right">{t('productsDetailKpiSales')}</TableHead>
-              <TableHead className="text-right">{t('productsDetailKpiOrders')}</TableHead>
-              <TableHead className="text-right">{t('productsDetailKpiUnitsSold')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {detail.variants.map((variant) => {
-              const label = variant.variant_label ?? variant.title
-              const platforms = variant.platforms ?? []
-              return (
-                <TableRow key={variant.id}>
-                  <TableCell>
-                    <ProductTableThumb url={variant.image_url} alt={label} />
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      to={`/dashboard/products/${variant.id}`}
-                      className="font-medium text-[var(--country-green-base)] hover:text-[var(--country-green-100)] hover:underline"
-                    >
-                      {label}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    {platforms.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {platforms.map((platform) => {
-                          const slug = platform.trim().toLowerCase()
-                          const ui = slug ? INTEGRATION_UI[slug] : undefined
-                          return (
-                            <Badge
-                              key={platform}
-                              variant="outline"
-                              className={productDetailChannelPillClassName}
-                            >
-                              {ui?.logoSrc != null ? (
-                                <img
-                                  src={ui.logoSrc}
-                                  alt=""
-                                  className="size-4 shrink-0 object-contain"
-                                  aria-hidden
-                                />
-                              ) : null}
-                              <span>{productPlatformLabel(platform, t)}</span>
-                            </Badge>
-                          )
-                        })}
-                      </div>
-                    ) : (
-                      <span className="text-text-tertiary">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <ProductStockQuantityCell quantity={variant.stock_quantity} />
-                  </TableCell>
-                  <TableCell>
-                    <ProductStockAlertBadge level={variant.stock_alert ?? 'none'} t={t} />
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {fmtBase(variant.period_sales)} {baseCurrency}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {variant.period_orders}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {variant.period_units_sold}
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
+      <CardContent className="p-0">
+        <DataTable
+          table={table}
+          isLoading={false}
+          isFetching={false}
+          hasEverLoaded
+          emptyContent={
+            <p className="py-8 text-center text-sm text-text-tertiary">—</p>
+          }
+          scrollClassName="max-h-[28rem] overflow-auto"
+        />
       </CardContent>
     </Card>
   )

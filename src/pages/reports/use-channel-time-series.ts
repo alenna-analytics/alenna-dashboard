@@ -41,7 +41,7 @@ export function useChannelTimeSeries({
       endDate,
       granularity,
     ],
-    placeholderData: keepPreviousData,
+    placeholderData: productKey ? undefined : keepPreviousData,
     enabled: Boolean(enabled && tenantId && startDate && endDate && ids),
     queryFn: async (): Promise<ChannelTimeSeriesResponse> => {
       const params = new URLSearchParams()

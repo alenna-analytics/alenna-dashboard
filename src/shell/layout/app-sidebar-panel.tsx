@@ -27,7 +27,7 @@ export type AppSidebarPanelProps = {
 
 function linkClassNames(isActive: boolean, collapsed: boolean): string {
   const baseTrans =
-    'text-xs font-medium transition-[background-color,color,transform] duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
+    'text-xs font-medium transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
   const active = cn(
     'bg-[var(--sidebar-active-bg)] font-medium shadow-none',
     '[&_svg]:opacity-100',
@@ -53,7 +53,7 @@ function linkClassNames(isActive: boolean, collapsed: boolean): string {
 
 function iconClassNames(isActive: boolean, collapsed: boolean): string {
   return cn(
-    'size-3.5 shrink-0 transition-[color,opacity] duration-200',
+    'size-3.5 shrink-0 transition-[color,opacity] duration-150',
     collapsed &&
     (isActive ? 'opacity-100' : 'text-text-secondary opacity-100'),
   )
@@ -94,7 +94,7 @@ function NavItem({
           {comingSoon && comingSoonLabel ? (
             <Badge
               variant="info"
-              className="ml-auto h-5 shrink-0 px-1.5 py-0 text-[10px] font-medium"
+              className="ml-auto !h-4 !min-h-0 !max-h-4 shrink-0 rounded px-1 py-0 text-[9px] font-medium leading-none"
             >
               {comingSoonLabel}
             </Badge>

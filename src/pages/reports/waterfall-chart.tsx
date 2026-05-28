@@ -2,6 +2,7 @@ import {
   Bar,
   CartesianGrid,
   ComposedChart,
+  Customized,
   LabelList,
   ResponsiveContainer,
   Tooltip,
@@ -495,55 +496,23 @@ function BarLabel({ x, y, width, height, value, isNegative }: BarLabelProps) {
   )
 }
 
-function bandGapXs(
-  xMap: NonNullable<ReturnType<typeof useXAxisScale>>,
-  bw: number | undefined,
-  leftCat: string,
-  rightCat: string,
-): { x1?: number; x2?: number } {
-  let x1 = xMap(leftCat, { position: 'end' })
-  let x2 = xMap(rightCat, { position: 'start' })
-  if ((x1 === undefined || x2 === undefined) && bw !== undefined && bw > 0) {
-    const sL = xMap(leftCat, { position: 'start' })
-    const sR = xMap(rightCat, { position: 'start' })
-    x1 = x1 ?? (sL !== undefined ? sL + bw : undefined)
-    x2 = x2 ?? sR
-  }
-  return { x1, x2 }
-}
-
-function bandWidthFromScale(
-  xMap: NonNullable<ReturnType<typeof useXAxisScale>>,
-  category: string,
-): number | undefined {
-  const s = xMap(category, { position: 'start' })
-  const e = xMap(category, { position: 'end' })
-  if (s === undefined || e === undefined) return undefined
-  const w = Math.abs(e - s)
-  return w > 0 ? w : undefined
-}
-
-function WaterfallConnectors({ bars }: { bars: WaterfallBar[] }) {
-  const xMap = useXAxisScale()
-  const yMap = useYAxisScale()
-  if (!xMap || !yMap || bars.length < 2) {
-    return null
-  }
-  const bw = bandWidthFromScale(xMap, bars[0]?.name ?? '')
+function WaterfallConnectorsLayer({ bars }: { bars: WaterfallBar[] }) {
+  const xScale = useXAxisScale()
+  const yScale = useYAxisScale()
+  if (!xScale || !yScale || bars.length < 2) return null
 
   const lines: ReactElement[] = []
   for (let i = 0; i < bars.length - 1; i++) {
-    const leftCat = bars[i]?.name
-    const rightCat = bars[i + 1]?.name
-    const { x1, x2 } = bandGapXs(xMap, bw, leftCat, rightCat)
-    const y = yMap(bars[i].runningAfter)
-    if (x1 === undefined || x2 === undefined || y === undefined) {
-      continue
-    }
-    const span = Math.abs(x2 - x1)
-    if (span < 1) {
-      continue
-    }
+    const left = bars[i]
+    const right = bars[i + 1]
+    if (!left || !right) continue
+
+    const x1 = xScale(left.name, { position: 'end' })
+    const x2 = xScale(right.name, { position: 'start' })
+    const y = yScale(left.runningAfter)
+    if (x1 == null || x2 == null || y == null) continue
+    if (Math.abs(x2 - x1) < 0.5) continue
+
     lines.push(
       <line
         key={`wf-conn-${i}`}
@@ -552,15 +521,16 @@ function WaterfallConnectors({ bars }: { bars: WaterfallBar[] }) {
         x2={x2}
         y2={y}
         stroke="var(--chart-wf-bridge-stroke)"
-        strokeWidth={2}
+        strokeWidth={1.5}
+        strokeDasharray="3 3"
         strokeLinecap="round"
         vectorEffect="non-scaling-stroke"
       />,
     )
   }
-  if (lines.length === 0) {
-    return null
-  }
+
+  if (lines.length === 0) return null
+
   return (
     <g className="recharts-waterfall-connectors" pointerEvents="none">
       {lines}
@@ -586,7 +556,7 @@ function CustomTooltip({
 
   if (d.stackedParts && d.stackedParts.length > 0) {
     return (
-      <div className="rounded-md border border-border-default bg-bg-elevated/96 px-3.5 py-3 text-xs shadow-[var(--shadow-ink-md)]">
+      <div className="rounded-md border border-border-default bg-background px-3.5 py-3 text-xs shadow-[var(--shadow-popover)]">
         <p className="font-medium text-text-primary">{d.name}</p>
         <p className="mt-0.5 text-text-secondary">
           {sign}
@@ -612,7 +582,7 @@ function CustomTooltip({
   }
 
   return (
-    <div className="rounded-md border border-border-default bg-bg-elevated/96 px-3.5 py-3 text-xs shadow-[var(--shadow-ink-md)]">
+    <div className="rounded-md border border-border-default bg-background px-3.5 py-3 text-xs shadow-[var(--shadow-popover)]">
       <p className="font-medium text-text-primary">{d.name}</p>
       <p className="mt-0.5 text-text-secondary">
         {sign}
@@ -700,6 +670,7 @@ export function WaterfallChart({
                   />
                 }
                 cursor={{ fill: 'var(--chart-wf-cursor-fill)' }}
+                wrapperStyle={{ outline: 'none' }}
               />
 
               <Bar
@@ -739,7 +710,7 @@ export function WaterfallChart({
                 />
               </Bar>
 
-              <WaterfallConnectors bars={bars} />
+              <Customized component={() => <WaterfallConnectorsLayer bars={bars} />} />
             </ComposedChart>
           </ResponsiveContainer>
         </div>

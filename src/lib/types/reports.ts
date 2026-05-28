@@ -46,6 +46,7 @@ export type ProductKpiResponse = {
   gross_profit: number
   gross_margin_pct: number
   units_sold: number
+  order_count: number
   currency: string
 }
 

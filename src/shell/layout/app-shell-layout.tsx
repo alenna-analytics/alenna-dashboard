@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { useCurrentTenant } from '@/auth/hooks'
@@ -57,14 +57,16 @@ export function AppShellLayout() {
 
   useEffect(() => onTrialExpired(() => setTrialForced(true)), [])
   const toggleSidebar = useCallback(() => {
-    setSidebarCollapsed((c) => {
-      const next = !c
-      try {
-        window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0')
-      } catch {
-        /* ignore */
-      }
-      return next
+    startTransition(() => {
+      setSidebarCollapsed((c) => {
+        const next = !c
+        try {
+          window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0')
+        } catch {
+          /* ignore */
+        }
+        return next
+      })
     })
   }, [])
   const {
@@ -171,7 +173,7 @@ export function AppShellLayout() {
                     ) : null}
                     <div
                       key={location.pathname}
-                      className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-300 motion-safe:fill-mode-both"
+                      className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150 motion-safe:fill-mode-both"
                     >
                       <Outlet />
                     </div>

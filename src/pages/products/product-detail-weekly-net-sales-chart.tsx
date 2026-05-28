@@ -10,11 +10,11 @@ import {
 } from 'recharts'
 
 import type { ProductWeeklyNetSalesPointApi } from '@/lib/types/catalog'
+import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import {
   CHART_LINE_MINI_MS,
-  createLeadingEdgeDot,
-  useProgressivePointReveal,
-} from '@/pages/dashboard/chart-progressive-reveal'
+  rechartsEnterAnimationProps,
+} from '@/pages/dashboard/use-chart-line-load-animation'
 
 export type ProductWeeklyNetSalesChartPoint = {
   weekStart: string
@@ -93,14 +93,7 @@ export function ProductDetailWeeklyNetSalesChart({
     [chartData],
   )
 
-  const { revealed: chartVisibleData, leadingIndex } = useProgressivePointReveal(
-    chartData,
-    chartRevealKey,
-    CHART_LINE_MINI_MS,
-  )
-
-  const lineDrawComplete =
-    chartVisibleData.length === chartData.length && chartData.length > 0
+  const lineAnimProps = rechartsEnterAnimationProps(CHART_LINE_MINI_MS)
 
   if (chartData.length === 0) {
     return null
@@ -115,7 +108,11 @@ export function ProductDetailWeeklyNetSalesChart({
       aria-label={ariaLabel}
     >
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartVisibleData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <LineChart
+          key={chartRevealKey}
+          data={chartData}
+          margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+        >
           <CartesianGrid
             stroke="var(--border-subtle)"
             strokeDasharray="3 3"
@@ -148,13 +145,9 @@ export function ProductDetailWeeklyNetSalesChart({
             dataKey="value"
             stroke={lineStroke}
             strokeWidth={2}
-            dot={
-              lineDrawComplete
-                ? { r: 3, fill: lineStroke, strokeWidth: 0 }
-                : createLeadingEdgeDot(leadingIndex, lineStroke, 3)
-            }
-            activeDot={{ r: 5, fill: lineStroke, strokeWidth: 0 }}
-            isAnimationActive={false}
+            dot={chartLineDot(lineStroke)}
+            activeDot={chartLineActiveDot(lineStroke)}
+            {...lineAnimProps}
           />
         </LineChart>
       </ResponsiveContainer>

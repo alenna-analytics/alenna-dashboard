@@ -62,7 +62,7 @@ const SHELL_STRINGS = {
     dashboardChannelSalesEmpty: 'No hay datos de canal en el periodo.',
     dashboardProfitMarginTitle: 'Utilidad bruta y margen %',
     dashboardProfitMarginSubtitle:
-      'Barras apiladas (utilidad, diferencia neto−utilidad, bruto−neto) y margen bruto % sobre ventas netas. Usa el mismo intervalo que «Tendencia de ingresos».',
+      'Barras apiladas (utilidad, diferencia neto−utilidad, bruto−neto) y margen bruto % sobre ventas netas.',
     dashboardProfitStackMerchAdj: 'Ventas brutas − ventas netas',
     dashboardProfitStackNetMinusProfit: 'Ventas netas − utilidad bruta',
     dashboardRevenueSeriesCurrent: 'Periodo actual',
@@ -740,7 +740,7 @@ const SHELL_STRINGS = {
     dashboardChannelSalesEmpty: 'No channel data for this period.',
     dashboardProfitMarginTitle: 'Gross profit and margin %',
     dashboardProfitMarginSubtitle:
-      'Stacked bars (profit, net−profit, gross−net) and gross margin % of net sales. Uses the same interval as Revenue trend.',
+      'Stacked bars (profit, net−profit, gross−net) and gross margin % of net sales.',
     dashboardProfitStackMerchAdj: 'Gross sales − net sales',
     dashboardProfitStackNetMinusProfit: 'Net sales − gross profit',
     dashboardRevenueSeriesCurrent: 'Current period',

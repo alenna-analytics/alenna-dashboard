@@ -11,6 +11,7 @@ import type {
 type Params = {
   connectionId?: string | null
   connectionIds?: string[]
+  productIds?: string[]
   startDate: string
   endDate: string
   granularity?: RevenueSeriesGranularity
@@ -20,6 +21,7 @@ type Params = {
 export function useMonthlyRevenueSeries({
   connectionId,
   connectionIds,
+  productIds,
   startDate,
   endDate,
   granularity = 'month',
@@ -30,11 +32,21 @@ export function useMonthlyRevenueSeries({
 
   const ids = connectionIds && connectionIds.length > 0 ? connectionIds : null
   const scopeKey = ids ? ids.join(',') : (connectionId ?? null)
+  const productKey = productIds?.length ? productIds.slice().sort().join(',') : ''
 
   return useQuery({
     staleTime: 300_000,
-    queryKey: ['reports', 'monthly-revenue', tenantId, scopeKey, startDate, endDate, granularity],
-    placeholderData: keepPreviousData,
+    queryKey: [
+      'reports',
+      'monthly-revenue',
+      tenantId,
+      scopeKey,
+      productKey,
+      startDate,
+      endDate,
+      granularity,
+    ],
+    placeholderData: productKey ? undefined : keepPreviousData,
     enabled: Boolean(
       enabled && tenantId && startDate && endDate && (ids || connectionId),
     ),
@@ -44,6 +56,9 @@ export function useMonthlyRevenueSeries({
         for (const id of ids) params.append('connection_ids', id)
       } else if (connectionId) {
         params.set('connection_id', connectionId)
+      }
+      if (productIds && productIds.length > 0) {
+        for (const pid of productIds) params.append('product_ids', pid)
       }
       params.set('start_date', startDate)
       params.set('end_date', endDate)

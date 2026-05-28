@@ -16,6 +16,7 @@ type Props = {
   applyLabel: string
   searchPlaceholder: string
   emptyLabel: string
+  loadingLabel: string
   selectAllLabel: string
   deselectAllLabel: string
   selectAllContainingLabel: string
@@ -46,6 +47,7 @@ export function HomeProductFilter({
   applyLabel,
   searchPlaceholder,
   emptyLabel,
+  loadingLabel,
   selectAllLabel,
   deselectAllLabel,
   selectAllContainingLabel,
@@ -59,7 +61,7 @@ export function HomeProductFilter({
   const [catalogRequestedByOpen, setCatalogRequestedByOpen] = useState(false)
   const catalogFetchEnabled = values.length > 0 || catalogRequestedByOpen
 
-  const { data, isFetching } = useQuery({
+  const { data, isPending, isFetching } = useQuery({
     queryKey: ['catalog', 'product-options', tenantId],
     enabled: Boolean(tenantId && catalogFetchEnabled),
     queryFn: async (): Promise<ProductListResponse> => {
@@ -120,7 +122,8 @@ export function HomeProductFilter({
       applyLabel={applyLabel}
       searchPlaceholder={searchPlaceholder}
       emptyLabel={emptyLabel}
-      loading={isFetching}
+      loading={isPending || isFetching}
+      loadingLabel={loadingLabel}
       showSelectAllContainingToggle
       selectAllLabel={selectAllLabel}
       deselectAllLabel={deselectAllLabel}

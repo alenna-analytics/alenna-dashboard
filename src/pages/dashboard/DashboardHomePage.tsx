@@ -13,7 +13,8 @@ import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { Skeleton } from '@/ui/skeleton'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
-import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
+import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
+import { revenueTrendSubtitleForGranularity } from '@/pages/dashboard/revenue-trend-subtitle'
 import { useModule } from '@/lib/modules/use-modules'
 import { KpiCard } from '@/ui/kpi-card'
 
@@ -83,6 +84,7 @@ function zeroProductKpi(currency: string): ProductKpiResponse {
     gross_profit: 0,
     gross_margin_pct: 0,
     units_sold: 0,
+    order_count: 0,
     currency,
   }
 }
@@ -271,7 +273,11 @@ export function DashboardHomePage() {
 
   const { startDate, endDate, connectionIds, productIds } = filters
 
-  const stockAlertCountsQuery = useProductStockAlertCountsQuery()
+  const productMode = productIds.length > 0
+
+  const stockAlertCountsQuery = useProductStockAlertCountsQuery(
+    productMode ? productIds : undefined,
+  )
   const stockAlertCounts = stockAlertCountsQuery.data
   const inventoryAlertLowCount = stockAlertCounts?.low_count ?? 0
   const inventoryAlertOutCount = stockAlertCounts?.out_count ?? 0
@@ -311,29 +317,22 @@ export function DashboardHomePage() {
 
   const prevPeriod = useMemo(() => computePreviousPeriod(startDate, endDate), [startDate, endDate])
 
-  const [revenueGranularity, setRevenueGranularity] = useState<RevenueSeriesGranularity>('month')
+  const [revenueTrendGranularity, setRevenueTrendGranularity] =
+    useState<RevenueSeriesGranularity>('month')
+  const [channelSalesGranularity, setChannelSalesGranularity] =
+    useState<RevenueSeriesGranularity>('month')
+  const [profitMarginGranularity, setProfitMarginGranularity] =
+    useState<RevenueSeriesGranularity>('month')
 
   const revenuePrevPeriod = useMemo(() => {
-    if (revenueGranularity === 'month') return computePreviousPeriod(startDate, endDate)
+    if (revenueTrendGranularity === 'month') return computePreviousPeriod(startDate, endDate)
     return computeShiftedPreviousPeriod(startDate, endDate)
-  }, [startDate, endDate, revenueGranularity])
+  }, [startDate, endDate, revenueTrendGranularity])
 
-  const revenueTrendSubtitle = useMemo(() => {
-    if (revenueGranularity === 'week') return t('dashboardRevenueTrendSubtitleWeek')
-    if (revenueGranularity === 'day') return t('dashboardRevenueTrendSubtitleDay')
-    return t('dashboardRevenueTrendSubtitleMonth')
-  }, [revenueGranularity, t])
-
-  const revenueGranularityOptions = useMemo(
-    () => [
-      { value: 'month', label: t('dashboardRevenueGranularityMonth') },
-      { value: 'week', label: t('dashboardRevenueGranularityWeek') },
-      { value: 'day', label: t('dashboardRevenueGranularityDay') },
-    ],
-    [t],
+  const revenueTrendSubtitle = useMemo(
+    () => revenueTrendSubtitleForGranularity(revenueTrendGranularity, t),
+    [revenueTrendGranularity, t],
   )
-
-  const productMode = productIds.length > 0
 
   // Order-level KPIs (no product selected)
   const { data: kpi, isLoading: kpiLoading, isSuccess: kpiReady } = useReports({
@@ -371,17 +370,19 @@ export function DashboardHomePage() {
     isSuccess: monthlyCurrentReady,
   } = useMonthlyRevenueSeries({
     connectionIds: activeConnectionIds,
+    productIds: productMode ? productIds : undefined,
     startDate,
     endDate,
-    granularity: revenueGranularity,
+    granularity: revenueTrendGranularity,
     enabled: activeConnectionIds.length > 0,
   })
 
   const { data: monthlyPrev } = useMonthlyRevenueSeries({
     connectionIds: activeConnectionIds,
+    productIds: productMode ? productIds : undefined,
     startDate: revenuePrevPeriod?.start ?? '',
     endDate: revenuePrevPeriod?.end ?? '',
-    granularity: revenueGranularity,
+    granularity: revenueTrendGranularity,
     enabled:
       activeConnectionIds.length > 0 && Boolean(revenuePrevPeriod) && monthlyCurrentReady,
   })
@@ -394,12 +395,27 @@ export function DashboardHomePage() {
     enabled: activeConnectionIds.length > 0,
   })
 
-  const { data: channelTimeSeries, isError: channelTimeSeriesError } = useChannelTimeSeries({
+  const {
+    data: channelSalesTimeSeries,
+    isError: channelSalesTimeSeriesError,
+  } = useChannelTimeSeries({
     connectionIds: activeConnectionIds,
     productIds,
     startDate,
     endDate,
-    granularity: revenueGranularity,
+    granularity: channelSalesGranularity,
+    enabled: activeConnectionIds.length > 0,
+  })
+
+  const {
+    data: profitMarginTimeSeries,
+    isError: profitMarginTimeSeriesError,
+  } = useChannelTimeSeries({
+    connectionIds: activeConnectionIds,
+    productIds,
+    startDate,
+    endDate,
+    granularity: profitMarginGranularity,
     enabled: activeConnectionIds.length > 0,
   })
 
@@ -429,6 +445,8 @@ export function DashboardHomePage() {
     return pkpi ?? zeroProductKpi(baseCurrency)
   }, [productMode, connectorsLoading, activeConnectionIds, pkpiLoading, pkpi, baseCurrency])
 
+  const showKpiCards = Boolean(productMode ? displayProductKpi : displayKpi)
+
   const currency = displayKpi?.currency ?? displayProductKpi?.currency ?? baseCurrency
   const convertFromBase = useMemo(
     () => (n: number) => convertMoney(n, { nativeCurrency: currency }).amount,
@@ -444,8 +462,18 @@ export function DashboardHomePage() {
     [effectiveDisplayCurrency, lang],
   )
 
-  const orders = displayKpi?.order_count ?? 0
-  const aov = orders > 0 && displayKpi ? displayKpi.net_revenue / orders : null
+  const orders = productMode
+    ? (displayProductKpi?.order_count ?? 0)
+    : (displayKpi?.order_count ?? 0)
+  const netRevenueCurrent = productMode
+    ? (displayProductKpi?.gross_revenue ?? 0)
+    : (displayKpi?.net_revenue ?? 0)
+  const aov =
+    orders > 0
+      ? productMode
+        ? (displayProductKpi?.gross_revenue ?? 0) / orders
+        : (displayKpi?.net_revenue ?? 0) / orders
+      : null
 
   const previousReady = Boolean(prevPeriod) && (productMode ? !pkpiPrevLoading : !kpiPrevLoading)
 
@@ -493,43 +521,65 @@ export function DashboardHomePage() {
     }
   }
 
-  // Order-level deltas
-  const net = displayKpi ? deltaBlock(displayKpi.net_revenue, kpiPrev?.net_revenue, 'currency') : null
-  const grossProfit = displayKpi
-    ? deltaBlock(displayKpi.gross_profit, kpiPrev?.gross_profit, 'currency')
+  const net = showKpiCards
+    ? deltaBlock(
+        netRevenueCurrent,
+        productMode ? pkpiPrev?.gross_revenue : kpiPrev?.net_revenue,
+        'currency',
+      )
     : null
-  const ebitda = displayKpi ? deltaBlock(displayKpi.ebitda, kpiPrev?.ebitda, 'currency') : null
-  const unitsSold = displayKpi
-    ? deltaBlock(displayKpi.units_sold, kpiPrev?.units_sold, 'count')
+  const grossProfit = showKpiCards
+    ? deltaBlock(
+        productMode
+          ? (displayProductKpi?.gross_profit ?? 0)
+          : (displayKpi?.gross_profit ?? 0),
+        productMode ? pkpiPrev?.gross_profit : kpiPrev?.gross_profit,
+        'currency',
+      )
     : null
-  const cmPct = displayKpi
-    ? deltaBlock(displayKpi.contribution_margin_pct, kpiPrev?.contribution_margin_pct, 'percent')
+  const ebitda =
+    !productMode && displayKpi
+      ? deltaBlock(displayKpi.ebitda, kpiPrev?.ebitda, 'currency')
+      : null
+  const unitsSold = showKpiCards
+    ? deltaBlock(
+        productMode
+          ? (displayProductKpi?.units_sold ?? 0)
+          : (displayKpi?.units_sold ?? 0),
+        productMode ? pkpiPrev?.units_sold : kpiPrev?.units_sold,
+        'count',
+      )
     : null
-  const ord = displayKpi ? deltaBlock(displayKpi.order_count, kpiPrev?.order_count, 'count') : null
+  const cmPct = showKpiCards
+    ? deltaBlock(
+        productMode
+          ? (displayProductKpi?.gross_margin_pct ?? 0)
+          : (displayKpi?.contribution_margin_pct ?? 0),
+        productMode
+          ? pkpiPrev?.gross_margin_pct
+          : kpiPrev?.contribution_margin_pct,
+        'percent',
+      )
+    : null
+  const ord = showKpiCards
+    ? deltaBlock(
+        productMode ? (displayProductKpi?.order_count ?? 0) : (displayKpi?.order_count ?? 0),
+        productMode ? pkpiPrev?.order_count : kpiPrev?.order_count,
+        'count',
+      )
+    : null
   const aovCur = aov ?? 0
-  const aovPrev =
-    kpiPrev && kpiPrev.order_count > 0 ? kpiPrev.net_revenue / kpiPrev.order_count : undefined
-  const aovDelta = displayKpi && aov !== null ? deltaBlock(aovCur, aovPrev, 'currency') : null
-
-  // Product-scoped deltas
-  const pGross = displayProductKpi
-    ? deltaBlock(displayProductKpi.gross_revenue, pkpiPrev?.gross_revenue, 'currency')
-    : null
-  const pCogs = displayProductKpi
-    ? deltaBlock(displayProductKpi.cogs, pkpiPrev?.cogs, 'currency')
-    : null
-  const pProfit = displayProductKpi
-    ? deltaBlock(displayProductKpi.gross_profit, pkpiPrev?.gross_profit, 'currency')
-    : null
-  const pMargin = displayProductKpi
-    ? deltaBlock(displayProductKpi.gross_margin_pct, pkpiPrev?.gross_margin_pct, 'percent')
-    : null
-  const pUnits = displayProductKpi
-    ? deltaBlock(displayProductKpi.units_sold, pkpiPrev?.units_sold, 'count')
-    : null
+  const aovPrev = productMode
+    ? pkpiPrev && (pkpiPrev.order_count ?? 0) > 0
+      ? pkpiPrev.gross_revenue / pkpiPrev.order_count
+      : undefined
+    : kpiPrev && kpiPrev.order_count > 0
+      ? kpiPrev.net_revenue / kpiPrev.order_count
+      : undefined
+  const aovDelta = showKpiCards && aov !== null ? deltaBlock(aovCur, aovPrev, 'currency') : null
 
   const waterfallSegments = useMemo(() => {
-    if (!displayKpi) return []
+    if (!displayKpi || productMode) return []
     const segs = buildWaterfallSegments(displayKpi, t)
     return segs.map((s) => ({
       ...s,
@@ -539,7 +589,7 @@ export function DashboardHomePage() {
         value: convertFromBase(p.value),
       })),
     }))
-  }, [displayKpi, t, convertFromBase])
+  }, [displayKpi, productMode, t, convertFromBase])
 
   const pairedChartBodyPx = useMemo(() => getTopProductsChartHeightPx(), [])
 
@@ -547,7 +597,11 @@ export function DashboardHomePage() {
 
   const showTopProducts = true
 
-  const isInitialLoad = displayKpi === null && displayProductKpi === null
+  const isInitialLoad =
+    connectorsLoading ||
+    (productMode
+      ? activeConnectionIds.length > 0 && pkpiLoading
+      : displayKpi === null)
 
   return (
     <DashboardPage className="flex flex-1 flex-col gap-5">
@@ -594,26 +648,13 @@ export function DashboardHomePage() {
             applyLabel={t('datePickerApply')}
             searchPlaceholder={t('homeFilterProductSearch')}
             emptyLabel={t('homeFilterProductEmpty')}
+            loadingLabel={t('homeFilterProductLoading')}
             selectAllLabel={t('homeFilterSelectAll')}
             deselectAllLabel={t('homeFilterDeselectAll')}
             selectAllContainingLabel={t('homeFilterSelectAllContaining')}
             deselectAllContainingLabel={t('homeFilterDeselectAllContaining')}
             allContainingSummaryLabel={t('homeFilterAllContainingSummary')}
           />
-          <div className="min-w-[10.5rem] shrink-0">
-            <FilterComboboxSingle
-              label={t('dashboardRevenueGranularityLabel')}
-              options={revenueGranularityOptions}
-              value={revenueGranularity}
-              onValueChange={(v) => {
-                if (v === 'month' || v === 'week' || v === 'day') setRevenueGranularity(v)
-              }}
-              applyLabel={t('datePickerApply')}
-              searchPlaceholder={t('filterSearch')}
-              emptyLabel={t('filterComingSoon')}
-              allowClear={false}
-            />
-          </div>
         </div>
       </header>
 
@@ -622,107 +663,58 @@ export function DashboardHomePage() {
       ) : (
         <>
           <MoneyDisclaimer />
-          {!productMode ? (
-            <HomeStockInventoryAlerts
-              lowCount={inventoryAlertLowCount}
-              outCount={inventoryAlertOutCount}
-              t={t}
-            />
-          ) : null}
-          {productMode && displayProductKpi ? (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <HomeStockInventoryAlerts
+            lowCount={inventoryAlertLowCount}
+            outCount={inventoryAlertOutCount}
+            t={t}
+          />
+          {showKpiCards ? (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <KpiCard
-                label={t('reportsGrossRevenue')}
-                value={formatMoney(displayProductKpi.gross_revenue, { nativeCurrency: currency })}
+                label={t('homeKpiNetSales')}
+                helpText={t('homeKpiNetSalesHelp')}
+                value={formatMoney(netRevenueCurrent, { nativeCurrency: currency })}
                 vsPriorLabel={vsPrior}
-                priorValueDisplay={pGross!.priorDisplay}
-                pct={pGross!.pct}
-                trend={pGross!.trend}
-                comparisonUnavailable={pGross!.unavailable}
+                priorValueDisplay={net!.priorDisplay}
+                pct={net!.pct}
+                trend={net!.trend}
+                comparisonUnavailable={net!.unavailable}
               />
+              {adsModule?.enabled ? (
+                <KpiCard
+                  label={t('homeKpiRoasGlobal')}
+                  helpText={t('homeKpiRoasGlobalHelp')}
+                  value="—"
+                  placeholder
+                  placeholderLabel={t('comingSoonBadge')}
+                  vsPriorLabel={vsPrior}
+                  priorValueDisplay={null}
+                  pct={null}
+                  trend="flat"
+                  comparisonUnavailable
+                  showComparison={false}
+                />
+              ) : null}
               <KpiCard
-                label={t('homeProductKpiCogs')}
-                value={formatMoney(displayProductKpi.cogs, { nativeCurrency: currency })}
+                label={t('homeKpiContributionMarginPct')}
+                helpText={t('homeKpiContributionMarginPctHelp')}
+                value={`${(productMode
+                  ? (displayProductKpi?.gross_margin_pct ?? 0)
+                  : (displayKpi?.contribution_margin_pct ?? 0)
+                ).toFixed(1)}%`}
                 vsPriorLabel={vsPrior}
-                priorValueDisplay={pCogs!.priorDisplay}
-                pct={pCogs!.pct}
-                trend={pCogs!.trend}
-                comparisonUnavailable={pCogs!.unavailable}
+                priorValueDisplay={cmPct!.priorDisplay}
+                pct={cmPct!.pct}
+                trend={cmPct!.trend}
+                comparisonUnavailable={cmPct!.unavailable}
+                negativeMetric
               />
-              <KpiCard
-                label={t('reportsGrossProfit')}
-                value={formatMoney(displayProductKpi.gross_profit, { nativeCurrency: currency })}
-                vsPriorLabel={vsPrior}
-                priorValueDisplay={pProfit!.priorDisplay}
-                pct={pProfit!.pct}
-                trend={pProfit!.trend}
-                comparisonUnavailable={pProfit!.unavailable}
-              />
-              <KpiCard
-                label={t('reportsKpiMargenBrutoPct')}
-                value={`${displayProductKpi.gross_margin_pct.toFixed(1)}%`}
-                vsPriorLabel={vsPrior}
-                priorValueDisplay={pMargin!.priorDisplay}
-                pct={pMargin!.pct}
-                trend={pMargin!.trend}
-                comparisonUnavailable={pMargin!.unavailable}
-              />
-              <KpiCard
-                label={t('homeProductKpiUnits')}
-                value={displayProductKpi.units_sold.toLocaleString()}
-                vsPriorLabel={vsPrior}
-                priorValueDisplay={pUnits!.priorDisplay}
-                pct={pUnits!.pct}
-                trend={pUnits!.trend}
-                comparisonUnavailable={pUnits!.unavailable}
+              <HomeActiveAlertsKpi
+                lowCount={inventoryAlertLowCount}
+                outCount={inventoryAlertOutCount}
+                {...homeActiveAlertsKpiLabels(t, vsPrior)}
               />
             </div>
-          ) : displayKpi ? (
-            <>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <KpiCard
-                  label={t('homeKpiNetSales')}
-                  helpText={t('homeKpiNetSalesHelp')}
-                  value={formatMoney(displayKpi.net_revenue, { nativeCurrency: currency })}
-                  vsPriorLabel={vsPrior}
-                  priorValueDisplay={net!.priorDisplay}
-                  pct={net!.pct}
-                  trend={net!.trend}
-                  comparisonUnavailable={net!.unavailable}
-                />
-                {adsModule?.enabled ? (
-                  <KpiCard
-                    label={t('homeKpiRoasGlobal')}
-                    helpText={t('homeKpiRoasGlobalHelp')}
-                    value="—"
-                    placeholder
-                    placeholderLabel={t('comingSoonBadge')}
-                    vsPriorLabel={vsPrior}
-                    priorValueDisplay={null}
-                    pct={null}
-                    trend="flat"
-                    comparisonUnavailable
-                    showComparison={false}
-                  />
-                ) : null}
-                <KpiCard
-                  label={t('homeKpiContributionMarginPct')}
-                  helpText={t('homeKpiContributionMarginPctHelp')}
-                  value={`${displayKpi.contribution_margin_pct.toFixed(1)}%`}
-                  vsPriorLabel={vsPrior}
-                  priorValueDisplay={cmPct!.priorDisplay}
-                  pct={cmPct!.pct}
-                  trend={cmPct!.trend}
-                  comparisonUnavailable={cmPct!.unavailable}
-                  negativeMetric
-                />
-                <HomeActiveAlertsKpi
-                  lowCount={inventoryAlertLowCount}
-                  outCount={inventoryAlertOutCount}
-                  {...homeActiveAlertsKpiLabels(t, vsPrior)}
-                />
-              </div>
-            </>
           ) : null}
 
           <div
@@ -771,7 +763,7 @@ export function DashboardHomePage() {
             ) : null}
           </div>
 
-          {!productMode && displayKpi ? (
+          {showKpiCards ? (
             <>
               <h3 className="mt-2 text-sm font-medium text-text-secondary">
                 {t('homeSecondaryKpiSectionTitle')}
@@ -781,7 +773,12 @@ export function DashboardHomePage() {
                   compact
                   label={t('reportsGrossProfit')}
                   helpText={t('reportsKpiHelpGrossProfit')}
-                  value={formatMoney(displayKpi.gross_profit, { nativeCurrency: currency })}
+                  value={formatMoney(
+                    productMode
+                      ? (displayProductKpi?.gross_profit ?? 0)
+                      : (displayKpi?.gross_profit ?? 0),
+                    { nativeCurrency: currency },
+                  )}
                   vsPriorLabel={vsPrior}
                   priorValueDisplay={grossProfit!.priorDisplay}
                   pct={grossProfit!.pct}
@@ -792,18 +789,26 @@ export function DashboardHomePage() {
                   compact
                   label={t('reportsEbitda')}
                   helpText={t('reportsKpiHelpEbitda')}
-                  value={formatMoney(displayKpi.ebitda, { nativeCurrency: currency })}
+                  value={
+                    productMode
+                      ? '—'
+                      : formatMoney(displayKpi?.ebitda ?? 0, { nativeCurrency: currency })
+                  }
                   vsPriorLabel={vsPrior}
-                  priorValueDisplay={ebitda!.priorDisplay}
-                  pct={ebitda!.pct}
-                  trend={ebitda!.trend}
-                  comparisonUnavailable={ebitda!.unavailable}
+                  priorValueDisplay={productMode ? null : ebitda!.priorDisplay}
+                  pct={productMode ? null : ebitda!.pct}
+                  trend={productMode ? 'flat' : ebitda!.trend}
+                  comparisonUnavailable={productMode ? true : ebitda!.unavailable}
+                  showComparison={!productMode}
                 />
                 <KpiCard
                   compact
                   label={t('reportsUnits')}
                   helpText={t('reportsKpiHelpUnits')}
-                  value={displayKpi.units_sold.toLocaleString()}
+                  value={(productMode
+                    ? (displayProductKpi?.units_sold ?? 0)
+                    : (displayKpi?.units_sold ?? 0)
+                  ).toLocaleString()}
                   vsPriorLabel={vsPrior}
                   priorValueDisplay={unitsSold!.priorDisplay}
                   pct={unitsSold!.pct}
@@ -814,7 +819,7 @@ export function DashboardHomePage() {
                   compact
                   label={t('reportsOrders')}
                   helpText={t('reportsKpiHelpOrders')}
-                  value={displayKpi.order_count.toLocaleString()}
+                  value={orders.toLocaleString()}
                   vsPriorLabel={vsPrior}
                   priorValueDisplay={ord!.priorDisplay}
                   pct={ord!.pct}
@@ -826,7 +831,9 @@ export function DashboardHomePage() {
                   compact
                   label={t('reportsKpiAov')}
                   helpText={t('reportsKpiHelpAov')}
-                  value={aov !== null ? formatMoney(aov, { nativeCurrency: currency }) : '—'}
+                  value={
+                    aov === null ? '—' : formatMoney(aov, { nativeCurrency: currency })
+                  }
                   vsPriorLabel={vsPrior}
                   priorValueDisplay={aovDelta?.priorDisplay ?? null}
                   pct={aovDelta?.pct ?? null}
@@ -847,6 +854,13 @@ export function DashboardHomePage() {
                 <SectionHeader
                   title={t('dashboardRevenueTrendTitle')}
                   description={revenueTrendSubtitle}
+                  aside={
+                    <ChartGranularityFilter
+                      value={revenueTrendGranularity}
+                      onChange={setRevenueTrendGranularity}
+                      t={t}
+                    />
+                  }
                 />
                 {monthlyRevenueError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
@@ -858,7 +872,7 @@ export function DashboardHomePage() {
                     endDate={endDate}
                     prevStart={revenuePrevPeriod?.start ?? ''}
                     prevEnd={revenuePrevPeriod?.end ?? ''}
-                    granularity={revenueGranularity}
+                    granularity={revenueTrendGranularity}
                     rowsCurrent={monthlyCurrent?.months ?? []}
                     rowsPrev={monthlyPrev?.months ?? []}
                     comparePrevious={revenueComparePrevious}
@@ -876,8 +890,15 @@ export function DashboardHomePage() {
                 <SectionHeader
                   title={t('dashboardChannelSalesTitle')}
                   description={t('dashboardChannelSalesSubtitle')}
+                  aside={
+                    <ChartGranularityFilter
+                      value={channelSalesGranularity}
+                      onChange={setChannelSalesGranularity}
+                      t={t}
+                    />
+                  }
                 />
-                {channelTimeSeriesError ? (
+                {channelSalesTimeSeriesError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
                     {t('reportsMonthlyLoadError')}
                   </p>
@@ -885,8 +906,8 @@ export function DashboardHomePage() {
                   <DashboardChannelSalesChart
                     startDate={startDate}
                     endDate={endDate}
-                    granularity={revenueGranularity}
-                    rows={channelTimeSeries?.rows ?? []}
+                    granularity={channelSalesGranularity}
+                    rows={channelSalesTimeSeries?.rows ?? []}
                     currency={effectiveDisplayCurrency}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}
@@ -901,8 +922,15 @@ export function DashboardHomePage() {
                 <SectionHeader
                   title={t('dashboardProfitMarginTitle')}
                   description={t('dashboardProfitMarginSubtitle')}
+                  aside={
+                    <ChartGranularityFilter
+                      value={profitMarginGranularity}
+                      onChange={setProfitMarginGranularity}
+                      t={t}
+                    />
+                  }
                 />
-                {channelTimeSeriesError ? (
+                {profitMarginTimeSeriesError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
                     {t('reportsMonthlyLoadError')}
                   </p>
@@ -910,8 +938,8 @@ export function DashboardHomePage() {
                   <DashboardProfitMarginChart
                     startDate={startDate}
                     endDate={endDate}
-                    granularity={revenueGranularity}
-                    rows={channelTimeSeries?.rows ?? []}
+                    granularity={profitMarginGranularity}
+                    rows={profitMarginTimeSeries?.rows ?? []}
                     currency={effectiveDisplayCurrency}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}

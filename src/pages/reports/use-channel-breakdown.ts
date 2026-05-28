@@ -36,7 +36,7 @@ export function useChannelBreakdown({
       startDate,
       endDate,
     ],
-    placeholderData: keepPreviousData,
+    placeholderData: productIds?.length ? undefined : keepPreviousData,
     enabled: Boolean(
       enabled && tenantId && connectionIds.length > 0 && startDate && endDate,
     ),

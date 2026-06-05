@@ -248,7 +248,7 @@ const SHELL_STRINGS = {
     syncFreshnessPillTooltip:
       'Visita la página de integraciones para más detalles.',
     syncFreshnessPillInfoTooltip:
-      'Los datos de todas las plataformas se actualizan automáticamente cada 5 min.',
+      'Los datos de todas las plataformas se actualizan automáticamente cada 6 horas.',
     syncProductsUpdated: 'referencias de catálogo en pedidos',
     syncListingsImported: 'publicaciones importadas',
     syncErrorLabel: 'Error al sincronizar',
@@ -921,7 +921,7 @@ const SHELL_STRINGS = {
     syncFreshnessPillSyncing: 'Syncing',
     syncFreshnessPillTooltip: 'Visit the integrations page for more details.',
     syncFreshnessPillInfoTooltip:
-      'Data across all platforms is automatically updated every 5 mins.',
+      'Data across all platforms is automatically updated every 6 hours.',
     syncProductsUpdated: 'order line catalog references',
     syncListingsImported: 'listings imported',
     syncErrorLabel: 'Sync error',

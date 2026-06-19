@@ -11,8 +11,9 @@ import { SidebarNavSection } from '@/shell/layout/sidebar-nav-section'
 import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
+import alennaIconWhite from '@/assets/alenna/alenna-icon-white.svg'
 
-const TENANT_FAVICON_SRC = '/favicon.svg'
+const DEFAULT_TENANT_MARK_SRC = alennaIconWhite
 
 export type AppSidebarPanelProps = {
   collapsed: boolean
@@ -131,7 +132,7 @@ function TenantMark({
   className?: string
 }) {
   const trimmedLogo = logoUrl?.trim() ?? ''
-  const src = trimmedLogo.length > 0 ? trimmedLogo : TENANT_FAVICON_SRC
+  const src = trimmedLogo.length > 0 ? trimmedLogo : DEFAULT_TENANT_MARK_SRC
 
   return (
     <div

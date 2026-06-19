@@ -8,7 +8,6 @@ import downloadIcon from '@/assets/icons/download.svg'
 import growthIcon from '@/assets/icons/growth.svg'
 import homeIcon from '@/assets/icons/home.svg'
 import integrationsIcon from '@/assets/icons/integrations.svg'
-import loadingIcon from '@/assets/icons/loading.svg'
 import notificationsIcon from '@/assets/icons/notifications.svg'
 import ordersIcon from '@/assets/icons/orders.svg'
 import orgsIcon from '@/assets/icons/orgs.svg'
@@ -30,7 +29,6 @@ export const APP_ICONS = {
   simulations: simulationsIcon,
   integrations: integrationsIcon,
   config: configIcon,
-  loading: loadingIcon,
   ai: aiIcon,
   billing: billingIcon,
   company: companyIcon,

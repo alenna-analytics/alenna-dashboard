@@ -1,5 +1,6 @@
 import { shellT } from '@/lib/i18n/shell-strings'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { AlennaLogo } from '@/ui/alenna-logo'
 import { BootSpinner } from '@/ui/boot-spinner'
 
 export function AppBootLoader() {
@@ -8,12 +9,19 @@ export function AppBootLoader() {
 
   return (
     <div
-      className="flex min-h-svh flex-col items-center justify-center bg-[var(--bg-base)] px-6 motion-safe:animate-[boot-loader-enter_0.35s_ease-out]"
+      className="flex min-h-svh flex-col bg-[var(--bg-base)] motion-safe:animate-[boot-loader-enter_0.35s_ease-out]"
       role="status"
       aria-live="polite"
     >
       <span className="sr-only">{srStatus}</span>
-      <BootSpinner />
+
+      <div className="flex flex-1 flex-col items-center justify-center px-6">
+        <BootSpinner />
+      </div>
+
+      <div className="flex justify-center pb-10">
+        <AlennaLogo className="h-8 w-auto max-w-[min(11rem,55vw)] object-contain object-bottom opacity-90" />
+      </div>
     </div>
   )
 }

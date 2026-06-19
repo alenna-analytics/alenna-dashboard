@@ -1,3 +1,5 @@
+import { Loader2 } from 'lucide-react'
+
 import { APP_ICONS, type AppIconName } from '@/lib/icons/catalog'
 import { cn } from '@/lib/utils'
 
@@ -24,5 +26,5 @@ export type LoadingIconProps = {
 }
 
 export function LoadingIcon({ className }: LoadingIconProps) {
-  return <AppIcon name="loading" className={className} spin />
+  return <Loader2 className={cn('animate-spin', className)} aria-hidden />
 }

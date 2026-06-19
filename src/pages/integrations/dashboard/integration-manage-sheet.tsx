@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react'
+import { LoadingIcon } from '@/ui/app-icon'
 
 import type { MercadoLibreIntegrationHook } from '@/pages/integrations/details/use-mercadolibre-integration'
 import type { ShopifyIntegrationHook } from '@/pages/integrations/details/use-shopify-integration'
@@ -71,7 +71,7 @@ export function IntegrationManageSheet({
             >
               {shopify?.disconnectMutation.isPending ||
               mercadolibre?.disconnectMutation.isPending ? (
-                <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+                <LoadingIcon className="size-4 shrink-0" />
               ) : null}
               {shellT(lang, 'integrationDetailDisconnect')}
             </Button>

@@ -1,5 +1,7 @@
 import * as React from 'react'
-import { Check, Loader2 } from 'lucide-react'
+import { Check } from 'lucide-react'
+
+import { LoadingIcon } from '@/ui/app-icon'
 
 import { cn } from '@/lib/utils'
 import {
@@ -102,7 +104,7 @@ export function FilterComboboxSingle({
             <CommandEmpty>
               {loading ? (
                 <span className="inline-flex items-center gap-2 text-text-secondary">
-                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                  <LoadingIcon className="size-4" />
                   <span>{loadingLabel || emptyLabel}</span>
                 </span>
               ) : (

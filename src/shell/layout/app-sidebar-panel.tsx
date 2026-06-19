@@ -1,17 +1,18 @@
-import type { LucideIcon } from 'lucide-react'
-import { LayoutDashboard, PanelLeft } from 'lucide-react'
+import { PanelLeft } from 'lucide-react'
 import { matchPath, NavLink, useLocation } from 'react-router-dom'
 
+import alennaIconWhite from '@/assets/alenna/alenna-icon-white.svg'
+import type { AppIconName } from '@/lib/icons/catalog'
 import { useEnabledModules } from '@/lib/modules/use-modules'
 import type { ModuleSection, ModuleState } from '@/lib/modules/types'
-import { useLanguage } from '@/shell/providers/language-provider'
-import { cn } from '@/lib/utils'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { useLanguage } from '@/shell/providers/language-provider'
 import { SidebarNavSection } from '@/shell/layout/sidebar-nav-section'
+import { cn } from '@/lib/utils'
+import { AppIcon } from '@/ui/app-icon'
 import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
-import alennaIconWhite from '@/assets/alenna/alenna-icon-white.svg'
 
 const DEFAULT_TENANT_MARK_SRC = alennaIconWhite
 
@@ -31,12 +32,12 @@ function linkClassNames(isActive: boolean, collapsed: boolean): string {
     'text-xs font-medium transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
   const active = cn(
     'bg-[var(--sidebar-active-bg)] font-medium shadow-none',
-    '[&_svg]:opacity-100',
+    '[&_img]:opacity-100',
   )
   const inactive = cn(
     'text-text-secondary hover:bg-[var(--sidebar-accent)]',
-    !collapsed && '[&_svg]:opacity-75',
-    !collapsed && 'hover:[&_svg]:opacity-100',
+    !collapsed && '[&_img]:opacity-75',
+    !collapsed && 'hover:[&_img]:opacity-100',
   )
   if (collapsed) {
     return cn(
@@ -54,7 +55,7 @@ function linkClassNames(isActive: boolean, collapsed: boolean): string {
 
 function iconClassNames(isActive: boolean, collapsed: boolean): string {
   return cn(
-    'size-3.5 shrink-0 transition-[color,opacity] duration-150',
+    'size-6 shrink-0 transition-[color,opacity] duration-150',
     collapsed &&
     (isActive ? 'opacity-100' : 'text-text-secondary opacity-100'),
   )
@@ -65,7 +66,7 @@ function NavItem({
   end,
   label,
   collapsed,
-  Icon,
+  icon,
   comingSoon,
   comingSoonLabel,
   onNavigate,
@@ -74,7 +75,7 @@ function NavItem({
   end?: boolean
   label: string
   collapsed: boolean
-  Icon: LucideIcon
+  icon: AppIconName
   comingSoon?: boolean
   comingSoonLabel?: string
   onNavigate?: () => void
@@ -88,7 +89,7 @@ function NavItem({
       className={linkClassNames(isActive, collapsed)}
       onClick={() => onNavigate?.()}
     >
-      <Icon className={iconClassNames(isActive, collapsed)} aria-hidden strokeWidth={2} />
+      <AppIcon name={icon} className={iconClassNames(isActive, collapsed)} />
       {!collapsed ? (
         <span className="flex min-w-0 flex-1 items-center gap-1.5">
           <span className="min-w-0 flex-1 truncate">{label}</span>
@@ -165,7 +166,7 @@ function ModuleNavItems({
       {modules.map((mod) => (
         <NavItem
           key={mod.id}
-          Icon={mod.icon}
+          icon={mod.icon}
           to={mod.path}
           end={mod.id !== 'products'}
           label={t(mod.labelKey)}
@@ -270,7 +271,7 @@ export function AppSidebarPanel({
         aria-label={t('navMain')}
       >
         <NavItem
-          Icon={LayoutDashboard}
+          icon="home"
           to="/dashboard"
           end
           label={t('navHome')}

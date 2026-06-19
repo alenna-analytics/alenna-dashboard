@@ -1,4 +1,6 @@
-import { AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react'
+import { AlertCircle, CheckCircle2, X } from 'lucide-react'
+
+import { LoadingIcon } from '@/ui/app-icon'
 import { Link } from 'react-router-dom'
 
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -21,7 +23,7 @@ const ROW_ACCENT: Record<GlobalActivityPhase, string> = {
 function PhaseGlyph({ phase }: { phase: GlobalActivityPhase }) {
   const cls = 'size-3.5 shrink-0 text-text-secondary'
   if (phase === 'loading') {
-    return <Loader2 className={cn(cls, 'animate-spin')} aria-hidden />
+    return <LoadingIcon className={cls} />
   }
   if (phase === 'success') {
     return <CheckCircle2 className={cn(cls, 'text-success')} aria-hidden />

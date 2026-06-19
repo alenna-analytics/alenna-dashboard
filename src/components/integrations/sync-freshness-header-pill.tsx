@@ -2,7 +2,9 @@ import { useState } from 'react'
 
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
-import { Info, Loader2 } from 'lucide-react'
+import { Info } from 'lucide-react'
+
+import { LoadingIcon } from '@/ui/app-icon'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { formatSyncFreshnessPillLabel } from '@/lib/integrations/sync-freshness-pill-label'
@@ -97,7 +99,7 @@ export function SyncFreshnessHeaderPill() {
             }
           >
             {pill.kind === 'syncing' ? (
-              <Loader2 className="size-3 shrink-0 animate-spin" aria-hidden />
+              <LoadingIcon className="size-3 shrink-0" />
             ) : null}
             <span className="truncate">{label}</span>
           </Badge>

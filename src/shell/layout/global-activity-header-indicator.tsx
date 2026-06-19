@@ -1,4 +1,6 @@
-import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2 } from 'lucide-react'
+
+import { LoadingIcon } from '@/ui/app-icon'
 
 import { shellT } from '@/lib/i18n/shell-strings'
 import { Badge } from '@/ui/badge'
@@ -40,7 +42,7 @@ export function GlobalActivityHeaderIndicator() {
       render={<button type="button" aria-label={aria} title={aria} onClick={() => restoreAllActivities()} />}
     >
       {phase === 'loading' ? (
-        <Loader2 className="size-3 shrink-0 animate-spin" aria-hidden />
+        <LoadingIcon className="size-3 shrink-0" />
       ) : phase === 'success' ? (
         <CheckCircle2 className="size-3 shrink-0" aria-hidden />
       ) : (

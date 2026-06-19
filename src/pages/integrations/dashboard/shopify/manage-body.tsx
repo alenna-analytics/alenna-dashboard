@@ -1,4 +1,6 @@
-import { CheckCircle2, Loader2 } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
+
+import { LoadingIcon } from '@/ui/app-icon'
 import { useMemo } from 'react'
 
 import { IntegrationLogo } from '@/pages/integrations/details/integration-logo'
@@ -130,7 +132,7 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
     return (
       <div className="space-y-4">
         <div className="flex gap-3 rounded-md border border-border-subtle bg-bg-section p-4 shadow-[var(--glass-shadow)] backdrop-blur-xl">
-          <Loader2 className="size-5 shrink-0 animate-spin text-muted-foreground" aria-hidden />
+          <LoadingIcon className="size-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 space-y-1">
             <p className="text-sm font-medium text-text-primary">
               {shellT(lang, 'shopifySyncProgressTitle')}
@@ -191,7 +193,7 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
           onClick={() => retryShopifySync()}
         >
           {retryShopifySyncPending ? (
-            <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+            <LoadingIcon className="size-4 shrink-0" />
           ) : null}
           {shellT(lang, 'shopifySyncRetry')}
         </Button>
@@ -220,7 +222,7 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
           onClick={() => syncMutation.mutate()}
         >
           {syncMutation.isPending ? (
-            <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+            <LoadingIcon className="size-4 shrink-0" />
           ) : null}
           {syncMutation.isPending ? shellT(lang, 'syncRunning') : buttonLabel}
         </Button>
@@ -278,7 +280,7 @@ export function ShopifyManageBody({
           <p className="text-sm text-muted-foreground">{shellT(lang, 'connectionsAdminOnly')}</p>
         ) : isLoading ? (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" aria-hidden />
+            <LoadingIcon className="size-4" />
             {shellT(lang, 'connectionsLoading')}
           </p>
         ) : error ? (
@@ -324,7 +326,7 @@ export function ShopifyManageBody({
               onClick={() => void startOAuth()}
             >
               {oauthStarting ? (
-                <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+                <LoadingIcon className="size-4 shrink-0" />
               ) : null}
               {shellT(lang, 'integrationConnectWithShopify')}
             </Button>

@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react'
+import { LoadingIcon } from '@/ui/app-icon'
 
 import { shellT } from '@/lib/i18n/shell-strings'
 import { Button } from '@/ui/button'
@@ -51,7 +51,7 @@ export function IntegrationsDisconnectDialog({
             onClick={onConfirmDisconnect}
           >
             {disconnectPending ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden />
+              <LoadingIcon className="size-4" />
             ) : null}
             {shellT(lang, 'integrationsDialogConfirmDisconnect')}
           </Button>

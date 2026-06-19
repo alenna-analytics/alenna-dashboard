@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useAuth } from '@clerk/react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { enUS, es as esLocale } from 'date-fns/locale'
 import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
 import { useCurrentTenant } from '@/auth/hooks'
@@ -27,8 +27,14 @@ import { HomeTopProductsChart } from './home-top-products-chart'
 import { getTopProductsChartHeightPx } from './home-top-products-chart-layout'
 import { homeActiveAlertsKpiLabels } from './home-active-alerts-kpi-labels'
 import { HomeActiveAlertsKpi } from './home-active-alerts-kpi'
-import { HomeStockInventoryAlerts } from './home-stock-inventory-alerts'
-import { useProductStockAlertCountsQuery } from '@/pages/products/use-catalog-queries'
+import { HomeActiveAlertsDialog } from './home-active-alerts-dialog'
+import {
+  invalidateAlertsQueries,
+  useAlertsListQuery,
+  useAlertsSummaryQuery,
+  usePostponeAlertMutation,
+} from './use-alerts-queries'
+import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { MoneyDisclaimer } from '@/shell/components/money-disclaimer'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import {
@@ -245,6 +251,10 @@ export function DashboardHomePage() {
   const dateLocale = lang === 'en' ? enUS : esLocale
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const queryClient = useQueryClient()
+  const { me } = useAppBootstrap()
+  const isAdmin = me?.role === 'admin' || me?.role === 'owner'
+  const [alertsDialogOpen, setAlertsDialogOpen] = useState(false)
   const t = useCallback(
     (k: Parameters<typeof shellT>[1]) => shellT(lang, k),
     [lang],
@@ -275,12 +285,13 @@ export function DashboardHomePage() {
 
   const productMode = productIds.length > 0
 
-  const stockAlertCountsQuery = useProductStockAlertCountsQuery(
-    productMode ? productIds : undefined,
-  )
-  const stockAlertCounts = stockAlertCountsQuery.data
-  const inventoryAlertLowCount = stockAlertCounts?.low_count ?? 0
-  const inventoryAlertOutCount = stockAlertCounts?.out_count ?? 0
+  const alertsSummaryQuery = useAlertsSummaryQuery()
+  const alertsSummary = alertsSummaryQuery.data
+  const inventoryAlertLowCount = alertsSummary?.low_count ?? 0
+  const inventoryAlertOutCount = alertsSummary?.critical_count ?? 0
+  const activeAlertsQuery = useAlertsListQuery('active', alertsDialogOpen)
+  const postponedAlertsQuery = useAlertsListQuery('postponed', alertsDialogOpen)
+  const postponeAlertMutation = usePostponeAlertMutation()
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -294,6 +305,18 @@ export function DashboardHomePage() {
 
   const connections = useMemo(() => connectionsQuery.data ?? [], [connectionsQuery.data])
   const connectorsLoading = Boolean(tenantId) && connectionsQuery.isLoading
+
+  const syncingNow = useMemo(
+    () => connections.some((c) => c.sync_plan?.last_sync_status === 'syncing'),
+    [connections],
+  )
+  const wasSyncingRef = useRef(false)
+  useEffect(() => {
+    if (wasSyncingRef.current && !syncingNow) {
+      invalidateAlertsQueries(queryClient, tenantId)
+    }
+    wasSyncingRef.current = syncingNow
+  }, [syncingNow, tenantId, queryClient])
 
   // Default to "all enabled" when no persisted selection exists. Preserves
   // the legacy single-connection behaviour without forcing the user to
@@ -663,11 +686,6 @@ export function DashboardHomePage() {
       ) : (
         <>
           <MoneyDisclaimer />
-          <HomeStockInventoryAlerts
-            lowCount={inventoryAlertLowCount}
-            outCount={inventoryAlertOutCount}
-            t={t}
-          />
           {showKpiCards ? (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <KpiCard
@@ -712,10 +730,26 @@ export function DashboardHomePage() {
               <HomeActiveAlertsKpi
                 lowCount={inventoryAlertLowCount}
                 outCount={inventoryAlertOutCount}
+                onClick={() => setAlertsDialogOpen(true)}
                 {...homeActiveAlertsKpiLabels(t, vsPrior)}
               />
             </div>
           ) : null}
+
+          <HomeActiveAlertsDialog
+            open={alertsDialogOpen}
+            onOpenChange={setAlertsDialogOpen}
+            activeItems={activeAlertsQuery.data?.items ?? []}
+            postponedItems={postponedAlertsQuery.data?.items ?? []}
+            activeLoading={activeAlertsQuery.isLoading}
+            postponedLoading={postponedAlertsQuery.isLoading}
+            isAdmin={isAdmin}
+            postponePending={postponeAlertMutation.isPending}
+            onPostpone={(alertId, duration) => {
+              postponeAlertMutation.mutate({ alertId, duration })
+            }}
+            t={t}
+          />
 
           <div
             className={

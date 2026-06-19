@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react'
+import { LoadingIcon } from '@/ui/app-icon'
 
 import {
   syncFreshnessPillBadgeVariant,
@@ -21,7 +21,7 @@ export function SyncFreshnessPillBadge({ pill, lang, className }: SyncFreshnessP
       className={cn('gap-1', className)}
     >
       {pill.kind === 'syncing' ? (
-        <Loader2 className="size-3 animate-spin" aria-hidden />
+        <LoadingIcon className="size-3" />
       ) : null}
       {formatSyncFreshnessPillLabel(lang, pill)}
     </Badge>

@@ -1,5 +1,4 @@
-import type { LucideIcon } from 'lucide-react'
-
+import type { AppIconName } from '@/lib/icons/catalog'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 
 export type ModuleId =
@@ -17,7 +16,7 @@ export type ModuleDefinition = {
   id: ModuleId
   labelKey: ShellStringKey
   path: string
-  icon: LucideIcon
+  icon: AppIconName
   comingSoon: boolean
   section: ModuleSection
 }

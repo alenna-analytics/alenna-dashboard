@@ -9,6 +9,7 @@ type HomeActiveAlertsKpiProps = {
   vsPriorLabel: string
   lowLabel: string
   criticalLabel: string
+  onClick?: () => void
 }
 
 function BreakdownRow({
@@ -47,10 +48,11 @@ export function HomeActiveAlertsKpi({
   vsPriorLabel,
   lowLabel,
   criticalLabel,
+  onClick,
 }: HomeActiveAlertsKpiProps) {
   const total = lowCount + outCount
 
-  return (
+  const card = (
     <KpiCard
       label={label}
       helpText={helpText}
@@ -62,6 +64,7 @@ export function HomeActiveAlertsKpi({
       comparisonUnavailable
       showComparison={false}
       valueClassName="text-[var(--color-text-primary)]"
+      className={onClick ? 'transition-opacity hover:opacity-90' : undefined}
       footer={
         <div className="flex flex-col gap-2 pt-0.5">
           <BreakdownRow label={lowLabel} count={lowCount} tone="low" />
@@ -70,5 +73,17 @@ export function HomeActiveAlertsKpi({
       }
       footerClassName="text-[var(--color-text-primary)]"
     />
+  )
+
+  if (!onClick) return card
+
+  return (
+    <button
+      type="button"
+      className="w-full cursor-pointer rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
+      onClick={onClick}
+    >
+      {card}
+    </button>
   )
 }

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
-import { CircleX, Loader2 } from 'lucide-react'
+import { CircleX } from 'lucide-react'
+
+import { LoadingIcon } from '@/ui/app-icon'
 
 import { cn } from '@/lib/utils'
 import { filterPillActiveShellClassName } from '@/ui/filters/filter-pill-classes'
@@ -97,7 +99,7 @@ export function SegmentedInputSubmit({
           if (canSubmit) onSubmit()
         }}
       >
-        {submitPending ? <Loader2 className="size-3.5 shrink-0 animate-spin" aria-hidden /> : submitLabel}
+        {submitPending ? <LoadingIcon className="size-3.5 shrink-0" /> : submitLabel}
       </button>
 
     </div>

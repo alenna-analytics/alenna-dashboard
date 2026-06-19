@@ -1,5 +1,7 @@
 import * as React from 'react'
-import { Check, Loader2 } from 'lucide-react'
+import { Check } from 'lucide-react'
+
+import { LoadingIcon } from '@/ui/app-icon'
 
 import { cn } from '@/lib/utils'
 import {
@@ -186,7 +188,7 @@ export function FilterComboboxMulti({
                   role="status"
                   aria-live="polite"
                 >
-                  <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+                  <LoadingIcon className="size-4 shrink-0" />
                   <span>{loadingLabel ?? searchPlaceholder}</span>
                 </span>
               ) : (

@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react'
+import { LoadingIcon } from '@/ui/app-icon'
 
 import type { MercadoLibreIntegrationHook } from '@/pages/integrations/details/use-mercadolibre-integration'
 import type { ManagedIntegration } from '@/lib/integrations/catalog'
@@ -56,7 +56,7 @@ function MercadoLibreSyncSection({
           onClick={() => meli.syncMutation.mutate()}
         >
           {meli.syncMutation.isPending ? (
-            <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+            <LoadingIcon className="size-4 shrink-0" />
           ) : null}
           {meli.syncMutation.isPending ? shellT(lang, 'syncRunning') : buttonLabel}
         </Button>
@@ -95,7 +95,7 @@ export function MercadoLibreManageBody({ definition, meli }: MercadoLibreManageB
           <p className="text-sm text-muted-foreground">{shellT(lang, 'connectionsAdminOnly')}</p>
         ) : meli.isLoading ? (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" aria-hidden />
+            <LoadingIcon className="size-4" />
             {shellT(lang, 'connectionsLoading')}
           </p>
         ) : meli.error ? (
@@ -113,7 +113,7 @@ export function MercadoLibreManageBody({ definition, meli }: MercadoLibreManageB
               onClick={() => void meli.startOAuth()}
             >
               {meli.oauthStarting ? (
-                <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+                <LoadingIcon className="size-4 shrink-0" />
               ) : null}
               {shellT(lang, 'integrationConnectWithMercadoLibre')}
             </Button>

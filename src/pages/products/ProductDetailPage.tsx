@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ImageIcon, Loader2 } from 'lucide-react'
+import { ImageIcon } from 'lucide-react'
+
+import { LoadingIcon } from '@/ui/app-icon'
 import { useParams } from 'react-router-dom'
 
 import { shellT } from '@/lib/i18n/shell-strings'
@@ -533,7 +535,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
               {t('productsDetailSheetCancel')}
             </Button>
             <Button type="button" onClick={() => void handleSheetSave()} disabled={!sheetCanSubmit}>
-              {sheetBusy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : t('productsDetailSheetSave')}
+              {sheetBusy ? <LoadingIcon className="size-4" /> : t('productsDetailSheetSave')}
             </Button>
           </SheetFooter>
         </SheetContent>

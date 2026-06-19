@@ -711,12 +711,6 @@
   }
 }
 
-@keyframes boot-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @keyframes boot-loader-enter {
   from {
     opacity: 0;

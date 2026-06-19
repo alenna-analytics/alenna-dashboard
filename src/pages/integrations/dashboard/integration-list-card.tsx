@@ -1,5 +1,3 @@
-import { Settings } from 'lucide-react'
-
 import type { ManagedIntegration } from '@/lib/integrations/catalog'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
 import type { PlatformConnection } from '@/lib/types/connectors'
@@ -101,10 +99,9 @@ export function IntegrationListCard({
             <Button
               type="button"
               variant="default"
-              className="gap-2 text-sm"
+              className="text-sm"
               onClick={onManage}
             >
-              <Settings className="size-4" aria-hidden />
               {shellT(lang, 'integrationsActionManage')}
             </Button>
           ) : null}

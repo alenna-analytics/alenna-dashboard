@@ -9,6 +9,8 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ChannelBreakdownRow } from '@/lib/types/reports'
+import { cn } from '@/lib/utils'
+import { TOP_PRODUCTS_PAIRED_MIN_HEIGHT_CLASS } from '@/pages/dashboard/home-top-products-chart-layout'
 
 const PALETTE = [
   'var(--chart-1)',
@@ -135,10 +137,12 @@ export function HomeChannelDonutChart({
 
   return (
     <div
-      className="flex w-full flex-col items-stretch gap-4 lg:flex-row lg:items-center lg:justify-between"
-      style={minBodyHeightPx ? { minHeight: minBodyHeightPx } : undefined}
+      className={cn(
+        'flex w-full min-w-0 flex-col items-stretch gap-4 lg:flex-row lg:items-center lg:justify-between',
+        minBodyHeightPx !== undefined && TOP_PRODUCTS_PAIRED_MIN_HEIGHT_CLASS,
+      )}
     >
-      <div className="relative h-64 w-full lg:w-1/2">
+      <div className="relative h-52 w-full min-w-0 sm:h-60 lg:h-64 lg:w-1/2">
         <div
           className="pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-center"
           aria-hidden
@@ -193,7 +197,7 @@ export function HomeChannelDonutChart({
           </ResponsiveContainer>
         </div>
       </div>
-      <ul className="flex flex-1 flex-col gap-2 text-sm" aria-busy={isLoading || undefined}>
+      <ul className="flex min-w-0 flex-1 flex-col gap-2 text-sm" aria-busy={isLoading || undefined}>
         {displaySlices.map((s) => {
           if (s.key === '__loading__') return null
           const pct = displayTotal > 0 ? (s.value / displayTotal) * 100 : 0

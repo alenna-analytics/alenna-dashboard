@@ -720,12 +720,12 @@ export function DashboardHomePage() {
           <div
             className={
               showTopProducts
-                ? 'mt-2 grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-stretch'
-                : 'mt-2 grid grid-cols-1 gap-5'
+                ? 'mt-2 grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-2 lg:items-stretch'
+                : 'mt-2 grid min-w-0 grid-cols-1 gap-5'
             }
           >
-            <section className={showTopProducts ? 'flex min-h-0 lg:h-full' : undefined}>
-              <SectionContainer className="flex h-full min-h-0 flex-1 flex-col overflow-visible">
+            <section className={showTopProducts ? 'flex min-h-0 min-w-0 lg:h-full' : 'min-w-0'}>
+              <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-6">
                 <SectionHeader
                   title={t('homeChannelDonutTitle')}
                   description={t('homeChannelDonutSubtitle')}
@@ -741,8 +741,8 @@ export function DashboardHomePage() {
               </SectionContainer>
             </section>
             {showTopProducts ? (
-              <section className="flex min-h-0 lg:h-full">
-                <SectionContainer className="flex h-full min-h-0 flex-1 flex-col overflow-visible">
+              <section className="flex min-h-0 min-w-0 lg:h-full">
+                <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-6">
                   <SectionHeader
                     title={t('homeTopProductsTitle')}
                     description={t('homeTopProductsSubtitle').replace(
@@ -750,14 +750,16 @@ export function DashboardHomePage() {
                       String(topProducts?.items.length ?? 10),
                     )}
                   />
-                  <HomeTopProductsChart
+                  <div className="min-h-0 min-w-0 flex-1">
+                    <HomeTopProductsChart
                     rows={topProducts?.items ?? []}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}
                     formatCompact={formatCompactInDisplay}
                     t={t}
                     isLoading={topProductsPending}
-                  />
+                    />
+                  </div>
                 </SectionContainer>
               </section>
             ) : null}

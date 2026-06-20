@@ -18,6 +18,7 @@
   --color-bg-elevated: var(--bg-elevated);
   --color-bg-sunken: var(--bg-sunken);
   --color-bg-overlay: var(--bg-overlay);
+  --color-bg-card-strong: var(--bg-card-strong);
 
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
@@ -229,6 +230,7 @@
     var(--country-green-400) 28%
   );
   --bg-muted: color-mix(in srgb, var(--platinum-blonde-100) 78%, transparent);
+  --bg-card-strong: var(--platinum-blonde-400);
   --bg-overlay: rgba(var(--ink-rgb), 0.05);
   --bg-login: radial-gradient(
     ellipse 120% 95% at 100% 0%,
@@ -336,11 +338,7 @@
   --color-bg-page: var(--bg-base);
   --color-bg-section: color-mix(in srgb, var(--bg-section) 48%, #ffffff 52%);
   --color-bg-card: color-mix(in srgb, var(--card-solid) 35%, #ffffff 65%);
-  --color-bg-card-strong: color-mix(
-    in srgb,
-    var(--card-solid) 12%,
-    #ffffff 88%
-  );
+  --color-bg-card-strong: var(--bg-card-strong);
   --color-text-primary: var(--text-primary);
   --color-text-muted: var(--text-secondary);
   --color-positive: var(--success);

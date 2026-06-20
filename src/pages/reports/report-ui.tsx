@@ -16,7 +16,7 @@ export function SectionContainer({
   return (
     <div
       className={cn(
-        'rounded-md border border-[var(--color-border)] bg-[var(--color-bg-section)] p-6 shadow-[var(--shadow-ink-sm)]',
+        'rounded-md border border-[var(--color-border)] bg-bg-card-strong p-6 shadow-[var(--shadow-ink-sm)]',
         className,
       )}
     >

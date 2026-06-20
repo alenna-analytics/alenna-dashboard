@@ -173,7 +173,7 @@ function DashboardHomeLoadingSkeleton({ chartRegionLabel }: { chartRegionLabel: 
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="flex min-w-0 flex-col gap-2.5 rounded-md border border-[var(--shell-structure-border)] bg-white p-3.5 sm:p-4"
+            className="flex min-w-0 flex-col gap-2.5 rounded-md border border-[var(--shell-structure-border)] bg-bg-card-strong p-3.5 sm:p-4"
             aria-hidden
           >
             <div className="flex w-full min-w-0 items-start justify-between gap-2">
@@ -208,7 +208,7 @@ function DashboardHomeLoadingSkeleton({ chartRegionLabel }: { chartRegionLabel: 
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="flex min-w-0 flex-col gap-2 rounded-md border border-[var(--shell-structure-border)] bg-white p-3"
+            className="flex min-w-0 flex-col gap-2 rounded-md border border-[var(--shell-structure-border)] bg-bg-card-strong p-3"
             aria-hidden
           >
             <Skeleton className="h-4 w-20" />

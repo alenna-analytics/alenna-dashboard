@@ -110,8 +110,8 @@ export function KpiCard({
         'flex min-w-0 flex-col gap-2.5 rounded-md text-left',
         compact ? 'gap-2 p-3 sm:p-3' : 'gap-2.5 p-3.5 sm:p-4',
         featured
-          ? 'border border-[var(--color-border)] bg-[var(--color-bg-section)] shadow-[var(--shadow-ink-sm)]'
-          : 'border border-[var(--shell-structure-border)] bg-white shadow-none',
+          ? 'border border-[var(--color-border)] bg-bg-card-strong shadow-[var(--shadow-ink-sm)]'
+          : 'border border-[var(--shell-structure-border)] bg-bg-card-strong shadow-none',
         className,
       )}
     >

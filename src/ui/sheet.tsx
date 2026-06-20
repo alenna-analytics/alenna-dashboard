@@ -52,7 +52,7 @@ function SheetContent({
       <DialogPrimitive.Popup
         data-slot="sheet-content"
         className={cn(
-          "fixed z-50 flex min-h-0 w-full max-w-md flex-col gap-0 overflow-hidden border border-border-subtle bg-popover p-0 text-sm shadow-[var(--shadow-sheet)] ring-1 ring-[color:var(--ring-popover)] backdrop-blur-xl duration-200 outline-none data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0",
+          "fixed z-50 flex min-h-0 w-full max-w-md flex-col gap-0 overflow-hidden border border-border-subtle bg-white p-0 text-sm shadow-[var(--shadow-sheet)] ring-1 ring-[color:var(--ring-popover)] duration-200 outline-none data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0",
           side === "right" &&
           "top-3 right-3 bottom-3 h-auto max-h-[calc(100dvh-1.5rem)] rounded-md data-closed:slide-out-to-right data-open:slide-in-from-right sm:top-4 sm:right-4 sm:bottom-4 sm:max-h-[calc(100dvh-2rem)]",
           side === "left" &&
@@ -96,7 +96,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-footer"
-      className={cn("mt-auto flex flex-col-reverse gap-2 border-t border-border-subtle bg-muted/30 px-6 py-4 sm:flex-row sm:justify-end", className)}
+      className={cn("mt-auto flex flex-col-reverse gap-2 border-t border-border-subtle bg-white px-6 py-4 sm:flex-row sm:justify-end", className)}
       {...props}
     />
   )

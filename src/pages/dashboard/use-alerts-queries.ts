@@ -46,6 +46,7 @@ export function useAlertsListQuery(section: AlertSection, enabled: boolean) {
     queryKey: alertsListQueryKey(tenantId, section),
     enabled: Boolean(tenantId) && enabled,
     staleTime: 30_000,
+    refetchOnMount: 'always',
     queryFn: async (): Promise<AlertsListApi> => {
       const params = new URLSearchParams({ section, limit: '50', offset: '0' })
       const res = await apiFetch(

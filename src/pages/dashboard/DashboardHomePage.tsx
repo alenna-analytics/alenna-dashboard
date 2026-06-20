@@ -27,7 +27,7 @@ import { HomeTopProductsChart } from './home-top-products-chart'
 import { getTopProductsChartHeightPx } from './home-top-products-chart-layout'
 import { homeActiveAlertsKpiLabels } from './home-active-alerts-kpi-labels'
 import { HomeActiveAlertsKpi } from './home-active-alerts-kpi'
-import { HomeActiveAlertsDialog } from './home-active-alerts-dialog'
+import { HomeActiveAlertsSheet } from './home-active-alerts-sheet'
 import {
   invalidateAlertsQueries,
   useAlertsListQuery,
@@ -254,7 +254,7 @@ export function DashboardHomePage() {
   const queryClient = useQueryClient()
   const { me } = useAppBootstrap()
   const isAdmin = me?.role === 'admin' || me?.role === 'owner'
-  const [alertsDialogOpen, setAlertsDialogOpen] = useState(false)
+  const [alertsSheetOpen, setAlertsSheetOpen] = useState(false)
   const t = useCallback(
     (k: Parameters<typeof shellT>[1]) => shellT(lang, k),
     [lang],
@@ -289,8 +289,8 @@ export function DashboardHomePage() {
   const alertsSummary = alertsSummaryQuery.data
   const inventoryAlertLowCount = alertsSummary?.low_count ?? 0
   const inventoryAlertOutCount = alertsSummary?.critical_count ?? 0
-  const activeAlertsQuery = useAlertsListQuery('active', alertsDialogOpen)
-  const postponedAlertsQuery = useAlertsListQuery('postponed', alertsDialogOpen)
+  const activeAlertsQuery = useAlertsListQuery('active', alertsSheetOpen)
+  const postponedAlertsQuery = useAlertsListQuery('postponed', alertsSheetOpen)
   const postponeAlertMutation = usePostponeAlertMutation()
 
   const connectionsQuery = useQuery({
@@ -730,15 +730,18 @@ export function DashboardHomePage() {
               <HomeActiveAlertsKpi
                 lowCount={inventoryAlertLowCount}
                 outCount={inventoryAlertOutCount}
-                onClick={() => setAlertsDialogOpen(true)}
+                onClick={() => {
+                  invalidateAlertsQueries(queryClient, tenantId)
+                  setAlertsSheetOpen(true)
+                }}
                 {...homeActiveAlertsKpiLabels(t, vsPrior)}
               />
             </div>
           ) : null}
 
-          <HomeActiveAlertsDialog
-            open={alertsDialogOpen}
-            onOpenChange={setAlertsDialogOpen}
+          <HomeActiveAlertsSheet
+            open={alertsSheetOpen}
+            onOpenChange={setAlertsSheetOpen}
             activeItems={activeAlertsQuery.data?.items ?? []}
             postponedItems={postponedAlertsQuery.data?.items ?? []}
             activeLoading={activeAlertsQuery.isLoading}

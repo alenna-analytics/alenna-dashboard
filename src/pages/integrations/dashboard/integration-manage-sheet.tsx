@@ -51,7 +51,7 @@ export function IntegrationManageSheet({
           <PlaceholderManageBody definition={definition} />
         )}
         {showDisconnectFooter ? (
-          <SheetFooter className="bg-glass-fill-raised sm:justify-start">
+          <SheetFooter className="sm:justify-start">
             <Button
               type="button"
               variant="outline"

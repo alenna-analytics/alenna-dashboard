@@ -44,6 +44,21 @@ const SHELL_STRINGS = {
     homeAlertsDialogPostpone1h: 'Posponer 1 h',
     homeAlertsDialogPostpone1d: 'Posponer 1 d',
     homeAlertsDialogPostpone1w: 'Posponer 1 sem',
+    homeAlertsSheetBackToList: 'Volver al listado',
+    homeAlertsSheetEntity: 'Entidad',
+    homeAlertsSheetIssue: 'Problema',
+    homeAlertsSheetDescription: 'Descripción',
+    homeAlertsSheetResolve: 'Resolver',
+    homeAlertsSheetSeverityCritical: 'Crítica',
+    homeAlertsSheetSeverityLow: 'Baja',
+    homeAlertsSheetSeverityInformational: 'Info',
+    homeAlertsSheetIssueCritical:
+      'Sin stock: quedan {stock} unidades y se vendieron {sold} unidades el mes pasado.',
+    homeAlertsSheetIssueLow:
+      'Bajo stock: quedan {stock} unidades y se vendieron {sold} unidades el mes pasado.',
+    homeAlertsSheetDescriptionStock:
+      'Alerta de inventario según la velocidad de venta del mes anterior (20% de unidades vendidas).',
+    homeAlertsSheetPostponedUntil: 'Pospuesta hasta',
     homeStockAlertOutBanner: '{count} productos no tienen inventario',
     homeStockAlertLowBanner: '{count} productos tienen bajo inventario',
     homeStockAlertViewProducts: 'Ver productos',
@@ -740,6 +755,21 @@ const SHELL_STRINGS = {
     homeAlertsDialogPostpone1h: 'Postpone 1 h',
     homeAlertsDialogPostpone1d: 'Postpone 1 d',
     homeAlertsDialogPostpone1w: 'Postpone 1 wk',
+    homeAlertsSheetBackToList: 'Back to list',
+    homeAlertsSheetEntity: 'Entity',
+    homeAlertsSheetIssue: 'Issue',
+    homeAlertsSheetDescription: 'Description',
+    homeAlertsSheetResolve: 'Resolve',
+    homeAlertsSheetSeverityCritical: 'Critical',
+    homeAlertsSheetSeverityLow: 'Low',
+    homeAlertsSheetSeverityInformational: 'Info',
+    homeAlertsSheetIssueCritical:
+      'Out of stock: {stock} units left and {sold} units sold last month.',
+    homeAlertsSheetIssueLow:
+      'Low stock: {stock} units left and {sold} units sold last month.',
+    homeAlertsSheetDescriptionStock:
+      'Inventory alert based on prior-month sales velocity (20% of units sold).',
+    homeAlertsSheetPostponedUntil: 'Postponed until',
     homeStockAlertOutBanner: '{count} products are out of stock',
     homeStockAlertLowBanner: '{count} products have low inventory',
     homeStockAlertViewProducts: 'View products',

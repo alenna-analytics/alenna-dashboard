@@ -1,6 +1,7 @@
 import { UserButton } from '@clerk/react'
 import { Menu } from 'lucide-react'
 
+import { AlertsHeaderButton } from '@/shell/alerts/alerts-header-button'
 import { AppBreadcrumbs } from '@/shell/layout/app-breadcrumbs'
 import { CurrencyIndicator } from '@/shell/layout/currency-indicator'
 import { CurrencyPicker } from '@/shell/layout/currency-picker'
@@ -43,6 +44,7 @@ export function AppHeader({ className, onOpenMobileNav }: AppHeaderProps) {
         </Button>
         <div className="flex shrink-0 items-center gap-2">
           <CurrencyIndicator />
+          <AlertsHeaderButton />
           <UserButton />
         </div>
       </div>
@@ -70,6 +72,7 @@ export function AppHeader({ className, onOpenMobileNav }: AppHeaderProps) {
           >
             {lang === 'es' ? 'EN' : 'ES'}
           </Button>
+          <AlertsHeaderButton />
           <UserButton />
         </div>
       </div>

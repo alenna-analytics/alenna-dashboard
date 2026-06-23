@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { useAuth } from '@clerk/react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -27,14 +27,8 @@ import { HomeTopProductsChart } from './home-top-products-chart'
 import { getTopProductsChartHeightPx } from './home-top-products-chart-layout'
 import { homeActiveAlertsKpiLabels } from './home-active-alerts-kpi-labels'
 import { HomeActiveAlertsKpi } from './home-active-alerts-kpi'
-import { HomeActiveAlertsSheet } from './home-active-alerts-sheet'
-import {
-  invalidateAlertsQueries,
-  useAlertsListQuery,
-  useAlertsSummaryQuery,
-  usePostponeAlertMutation,
-} from './use-alerts-queries'
-import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
+import { invalidateAlertsQueries, useAlertsSummaryQuery } from './use-alerts-queries'
+import { useAlertsSheet } from '@/shell/alerts/alerts-sheet-context'
 import { MoneyDisclaimer } from '@/shell/components/money-disclaimer'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import {
@@ -252,9 +246,7 @@ export function DashboardHomePage() {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const queryClient = useQueryClient()
-  const { me } = useAppBootstrap()
-  const isAdmin = me?.role === 'admin' || me?.role === 'owner'
-  const [alertsSheetOpen, setAlertsSheetOpen] = useState(false)
+  const { openSheet } = useAlertsSheet()
   const t = useCallback(
     (k: Parameters<typeof shellT>[1]) => shellT(lang, k),
     [lang],
@@ -289,9 +281,6 @@ export function DashboardHomePage() {
   const alertsSummary = alertsSummaryQuery.data
   const inventoryAlertLowCount = alertsSummary?.low_count ?? 0
   const inventoryAlertOutCount = alertsSummary?.critical_count ?? 0
-  const activeAlertsQuery = useAlertsListQuery('active', alertsSheetOpen)
-  const postponedAlertsQuery = useAlertsListQuery('postponed', alertsSheetOpen)
-  const postponeAlertMutation = usePostponeAlertMutation()
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -305,18 +294,6 @@ export function DashboardHomePage() {
 
   const connections = useMemo(() => connectionsQuery.data ?? [], [connectionsQuery.data])
   const connectorsLoading = Boolean(tenantId) && connectionsQuery.isLoading
-
-  const syncingNow = useMemo(
-    () => connections.some((c) => c.sync_plan?.last_sync_status === 'syncing'),
-    [connections],
-  )
-  const wasSyncingRef = useRef(false)
-  useEffect(() => {
-    if (wasSyncingRef.current && !syncingNow) {
-      invalidateAlertsQueries(queryClient, tenantId)
-    }
-    wasSyncingRef.current = syncingNow
-  }, [syncingNow, tenantId, queryClient])
 
   // Default to "all enabled" when no persisted selection exists. Preserves
   // the legacy single-connection behaviour without forcing the user to
@@ -732,27 +709,12 @@ export function DashboardHomePage() {
                 outCount={inventoryAlertOutCount}
                 onClick={() => {
                   invalidateAlertsQueries(queryClient, tenantId)
-                  setAlertsSheetOpen(true)
+                  openSheet()
                 }}
                 {...homeActiveAlertsKpiLabels(t, vsPrior)}
               />
             </div>
           ) : null}
-
-          <HomeActiveAlertsSheet
-            open={alertsSheetOpen}
-            onOpenChange={setAlertsSheetOpen}
-            activeItems={activeAlertsQuery.data?.items ?? []}
-            postponedItems={postponedAlertsQuery.data?.items ?? []}
-            activeLoading={activeAlertsQuery.isLoading}
-            postponedLoading={postponedAlertsQuery.isLoading}
-            isAdmin={isAdmin}
-            postponePending={postponeAlertMutation.isPending}
-            onPostpone={(alertId, duration) => {
-              postponeAlertMutation.mutate({ alertId, duration })
-            }}
-            t={t}
-          />
 
           <div
             className={

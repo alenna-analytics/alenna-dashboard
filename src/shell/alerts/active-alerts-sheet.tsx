@@ -2,11 +2,11 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Gauge, Package } from 'lucide-react'
 
-import { LoadingIcon } from '@/ui/app-icon'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { AlertItemApi, AlertPostponeDuration } from '@/lib/types/alerts'
 import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
+import { Skeleton } from '@/ui/skeleton'
 import {
   Sheet,
   SheetContent,
@@ -14,10 +14,18 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/ui/sheet'
+import { SheetRowButton, sheetRowButtonClassName } from '@/ui/sheet-row'
+
+import {
+  alertChannelName,
+  alertProductChannelLine,
+  alertTypeName,
+  type AlertSeverityFilter,
+} from './alert-display'
 
 type AlertTab = 'active' | 'postponed'
 
-type HomeActiveAlertsSheetProps = {
+type ActiveAlertsSheetProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   activeItems: AlertItemApi[]
@@ -26,6 +34,7 @@ type HomeActiveAlertsSheetProps = {
   postponedLoading: boolean
   isAdmin: boolean
   postponePending: boolean
+  connectionPlatformById: ReadonlyMap<string, string>
   onPostpone: (alertId: string, duration: AlertPostponeDuration) => void
   t: (key: ShellStringKey) => string
 }
@@ -59,26 +68,88 @@ function severityBadgeClass(severity: AlertItemApi['severity']): string {
   return 'border-border-subtle bg-muted/40 text-muted-foreground'
 }
 
-function listSubtitle(item: AlertItemApi): string {
-  const parts = [item.platform, item.platform_sku].filter(Boolean)
-  return parts.join(' · ') || item.entity_type
+function filterItems(items: AlertItemApi[], severityFilter: AlertSeverityFilter): AlertItemApi[] {
+  if (severityFilter === 'all') return items
+  return items.filter((item) => item.severity === severityFilter)
+}
+
+function AlertListSkeleton() {
+  return (
+    <div className="flex flex-col">
+      {Array.from({ length: 8 }, (_, index) => (
+        <div key={index} className={sheetRowButtonClassName('pointer-events-none')}>
+          <Skeleton className="size-4 shrink-0 rounded-sm" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-4 w-[min(100%,14rem)]" />
+            <Skeleton className="h-3 w-[min(100%,9rem)]" />
+          </div>
+          <Skeleton className="size-4 shrink-0 rounded-sm" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function AlertSeverityFilterBar({
+  value,
+  onChange,
+  t,
+}: {
+  value: AlertSeverityFilter
+  onChange: (value: AlertSeverityFilter) => void
+  t: (key: ShellStringKey) => string
+}) {
+  const options: { id: AlertSeverityFilter; label: string }[] = [
+    { id: 'all', label: t('homeAlertsSheetFilterAll') },
+    { id: 'critical', label: t('homeAlertsSheetFilterCritical') },
+    { id: 'low', label: t('homeAlertsSheetFilterLow') },
+    { id: 'informational', label: t('homeAlertsSheetFilterInfo') },
+  ]
+
+  return (
+    <div
+      className="flex shrink-0 flex-wrap gap-2 border-b border-border-subtle px-6 py-3"
+      role="group"
+      aria-label={t('homeAlertsSheetFilterAria')}
+    >
+      {options.map(({ id, label }) => (
+        <button
+          key={id}
+          type="button"
+          aria-pressed={value === id}
+          className={cn(
+            'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+            value === id
+              ? 'border-foreground bg-foreground text-background'
+              : 'border-border-subtle bg-transparent text-muted-foreground hover:border-border-default hover:bg-muted/45 hover:text-foreground',
+          )}
+          onClick={() => onChange(id)}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  )
 }
 
 function AlertListRow({
   item,
+  connectionPlatformById,
   onSelect,
+  t,
 }: {
   item: AlertItemApi
+  connectionPlatformById: ReadonlyMap<string, string>
   onSelect: (id: string) => void
+  t: (key: ShellStringKey) => string
 }) {
   const Icon = item.severity === 'critical' ? Package : Gauge
+  const channelName = alertChannelName(item, connectionPlatformById, t)
+  const headline = alertTypeName(t, item)
+  const subtitle = alertProductChannelLine(item, channelName)
 
   return (
-    <button
-      type="button"
-      className="flex w-full items-center gap-3 border-b border-border-subtle px-6 py-3.5 text-left transition-colors hover:bg-muted/30"
-      onClick={() => onSelect(item.id)}
-    >
+    <SheetRowButton onClick={() => onSelect(item.id)}>
       <Icon
         className={cn(
           'size-4 shrink-0',
@@ -89,11 +160,11 @@ function AlertListRow({
         aria-hidden
       />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-foreground">{item.title}</p>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">{listSubtitle(item)}</p>
+        <p className="truncate text-sm font-medium text-foreground">{headline}</p>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
       </div>
       <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-    </button>
+    </SheetRowButton>
   )
 }
 
@@ -114,6 +185,7 @@ function AlertDetailSection({
 
 function AlertDetailView({
   item,
+  connectionPlatformById,
   isAdmin,
   postponePending,
   isPostponedSection,
@@ -122,6 +194,7 @@ function AlertDetailView({
   t,
 }: {
   item: AlertItemApi
+  connectionPlatformById: ReadonlyMap<string, string>
   isAdmin: boolean
   postponePending: boolean
   isPostponedSection: boolean
@@ -132,7 +205,9 @@ function AlertDetailView({
   const stock = payloadNumber(item.payload, 'stock_quantity')
   const sold = payloadNumber(item.payload, 'prev_month_units_sold')
   const productHref = item.product_id ? `/dashboard/products/${item.product_id}` : null
-  const entityLabel = listSubtitle(item)
+  const channelName = alertChannelName(item, connectionPlatformById, t)
+  const headline = alertTypeName(t, item)
+  const productChannelLine = alertProductChannelLine(item, channelName)
 
   const issueText =
     item.severity === 'critical'
@@ -159,7 +234,7 @@ function AlertDetailView({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start gap-2">
             <h2 className="min-w-0 flex-1 text-base font-semibold leading-snug text-foreground">
-              {item.title}
+              {headline}
             </h2>
             <span
               className={cn(
@@ -170,15 +245,15 @@ function AlertDetailView({
               {severityBadgeLabel(t, item.severity)}
             </span>
           </div>
-          <p className="mt-1 truncate text-xs text-muted-foreground">{entityLabel}</p>
+          <p className="mt-1 truncate text-xs text-muted-foreground">{productChannelLine}</p>
         </div>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 py-5">
         <AlertDetailSection title={t('homeAlertsSheetEntity')}>
-          <span className="inline-flex max-w-full items-center gap-2 rounded-md border border-border-subtle bg-muted/30 px-2.5 py-1.5 font-mono text-xs text-foreground">
+          <span className="inline-flex max-w-full items-center gap-2 rounded-md border border-border-subtle bg-muted/30 px-2.5 py-1.5 text-xs text-foreground">
             <Package className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-            <span className="truncate">{entityLabel}</span>
+            <span className="truncate">{productChannelLine}</span>
           </span>
         </AlertDetailSection>
 
@@ -236,6 +311,10 @@ function AlertListView({
   items,
   loading,
   emptyLabel,
+  filterEmptyLabel,
+  severityFilter,
+  onSeverityFilterChange,
+  connectionPlatformById,
   onSelect,
   t,
 }: {
@@ -244,6 +323,10 @@ function AlertListView({
   items: AlertItemApi[]
   loading: boolean
   emptyLabel: string
+  filterEmptyLabel: string
+  severityFilter: AlertSeverityFilter
+  onSeverityFilterChange: (value: AlertSeverityFilter) => void
+  connectionPlatformById: ReadonlyMap<string, string>
   onSelect: (id: string) => void
   t: (key: ShellStringKey) => string
 }) {
@@ -251,6 +334,14 @@ function AlertListView({
     { id: 'active', label: t('homeAlertsDialogActiveSection') },
     { id: 'postponed', label: t('homeAlertsDialogPostponedSection') },
   ]
+
+  const filteredItems = useMemo(
+    () => filterItems(items, severityFilter),
+    [items, severityFilter],
+  )
+
+  const listEmptyLabel =
+    items.length > 0 && filteredItems.length === 0 ? filterEmptyLabel : emptyLabel
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -283,17 +374,22 @@ function AlertListView({
         ))}
       </div>
 
+      <AlertSeverityFilterBar value={severityFilter} onChange={onSeverityFilterChange} t={t} />
+
       <div className="min-h-0 flex-1 overflow-y-auto">
         {loading ? (
-          <div className="flex items-center gap-2 px-6 py-8 text-sm text-muted-foreground">
-            <LoadingIcon className="size-4" />
-            {t('homeAlertsDialogLoading')}
-          </div>
-        ) : items.length === 0 ? (
-          <p className="px-6 py-8 text-sm text-muted-foreground">{emptyLabel}</p>
+          <AlertListSkeleton />
+        ) : filteredItems.length === 0 ? (
+          <p className="px-6 py-8 text-sm text-muted-foreground">{listEmptyLabel}</p>
         ) : (
-          items.map((item) => (
-            <AlertListRow key={item.id} item={item} onSelect={onSelect} />
+          filteredItems.map((item) => (
+            <AlertListRow
+              key={item.id}
+              item={item}
+              connectionPlatformById={connectionPlatformById}
+              onSelect={onSelect}
+              t={t}
+            />
           ))
         )}
       </div>
@@ -301,7 +397,7 @@ function AlertListView({
   )
 }
 
-export function HomeActiveAlertsSheet({
+export function ActiveAlertsSheet({
   open,
   onOpenChange,
   activeItems,
@@ -310,24 +406,33 @@ export function HomeActiveAlertsSheet({
   postponedLoading,
   isAdmin,
   postponePending,
+  connectionPlatformById,
   onPostpone,
   t,
-}: HomeActiveAlertsSheetProps) {
+}: ActiveAlertsSheetProps) {
   const [tab, setTab] = useState<AlertTab>('active')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [severityFilter, setSeverityFilter] = useState<AlertSeverityFilter>('all')
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setSelectedId(null)
       setTab('active')
+      setSeverityFilter('all')
     }
     onOpenChange(nextOpen)
+  }
+
+  const handleTabChange = (nextTab: AlertTab) => {
+    setTab(nextTab)
+    setSeverityFilter('all')
   }
 
   const items = tab === 'active' ? activeItems : postponedItems
   const loading = tab === 'active' ? activeLoading : postponedLoading
   const emptyLabel =
     tab === 'active' ? t('homeAlertsDialogActiveEmpty') : t('homeAlertsDialogPostponedEmpty')
+  const filterEmptyLabel = t('homeAlertsSheetFilterEmpty')
 
   const selectedItem = useMemo(() => {
     if (!selectedId) return null
@@ -338,32 +443,56 @@ export function HomeActiveAlertsSheet({
     onPostpone(alertId, duration)
     setSelectedId(null)
     setTab('postponed')
+    setSeverityFilter('all')
   }
+
+  const showDetail = selectedItem !== null
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetContent className="flex w-full max-w-xl flex-col sm:max-w-xl">
-        {selectedItem ? (
-          <AlertDetailView
-            item={selectedItem}
-            isAdmin={isAdmin}
-            postponePending={postponePending}
-            isPostponedSection={tab === 'postponed'}
-            onBack={() => setSelectedId(null)}
-            onPostpone={handlePostpone}
-            t={t}
-          />
-        ) : (
-          <AlertListView
-            tab={tab}
-            onTabChange={setTab}
-            items={items}
-            loading={loading}
-            emptyLabel={emptyLabel}
-            onSelect={setSelectedId}
-            t={t}
-          />
-        )}
+      <SheetContent className="flex w-full max-w-xl flex-col overflow-hidden sm:max-w-xl">
+        <div className="relative min-h-0 flex-1 overflow-hidden">
+          <div
+            className={cn(
+              'absolute inset-0 flex flex-col transition-transform duration-300 ease-out motion-reduce:transition-none',
+              showDetail ? '-translate-x-full' : 'translate-x-0',
+            )}
+          >
+            <AlertListView
+              tab={tab}
+              onTabChange={handleTabChange}
+              items={items}
+              loading={loading}
+              emptyLabel={emptyLabel}
+              filterEmptyLabel={filterEmptyLabel}
+              severityFilter={severityFilter}
+              onSeverityFilterChange={setSeverityFilter}
+              connectionPlatformById={connectionPlatformById}
+              onSelect={setSelectedId}
+              t={t}
+            />
+          </div>
+          <div
+            className={cn(
+              'absolute inset-0 flex flex-col transition-transform duration-300 ease-out motion-reduce:transition-none',
+              showDetail ? 'translate-x-0' : 'translate-x-full',
+            )}
+            aria-hidden={!showDetail}
+          >
+            {selectedItem ? (
+              <AlertDetailView
+                item={selectedItem}
+                connectionPlatformById={connectionPlatformById}
+                isAdmin={isAdmin}
+                postponePending={postponePending}
+                isPostponedSection={tab === 'postponed'}
+                onBack={() => setSelectedId(null)}
+                onPostpone={handlePostpone}
+                t={t}
+              />
+            ) : null}
+          </div>
+        </div>
       </SheetContent>
     </Sheet>
   )

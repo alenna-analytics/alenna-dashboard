@@ -12,6 +12,8 @@ import { ShellBootstrapError } from '@/shell/layout/shell-bootstrap-error'
 import { DisplayCurrencyProvider } from '@/shell/providers/display-currency-provider'
 import { GlobalActivityProvider } from '@/shell/providers/global-activity-provider'
 import { WorkspaceProvider } from '@/shell/providers/workspace-context'
+import { ActiveAlertsSheetHost } from '@/shell/alerts/active-alerts-sheet-host'
+import { AlertsSheetProvider } from '@/shell/alerts/alerts-sheet-context'
 import { GlobalActivityBar } from '@/shell/layout/global-activity-bar'
 import { TrialExpiredScreen } from '@/shell/trial-expired-screen'
 import { onTrialExpired } from '@/lib/trial-expired-signal'
@@ -133,8 +135,10 @@ export function AppShellLayout() {
     <WorkspaceProvider value={workspaceValue}>
       <DisplayCurrencyProvider me={me} refetchMe={refetchMe}>
         <GlobalActivityProvider>
-          <TooltipProvider delayDuration={200}>
-            <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh gap-0 overflow-hidden bg-[var(--bg-base)] p-2 lg:gap-3 lg:p-3">
+          <AlertsSheetProvider>
+            <TooltipProvider delayDuration={200}>
+              <ActiveAlertsSheetHost />
+              <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh gap-0 overflow-hidden bg-[var(--bg-base)] p-2 lg:gap-3 lg:p-3">
               <AppSidebar
                 className="hidden lg:flex"
                 collapsed={sidebarCollapsed}
@@ -180,8 +184,9 @@ export function AppShellLayout() {
                   </div>
                 </main>
               </section>
-            </div>
-          </TooltipProvider>
+              </div>
+            </TooltipProvider>
+          </AlertsSheetProvider>
         </GlobalActivityProvider>
       </DisplayCurrencyProvider>
     </WorkspaceProvider>

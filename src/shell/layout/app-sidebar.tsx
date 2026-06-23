@@ -25,7 +25,7 @@ export function AppSidebar({
         'flex shrink-0 flex-col overflow-hidden motion-reduce:transition-none',
         'transition-[width] duration-150 ease-[cubic-bezier(0.32,0.72,0,1)]',
         '[contain:layout]',
-        collapsed ? 'w-[3.75rem]' : 'w-[240px]',
+        collapsed ? 'w-16' : 'w-60',
         className,
       )}
     >

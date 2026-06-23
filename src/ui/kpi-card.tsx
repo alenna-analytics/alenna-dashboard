@@ -3,6 +3,10 @@ import { HelpCircle } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Badge } from '@/ui/badge'
+import {
+  surfaceKpiClassName,
+  surfaceKpiCompactClassName,
+} from '@/ui/surface'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 type PctTrend = 'up' | 'down' | 'flat'
@@ -83,7 +87,6 @@ export type KpiCardProps = {
 export function KpiCard({
   label,
   helpText,
-  variant = 'default',
   value,
   vsPriorLabel,
   priorValueDisplay,
@@ -100,18 +103,15 @@ export function KpiCard({
   valueClassName,
   className,
 }: KpiCardProps) {
-  const featured = variant === 'featured'
   const unavailable = comparisonUnavailable
   const showDelta = showComparison && !placeholder
 
   return (
     <div
       className={cn(
-        'flex min-w-0 flex-col gap-2.5 rounded-md text-left',
-        compact ? 'gap-2 p-3 sm:p-3' : 'gap-2.5 p-3.5 sm:p-4',
-        featured
-          ? 'border border-[var(--color-border)] bg-bg-card-strong shadow-[var(--shadow-ink-sm)]'
-          : 'border border-[var(--shell-structure-border)] bg-bg-card-strong shadow-none',
+        'flex min-w-0 flex-col text-left',
+        compact ? cn(surfaceKpiCompactClassName, 'gap-2') : cn(surfaceKpiClassName, 'gap-2.5'),
+        placeholder && 'opacity-80',
         className,
       )}
     >
@@ -129,10 +129,10 @@ export function KpiCard({
             <TooltipTrigger asChild>
               <button
                 type="button"
-                className="shrink-0 rounded-full p-0.5 text-[var(--color-text-muted)] hover:text-text-secondary"
+                className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-text-secondary"
                 aria-label={helpText}
               >
-                <HelpCircle className="size-4" />
+                <HelpCircle className="size-3.5" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[260px] text-left text-xs font-normal leading-snug">
@@ -146,7 +146,7 @@ export function KpiCard({
         className={cn(
           'font-numeric min-w-0 font-semibold leading-none tracking-tight',
           placeholder
-            ? 'text-lg text-text-secondary'
+            ? 'text-base font-medium text-text-secondary'
             : 'text-[var(--color-accent-forest)]',
           valueClassName,
           compact ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-[1.75rem]',

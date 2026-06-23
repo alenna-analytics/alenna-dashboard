@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import { KpiCard } from '@/ui/kpi-card'
+import { surfaceCardInteractiveClassName } from '@/ui/surface'
 
 type HomeActiveAlertsKpiProps = {
   lowCount: number
@@ -63,8 +64,8 @@ export function HomeActiveAlertsKpi({
       trend="flat"
       comparisonUnavailable
       showComparison={false}
-      valueClassName="text-[var(--color-text-primary)]"
-      className={onClick ? 'transition-opacity hover:opacity-90' : undefined}
+      valueClassName="text-text-primary"
+      className={onClick ? 'transition-colors hover:bg-muted/40' : undefined}
       footer={
         <div className="flex flex-col gap-2 pt-0.5">
           <BreakdownRow label={lowLabel} count={lowCount} tone="low" />
@@ -78,11 +79,7 @@ export function HomeActiveAlertsKpi({
   if (!onClick) return card
 
   return (
-    <button
-      type="button"
-      className="w-full cursor-pointer rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
-      onClick={onClick}
-    >
+    <button type="button" className={cn('w-full text-left', surfaceCardInteractiveClassName)} onClick={onClick}>
       {card}
     </button>
   )

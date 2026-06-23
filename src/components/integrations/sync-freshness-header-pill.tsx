@@ -1,8 +1,5 @@
-import { useState } from 'react'
-
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
-import { Info } from 'lucide-react'
 
 import { LoadingIcon } from '@/ui/app-icon'
 
@@ -31,7 +28,6 @@ export function SyncFreshnessHeaderPill() {
   const { lang } = useLanguage()
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
-  const [pillTooltipOpen, setPillTooltipOpen] = useState(false)
   const { restoreAllActivities, upsertActivity } = useGlobalActivity()
   const nowMs = useNowMinuteTick()
 
@@ -61,67 +57,47 @@ export function SyncFreshnessHeaderPill() {
   const label = formatSyncFreshnessPillLabel(lang, pill)
   const variant = syncFreshnessPillBadgeVariant(pill)
   const pillTooltip = shellT(lang, 'syncFreshnessPillTooltip')
-  const infoTooltip = shellT(lang, 'syncFreshnessPillInfoTooltip')
 
   const onBadgeClick = () => {
-    if (isSyncing) {
-      upsertActivity({
-        id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
-        phase: 'loading',
-        title: shellT(lang, 'shopifySyncProgressTitle'),
-        subtitle: shellT(lang, 'shopifySyncProgressQueued'),
-        href: '/dashboard/integrations',
-        minimized: false,
-      })
-      restoreAllActivities()
-      setPillTooltipOpen(false)
-      return
-    }
-    setPillTooltipOpen((open) => !open)
+    if (!isSyncing) return
+    upsertActivity({
+      id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
+      phase: 'loading',
+      title: shellT(lang, 'shopifySyncProgressTitle'),
+      subtitle: shellT(lang, 'shopifySyncProgressQueued'),
+      href: '/dashboard/integrations',
+      minimized: false,
+    })
+    restoreAllActivities()
   }
 
   return (
-    <div className="flex max-w-[min(100vw-8rem,18rem)] shrink-0 items-center gap-1">
-      <Tooltip open={pillTooltipOpen} onOpenChange={setPillTooltipOpen}>
-        <TooltipTrigger asChild>
-          <Badge
-            variant={variant}
-            className={cn(
-              'h-7 min-w-0 max-w-full shrink cursor-pointer gap-1.5 truncate px-2.5 py-0 text-xs font-medium transition-opacity hover:opacity-90',
-            )}
-            render={
-              <button
-                type="button"
-                className="inline-flex max-w-full min-w-0 items-center gap-1.5"
-                aria-label={pillTooltip}
-                onClick={onBadgeClick}
-              />
-            }
-          >
-            {pill.kind === 'syncing' ? (
-              <LoadingIcon className="size-3 shrink-0" />
-            ) : null}
-            <span className="truncate">{label}</span>
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" sideOffset={6} className="max-w-56 text-center">
-          {pillTooltip}
-        </TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type="button"
-            className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
-            aria-label={infoTooltip}
-          >
-            <Info className="size-3.5" aria-hidden />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" sideOffset={6} className="max-w-56 text-center">
-          {infoTooltip}
-        </TooltipContent>
-      </Tooltip>
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Badge
+          variant={variant}
+          className={cn(
+            'h-7 max-w-[min(100vw-8rem,18rem)] min-w-0 shrink cursor-default gap-1.5 truncate px-2.5 py-0 text-xs font-medium',
+            isSyncing && 'cursor-pointer transition-opacity hover:opacity-90',
+          )}
+          render={
+            <button
+              type="button"
+              className="inline-flex max-w-full min-w-0 items-center gap-1.5"
+              aria-label={label}
+              onClick={onBadgeClick}
+            />
+          }
+        >
+          {pill.kind === 'syncing' ? (
+            <LoadingIcon className="size-3 shrink-0" />
+          ) : null}
+          <span className="truncate">{label}</span>
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" sideOffset={6} className="max-w-56 text-center">
+        {pillTooltip}
+      </TooltipContent>
+    </Tooltip>
   )
 }

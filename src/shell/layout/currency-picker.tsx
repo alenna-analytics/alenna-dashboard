@@ -11,11 +11,9 @@ import {
 } from '@/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { cn } from '@/lib/utils'
+import { chromeTextButtonClassName } from '@/ui/surface'
 
 const SUPPORTED: DisplayCurrencyCode[] = ['MXN', 'USD']
-
-const TRIGGER_CLS =
-  'inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-semibold text-text-secondary outline-none transition-colors hover:bg-muted hover:text-text-primary focus:outline-none disabled:cursor-not-allowed disabled:opacity-60'
 
 export function CurrencyPicker({ className }: { className?: string }) {
   const { lang } = useLanguage()
@@ -38,7 +36,7 @@ export function CurrencyPicker({ className }: { className?: string }) {
     return (
       <Tooltip>
         <TooltipTrigger
-          className={cn(TRIGGER_CLS, className)}
+          className={cn(chromeTextButtonClassName, className)}
           aria-label={ariaLabel}
           disabled
         >
@@ -55,7 +53,7 @@ export function CurrencyPicker({ className }: { className?: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className={cn(TRIGGER_CLS, className)}
+        className={cn(chromeTextButtonClassName, className)}
         aria-label={ariaLabel}
         disabled={isUpdating}
       >

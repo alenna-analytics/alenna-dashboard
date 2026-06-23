@@ -22,12 +22,12 @@ export function SidebarNavSection({
       role="group"
       aria-labelledby={collapsed ? undefined : headingId}
       aria-label={collapsed ? sectionTitle : undefined}
-      className={cn('flex flex-col', collapsed ? 'gap-1' : 'mt-3 gap-1', className)}
+      className={cn('flex flex-col gap-1', collapsed ? undefined : 'mt-3', className)}
     >
       {!collapsed ? (
         <p
           id={headingId}
-          className="mb-0.5 px-1 text-[10px] font-semibold uppercase tracking-wide text-text-tertiary"
+          className="mb-0.5 px-2 text-xs font-semibold uppercase tracking-wide text-text-tertiary"
         >
           {sectionTitle}
         </p>

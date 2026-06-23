@@ -10,6 +10,7 @@ import { GlobalActivityHeaderIndicator } from '@/shell/layout/global-activity-he
 import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
+import { chromeIconButtonClassName, chromeTextButtonClassName } from '@/ui/surface'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
 
@@ -36,7 +37,7 @@ export function AppHeader({ className, onOpenMobileNav }: AppHeaderProps) {
           type="button"
           variant="outline"
           size="icon"
-          className="h-8 w-8 shrink-0 border-[var(--shell-structure-border)] bg-[var(--bg-base)]/30 text-text-secondary shadow-none hover:bg-[var(--bg-base)]/50 hover:text-text-primary"
+          className={cn(chromeIconButtonClassName, 'lg:hidden')}
           aria-label={shellT(lang, 'ariaOpenNavMenu')}
           onClick={onOpenMobileNav}
         >
@@ -58,7 +59,7 @@ export function AppHeader({ className, onOpenMobileNav }: AppHeaderProps) {
         <div className="min-w-0 max-w-[min(100%,42rem)] flex-1">
           <AppBreadcrumbs className="min-w-0" />
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5">
           <SyncFreshnessHeaderPill />
           <GlobalActivityHeaderIndicator />
           <CurrencyPicker />
@@ -68,7 +69,7 @@ export function AppHeader({ className, onOpenMobileNav }: AppHeaderProps) {
             size="xs"
             aria-label={ariaLang}
             onClick={toggleLang}
-            className="h-8 px-2 font-semibold text-text-secondary hover:text-text-primary"
+            className={chromeTextButtonClassName}
           >
             {lang === 'es' ? 'EN' : 'ES'}
           </Button>

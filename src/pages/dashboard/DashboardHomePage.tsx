@@ -15,8 +15,10 @@ import { FilterDates } from '@/ui/filters/filter-dates'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { revenueTrendSubtitleForGranularity } from '@/pages/dashboard/revenue-trend-subtitle'
+import { cn } from '@/lib/utils'
 import { useModule } from '@/lib/modules/use-modules'
 import { KpiCard } from '@/ui/kpi-card'
+import { surfaceKpiClassName, surfaceKpiCompactClassName } from '@/ui/surface'
 
 import { DashboardChannelSalesChart } from './dashboard-channel-sales-chart'
 import { DashboardProfitMarginChart } from './dashboard-profit-margin-chart'
@@ -167,7 +169,7 @@ function DashboardHomeLoadingSkeleton({ chartRegionLabel }: { chartRegionLabel: 
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="flex min-w-0 flex-col gap-2.5 rounded-md border border-[var(--shell-structure-border)] bg-bg-card-strong p-3.5 sm:p-4"
+            className={cn(surfaceKpiClassName, 'gap-2.5')}
             aria-hidden
           >
             <div className="flex w-full min-w-0 items-start justify-between gap-2">
@@ -202,7 +204,7 @@ function DashboardHomeLoadingSkeleton({ chartRegionLabel }: { chartRegionLabel: 
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="flex min-w-0 flex-col gap-2 rounded-md border border-[var(--shell-structure-border)] bg-bg-card-strong p-3"
+            className={cn(surfaceKpiCompactClassName, 'gap-2')}
             aria-hidden
           >
             <Skeleton className="h-4 w-20" />
@@ -604,10 +606,10 @@ export function DashboardHomePage() {
       : displayKpi === null)
 
   return (
-    <DashboardPage className="flex flex-1 flex-col gap-5">
-      <header className="flex flex-col gap-3">
+    <DashboardPage className="flex flex-1 flex-col gap-6">
+      <header className="flex flex-col gap-4">
         <div className="min-w-0">
-          <h1 className="text-3xl font-semibold tracking-[-0.04em] text-[var(--color-text-primary)] sm:text-4xl">
+          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-text-primary sm:text-3xl">
             {t('navHome')}
           </h1>
         </div>
@@ -664,7 +666,7 @@ export function DashboardHomePage() {
         <>
           <MoneyDisclaimer />
           {showKpiCards ? (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <KpiCard
                 label={t('homeKpiNetSales')}
                 helpText={t('homeKpiNetSalesHelp')}
@@ -713,18 +715,18 @@ export function DashboardHomePage() {
                 }}
                 {...homeActiveAlertsKpiLabels(t, vsPrior)}
               />
-            </div>
+            </section>
           ) : null}
 
-          <div
+          <section
             className={
               showTopProducts
-                ? 'mt-2 grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-2 lg:items-stretch'
-                : 'mt-2 grid min-w-0 grid-cols-1 gap-5'
+                ? 'grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2 lg:items-stretch'
+                : 'grid min-w-0 grid-cols-1 gap-4'
             }
           >
-            <section className={showTopProducts ? 'flex min-h-0 min-w-0 lg:h-full' : 'min-w-0'}>
-              <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-6">
+            <div className={showTopProducts ? 'flex min-h-0 min-w-0 lg:h-full' : 'min-w-0'}>
+              <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-5">
                 <SectionHeader
                   title={t('homeChannelDonutTitle')}
                   description={t('homeChannelDonutSubtitle')}
@@ -738,10 +740,10 @@ export function DashboardHomePage() {
                   isLoading={channelDonutPending}
                 />
               </SectionContainer>
-            </section>
+            </div>
             {showTopProducts ? (
-              <section className="flex min-h-0 min-w-0 lg:h-full">
-                <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-6">
+              <div className="flex min-h-0 min-w-0 lg:h-full">
+                <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-5">
                   <SectionHeader
                     title={t('homeTopProductsTitle')}
                     description={t('homeTopProductsSubtitle').replace(
@@ -760,16 +762,16 @@ export function DashboardHomePage() {
                     />
                   </div>
                 </SectionContainer>
-              </section>
+              </div>
             ) : null}
-          </div>
+          </section>
 
           {showKpiCards ? (
-            <>
-              <h3 className="mt-2 text-sm font-medium text-text-secondary">
+            <section className="flex flex-col gap-3">
+              <h2 className="text-sm font-semibold tracking-tight text-text-primary">
                 {t('homeSecondaryKpiSectionTitle')}
-              </h3>
-              <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              </h2>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
                 <KpiCard
                   compact
                   label={t('reportsGrossProfit')}
@@ -843,11 +845,11 @@ export function DashboardHomePage() {
                   showComparison={orders > 0 && aov !== null}
                 />
               </div>
-            </>
+            </section>
           ) : null}
 
-          <div
-            className="mt-2 flex min-w-0 flex-1 flex-col gap-5"
+          <section
+            className="flex min-w-0 flex-1 flex-col gap-4"
             aria-label={t('shellHomeChartRegion')}
           >
             <section>
@@ -969,7 +971,7 @@ export function DashboardHomePage() {
                 </SectionContainer>
               </section>
             ) : null}
-          </div>
+          </section>
         </>
       )}
     </DashboardPage>

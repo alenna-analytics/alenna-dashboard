@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Gauge, Package } from 'lucide-react'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { AlertItemApi, AlertPostponeDuration } from '@/lib/types/alerts'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { Skeleton } from '@/ui/skeleton'
 import {
@@ -58,14 +59,10 @@ function severityBadgeLabel(
   return t('homeAlertsSheetSeverityInformational')
 }
 
-function severityBadgeClass(severity: AlertItemApi['severity']): string {
-  if (severity === 'critical') {
-    return 'border-[color:var(--stock-alert-critical)]/35 bg-[color:var(--stock-alert-critical)]/10 text-[color:var(--stock-alert-critical)]'
-  }
-  if (severity === 'low') {
-    return 'border-[color:var(--stock-alert-warning)]/35 bg-[color:var(--stock-alert-warning)]/10 text-[color:var(--stock-alert-warning)]'
-  }
-  return 'border-border-subtle bg-muted/40 text-muted-foreground'
+function severityBadgeVariant(severity: AlertItemApi['severity']): 'error' | 'warning' | 'secondary' {
+  if (severity === 'critical') return 'error'
+  if (severity === 'low') return 'warning'
+  return 'secondary'
 }
 
 function filterItems(items: AlertItemApi[], severityFilter: AlertSeverityFilter): AlertItemApi[] {
@@ -118,10 +115,10 @@ function AlertSeverityFilterBar({
           type="button"
           aria-pressed={value === id}
           className={cn(
-            'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+            'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors',
             value === id
               ? 'border-foreground bg-foreground text-background'
-              : 'border-border-subtle bg-transparent text-muted-foreground hover:border-border-default hover:bg-muted/45 hover:text-foreground',
+              : 'border-border-default bg-bg-elevated text-muted-foreground hover:border-border-strong hover:bg-muted hover:text-foreground',
           )}
           onClick={() => onChange(id)}
         >
@@ -220,7 +217,7 @@ function AlertDetailView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-start gap-2 border-b border-border-subtle px-4 py-4 pr-14">
+      <div className="flex items-start gap-2 border-b border-border-subtle px-5 py-4 pr-14">
         <Button
           type="button"
           variant="ghost"
@@ -236,20 +233,18 @@ function AlertDetailView({
             <h2 className="min-w-0 flex-1 text-base font-semibold leading-snug text-foreground">
               {headline}
             </h2>
-            <span
-              className={cn(
-                'shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase',
-                severityBadgeClass(item.severity),
-              )}
+            <Badge
+              variant={severityBadgeVariant(item.severity)}
+              className="h-5 shrink-0 rounded-md px-1.5 text-[10px] font-semibold tracking-wide uppercase"
             >
               {severityBadgeLabel(t, item.severity)}
-            </span>
+            </Badge>
           </div>
           <p className="mt-1 truncate text-xs text-muted-foreground">{productChannelLine}</p>
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 py-5">
+      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 py-5">
         <AlertDetailSection title={t('homeAlertsSheetEntity')}>
           <span className="inline-flex max-w-full items-center gap-2 rounded-md border border-border-subtle bg-muted/30 px-2.5 py-1.5 text-xs text-foreground">
             <Package className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />

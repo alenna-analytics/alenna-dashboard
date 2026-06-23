@@ -19,6 +19,27 @@ import speedIcon from '@/assets/icons/speed.svg'
 import userIcon from '@/assets/icons/user.svg'
 import validationIcon from '@/assets/icons/validation.svg'
 
+import homeIconRaw from '@/assets/icons/home.svg?raw'
+import productsIconRaw from '@/assets/icons/products.svg?raw'
+import salesIconRaw from '@/assets/icons/sales.svg?raw'
+import reportsIconRaw from '@/assets/icons/reports.svg?raw'
+import adsIconRaw from '@/assets/icons/ads.svg?raw'
+import channelsIconRaw from '@/assets/icons/channels.svg?raw'
+import simulationsIconRaw from '@/assets/icons/simulations.svg?raw'
+import integrationsIconRaw from '@/assets/icons/integrations.svg?raw'
+import configIconRaw from '@/assets/icons/config.svg?raw'
+import aiIconRaw from '@/assets/icons/ai.svg?raw'
+import billingIconRaw from '@/assets/icons/billing.svg?raw'
+import companyIconRaw from '@/assets/icons/company.svg?raw'
+import downloadIconRaw from '@/assets/icons/download.svg?raw'
+import growthIconRaw from '@/assets/icons/growth.svg?raw'
+import notificationsIconRaw from '@/assets/icons/notifications.svg?raw'
+import ordersIconRaw from '@/assets/icons/orders.svg?raw'
+import orgsIconRaw from '@/assets/icons/orgs.svg?raw'
+import speedIconRaw from '@/assets/icons/speed.svg?raw'
+import userIconRaw from '@/assets/icons/user.svg?raw'
+import validationIconRaw from '@/assets/icons/validation.svg?raw'
+
 export const APP_ICONS = {
   home: homeIcon,
   products: productsIcon,
@@ -41,5 +62,28 @@ export const APP_ICONS = {
   user: userIcon,
   validation: validationIcon,
 } as const
+
+export const APP_ICONS_RAW = {
+  home: homeIconRaw,
+  products: productsIconRaw,
+  sales: salesIconRaw,
+  reports: reportsIconRaw,
+  ads: adsIconRaw,
+  channels: channelsIconRaw,
+  simulations: simulationsIconRaw,
+  integrations: integrationsIconRaw,
+  config: configIconRaw,
+  ai: aiIconRaw,
+  billing: billingIconRaw,
+  company: companyIconRaw,
+  download: downloadIconRaw,
+  growth: growthIconRaw,
+  notifications: notificationsIconRaw,
+  orders: ordersIconRaw,
+  orgs: orgsIconRaw,
+  speed: speedIconRaw,
+  user: userIconRaw,
+  validation: validationIconRaw,
+} as const satisfies Record<keyof typeof APP_ICONS, string>
 
 export type AppIconName = keyof typeof APP_ICONS

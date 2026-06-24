@@ -3,6 +3,10 @@ import { useState } from 'react'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { StockOverrideApi } from '@/lib/types/alert-rules'
+import {
+  showAlarmConfigErrorToast,
+  showAlarmConfigSuccessToast,
+} from '@/pages/configuration/alarms/stock/alarm-config-toast'
 import type { AlertScopeType } from '@/lib/types/alert-rules'
 import { OutOfStockInfoCard } from '@/pages/configuration/alarms/stock/out-of-stock-info-card'
 import { OverrideSheet } from '@/pages/configuration/alarms/stock/override-sheet'

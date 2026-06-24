@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import { Loader2 } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react'
+import { Loader2, Pencil } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { cn } from '@/lib/utils'
@@ -12,8 +12,6 @@ import {
   formatCostDraft,
   parseCostInput,
 } from './product-cost-input-utils'
-
-const EMPTY_CELL = '—'
 
 type ProductCostInlineCellProps = {
   productId: string
@@ -29,6 +27,14 @@ type ProductCostInlineCellProps = {
   onSave: (productId: string, cost: number) => Promise<void>
   isSaving: boolean
   t: (key: ShellStringKey) => string
+}
+
+function MissingCostBadge({ t }: { t: (key: ShellStringKey) => string }) {
+  return (
+    <Badge variant="warning" className="font-normal">
+      {t('productsCostMissingBadge')}
+    </Badge>
+  )
 }
 
 export function ProductCostInlineCell({
@@ -56,13 +62,6 @@ export function ProductCostInlineCell({
     }
   }, [isActive])
 
-  const displayValue =
-    cost != null ? (
-      <span className="block text-right tabular-nums">{formatMoney(cost)}</span>
-    ) : (
-      <span className="block text-right tabular-nums text-text-tertiary">{EMPTY_CELL}</span>
-    )
-
   const cancelEdit = useCallback(() => {
     setDraft(formatCostDraft(cost))
     onDeactivate()
@@ -87,6 +86,15 @@ export function ProductCostInlineCell({
     }
   }, [cancelEdit, cost, draft, onDeactivate, onSave, productId])
 
+  const activateEdit = useCallback(
+    (event?: MouseEvent) => {
+      event?.stopPropagation()
+      setDraft(formatCostDraft(cost))
+      onActivate(productId)
+    },
+    [cost, onActivate, productId],
+  )
+
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     event.stopPropagation()
     if (event.key === 'Enter') {
@@ -99,18 +107,39 @@ export function ProductCostInlineCell({
     }
   }
 
+  const costValue = costMissing || cost == null ? null : cost
+
+  const costDisplay = costValue != null ? (
+    <span className="tabular-nums">{formatMoney(costValue)}</span>
+  ) : (
+    <MissingCostBadge t={t} />
+  )
+
+  const displayRow = (
+    <div className="flex items-center justify-end gap-1.5">
+      {!readOnly ? (
+        <button
+          type="button"
+          className={cn(
+            'inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary outline-none',
+            'opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100',
+            'hover:bg-muted/70 hover:text-text-primary focus-visible:ring-2 focus-visible:ring-ring/30',
+            isSaving && 'pointer-events-none',
+          )}
+          aria-label={t('productsInlineCostEditAria').replace('{label}', label)}
+          title={t('productsInlineCostForwardHelp')}
+          disabled={isSaving}
+          onClick={activateEdit}
+        >
+          <Pencil className="size-3.5 shrink-0" aria-hidden />
+        </button>
+      ) : null}
+      {costDisplay}
+    </div>
+  )
+
   if (readOnly) {
-    const content = (
-      <div className="flex flex-col items-end gap-1">
-        {displayValue}
-        {costMissing ? (
-          <Badge variant="secondary" className="font-normal">
-            {t('productsCostMissingBadge')}
-          </Badge>
-        ) : null}
-      </div>
-    )
-    if (!readOnlyHint) return content
+    if (!readOnlyHint) return displayRow
     return (
       <TooltipProvider>
         <Tooltip>
@@ -119,7 +148,7 @@ export function ProductCostInlineCell({
             className="w-full cursor-default text-left outline-none"
             onClick={(event) => event.stopPropagation()}
           >
-            {content}
+            {displayRow}
           </TooltipTrigger>
           <TooltipContent>{readOnlyHint}</TooltipContent>
         </Tooltip>
@@ -157,30 +186,11 @@ export function ProductCostInlineCell({
   }
 
   return (
-    <button
-      type="button"
-      className={cn(
-        'w-full rounded-sm px-1 py-0.5 text-right outline-none transition-colors',
-        'hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/30',
-        isSaving && 'pointer-events-none opacity-60',
-      )}
-      aria-label={t('productsInlineCostEditAria').replace('{label}', label)}
-      title={t('productsInlineCostForwardHelp')}
-      disabled={isSaving}
-      onClick={(event) => {
-        event.stopPropagation()
-        setDraft(formatCostDraft(cost))
-        onActivate(productId)
-      }}
+    <div
+      className={cn('w-full', isSaving && 'pointer-events-none opacity-60')}
+      onClick={(event) => event.stopPropagation()}
     >
-      <div className="flex flex-col items-end gap-1">
-        {displayValue}
-        {costMissing ? (
-          <Badge variant="secondary" className="font-normal">
-            {t('productsCostMissingBadge')}
-          </Badge>
-        ) : null}
-      </div>
-    </button>
+      {displayRow}
+    </div>
   )
 }

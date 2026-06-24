@@ -263,7 +263,7 @@ export function AppSidebarPanel({
           onNavigate={onNavigate}
         />
         {analyticsModules.length > 0 ? (
-          <SidebarNavSection collapsed={collapsed} sectionTitle={t('navSectionAnalytics')}>
+          <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionAnalytics')}>
             <ModuleNavItems
               modules={analyticsModules}
               collapsed={collapsed}
@@ -272,7 +272,7 @@ export function AppSidebarPanel({
           </SidebarNavSection>
         ) : null}
         {showConfigSection ? (
-          <SidebarNavSection collapsed={collapsed} sectionTitle={t('navSectionConfiguration')}>
+          <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionConfiguration')}>
             {workspaceConfigEnabled ? (
               <WorkspaceConfigNavItem collapsed={collapsed} onNavigate={onNavigate} />
             ) : null}

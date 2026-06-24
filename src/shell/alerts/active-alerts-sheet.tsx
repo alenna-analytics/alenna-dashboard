@@ -355,7 +355,7 @@ function AlertListView({
       />
 
       <div
-        className="flex shrink-0 gap-6 border-b border-border-subtle px-6"
+        className="flex shrink-0 gap-6 border-b border-border-subtle px-6 pt-4"
         role="tablist"
         aria-label={t('homeAlertsDialogTitle')}
       >

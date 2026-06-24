@@ -1,37 +1,34 @@
-import { useId, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 
 export type SidebarNavSectionProps = {
   collapsed: boolean
-  sectionTitle: string
+  sectionLabel: string
   children: ReactNode
   className?: string
 }
 
 export function SidebarNavSection({
   collapsed,
-  sectionTitle,
+  sectionLabel,
   children,
   className,
 }: SidebarNavSectionProps) {
-  const headingId = useId()
-
   return (
     <div
       role="group"
-      aria-labelledby={collapsed ? undefined : headingId}
-      aria-label={collapsed ? sectionTitle : undefined}
-      className={cn('flex flex-col gap-1', collapsed ? undefined : 'mt-3', className)}
+      aria-label={sectionLabel}
+      className={cn('flex flex-col gap-1', className)}
     >
-      {!collapsed ? (
-        <p
-          id={headingId}
-          className="mb-0.5 px-2 text-xs font-semibold uppercase tracking-wide text-text-tertiary"
-        >
-          {sectionTitle}
-        </p>
-      ) : null}
+      <div
+        role="presentation"
+        aria-hidden
+        className={cn(
+          'shrink-0 border-t border-[var(--shell-structure-border)]',
+          collapsed ? 'mx-auto my-2 w-6' : 'mx-2 mt-3 mb-1',
+        )}
+      />
       {children}
     </div>
   )

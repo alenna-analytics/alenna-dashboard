@@ -3,9 +3,7 @@ import { CheckCircle2 } from 'lucide-react'
 import { LoadingIcon } from '@/ui/app-icon'
 import { useMemo } from 'react'
 
-import { IntegrationLogo } from '@/pages/integrations/details/integration-logo'
 import type { ShopifyIntegrationHook } from '@/pages/integrations/details/use-shopify-integration'
-import type { ManagedIntegration } from '@/lib/integrations/catalog'
 import {
   normalizeShopifySubdomainInput,
   SHOPIFY_MYSHOPIFY_SUFFIX,
@@ -19,7 +17,6 @@ import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import { Separator } from '@/ui/separator'
-import { SheetHeader, SheetTitle } from '@/ui/sheet'
 
 function formatYmdMedium(value: string | null, lang: string): string {
   if (!value) return ''
@@ -39,23 +36,6 @@ function lifecycleButtonLabelKey(syncPlan: SyncPlan | null): ShellStringKey {
   if (status === 'synced' || status === 'partial') return 'syncRefreshBtn'
   if (status === 'failed') return 'syncRetryBtn'
   return 'syncRunBtn'
-}
-
-export function SheetHeaderWithLogo({
-  definition,
-  title,
-}: {
-  definition: ManagedIntegration
-  title: string
-}) {
-  return (
-    <SheetHeader className="flex flex-row items-center gap-3">
-      <IntegrationLogo src={definition.logoSrc} alt={title} size="xl" className="pt-0.5" />
-      <div className="min-w-0 flex-1 space-y-1">
-        <SheetTitle>{title}</SheetTitle>
-      </div>
-    </SheetHeader>
-  )
 }
 
 function ShopifyIntroCopy({ lang }: { lang: string }) {
@@ -131,7 +111,7 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
 
     return (
       <div className="space-y-4">
-        <div className="flex gap-3 rounded-md border border-border-subtle bg-bg-section p-4 shadow-[var(--glass-shadow)] backdrop-blur-xl">
+        <div className="flex gap-3 rounded-md border border-border-subtle bg-white p-4">
           <LoadingIcon className="size-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 space-y-1">
             <p className="text-sm font-medium text-text-primary">
@@ -155,7 +135,7 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
 
     return (
       <div className="space-y-4">
-        <div className="rounded-md border border-border-subtle bg-bg-section p-4 text-sm shadow-[var(--glass-shadow)] backdrop-blur-xl">
+        <div className="rounded-md border border-border-subtle bg-white p-4 text-sm">
           <div className="mb-2 flex items-center gap-1.5 font-medium text-text-primary">
             <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />
             {shellT(lang, 'integrationSyncDone')}
@@ -243,13 +223,7 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
   )
 }
 
-export function ShopifyManageBody({
-  definition,
-  shopify,
-}: {
-  definition: ManagedIntegration
-  shopify: ShopifyIntegrationHook
-}) {
+export function ShopifyManageBody({ shopify }: { shopify: ShopifyIntegrationHook }) {
   const { lang } = useLanguage()
   const {
     tenantId,
@@ -267,15 +241,11 @@ export function ShopifyManageBody({
     shopifySyncPhase,
   } = shopify
 
-  const name = definition.nameKey ? shellT(lang, definition.nameKey) : definition.catalogName
-  const storeId = 'integration-shop-domain-sheet'
+  const storeId = 'integration-shop-domain'
   const shopSubdomain = normalizeShopifySubdomainInput(activeConnection?.shop_domain ?? '')
 
   return (
-    <>
-      <SheetHeaderWithLogo definition={definition} title={name} />
-
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-4">
+    <div className="flex max-w-2xl flex-col gap-6">
         {!isAdmin ? (
           <p className="text-sm text-muted-foreground">{shellT(lang, 'connectionsAdminOnly')}</p>
         ) : isLoading ? (
@@ -384,7 +354,6 @@ export function ShopifyManageBody({
             ) : null}
           </div>
         )}
-      </div>
-    </>
+    </div>
   )
 }

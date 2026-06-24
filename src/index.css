@@ -353,7 +353,7 @@
     transparent
   );
   /** Sidebar workspace header + main AppHeader share this height so border-b lines align. */
-  --shell-chrome-header-height: 3.5rem;
+  --shell-chrome-header-height: 47px;
 
   /** Global activity bar + header chip (Shopify sync, COGS backfill, etc.). */
   --global-activity-loading-bg: var(--status-blue-600);

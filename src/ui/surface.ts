@@ -9,7 +9,7 @@ export const surfaceCardInteractiveClassName =
   'rounded-md transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45'
 
 /** Chart / section container shell. */
-export const surfaceSectionClassName = cn(surfaceCardClassName, 'p-6')
+export const surfaceSectionClassName = cn(surfaceCardClassName, 'p-4 sm:p-5')
 
 /** Compact KPI row cards. */
 export const surfaceKpiCompactClassName = cn(surfaceCardClassName, 'p-3 sm:p-3.5')

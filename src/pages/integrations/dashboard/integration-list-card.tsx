@@ -1,120 +1,62 @@
-import type { ManagedIntegration } from '@/lib/integrations/catalog'
-import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
-import type { PlatformConnection } from '@/lib/types/connectors'
-import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
-import { IntegrationLogo } from '@/pages/integrations/details/integration-logo'
-import { shellT } from '@/lib/i18n/shell-strings'
-import { Badge } from '@/ui/badge'
-import { Button } from '@/ui/button'
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/ui/card'
-import { Switch } from '@/ui/switch'
+import { CheckCircle2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
+import type { ManagedIntegration } from '@/lib/integrations/catalog'
+import { IntegrationLogo } from '@/pages/integrations/details/integration-logo'
 import {
+  integrationCategory,
   integrationDescription,
   integrationTitle,
 } from '@/pages/integrations/dashboard/integration-display'
+import { shellT } from '@/lib/i18n/shell-strings'
+import { Badge } from '@/ui/badge'
+import { cn } from '@/lib/utils'
 
 type IntegrationListCardProps = {
   integration: ManagedIntegration
   lang: string
-  shopifyConnected: boolean
-  shopifyConnection?: PlatformConnection | null
-  shopifyForceSyncing?: boolean
-  mercadolibreConnected?: boolean
-  mercadolibreConnection?: PlatformConnection | null
-  isAdmin: boolean
-  disconnectPending: boolean
-  onManage: () => void
-  onConnectToggle: (on: boolean) => void
+  connected: boolean
 }
 
-export function IntegrationListCard({
-  integration,
-  lang,
-  shopifyConnected,
-  shopifyConnection,
-  shopifyForceSyncing = false,
-  mercadolibreConnected = false,
-  mercadolibreConnection = null,
-  isAdmin,
-  disconnectPending,
-  onManage,
-  onConnectToggle,
-}: IntegrationListCardProps) {
+export function IntegrationListCard({ integration, lang, connected }: IntegrationListCardProps) {
   const name = integrationTitle(lang, integration)
   const desc = integrationDescription(lang, integration)
-  const isShopify = integration.slug === 'shopify'
-  const isMercadolibre = integration.slug === 'mercadolibre'
-  const isConnectable = isShopify || isMercadolibre
-  const switchChecked = isShopify
-    ? shopifyConnected
-    : isMercadolibre
-      ? mercadolibreConnected
-      : false
-  const switchDisabled =
-    !integration.available ||
-    !isConnectable ||
-    (!isAdmin || disconnectPending)
-
-  const handleSwitch = (on: boolean) => {
-    if (!integration.available || !isConnectable) return
-    if (!isAdmin) return
-    onConnectToggle(on)
-  }
-
-  const syncPill =
-    isShopify && shopifyConnected
-      ? resolveConnectionSyncFreshnessPillContent(shopifyConnection, {
-          forceSyncing: shopifyForceSyncing,
-        })
-      : isMercadolibre && mercadolibreConnected
-        ? resolveConnectionSyncFreshnessPillContent(mercadolibreConnection)
-        : null
+  const category = integrationCategory(lang, integration)
 
   return (
     <li>
-      <Card
-        size="sm"
-        className="h-full hover:shadow-[var(--shadow-ink-sm)]"
+      <Link
+        to={`/dashboard/integrations/${integration.slug}`}
+        className={cn(
+          'group flex h-full flex-col rounded-md border border-border-default bg-white p-5',
+          'transition-colors hover:border-border-strong',
+        )}
       >
-        <CardHeader className="flex flex-col items-start gap-3 border-0 pb-0">
-          <IntegrationLogo src={integration.logoSrc} alt={name} size="xl" />
-          <div className="min-w-0 flex-1 flex flex-col">
-            <div className="flex flex-row flex-wrap items-center gap-2">
-              <CardTitle className="text-base! font-semibold tracking-tight">{name}</CardTitle>
-              {syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : null}
-              {!integration.available ? (
-                <Badge variant="default">
-                  {shellT(lang, 'integrationsComingSoonBadge')}
-                </Badge>
-              ) : null}
-            </div>
-            <CardDescription className="mt-1.5 line-clamp-2 text-md! leading-relaxed">
-              {desc}
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardFooter className="flex flex-row flex-wrap items-center justify-between gap-3 border-border-subtle bg-transparent">
-          {integration.available ? (
-            <Button
-              type="button"
-              variant="default"
-              className="text-sm"
-              onClick={onManage}
-            >
-              {shellT(lang, 'integrationsActionManage')}
-            </Button>
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <IntegrationLogo src={integration.logoSrc} alt={name} size="lg" />
+          {connected ? (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-success">
+              <CheckCircle2 className="size-3.5 shrink-0" aria-hidden />
+              {shellT(lang, 'integrationDetailInstalledBadge')}
+            </span>
           ) : null}
-          {integration.available ? (
-            <Switch
-              checked={switchChecked}
-              disabled={switchDisabled}
-              onCheckedChange={handleSwitch}
-              aria-label={shellT(lang, 'integrationsToggleLabel')}
-            />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <h2 className="text-sm font-semibold text-text-primary">{name}</h2>
+          <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-text-secondary">{desc}</p>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {!integration.available ? (
+            <Badge variant="default">{shellT(lang, 'integrationsComingSoonBadge')}</Badge>
+          ) : category ? (
+            <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+              {category}
+            </Badge>
           ) : null}
-        </CardFooter>
-      </Card>
+        </div>
+      </Link>
     </li>
   )
 }

@@ -2,6 +2,7 @@ import { ChevronRight } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { shellT } from '@/lib/i18n/shell-strings'
+import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useProductDetailQuery } from '@/pages/products/use-catalog-queries'
 import { cn } from '@/lib/utils'
@@ -30,8 +31,36 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
       { label: shellT(lang, 'navComponents') },
     ]
   }
+  if (normalized === '/dashboard/configuration') {
+    return [{ label: shellT(lang, 'navWorkspaceConfiguration') }]
+  }
+  if (normalized === '/dashboard/configuration/alarms') {
+    return [
+      { label: shellT(lang, 'navWorkspaceConfiguration'), to: '/dashboard/configuration' },
+      { label: shellT(lang, 'navAlarms') },
+    ]
+  }
+  if (normalized === '/dashboard/configuration/alarms/stock') {
+    return [
+      { label: shellT(lang, 'navWorkspaceConfiguration'), to: '/dashboard/configuration' },
+      { label: shellT(lang, 'navAlarms'), to: '/dashboard/configuration/alarms' },
+      { label: shellT(lang, 'alarmsStockTypeTitle') },
+    ]
+  }
   if (normalized === '/dashboard/integrations') {
     return [{ label: shellT(lang, 'navIntegrations') }]
+  }
+  if (/^\/dashboard\/integrations\/[^/]+$/.test(normalized)) {
+    const slug = normalized.split('/').pop() ?? ''
+    const ui = INTEGRATION_UI[slug]
+    const label = ui ? shellT(lang, ui.nameKey) : slug
+    return [
+      { label: shellT(lang, 'navIntegrations'), to: '/dashboard/integrations' },
+      { label },
+    ]
+  }
+  if (normalized === '/dashboard/alarms') {
+    return [{ label: shellT(lang, 'navAlarms') }]
   }
   if (normalized === '/dashboard/products') {
     return [{ label: shellT(lang, 'navProducts') }]

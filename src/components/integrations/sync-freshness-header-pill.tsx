@@ -65,7 +65,7 @@ export function SyncFreshnessHeaderPill() {
       phase: 'loading',
       title: shellT(lang, 'shopifySyncProgressTitle'),
       subtitle: shellT(lang, 'shopifySyncProgressQueued'),
-      href: '/dashboard/integrations',
+      href: '/dashboard/integrations/shopify?tab=settings',
       minimized: false,
     })
     restoreAllActivities()

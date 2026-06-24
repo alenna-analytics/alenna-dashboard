@@ -4,12 +4,16 @@ import { matchPath, NavLink, useLocation } from 'react-router-dom'
 import alennaIconWhite from '@/assets/alenna/alenna-icon-white.svg'
 import type { AppIconName } from '@/lib/icons/catalog'
 import { useEnabledModules } from '@/lib/modules/use-modules'
+import { useConfigSectionModules, useWorkspaceConfigModuleEnabled } from '@/lib/modules/use-workspace-config'
 import type { ModuleSection, ModuleState } from '@/lib/modules/types'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { SidebarNavSection } from '@/shell/layout/sidebar-nav-section'
+import { WorkspaceConfigNavItem } from '@/shell/layout/workspace-config-nav-group'
 import {
+  shellChromeHeaderRowClassName,
   sidebarNavIconClassName,
+  sidebarNavItemCollapsedClassName,
   sidebarNavLabelClassName,
   sidebarInsetPaddingClassName,
   sidebarNavItemClassName,
@@ -47,7 +51,7 @@ function linkClassNames(isActive: boolean, collapsed: boolean): string {
     return cn(
       baseTrans,
       sidebarNavItemClassName,
-      'w-8 justify-center px-0',
+      sidebarNavItemCollapsedClassName,
       isActive ? active : inactive,
     )
   }
@@ -197,20 +201,22 @@ export function AppSidebarPanel({
   const toggleAria = collapsed ? t('ariaExpandSidebar') : t('ariaCollapseSidebar')
   const enabledModules = useEnabledModules()
   const analyticsModules = modulesForSection(enabledModules, 'analytics')
-  const configModules = modulesForSection(enabledModules, 'config')
+  const configModules = useConfigSectionModules()
+  const workspaceConfigEnabled = useWorkspaceConfigModuleEnabled()
+  const showConfigSection = configModules.length > 0 || workspaceConfigEnabled
 
   return (
     <div
       className={cn(
-        'flex h-full min-h-0 flex-col rounded-md border border-[var(--shell-structure-border)] bg-white shadow-none',
+        'flex h-full min-h-0 flex-col bg-white shadow-none',
         sidebarShellPaddingClassName,
         className,
       )}
     >
       <div
         className={cn(
-          'flex w-full shrink-0 items-center border-b border-[var(--shell-structure-border)]',
-          'h-[var(--shell-chrome-header-height)] min-h-[var(--shell-chrome-header-height)]',
+          shellChromeHeaderRowClassName,
+          '-mx-2 px-2',
           collapsed ? 'justify-center' : 'gap-2',
         )}
       >
@@ -218,7 +224,7 @@ export function AppSidebarPanel({
           <Tooltip>
             <TooltipTrigger asChild>
               <div>
-                <TenantMark logoUrl={companyLogoUrl} className="size-9" />
+                <TenantMark logoUrl={companyLogoUrl} className="size-7" />
               </div>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={8} className="max-w-[14rem]">
@@ -230,15 +236,11 @@ export function AppSidebarPanel({
           </Tooltip>
         ) : (
           <>
-            <TenantMark logoUrl={companyLogoUrl} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-base font-semibold leading-tight text-text-primary">
-                {companyName}
-              </p>
+            <TenantMark logoUrl={companyLogoUrl} className="size-7" />
+            <div className="min-w-0 flex-1 leading-none">
+              <p className="truncate text-sm font-semibold text-text-primary">{companyName}</p>
               {companySubtitle ? (
-                <p className="mt-0.5 truncate text-sm leading-tight text-text-tertiary">
-                  {companySubtitle}
-                </p>
+                <p className="mt-0.5 truncate text-[11px] text-text-tertiary">{companySubtitle}</p>
               ) : null}
             </div>
           </>
@@ -269,8 +271,11 @@ export function AppSidebarPanel({
             />
           </SidebarNavSection>
         ) : null}
-        {configModules.length > 0 ? (
+        {showConfigSection ? (
           <SidebarNavSection collapsed={collapsed} sectionTitle={t('navSectionConfiguration')}>
+            {workspaceConfigEnabled ? (
+              <WorkspaceConfigNavItem collapsed={collapsed} onNavigate={onNavigate} />
+            ) : null}
             <ModuleNavItems
               modules={configModules}
               collapsed={collapsed}
@@ -281,7 +286,7 @@ export function AppSidebarPanel({
       </nav>
 
       {!hideCollapseToggle && onToggle ? (
-        <div className={cn('mt-auto shrink-0 border-t border-[var(--shell-structure-border)]', sidebarInsetPaddingClassName)}>
+        <div className={cn('mt-auto shrink-0 -mx-2 border-t border-[var(--shell-structure-border)]', sidebarInsetPaddingClassName)}>
           <Button
             type="button"
             variant="ghost"

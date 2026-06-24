@@ -35,7 +35,7 @@ export function SectionHeader({
   return (
     <div className={cn('mb-4 space-y-1', className)}>
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold tracking-tight text-text-primary">
+        <h2 className="text-base font-semibold text-text-primary">
           {title}
         </h2>
         {aside}

@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
 import { chromeIconButtonClassName, chromeTextButtonClassName } from '@/ui/surface'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { shellChromeHeaderRowClassName } from '@/shell/layout/sidebar-layout'
 import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
 
 type AppHeaderProps = {
@@ -29,8 +30,9 @@ export function AppHeader({ className, onOpenMobileNav }: AppHeaderProps) {
     <header className={cn('min-w-0 shrink-0 bg-card', className)}>
       <div
         className={cn(
+          shellChromeHeaderRowClassName,
           WORKSPACE_SHELL_COLUMN_CLASS,
-          'flex h-[var(--shell-chrome-header-height)] min-h-[var(--shell-chrome-header-height)] items-center justify-between gap-3 lg:hidden',
+          'justify-between gap-3 lg:hidden',
         )}
       >
         <Button
@@ -52,8 +54,9 @@ export function AppHeader({ className, onOpenMobileNav }: AppHeaderProps) {
 
       <div
         className={cn(
+          shellChromeHeaderRowClassName,
           WORKSPACE_SHELL_COLUMN_CLASS,
-          'hidden h-[var(--shell-chrome-header-height)] min-h-[var(--shell-chrome-header-height)] items-center justify-between gap-3 lg:flex',
+          'hidden justify-between gap-3 lg:flex',
         )}
       >
         <div className="min-w-0 max-w-[min(100%,42rem)] flex-1">

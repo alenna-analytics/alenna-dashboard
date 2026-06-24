@@ -6,6 +6,7 @@ import { HomePage } from '@/pages/home/HomePage'
 import { NotFoundPage } from '@/pages/errors/NotFoundPage'
 import { ServerErrorPage } from '@/pages/errors/ServerErrorPage'
 import { IntegrationsListPage } from '@/pages/integrations/dashboard/IntegrationsListPage'
+import { IntegrationDetailPage } from '@/pages/integrations/dashboard/IntegrationDetailPage'
 import { DashboardHomePage } from '@/pages/dashboard/DashboardHomePage'
 import { ComponentsShowcasePage } from '@/pages/dev/ComponentsShowcasePage'
 import { ProductsListPage } from '@/pages/products/ProductsListPage'
@@ -14,6 +15,9 @@ import { SalesPage } from '@/pages/sales/SalesPage'
 import { AdsPage } from '@/pages/ads/AdsPage'
 import { SimulationsPage } from '@/pages/simulations/SimulationsPage'
 import { ChannelsPage } from '@/pages/channels/ChannelsPage'
+import { ConfigurationHomePage } from '@/pages/configuration/ConfigurationHomePage'
+import { AlarmsConfigurationListPage } from '@/pages/configuration/alarms/AlarmsConfigurationListPage'
+import { StockAlarmConfigurationPage } from '@/pages/configuration/alarms/stock/StockAlarmConfigurationPage'
 
 function App() {
   return (
@@ -28,11 +32,16 @@ function App() {
           <Route path="products" element={<ProductsListPage />} />
           <Route path="products/:productId" element={<ProductDetailPage />} />
           <Route path="integrations" element={<IntegrationsListPage />} />
+          <Route path="integrations/:slug" element={<IntegrationDetailPage />} />
+          <Route path="configuration" element={<ConfigurationHomePage />} />
+          <Route path="configuration/alarms" element={<AlarmsConfigurationListPage />} />
+          <Route path="configuration/alarms/stock" element={<StockAlarmConfigurationPage />} />
+          <Route path="alarms" element={<Navigate to="/dashboard/configuration/alarms" replace />} />
+          <Route path="alarms/*" element={<Navigate to="/dashboard/configuration/alarms" replace />} />
           <Route path="sales" element={<SalesPage />} />
           <Route path="ads" element={<AdsPage />} />
           <Route path="simulations" element={<SimulationsPage />} />
           <Route path="channels" element={<ChannelsPage />} />
-          <Route path="integrations/:slug" element={<Navigate to="/dashboard/integrations" replace />} />
           <Route path="connections" element={<Navigate to="/dashboard/integrations" replace />} />
           <Route path="*" element={<NotFoundPage variant="embedded" />} />
         </Route>

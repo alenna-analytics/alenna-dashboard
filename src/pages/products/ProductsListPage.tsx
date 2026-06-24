@@ -2,7 +2,7 @@ import { useState } from "react"
 
 import { shellT } from "@/lib/i18n/shell-strings"
 import { useLanguage } from "@/shell/providers/language-provider"
-import { DashboardPage } from "@/shell/layout/dashboard-page"
+import { DashboardPage, pageTitleClassName } from "@/shell/layout/dashboard-page"
 import { ProductsDataTable } from "./ProductsDataTable"
 import { EMPTY_PRODUCTS_LIST_FILTERS, type ProductsListFiltersState } from "./products-list-filter-state"
 import { ProductsListFilters } from "./products-list-filters"
@@ -21,7 +21,7 @@ export function ProductsListPage() {
     <DashboardPage className="flex flex-1 flex-col gap-5">
       <header className="flex flex-col gap-3">
         <div className="min-w-0 space-y-2">
-          <h1 className="text-3xl font-semibold tracking-[-0.04em] text-[var(--color-text-primary)] sm:text-4xl">
+          <h1 className={pageTitleClassName}>
             {t("productsPageTitle")}
           </h1>
           <p className="max-w-2xl text-sm text-text-secondary">{t("productsPageSubtitle")}</p>

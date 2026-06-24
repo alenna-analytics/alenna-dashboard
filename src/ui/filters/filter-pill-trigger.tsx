@@ -1,5 +1,4 @@
-import type { LucideIcon } from 'lucide-react'
-import { ChevronDown, CirclePlus, CircleX } from 'lucide-react'
+import { ChevronDown, CircleX } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { PopoverTrigger } from '@/ui/popover'
@@ -13,16 +12,14 @@ import {
 
 export type FilterPillTriggerProps = {
   label: string
-  Icon?: LucideIcon
   summary?: string | null
   className?: string
 }
 
-/** Legacy dashed + plus + optional muted summary. */
-export function FilterPillTrigger({ label, Icon = CirclePlus, summary, className }: FilterPillTriggerProps) {
+/** Legacy dashed pill — icon-free, label only. */
+export function FilterPillTrigger({ label, summary, className }: FilterPillTriggerProps) {
   return (
     <span className={cn('inline-flex min-w-0 items-center gap-1.5', className)}>
-      <Icon className="size-3.5 shrink-0 stroke-[1.5] text-accent" aria-hidden />
       <span className="max-w-[12rem] truncate text-accent">{label}</span>
       {summary ? (
         <span className="max-w-[10rem] truncate text-xs font-normal text-text-secondary">{summary}</span>
@@ -54,11 +51,10 @@ export type FilterPillTriggerAreaProps = {
   clearAriaLabel: string
   triggerClassName?: string
   ariaExpanded: boolean
-  inactiveIcon?: LucideIcon
 }
 
 /**
- * Inactive: dashed + plus + label. Active (img 1): optional clear | label · violet value · chevron; shorter height.
+ * Inactive: label only. Active: optional clear | label · value · chevron; shorter height.
  * Place inside `<Popover>` before `<PopoverContent />`.
  */
 export function FilterPillTriggerArea({
@@ -69,7 +65,6 @@ export function FilterPillTriggerArea({
   clearAriaLabel,
   triggerClassName,
   ariaExpanded,
-  inactiveIcon: InactiveIcon = CirclePlus,
 }: FilterPillTriggerAreaProps) {
   if (!active) {
     return (
@@ -78,7 +73,6 @@ export function FilterPillTriggerArea({
         className={cn(filterPillInactiveClassName(), triggerClassName)}
         aria-expanded={ariaExpanded}
       >
-        <InactiveIcon className="size-3.5 shrink-0 stroke-[1.5] text-text-secondary" aria-hidden />
         <span className="max-w-[12rem] truncate">{label}</span>
       </PopoverTrigger>
     )

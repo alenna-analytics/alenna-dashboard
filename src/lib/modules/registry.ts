@@ -50,6 +50,14 @@ export const MODULES: readonly ModuleDefinition[] = [
     section: 'analytics',
   },
   {
+    id: 'workspace-config',
+    labelKey: 'navWorkspaceConfiguration',
+    path: '/dashboard/configuration',
+    icon: 'config',
+    comingSoon: false,
+    section: 'config',
+  },
+  {
     id: 'integrations',
     labelKey: 'navIntegrations',
     path: '/dashboard/integrations',

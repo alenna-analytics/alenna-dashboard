@@ -396,7 +396,7 @@ export function useShopifyIntegration() {
         phase: 'loading',
         title: shellT(lang, 'shopifySyncProgressTitle'),
         subtitle: shellT(lang, 'shopifySyncProgressQueued'),
-        href: '/dashboard/integrations',
+        href: '/dashboard/integrations/shopify?tab=settings',
         minimized: false,
       })
       setSyncPanel({
@@ -435,7 +435,7 @@ export function useShopifyIntegration() {
         phase: 'error',
         title: shellT(lang, 'shopifySyncProgressTitle'),
         subtitle: e.message,
-        href: '/dashboard/integrations',
+        href: '/dashboard/integrations/shopify?tab=settings',
         minimized: false,
       })
     },
@@ -452,7 +452,7 @@ export function useShopifyIntegration() {
           phase: 'loading',
           title: shellT(lang, 'shopifySyncProgressTitle'),
           subtitle: shellT(lang, 'shopifySyncProgressQueued'),
-          href: '/dashboard/integrations',
+          href: '/dashboard/integrations/shopify?tab=settings',
           minimized: false,
         })
         setSyncPanel({

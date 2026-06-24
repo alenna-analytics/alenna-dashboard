@@ -138,7 +138,7 @@ export function AppShellLayout() {
           <AlertsSheetProvider>
             <TooltipProvider delayDuration={200}>
               <ActiveAlertsSheetHost />
-              <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh gap-0 overflow-hidden bg-[var(--bg-base)] p-2 lg:gap-3 lg:p-3">
+              <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh overflow-hidden bg-white">
               <AppSidebar
                 className="hidden lg:flex"
                 collapsed={sidebarCollapsed}
@@ -152,12 +152,9 @@ export function AppShellLayout() {
                 companyName={sidebarCompanyName}
                 companySubtitle={sidebarCompanySubtitle}
               />
-              <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-[var(--shell-structure-border)] bg-white">
+              <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-[var(--shell-structure-border)] bg-white">
                 <div className="sticky top-0 z-30 shrink-0 bg-card">
-                  <AppHeader
-                    className="border-b border-[var(--shell-structure-border)]"
-                    onOpenMobileNav={openMobileNav}
-                  />
+                  <AppHeader onOpenMobileNav={openMobileNav} />
                   <GlobalActivityBar className="hidden lg:block" />
                 </div>
                 <main
@@ -167,7 +164,7 @@ export function AppShellLayout() {
                   <div
                     className={cn(
                       WORKSPACE_SHELL_COLUMN_CLASS,
-                      'min-h-full py-4 lg:py-5',
+                      'min-h-full py-3 lg:py-4',
                     )}
                   >
                     {!tenantId && tenants.length > 1 ? (

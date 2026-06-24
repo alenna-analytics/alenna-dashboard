@@ -18,7 +18,6 @@ import { revenueTrendSubtitleForGranularity } from '@/pages/dashboard/revenue-tr
 import { cn } from '@/lib/utils'
 import { useModule } from '@/lib/modules/use-modules'
 import { KpiCard } from '@/ui/kpi-card'
-import { surfaceKpiClassName, surfaceKpiCompactClassName } from '@/ui/surface'
 
 import { DashboardChannelSalesChart } from './dashboard-channel-sales-chart'
 import { DashboardProfitMarginChart } from './dashboard-profit-margin-chart'
@@ -31,7 +30,7 @@ import { homeActiveAlertsKpiLabels } from './home-active-alerts-kpi-labels'
 import { HomeActiveAlertsKpi } from './home-active-alerts-kpi'
 import { invalidateAlertsQueries, useAlertsSummaryQuery } from './use-alerts-queries'
 import { useAlertsSheet } from '@/shell/alerts/alerts-sheet-context'
-import { MoneyDisclaimer } from '@/shell/components/money-disclaimer'
+import type { ReactNode } from 'react'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import {
   computePreviousPeriod,
@@ -162,82 +161,91 @@ function platformDisplayName(platform: string): string {
     .join(' ')
 }
 
-function DashboardHomeLoadingSkeleton({ chartRegionLabel }: { chartRegionLabel: string }) {
+function PageSection({
+  heading,
+  children,
+  className,
+}: {
+  heading?: string
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <section className={cn('flex flex-col gap-3', className)}>
+      {heading ? (
+        <h2 className="text-xl font-semibold text-text-primary">{heading}</h2>
+      ) : null}
+      {children}
+    </section>
+  )
+}
+
+function DashboardHomeLoadingSkeleton() {
   return (
     <>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div
-            key={i}
-            className={cn(surfaceKpiClassName, 'gap-2.5')}
-            aria-hidden
-          >
-            <div className="flex w-full min-w-0 items-start justify-between gap-2">
-              <Skeleton className="h-5 w-24 max-w-[65%]" />
-              <Skeleton className="size-5 shrink-0 rounded-full" />
-            </div>
-            <Skeleton className="h-[1.75rem] w-32 max-w-full sm:h-8" />
-            <div className="mt-1 space-y-2">
-              <Skeleton className="h-3 w-20" />
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <Skeleton className="h-6 w-16" />
-                <Skeleton className="h-6 w-12 rounded-md" />
+      <div className="overflow-hidden rounded-md border border-border-default" aria-hidden>
+        <div className="flex divide-x divide-border-default">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="min-w-0 flex-1 p-4">
+              <div className="flex flex-col gap-2">
+                <div className="flex w-full min-w-0 items-start justify-between gap-2">
+                  <Skeleton className="h-4 w-20 max-w-[65%]" />
+                  <Skeleton className="size-4 shrink-0 rounded-full" />
+                </div>
+                <Skeleton className="h-7 w-28 max-w-full" />
+                <div className="flex items-center gap-1.5">
+                  <Skeleton className="h-4 w-14" />
+                  <Skeleton className="h-5 w-10 rounded-md" />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+        <div className="flex divide-x divide-border-default border-t border-border-default">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="min-w-0 flex-1 p-3">
+              <div className="flex flex-col gap-1.5">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-5 w-20" />
+                <div className="flex items-center gap-1">
+                  <Skeleton className="h-3 w-12" />
+                  <Skeleton className="h-4 w-9 rounded-md" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-2 grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <SectionContainer key={i} className="overflow-visible">
-            <div className="mb-4 space-y-2" aria-hidden>
-              <Skeleton className="h-6 w-48 max-w-[80%]" />
-              <Skeleton className="h-4 w-full max-w-xl" />
-            </div>
-            <Skeleton className="h-64 w-full rounded-md" />
-          </SectionContainer>
-        ))}
-      </div>
+      <PageSection>
+        <Skeleton className="h-5 w-24" />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <SectionContainer key={i} className="overflow-visible">
+              <div className="mb-4 space-y-2" aria-hidden>
+                <Skeleton className="h-6 w-48 max-w-[80%]" />
+                <Skeleton className="h-4 w-full max-w-xl" />
+              </div>
+              <Skeleton className="h-64 w-full rounded-md" />
+            </SectionContainer>
+          ))}
+        </div>
+      </PageSection>
 
-      <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div
-            key={i}
-            className={cn(surfaceKpiCompactClassName, 'gap-2')}
-            aria-hidden
-          >
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-6 w-24" />
-          </div>
-        ))}
-      </div>
-
-      <div
-        className="mt-2 flex min-w-0 flex-1 flex-col gap-5"
-        aria-label={chartRegionLabel}
-        aria-busy="true"
-      >
-        <section>
-          <SectionContainer className="overflow-visible">
-            <div className="mb-4 space-y-2" aria-hidden>
-              <Skeleton className="h-6 w-56 max-w-[85%]" />
-              <Skeleton className="h-4 w-full max-w-2xl" />
-              <Skeleton className="h-4 w-full max-w-xl" />
-            </div>
-            <Skeleton className="h-80 w-full rounded-md" />
-          </SectionContainer>
-        </section>
-        <section>
-          <SectionContainer className="overflow-visible">
-            <div className="mb-4 space-y-2" aria-hidden>
-              <Skeleton className="h-6 w-52 max-w-[80%]" />
-              <Skeleton className="h-4 w-full max-w-2xl" />
-            </div>
-            <Skeleton className="h-72 w-full rounded-md" />
-          </SectionContainer>
-        </section>
-      </div>
+      <PageSection>
+        <Skeleton className="h-5 w-28" />
+        <div className="flex flex-col gap-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <SectionContainer key={i} className="overflow-visible">
+              <div className="mb-4 space-y-2" aria-hidden>
+                <Skeleton className="h-6 w-56 max-w-[85%]" />
+                <Skeleton className="h-4 w-full max-w-2xl" />
+              </div>
+              <Skeleton className="h-80 w-full rounded-md" />
+            </SectionContainer>
+          ))}
+        </div>
+      </PageSection>
     </>
   )
 }
@@ -606,15 +614,15 @@ export function DashboardHomePage() {
       : displayKpi === null)
 
   return (
-    <DashboardPage className="flex flex-1 flex-col gap-6">
+    <DashboardPage className="flex flex-1 flex-col gap-4">
       <header className="flex flex-col gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-text-primary sm:text-3xl">
+          <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
             {t('navHome')}
           </h1>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2">
-          <div className="min-w-[15rem]">
+          <div className="min-w-60">
             <FilterDates
               strings={pickerStrings}
               startValue={startDate}
@@ -661,198 +669,220 @@ export function DashboardHomePage() {
       </header>
 
       {isInitialLoad ? (
-        <DashboardHomeLoadingSkeleton chartRegionLabel={t('shellHomeChartRegion')} />
+        <DashboardHomeLoadingSkeleton />
       ) : (
         <>
-          <MoneyDisclaimer />
           {showKpiCards ? (
-            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <KpiCard
-                label={t('homeKpiNetSales')}
-                helpText={t('homeKpiNetSalesHelp')}
-                value={formatMoney(netRevenueCurrent, { nativeCurrency: currency })}
-                vsPriorLabel={vsPrior}
-                priorValueDisplay={net!.priorDisplay}
-                pct={net!.pct}
-                trend={net!.trend}
-                comparisonUnavailable={net!.unavailable}
-              />
-              {adsModule?.enabled ? (
-                <KpiCard
-                  label={t('homeKpiRoasGlobal')}
-                  helpText={t('homeKpiRoasGlobalHelp')}
-                  value="—"
-                  placeholder
-                  placeholderLabel={t('comingSoonBadge')}
-                  vsPriorLabel={vsPrior}
-                  priorValueDisplay={null}
-                  pct={null}
-                  trend="flat"
-                  comparisonUnavailable
-                  showComparison={false}
-                />
-              ) : null}
-              <KpiCard
-                label={t('homeKpiContributionMarginPct')}
-                helpText={t('homeKpiContributionMarginPctHelp')}
-                value={`${(productMode
-                  ? (displayProductKpi?.gross_margin_pct ?? 0)
-                  : (displayKpi?.contribution_margin_pct ?? 0)
-                ).toFixed(1)}%`}
-                vsPriorLabel={vsPrior}
-                priorValueDisplay={cmPct!.priorDisplay}
-                pct={cmPct!.pct}
-                trend={cmPct!.trend}
-                comparisonUnavailable={cmPct!.unavailable}
-                negativeMetric
-              />
-              <HomeActiveAlertsKpi
-                lowCount={inventoryAlertLowCount}
-                outCount={inventoryAlertOutCount}
-                onClick={() => {
-                  invalidateAlertsQueries(queryClient, tenantId)
-                  openSheet()
-                }}
-                {...homeActiveAlertsKpiLabels(t, vsPrior)}
-              />
-            </section>
-          ) : null}
-
-          <section
-            className={
-              showTopProducts
-                ? 'grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2 lg:items-stretch'
-                : 'grid min-w-0 grid-cols-1 gap-4'
-            }
-          >
-            <div className={showTopProducts ? 'flex min-h-0 min-w-0 lg:h-full' : 'min-w-0'}>
-              <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-5">
-                <SectionHeader
-                  title={t('homeChannelDonutTitle')}
-                  description={t('homeChannelDonutSubtitle')}
-                />
-                <HomeChannelDonutChart
-                  rows={channelBreakdown?.items ?? []}
-                  convertValue={convertFromBase}
-                  formatValue={formatInDisplay}
-                  t={t}
-                  minBodyHeightPx={showTopProducts ? pairedChartBodyPx : undefined}
-                  isLoading={channelDonutPending}
-                />
-              </SectionContainer>
-            </div>
-            {showTopProducts ? (
-              <div className="flex min-h-0 min-w-0 lg:h-full">
-                <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-5">
-                  <SectionHeader
-                    title={t('homeTopProductsTitle')}
-                    description={t('homeTopProductsSubtitle').replace(
-                      '{count}',
-                      String(topProducts?.items.length ?? 10),
-                    )}
+            <section className="overflow-hidden rounded-md border border-border-default bg-bg-card-strong">
+              <div className="flex divide-x divide-border-default">
+                <div className="min-w-0 flex-1 p-4">
+                  <KpiCard
+                    bare
+                    label={t('homeKpiNetSales')}
+                    helpText={t('homeKpiNetSalesHelp')}
+                    value={formatMoney(netRevenueCurrent, { nativeCurrency: currency })}
+                    vsPriorLabel={vsPrior}
+                    priorValueDisplay={net!.priorDisplay}
+                    pct={net!.pct}
+                    trend={net!.trend}
+                    comparisonUnavailable={net!.unavailable}
                   />
-                  <div className="min-h-0 min-w-0 flex-1">
-                    <HomeTopProductsChart
-                    rows={topProducts?.items ?? []}
-                    convertValue={convertFromBase}
-                    formatValue={formatInDisplay}
-                    formatCompact={formatCompactInDisplay}
-                    t={t}
-                    isLoading={topProductsPending}
+                </div>
+                {adsModule?.enabled ? (
+                  <div className="min-w-0 flex-1 p-4">
+                    <KpiCard
+                      bare
+                      label={t('homeKpiRoasGlobal')}
+                      helpText={t('homeKpiRoasGlobalHelp')}
+                      value="—"
+                      placeholder
+                      placeholderLabel={t('comingSoonBadge')}
+                      vsPriorLabel={vsPrior}
+                      priorValueDisplay={null}
+                      pct={null}
+                      trend="flat"
+                      comparisonUnavailable
+                      showComparison={false}
                     />
                   </div>
-                </SectionContainer>
+                ) : null}
+                <div className="min-w-0 flex-1 p-4">
+                  <KpiCard
+                    bare
+                    label={t('homeKpiContributionMarginPct')}
+                    helpText={t('homeKpiContributionMarginPctHelp')}
+                    value={`${(productMode
+                      ? (displayProductKpi?.gross_margin_pct ?? 0)
+                      : (displayKpi?.contribution_margin_pct ?? 0)
+                    ).toFixed(1)}%`}
+                    vsPriorLabel={vsPrior}
+                    priorValueDisplay={cmPct!.priorDisplay}
+                    pct={cmPct!.pct}
+                    trend={cmPct!.trend}
+                    comparisonUnavailable={cmPct!.unavailable}
+                    negativeMetric
+                  />
+                </div>
+                <div className="min-w-0 overflow-hidden">
+                  <HomeActiveAlertsKpi
+                    bare
+                    lowCount={inventoryAlertLowCount}
+                    outCount={inventoryAlertOutCount}
+                    onClick={() => {
+                      invalidateAlertsQueries(queryClient, tenantId)
+                      openSheet()
+                    }}
+                    {...homeActiveAlertsKpiLabels(t, vsPrior)}
+                  />
+                </div>
               </div>
-            ) : null}
-          </section>
-
-          {showKpiCards ? (
-            <section className="flex flex-col gap-3">
-              <h2 className="text-sm font-semibold tracking-tight text-text-primary">
-                {t('homeSecondaryKpiSectionTitle')}
-              </h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                <KpiCard
-                  compact
-                  label={t('reportsGrossProfit')}
-                  helpText={t('reportsKpiHelpGrossProfit')}
-                  value={formatMoney(
-                    productMode
-                      ? (displayProductKpi?.gross_profit ?? 0)
-                      : (displayKpi?.gross_profit ?? 0),
-                    { nativeCurrency: currency },
-                  )}
-                  vsPriorLabel={vsPrior}
-                  priorValueDisplay={grossProfit!.priorDisplay}
-                  pct={grossProfit!.pct}
-                  trend={grossProfit!.trend}
-                  comparisonUnavailable={grossProfit!.unavailable}
-                />
-                <KpiCard
-                  compact
-                  label={t('reportsEbitda')}
-                  helpText={t('reportsKpiHelpEbitda')}
-                  value={
-                    productMode
-                      ? '—'
-                      : formatMoney(displayKpi?.ebitda ?? 0, { nativeCurrency: currency })
-                  }
-                  vsPriorLabel={vsPrior}
-                  priorValueDisplay={productMode ? null : ebitda!.priorDisplay}
-                  pct={productMode ? null : ebitda!.pct}
-                  trend={productMode ? 'flat' : ebitda!.trend}
-                  comparisonUnavailable={productMode ? true : ebitda!.unavailable}
-                  showComparison={!productMode}
-                />
-                <KpiCard
-                  compact
-                  label={t('reportsUnits')}
-                  helpText={t('reportsKpiHelpUnits')}
-                  value={(productMode
-                    ? (displayProductKpi?.units_sold ?? 0)
-                    : (displayKpi?.units_sold ?? 0)
-                  ).toLocaleString()}
-                  vsPriorLabel={vsPrior}
-                  priorValueDisplay={unitsSold!.priorDisplay}
-                  pct={unitsSold!.pct}
-                  trend={unitsSold!.trend}
-                  comparisonUnavailable={unitsSold!.unavailable}
-                />
-                <KpiCard
-                  compact
-                  label={t('reportsOrders')}
-                  helpText={t('reportsKpiHelpOrders')}
-                  value={orders.toLocaleString()}
-                  vsPriorLabel={vsPrior}
-                  priorValueDisplay={ord!.priorDisplay}
-                  pct={ord!.pct}
-                  trend={ord!.trend}
-                  comparisonUnavailable={ord!.unavailable}
-                  showComparison={orders > 0}
-                />
-                <KpiCard
-                  compact
-                  label={t('reportsKpiAov')}
-                  helpText={t('reportsKpiHelpAov')}
-                  value={
-                    aov === null ? '—' : formatMoney(aov, { nativeCurrency: currency })
-                  }
-                  vsPriorLabel={vsPrior}
-                  priorValueDisplay={aovDelta?.priorDisplay ?? null}
-                  pct={aovDelta?.pct ?? null}
-                  trend={aovDelta?.trend ?? 'flat'}
-                  comparisonUnavailable={aovDelta?.unavailable ?? true}
-                  showComparison={orders > 0 && aov !== null}
-                />
+              <div className="flex divide-x divide-border-default border-t border-border-default">
+                <div className="min-w-0 flex-1 p-3">
+                  <KpiCard
+                    bare
+                    compact
+                    label={t('reportsGrossProfit')}
+                    helpText={t('reportsKpiHelpGrossProfit')}
+                    value={formatMoney(
+                      productMode
+                        ? (displayProductKpi?.gross_profit ?? 0)
+                        : (displayKpi?.gross_profit ?? 0),
+                      { nativeCurrency: currency },
+                    )}
+                    vsPriorLabel={vsPrior}
+                    priorValueDisplay={grossProfit!.priorDisplay}
+                    pct={grossProfit!.pct}
+                    trend={grossProfit!.trend}
+                    comparisonUnavailable={grossProfit!.unavailable}
+                  />
+                </div>
+                <div className="min-w-0 flex-1 p-3">
+                  <KpiCard
+                    bare
+                    compact
+                    label={t('reportsEbitda')}
+                    helpText={t('reportsKpiHelpEbitda')}
+                    value={
+                      productMode
+                        ? '—'
+                        : formatMoney(displayKpi?.ebitda ?? 0, { nativeCurrency: currency })
+                    }
+                    vsPriorLabel={vsPrior}
+                    priorValueDisplay={productMode ? null : ebitda!.priorDisplay}
+                    pct={productMode ? null : ebitda!.pct}
+                    trend={productMode ? 'flat' : ebitda!.trend}
+                    comparisonUnavailable={productMode ? true : ebitda!.unavailable}
+                    showComparison={!productMode}
+                  />
+                </div>
+                <div className="min-w-0 flex-1 p-3">
+                  <KpiCard
+                    bare
+                    compact
+                    label={t('reportsUnits')}
+                    helpText={t('reportsKpiHelpUnits')}
+                    value={(productMode
+                      ? (displayProductKpi?.units_sold ?? 0)
+                      : (displayKpi?.units_sold ?? 0)
+                    ).toLocaleString()}
+                    vsPriorLabel={vsPrior}
+                    priorValueDisplay={unitsSold!.priorDisplay}
+                    pct={unitsSold!.pct}
+                    trend={unitsSold!.trend}
+                    comparisonUnavailable={unitsSold!.unavailable}
+                  />
+                </div>
+                <div className="min-w-0 flex-1 p-3">
+                  <KpiCard
+                    bare
+                    compact
+                    label={t('reportsOrders')}
+                    helpText={t('reportsKpiHelpOrders')}
+                    value={orders.toLocaleString()}
+                    vsPriorLabel={vsPrior}
+                    priorValueDisplay={ord!.priorDisplay}
+                    pct={ord!.pct}
+                    trend={ord!.trend}
+                    comparisonUnavailable={ord!.unavailable}
+                    showComparison={orders > 0}
+                  />
+                </div>
+                <div className="min-w-0 flex-1 p-3">
+                  <KpiCard
+                    bare
+                    compact
+                    label={t('reportsKpiAov')}
+                    helpText={t('reportsKpiHelpAov')}
+                    value={
+                      aov === null ? '—' : formatMoney(aov, { nativeCurrency: currency })
+                    }
+                    vsPriorLabel={vsPrior}
+                    priorValueDisplay={aovDelta?.priorDisplay ?? null}
+                    pct={aovDelta?.pct ?? null}
+                    trend={aovDelta?.trend ?? 'flat'}
+                    comparisonUnavailable={aovDelta?.unavailable ?? true}
+                    showComparison={orders > 0 && aov !== null}
+                  />
+                </div>
               </div>
             </section>
           ) : null}
 
-          <section
-            className="flex min-w-0 flex-1 flex-col gap-4"
-            aria-label={t('shellHomeChartRegion')}
+          <PageSection heading={t('homeAnalysisSectionTitle')}>
+            <div
+              className={
+                showTopProducts
+                  ? 'grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2 lg:items-stretch'
+                  : 'grid min-w-0 grid-cols-1 gap-4'
+              }
+            >
+              <div className={showTopProducts ? 'flex min-h-0 min-w-0 lg:h-full' : 'min-w-0'}>
+                <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-5">
+                  <SectionHeader
+                    title={t('homeChannelDonutTitle')}
+                    description={t('homeChannelDonutSubtitle')}
+                  />
+                  <HomeChannelDonutChart
+                    rows={channelBreakdown?.items ?? []}
+                    convertValue={convertFromBase}
+                    formatValue={formatInDisplay}
+                    t={t}
+                    minBodyHeightPx={showTopProducts ? pairedChartBodyPx : undefined}
+                    isLoading={channelDonutPending}
+                  />
+                </SectionContainer>
+              </div>
+              {showTopProducts ? (
+                <div className="flex min-h-0 min-w-0 lg:h-full">
+                  <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-5">
+                    <SectionHeader
+                      title={t('homeTopProductsTitle')}
+                      description={t('homeTopProductsSubtitle').replace(
+                        '{count}',
+                        String(topProducts?.items.length ?? 10),
+                      )}
+                    />
+                    <div className="min-h-0 min-w-0 flex-1">
+                      <HomeTopProductsChart
+                        rows={topProducts?.items ?? []}
+                        convertValue={convertFromBase}
+                        formatValue={formatInDisplay}
+                        formatCompact={formatCompactInDisplay}
+                        t={t}
+                        isLoading={topProductsPending}
+                      />
+                    </div>
+                  </SectionContainer>
+                </div>
+              ) : null}
+            </div>
+          </PageSection>
+
+          <PageSection
+            heading={t('homeTrendsSectionTitle')}
+            className="gap-4"
           >
-            <section>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <SectionContainer className="overflow-visible">
                 <SectionHeader
                   title={t('dashboardRevenueTrendTitle')}
@@ -887,8 +917,6 @@ export function DashboardHomePage() {
                   />
                 )}
               </SectionContainer>
-            </section>
-            <section>
               <SectionContainer className="overflow-visible">
                 <SectionHeader
                   title={t('dashboardChannelSalesTitle')}
@@ -919,8 +947,6 @@ export function DashboardHomePage() {
                   />
                 )}
               </SectionContainer>
-            </section>
-            <section>
               <SectionContainer className="overflow-visible">
                 <SectionHeader
                   title={t('dashboardProfitMarginTitle')}
@@ -951,9 +977,7 @@ export function DashboardHomePage() {
                   />
                 )}
               </SectionContainer>
-            </section>
-            {!productMode && displayKpi ? (
-              <section>
+              {!productMode && displayKpi ? (
                 <SectionContainer className="overflow-visible">
                   <SectionHeader
                     title={t('reportsSectionRevenueBreakdown')}
@@ -969,9 +993,9 @@ export function DashboardHomePage() {
                     finalBarCaption={t('reportsWaterfallFinalHint')}
                   />
                 </SectionContainer>
-              </section>
-            ) : null}
-          </section>
+              ) : null}
+            </div>
+          </PageSection>
         </>
       )}
     </DashboardPage>

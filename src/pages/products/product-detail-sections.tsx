@@ -1,9 +1,18 @@
 import { useCallback, type ReactNode } from 'react'
 
+import { useSalesMetricBasis } from '@/hooks/use-sales-metric-basis'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import {
+  productDetailProfitValue,
+  productDetailSalesValue,
+  productProfitHelpKey,
+  productSalesHelpKey,
+  salesLabelKey,
+} from '@/lib/sales-metric-basis'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
+import { SalesMetricBasisToggle } from '@/ui/sales-metric-basis-toggle'
 import { Skeleton } from '@/ui/skeleton'
 import { ProductDetailChannelsTable } from './product-detail-channels-table'
 import { ProductDetailVariantsTable } from './product-detail-variants-table'
@@ -61,6 +70,7 @@ export function ProductDetailSections({
   onEditCost,
   dateLocale,
 }: ProductDetailSectionsProps) {
+  const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
   const hasVariants = (detail.variants?.length ?? 0) > 0
   const isVariantChild = Boolean(detail.parent_product_id)
 
@@ -100,15 +110,26 @@ export function ProductDetailSections({
       />
     ) : undefined
 
+  const salesValue = productDetailSalesValue(detail)
+  const profitValue = productDetailProfitValue(detail, salesMetricBasis)
+
   const insightKpis = [
     {
-      key: 'net-sales',
-      label: t('productsDetailKpiNetSales'),
-      helpText: t('productsDetailKpiNetSalesHelp'),
+      key: 'sales',
+      label: t(salesLabelKey(salesMetricBasis)),
+      helpText: t(productSalesHelpKey(salesMetricBasis)),
       value: insightKpi(
-        costAmountWithBaseCode(fmtBase(detail.period_sales), baseCurrency, 'text-xs'),
+        costAmountWithBaseCode(fmtBase(salesValue), baseCurrency, 'text-xs'),
       ),
       breakdown: platformSalesBreakdown,
+    },
+    {
+      key: 'profit',
+      label: t('productsDetailKpiGrossProfit'),
+      helpText: t(productProfitHelpKey(salesMetricBasis)),
+      value: insightKpi(
+        costAmountWithBaseCode(fmtBase(profitValue), baseCurrency, 'text-xs'),
+      ),
     },
     {
       key: 'units',
@@ -162,7 +183,13 @@ export function ProductDetailSections({
           />
         </CardHeader>
         <CardContent className="p-0">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <SalesMetricBasisToggle
+            basis={salesMetricBasis}
+            onBasisChange={setSalesMetricBasis}
+            t={t}
+            className="mb-3"
+          />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
             {insightKpis.map((kpi) => (
               <ProductDetailInsightKpiTile
                 key={kpi.key}

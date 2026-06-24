@@ -17,7 +17,18 @@ import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filt
 import { revenueTrendSubtitleForGranularity } from '@/pages/dashboard/revenue-trend-subtitle'
 import { cn } from '@/lib/utils'
 import { useModule } from '@/lib/modules/use-modules'
+import { useSalesMetricBasis } from '@/hooks/use-sales-metric-basis'
+import {
+  homeSalesHelpKey,
+  orderKpiProfit,
+  orderKpiSales,
+  productKpiProfit,
+  productKpiSales,
+  profitHelpKey,
+  salesLabelKey,
+} from '@/lib/sales-metric-basis'
 import { KpiCard } from '@/ui/kpi-card'
+import { SalesMetricBasisToggle } from '@/ui/sales-metric-basis-toggle'
 
 import { DashboardChannelSalesChart } from './dashboard-channel-sales-chart'
 import { DashboardProfitMarginChart } from './dashboard-profit-margin-chart'
@@ -262,6 +273,7 @@ export function DashboardHomePage() {
     [lang],
   )
   const adsModule = useModule('ads')
+  const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
 
   const defaultFilters = useMemo((): HomeFiltersState => {
     const today = new Date()
@@ -475,14 +487,29 @@ export function DashboardHomePage() {
   const orders = productMode
     ? (displayProductKpi?.order_count ?? 0)
     : (displayKpi?.order_count ?? 0)
-  const netRevenueCurrent = productMode
-    ? (displayProductKpi?.gross_revenue ?? 0)
-    : (displayKpi?.net_revenue ?? 0)
+  const salesCurrent = productMode
+    ? productKpiSales(displayProductKpi ?? zeroProductKpi(currency))
+    : orderKpiSales(displayKpi ?? zeroKpiResponse(currency), salesMetricBasis)
+  const profitCurrent = productMode
+    ? productKpiProfit(displayProductKpi ?? zeroProductKpi(currency), salesMetricBasis)
+    : orderKpiProfit(displayKpi ?? zeroKpiResponse(currency), salesMetricBasis)
+  const salesPriorValue = productMode
+    ? pkpiPrev
+      ? productKpiSales(pkpiPrev)
+      : undefined
+    : kpiPrev
+      ? orderKpiSales(kpiPrev, salesMetricBasis)
+      : undefined
+  const profitPriorValue = productMode
+    ? pkpiPrev
+      ? productKpiProfit(pkpiPrev, salesMetricBasis)
+      : undefined
+    : kpiPrev
+      ? orderKpiProfit(kpiPrev, salesMetricBasis)
+      : undefined
   const aov =
     orders > 0
-      ? productMode
-        ? (displayProductKpi?.gross_revenue ?? 0) / orders
-        : (displayKpi?.net_revenue ?? 0) / orders
+      ? salesCurrent / orders
       : null
 
   const previousReady = Boolean(prevPeriod) && (productMode ? !pkpiPrevLoading : !kpiPrevLoading)
@@ -531,21 +558,11 @@ export function DashboardHomePage() {
     }
   }
 
-  const net = showKpiCards
-    ? deltaBlock(
-        netRevenueCurrent,
-        productMode ? pkpiPrev?.gross_revenue : kpiPrev?.net_revenue,
-        'currency',
-      )
+  const salesDelta = showKpiCards
+    ? deltaBlock(salesCurrent, salesPriorValue, 'currency')
     : null
-  const grossProfit = showKpiCards
-    ? deltaBlock(
-        productMode
-          ? (displayProductKpi?.gross_profit ?? 0)
-          : (displayKpi?.gross_profit ?? 0),
-        productMode ? pkpiPrev?.gross_profit : kpiPrev?.gross_profit,
-        'currency',
-      )
+  const profitDelta = showKpiCards
+    ? deltaBlock(profitCurrent, profitPriorValue, 'currency')
     : null
   const ebitda =
     !productMode && displayKpi
@@ -581,10 +598,10 @@ export function DashboardHomePage() {
   const aovCur = aov ?? 0
   const aovPrev = productMode
     ? pkpiPrev && (pkpiPrev.order_count ?? 0) > 0
-      ? pkpiPrev.gross_revenue / pkpiPrev.order_count
+      ? productKpiSales(pkpiPrev) / pkpiPrev.order_count
       : undefined
     : kpiPrev && kpiPrev.order_count > 0
-      ? kpiPrev.net_revenue / kpiPrev.order_count
+      ? orderKpiSales(kpiPrev, salesMetricBasis) / kpiPrev.order_count
       : undefined
   const aovDelta = showKpiCards && aov !== null ? deltaBlock(aovCur, aovPrev, 'currency') : null
 
@@ -673,19 +690,25 @@ export function DashboardHomePage() {
       ) : (
         <>
           {showKpiCards ? (
-            <section className="overflow-hidden rounded-md border border-border-default bg-bg-card-strong">
+            <div className="flex flex-col gap-2">
+              <SalesMetricBasisToggle
+                basis={salesMetricBasis}
+                onBasisChange={setSalesMetricBasis}
+                t={t}
+              />
+              <section className="overflow-hidden rounded-md border border-border-default bg-bg-card-strong">
               <div className="flex divide-x divide-border-default">
                 <div className="min-w-0 flex-1 p-4">
                   <KpiCard
                     bare
-                    label={t('homeKpiNetSales')}
-                    helpText={t('homeKpiNetSalesHelp')}
-                    value={formatMoney(netRevenueCurrent, { nativeCurrency: currency })}
+                    label={t(salesLabelKey(salesMetricBasis))}
+                    helpText={t(homeSalesHelpKey(salesMetricBasis))}
+                    value={formatMoney(salesCurrent, { nativeCurrency: currency })}
                     vsPriorLabel={vsPrior}
-                    priorValueDisplay={net!.priorDisplay}
-                    pct={net!.pct}
-                    trend={net!.trend}
-                    comparisonUnavailable={net!.unavailable}
+                    priorValueDisplay={salesDelta!.priorDisplay}
+                    pct={salesDelta!.pct}
+                    trend={salesDelta!.trend}
+                    comparisonUnavailable={salesDelta!.unavailable}
                   />
                 </div>
                 {adsModule?.enabled ? (
@@ -742,18 +765,13 @@ export function DashboardHomePage() {
                     bare
                     compact
                     label={t('reportsGrossProfit')}
-                    helpText={t('reportsKpiHelpGrossProfit')}
-                    value={formatMoney(
-                      productMode
-                        ? (displayProductKpi?.gross_profit ?? 0)
-                        : (displayKpi?.gross_profit ?? 0),
-                      { nativeCurrency: currency },
-                    )}
+                    helpText={t(profitHelpKey(salesMetricBasis))}
+                    value={formatMoney(profitCurrent, { nativeCurrency: currency })}
                     vsPriorLabel={vsPrior}
-                    priorValueDisplay={grossProfit!.priorDisplay}
-                    pct={grossProfit!.pct}
-                    trend={grossProfit!.trend}
-                    comparisonUnavailable={grossProfit!.unavailable}
+                    priorValueDisplay={profitDelta!.priorDisplay}
+                    pct={profitDelta!.pct}
+                    trend={profitDelta!.trend}
+                    comparisonUnavailable={profitDelta!.unavailable}
                   />
                 </div>
                 <div className="min-w-0 flex-1 p-3">
@@ -826,6 +844,7 @@ export function DashboardHomePage() {
                 </div>
               </div>
             </section>
+            </div>
           ) : null}
 
           <PageSection heading={t('homeAnalysisSectionTitle')}>

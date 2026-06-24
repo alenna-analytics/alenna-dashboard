@@ -10,7 +10,7 @@ const SHELL_STRINGS = {
     navExpenses: 'Gastos',
     navConnections: 'Conexiones',
     navIntegrations: 'Integraciones',
-    navWorkspaceConfiguration: 'Configuración del workspace',
+    navWorkspaceConfiguration: 'Configuración / Settings',
     workspaceConfigHeroSubtitle: 'Administra reglas y preferencias del workspace.',
     workspaceConfigAlarmsDescription: 'Umbrales de stock, alertas activas y reglas por alcance.',
     navAlarms: 'Alarmas',
@@ -73,6 +73,12 @@ const SHELL_STRINGS = {
     homeKpiNetSales: 'Ventas netas',
     homeKpiNetSalesHelp:
       'Ingresos netos del periodo seleccionado. Es el pulso del negocio: ventas reales, no brutas.',
+    homeKpiGrossSalesHelp:
+      'Ingresos brutos del periodo antes de descuentos y devoluciones.',
+    kpiSalesMetricBasisToggleLabel: 'Ventas',
+    kpiSalesMetricBasisToggleAria: 'Mostrar ventas y utilidad en bruto o neto',
+    kpiSalesMetricBasisNet: 'Netas',
+    kpiSalesMetricBasisGross: 'Brutas',
     homeKpiRoasGlobal: 'ROAS global',
     homeKpiRoasGlobalHelp:
       'Retorno de la inversión publicitaria agregada. Si cae por debajo del mínimo rentable, requiere acción inmediata.',
@@ -458,6 +464,8 @@ const SHELL_STRINGS = {
     reportsKpiHelpGrossRevenue: 'Suma de ventas antes de descuentos e impuestos en el periodo seleccionado.',
     reportsKpiHelpNetRevenue: 'Ventas después de descuentos y devoluciones.',
     reportsKpiHelpGrossProfit: 'Ventas netas menos el costo de bienes vendidos (CMV).',
+    reportsKpiHelpGrossProfitOnGrossSales:
+      'Ventas brutas menos el costo de bienes vendidos (CMV).',
     reportsKpiHelpGrossMargin: 'Utilidad bruta como porcentaje de las ventas netas.',
     reportsKpiHelpContributionMargin:
       'Utilidad bruta menos comisiones de plataforma, costo de envío merchant y gasto en ads. No uses ventas netas − COGS − … si las ventas netas ya llevan comisiones o envío deducidos (evita doble descuento).',
@@ -621,7 +629,14 @@ const SHELL_STRINGS = {
     productsDetailKpiOrders: 'Pedidos',
     productsDetailKpiNetSales: 'Ventas Netas',
     productsDetailKpiNetSalesHelp:
-      'Ingreso bruto del producto en el rango (agregados diarios). No incluye prorrateo de reembolsos ni comisiones a nivel pedido.',
+      'Ingreso neto del producto en el rango (agregados diarios). No incluye prorrateo de reembolsos ni comisiones a nivel pedido.',
+    productsDetailKpiGrossSalesHelp:
+      'Ingreso bruto del producto en el rango (agregados diarios). Antes de descuentos y devoluciones a nivel línea.',
+    productsDetailKpiGrossProfit: 'Utilidad bruta',
+    productsDetailKpiGrossProfitHelp:
+      'Ventas netas del rango menos COGS del producto. No incluye ads, envío ni gastos fijos.',
+    productsDetailKpiGrossProfitOnGrossSalesHelp:
+      'Ventas brutas del rango menos COGS del producto. No incluye ads, envío ni gastos fijos.',
     productsDetailKpiContributionMarginPct: 'Contribución marginal %',
     productsDetailKpiContributionMarginPctHelp:
       'Margen bruto del producto: utilidad bruta ÷ ventas del rango. No incluye ads, envío ni gastos fijos.',
@@ -790,7 +805,7 @@ const SHELL_STRINGS = {
     navExpenses: 'Expenses',
     navConnections: 'Connections',
     navIntegrations: 'Integrations',
-    navWorkspaceConfiguration: 'Workspace configuration',
+    navWorkspaceConfiguration: 'Configuration / Settings',
     workspaceConfigHeroSubtitle: 'Manage workspace-wide rules and preferences.',
     workspaceConfigAlarmsDescription: 'Stock thresholds, active alerts, and scoped override rules.',
     navAlarms: 'Alarms',
@@ -853,6 +868,12 @@ const SHELL_STRINGS = {
     homeKpiNetSales: 'Net sales',
     homeKpiNetSalesHelp:
       'Net revenue for the selected period. The business pulse: real sales, not gross.',
+    homeKpiGrossSalesHelp:
+      'Gross revenue for the period before discounts and returns.',
+    kpiSalesMetricBasisToggleLabel: 'Sales',
+    kpiSalesMetricBasisToggleAria: 'Show sales and profit as gross or net',
+    kpiSalesMetricBasisNet: 'Net',
+    kpiSalesMetricBasisGross: 'Gross',
     homeKpiRoasGlobal: 'Global ROAS',
     homeKpiRoasGlobalHelp:
       'Blended return on ad spend. If it drops below your profitable floor, act immediately.',
@@ -1232,6 +1253,7 @@ const SHELL_STRINGS = {
     reportsKpiHelpGrossRevenue: 'Sum of sales before discounts and taxes for the selected range.',
     reportsKpiHelpNetRevenue: 'Sales after discounts and returns.',
     reportsKpiHelpGrossProfit: 'Net revenue minus cost of goods sold.',
+    reportsKpiHelpGrossProfitOnGrossSales: 'Gross revenue minus cost of goods sold.',
     reportsKpiHelpGrossMargin: 'Gross profit as a percentage of net revenue.',
     reportsKpiHelpContributionMargin:
       'Gross profit minus platform fees, merchant shipping cost, and ads spend. Avoid net revenue − COGS − … if net revenue already deducts fees/shipping (double-count risk).',
@@ -1395,7 +1417,14 @@ const SHELL_STRINGS = {
     productsDetailKpiOrders: 'Orders',
     productsDetailKpiNetSales: 'Net sales',
     productsDetailKpiNetSalesHelp:
-      'Product gross revenue in the range (daily aggregates). Does not prorate order-level refunds or fees.',
+      'Product net revenue in the range (daily aggregates). Does not prorate order-level refunds or fees.',
+    productsDetailKpiGrossSalesHelp:
+      'Product gross revenue in the range (daily aggregates). Before line-level discounts and returns.',
+    productsDetailKpiGrossProfit: 'Gross profit',
+    productsDetailKpiGrossProfitHelp:
+      'Range net sales minus product COGS. Excludes ads, shipping, and fixed opex.',
+    productsDetailKpiGrossProfitOnGrossSalesHelp:
+      'Range gross sales minus product COGS. Excludes ads, shipping, and fixed opex.',
     productsDetailKpiContributionMarginPct: 'Contribution margin %',
     productsDetailKpiContributionMarginPctHelp:
       'Product gross margin: gross profit ÷ range sales. Excludes ads, shipping, and fixed opex.',

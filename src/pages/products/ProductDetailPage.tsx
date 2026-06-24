@@ -1,56 +1,31 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { ImageIcon } from 'lucide-react'
 
-import { LoadingIcon } from '@/ui/app-icon'
 import { useParams } from 'react-router-dom'
 
 import { shellT } from '@/lib/i18n/shell-strings'
 import type {
   ProductCostHistorySegmentApi,
-  ProductDetailApi,
 } from '@/lib/types/catalog'
-import { toYmd } from '@/pages/reports/reports-ui-helpers'
 import { useMoney } from '@/hooks/use-money'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
-import { Button } from '@/ui/button'
 import { Card, CardContent } from '@/ui/card'
-import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
-import { Input } from '@/ui/input'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/ui/sheet'
+import { type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Skeleton } from '@/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
-import { useCurrentTenant } from '@/auth/hooks'
-import {
-  cogsBackfillActivityId,
-  useGlobalActivity,
-} from '@/shell/providers/global-activity-provider'
-
 import { buildProductCostPriceChartData } from './product-cost-chart-points'
+import { todayYmd } from './product-cost-date-utils'
+import { ProductCostEditorSheet } from './product-cost-editor-sheet'
 import { productChannelSeriesLabel } from './product-platform-label'
 import { ProductDetailSections } from './product-detail-sections'
 import { ProductDetailHeader } from './product-detail-header'
 import { ProductDetailUnsavedBar } from './product-detail-unsaved-bar'
 import { defaultProductInsightRange } from './product-detail-range'
 import { productDetailDateLocale } from './product-detail-header-utils'
-import {
-  useCatalogJobQuery,
-  useEnqueueCogsBackfillMutation,
-  usePatchProductCostMutation,
-  useProductDetailQuery,
-} from './use-catalog-queries'
-
-const NUM = 'font-numeric tabular-nums'
+import { usePatchProductCostMutation, useProductDetailQuery } from './use-catalog-queries'
 
 function costAmountWithBaseCode(
   formatted: string,
@@ -65,23 +40,6 @@ function costAmountWithBaseCode(
     </>
   )
 }
-
-function todayYmd(): string {
-  const d = new Date()
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
-
-function defaultBackfillRange(): { start: string; end: string } {
-  const end = new Date()
-  const start = new Date()
-  start.setDate(start.getDate() - 29)
-  return { start: toYmd(start), end: toYmd(end) }
-}
-
-type CostEditMode = 'forward' | 'history'
 
 function daysSinceUpdated(iso: string): number {
   const u = new Date(iso)
@@ -201,9 +159,6 @@ function ProductDetailSkeleton() {
 function ProductDetailBody({ productId }: { productId: string }) {
   const { lang } = useLanguage()
   const t = useCallback((k: Parameters<typeof shellT>[1]) => shellT(lang, k), [lang])
-  const { tenantId } = useCurrentTenant()
-  const qc = useQueryClient()
-  const { upsertActivity, patchActivity } = useGlobalActivity()
 
   const defaultInsight = useMemo(() => defaultProductInsightRange(), [])
   const [insightStart, setInsightStart] = useState(defaultInsight.start)
@@ -214,23 +169,17 @@ function ProductDetailBody({ productId }: { productId: string }) {
     metricsEnd: insightEnd,
   })
   const patchMutation = usePatchProductCostMutation(productId)
-  const backfillMutation = useEnqueueCogsBackfillMutation(productId)
 
   const detail = detailQuery.data
   const baseCurrency = detail?.base_currency ?? 'USD'
   const { format: formatMoney } = useMoney()
   const fmtBase = (v: number) => formatMoney(v, { nativeCurrency: baseCurrency })
 
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editCost, setEditCost] = useState('')
-  const [costEditMode, setCostEditMode] = useState<CostEditMode>('forward')
-  const [rangeStart, setRangeStart] = useState(defaultBackfillRange().start)
-  const [rangeEnd, setRangeEnd] = useState(defaultBackfillRange().end)
-  const [activeJobId, setActiveJobId] = useState<string | null>(null)
+  const [costEditorOpen, setCostEditorOpen] = useState(false)
+  const [costEditorProductId, setCostEditorProductId] = useState<string | null>(null)
+  const [costEditorParentId, setCostEditorParentId] = useState<string | null>(null)
   const [skuDraft, setSkuDraft] = useState('')
   const [skuSeed, setSkuSeed] = useState<{ productId: string; sku: string } | null>(null)
-
-  const jobQuery = useCatalogJobQuery(activeJobId, Boolean(activeJobId))
 
   const serverSku = detail?.internal_sku ?? ''
   if (detail) {
@@ -263,26 +212,28 @@ function ProductDetailBody({ productId }: { productId: string }) {
     [t],
   )
 
-  const resetSheetForm = useCallback((d: ProductDetailApi) => {
-    setEditCost(d.cost != null ? String(d.cost) : '')
-    const d0 = defaultBackfillRange()
-    setRangeStart(d0.start)
-    setRangeEnd(d0.end)
-    setCostEditMode('forward')
-  }, [])
-
-  const handleSheetOpenChange = useCallback(
-    (open: boolean) => {
-      setSheetOpen(open)
-      if (open && detail) resetSheetForm(detail)
+  const openCostEditor = useCallback(
+    (targetProductId: string, parentProductId: string) => {
+      setCostEditorProductId(targetProductId)
+      setCostEditorParentId(parentProductId)
+      setCostEditorOpen(true)
     },
-    [detail, resetSheetForm],
+    [],
   )
 
   const openEditSheet = useCallback(() => {
-    if (detail) resetSheetForm(detail)
-    setSheetOpen(true)
-  }, [detail, resetSheetForm])
+    openCostEditor(productId, productId)
+  }, [openCostEditor, productId])
+
+  const openVariantCostEditor = useCallback(
+    (variantProductId: string) => {
+      openCostEditor(variantProductId, productId)
+    },
+    [openCostEditor, productId],
+  )
+
+  const costEditorInitialDetail =
+    costEditorProductId === productId ? detail : null
 
   const chartData = useMemo(() => {
     if (!detail) return { points: [], series: [] }
@@ -324,43 +275,6 @@ function ProductDetailBody({ productId }: { productId: string }) {
     return null
   }, [detail])
 
-  const parsedSheetCost = Number.parseFloat(editCost.trim())
-  const sheetCostValid = !Number.isNaN(parsedSheetCost) && parsedSheetCost >= 0 && editCost.trim() !== ''
-  const rangeOk = rangeStart <= rangeEnd
-  const sheetCanSubmit =
-    sheetCostValid &&
-    (costEditMode === 'forward' || rangeOk) &&
-    !patchMutation.isPending &&
-    !backfillMutation.isPending
-
-  const handleSheetSave = async () => {
-    if (!sheetCanSubmit || !detail) return
-    try {
-      if (costEditMode === 'forward') {
-        await patchMutation.mutateAsync({ cost: parsedSheetCost })
-        toast.success(t('productsDetailToastCostSaved'))
-      } else {
-        const res = await backfillMutation.mutateAsync({
-          cost: parsedSheetCost,
-          effective_from: rangeStart,
-          effective_to: rangeEnd,
-        })
-        setActiveJobId(res.job_id)
-        upsertActivity({
-          id: cogsBackfillActivityId(res.job_id),
-          phase: 'loading',
-          title: t('globalActivityCogsBackfillTitle'),
-          subtitle: t('productsJobQueued'),
-          href: `/dashboard/products/${productId}`,
-          minimized: false,
-        })
-      }
-      handleSheetOpenChange(false)
-    } catch {
-      toast.error(t('productsDetailToastSaveFailed'))
-    }
-  }
-
   const savedSku = detail?.internal_sku?.trim() ?? ''
   const skuDirty = detail != null && skuDraft.trim() !== savedSku
 
@@ -384,31 +298,6 @@ function ProductDetailBody({ productId }: { productId: string }) {
     setInsightStart(d0.start)
     setInsightEnd(d0.end)
   }, [])
-
-  useEffect(() => {
-    if (jobQuery.data?.status !== 'succeeded' || !tenantId) return
-    void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
-  }, [jobQuery.data?.status, qc, tenantId, productId])
-
-  useEffect(() => {
-    if (!activeJobId || !jobQuery.data) return
-    const job = jobQuery.data
-    if (job.id !== activeJobId) return
-    const gid = cogsBackfillActivityId(activeJobId)
-
-    if (job.status === 'queued') {
-      patchActivity(gid, { phase: 'loading', subtitle: t('productsJobQueued') })
-    } else if (job.status === 'running') {
-      patchActivity(gid, { phase: 'loading', subtitle: t('productsJobRunning') })
-    } else if (job.status === 'succeeded') {
-      patchActivity(gid, { phase: 'success', subtitle: t('productsJobSucceeded') })
-    } else if (job.status === 'failed') {
-      patchActivity(gid, {
-        phase: 'error',
-        subtitle: job.error_message ?? t('productsJobFailed'),
-      })
-    }
-  }, [activeJobId, jobQuery.data, patchActivity, t])
 
   if (detailQuery.isError) {
     return <div className="p-8 text-sm text-destructive">Failed to load product.</div>
@@ -437,109 +326,19 @@ function ProductDetailBody({ productId }: { productId: string }) {
     detail.inventory_days != null
   const showInsightValues = hasInsightData || Boolean(insightStart && insightEnd)
 
-  const sheetBusy = patchMutation.isPending || backfillMutation.isPending
-
   const insightKpi = (value: React.ReactNode): React.ReactNode =>
     showInsightValues ? value : t('productsDetailKpiNoData')
 
   return (
     <DashboardPage className="flex min-h-full flex-1 flex-col gap-6 lg:gap-8">
-      <Sheet open={sheetOpen} onOpenChange={handleSheetOpenChange}>
-        <SheetContent side="right" className="max-w-md">
-          <SheetHeader>
-            <SheetTitle>{t('productsDetailEditSheetTitle')}</SheetTitle>
-            <SheetDescription>{t('productsDetailCostHelp').replace('{currency}', baseCurrency)}</SheetDescription>
-          </SheetHeader>
-          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-4">
-            <label className="flex flex-col gap-1.5 text-xs font-medium text-text-secondary">
-              {t('productsDetailEditCostLabel').replace('{currency}', baseCurrency)}
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                value={editCost}
-                onChange={(e) => setEditCost(e.target.value)}
-                className={cn('font-numeric', NUM)}
-              />
-            </label>
-            <div className="space-y-2" role="radiogroup" aria-label={t('productsDetailCostModeGroupAria')}>
-              <p className="text-xs font-medium text-text-secondary">{t('productsDetailCostModeGroupLabel')}</p>
-              <label
-                className={cn(
-                  'flex cursor-pointer items-start gap-3 rounded-md border p-3 text-sm transition-colors',
-                  costEditMode === 'forward'
-                    ? 'border-border-default bg-muted/30'
-                    : 'border-border-subtle hover:bg-muted/20',
-                )}
-              >
-                <input
-                  type="radio"
-                  name="cost-edit-mode"
-                  className="mt-0.5"
-                  checked={costEditMode === 'forward'}
-                  onChange={() => setCostEditMode('forward')}
-                />
-                <span className="min-w-0">
-                  <span className="font-medium text-text-primary">{t('productsDetailCostModeForward')}</span>
-                  <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
-                    {t('productsDetailCostModeForwardHelp')}
-                  </span>
-                </span>
-              </label>
-              <label
-                className={cn(
-                  'flex cursor-pointer items-start gap-3 rounded-md border p-3 text-sm transition-colors',
-                  costEditMode === 'history'
-                    ? 'border-border-default bg-muted/30'
-                    : 'border-border-subtle hover:bg-muted/20',
-                )}
-              >
-                <input
-                  type="radio"
-                  name="cost-edit-mode"
-                  className="mt-0.5"
-                  checked={costEditMode === 'history'}
-                  onChange={() => setCostEditMode('history')}
-                />
-                <span className="min-w-0">
-                  <span className="font-medium text-text-primary">{t('productsDetailCostModeHistory')}</span>
-                  <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
-                    {t('productsDetailCostModeHistoryHelp')}
-                  </span>
-                </span>
-              </label>
-            </div>
-            {costEditMode === 'history' ? (
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-text-secondary">{t('productsDetailRecalcCogsRangeLabel')}</p>
-                <DateRangePicker
-                  strings={pickerStrings}
-                  startValue={rangeStart}
-                  endValue={rangeEnd}
-                  onStartChange={(v) => v && setRangeStart(v)}
-                  onEndChange={(v) => v && setRangeEnd(v)}
-                  filterLabel={t('filterDateTimeLabel')}
-                  clearAriaLabel={t('filterClear')}
-                  onClear={() => {
-                    const d0 = defaultBackfillRange()
-                    setRangeStart(d0.start)
-                    setRangeEnd(d0.end)
-                  }}
-                  className="max-w-full"
-                />
-              </div>
-            ) : null}
-          </div>
-          <SheetFooter className="px-6">
-            <Button type="button" variant="outline" onClick={() => handleSheetOpenChange(false)}>
-              {t('productsDetailSheetCancel')}
-            </Button>
-            <Button type="button" onClick={() => void handleSheetSave()} disabled={!sheetCanSubmit}>
-              {sheetBusy ? <LoadingIcon className="size-4" /> : t('productsDetailSheetSave')}
-            </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+      <ProductCostEditorSheet
+        lang={lang}
+        open={costEditorOpen}
+        productId={costEditorProductId}
+        parentProductId={costEditorParentId}
+        initialDetail={costEditorInitialDetail}
+        onOpenChange={setCostEditorOpen}
+      />
 
       <ProductDetailHeader
         detail={detail}
@@ -579,6 +378,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
         insightKpi={insightKpi}
         insightsFetching={detailQuery.isFetching}
         onEditCost={openEditSheet}
+        onOpenVariantCostEditor={openVariantCostEditor}
         dateLocale={productDetailDateLocale(lang)}
       />
 

@@ -2,7 +2,7 @@ import { useAuth } from '@clerk/react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useCurrentTenant } from '@/auth/hooks'
-import { apiFetch, apiPatchJson, apiPostJson } from '@/lib/api'
+import { apiFetch, apiPatchJson, apiPostJson, apiPutJson } from '@/lib/api'
 import type {
   CatalogJobApi,
   ProductDetailApi,
@@ -194,6 +194,54 @@ export function usePatchProductCostMutation(defaultProductId?: string) {
       }
       if (productId && productId !== parentProductId) {
         void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
+      }
+      void qc.invalidateQueries({ queryKey: ['catalog', 'products', tenantId] })
+      void qc.invalidateQueries({ queryKey: ['catalog', 'stock-alert-counts', tenantId] })
+    },
+  })
+}
+
+export function useSaveProductCostBreakdownMutation(
+  productId: string | undefined,
+  parentProductId?: string | null,
+) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (body: {
+      supplier_price: number
+      freight: { mode: 'fixed' | 'percent'; value: number }
+      duties: { mode: 'fixed' | 'percent'; value: number }
+      packaging_value: number
+      effective_from: string
+      apply_mode: 'forward' | 'backfill'
+      effective_to: string | null
+    }) => {
+      if (!productId) throw new Error('Missing product')
+      const res = await apiPutJson(
+        `/catalog/products/${productId}/cost-breakdown`,
+        (a) => getToken(a),
+        body,
+        {},
+        tenantId,
+      )
+      if (!res.ok) throw new Error(await res.text())
+      return (await res.json()) as {
+        apply_mode: 'forward' | 'backfill'
+        detail?: ProductDetailApi
+        job_id?: string
+        job_status?: string
+      }
+    },
+    onSuccess: () => {
+      if (productId) {
+        void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
+      }
+      const parentId = parentProductId ?? productId
+      if (parentId && parentId !== productId) {
+        void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, parentId] })
       }
       void qc.invalidateQueries({ queryKey: ['catalog', 'products', tenantId] })
       void qc.invalidateQueries({ queryKey: ['catalog', 'stock-alert-counts', tenantId] })

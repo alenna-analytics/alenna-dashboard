@@ -54,11 +54,7 @@ export type ProductTableColumnLabels = {
   onCopySku: (sku: string | null) => void
   onGoDetail: (productId: string) => void
   selection: ProductTableSelectionBinding
-  activeEditProductId: string | null
-  onEditActivate: (productId: string) => void
-  onEditDeactivate: () => void
-  onSaveCost: (productId: string, cost: number) => Promise<void>
-  saveCostPending: boolean
+  onOpenCostEditor: (productId: string) => void
 }
 
 function statusBadgeVariant(status: string): ComponentProps<typeof Badge>["variant"] {
@@ -98,11 +94,7 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
     onCopySku,
     onGoDetail,
     selection,
-    activeEditProductId,
-    onEditActivate,
-    onEditDeactivate,
-    onSaveCost,
-    saveCostPending,
+    onOpenCostEditor,
   } = labels
 
   return [
@@ -235,11 +227,7 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
             formatMoney={formatBaseMoney}
             readOnly={hasVariants}
             readOnlyHint={hasVariants ? t("productsInlineCostVariantHint") : undefined}
-            isActive={activeEditProductId === rowData.id}
-            onActivate={onEditActivate}
-            onDeactivate={onEditDeactivate}
-            onSave={onSaveCost}
-            isSaving={saveCostPending && activeEditProductId === rowData.id}
+            onOpenEditor={onOpenCostEditor}
             t={t}
           />
         )

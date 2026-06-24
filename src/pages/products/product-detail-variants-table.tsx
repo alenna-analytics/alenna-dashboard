@@ -1,9 +1,8 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductVariantSummaryApi } from '@/lib/types/catalog'
-import { useLanguage } from '@/shell/providers/language-provider'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import { DataTable } from '@/ui/data-table/data-table'
 
@@ -11,49 +10,25 @@ import {
   createProductDetailVariantsColumns,
   sortVariantsByStockAlert,
 } from './product-detail-variants-columns'
-import { showProductCostErrorToast, showProductCostSuccessToast } from './product-cost-toast'
-import { usePatchProductCostMutation } from './use-catalog-queries'
 
 type ProductDetailVariantsTableProps = {
   variants: ProductVariantSummaryApi[]
-  parentProductId: string
   t: (key: ShellStringKey) => string
   fmtBase: (value: number) => string
+  onOpenCostEditor: (productId: string) => void
 }
 
 export function ProductDetailVariantsTable({
   variants,
-  parentProductId,
   t,
   fmtBase,
+  onOpenCostEditor,
 }: ProductDetailVariantsTableProps) {
-  const { lang } = useLanguage()
-  const [activeEditProductId, setActiveEditProductId] = useState<string | null>(null)
-  const patchCostMutation = usePatchProductCostMutation()
-
-  const onEditActivate = useCallback((productId: string) => {
-    setActiveEditProductId(productId)
-  }, [])
-
-  const onEditDeactivate = useCallback(() => {
-    setActiveEditProductId(null)
-  }, [])
-
-  const onSaveCost = useCallback(
-    async (productId: string, cost: number) => {
-      try {
-        await patchCostMutation.mutateAsync({
-          productId,
-          parentProductId,
-          cost,
-        })
-        showProductCostSuccessToast(lang)
-      } catch (error) {
-        showProductCostErrorToast(lang, error)
-        throw error
-      }
+  const onOpenVariantCostEditor = useCallback(
+    (productId: string) => {
+      onOpenCostEditor(productId)
     },
-    [lang, parentProductId, patchCostMutation],
+    [onOpenCostEditor],
   )
 
   const columns = useMemo(
@@ -61,21 +36,9 @@ export function ProductDetailVariantsTable({
       createProductDetailVariantsColumns({
         t,
         fmtBase,
-        activeEditProductId,
-        onEditActivate,
-        onEditDeactivate,
-        onSaveCost,
-        saveCostPending: patchCostMutation.isPending,
+        onOpenCostEditor: onOpenVariantCostEditor,
       }),
-    [
-      t,
-      fmtBase,
-      activeEditProductId,
-      onEditActivate,
-      onEditDeactivate,
-      onSaveCost,
-      patchCostMutation.isPending,
-    ],
+    [t, fmtBase, onOpenVariantCostEditor],
   )
   const sortedVariants = useMemo(() => sortVariantsByStockAlert(variants), [variants])
 

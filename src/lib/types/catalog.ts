@@ -104,6 +104,23 @@ export type ProductCostHistorySegmentApi = {
   currency: string
   effective_from: string
   effective_to: string | null
+  entry_method?: string
+  components?: Record<string, unknown> | null
+}
+
+export type ComponentAmountMode = 'fixed' | 'percent'
+
+export type ComponentAmountApi = {
+  mode: ComponentAmountMode
+  value: number
+}
+
+export type ProductCostBreakdownApi = {
+  supplier_price: number
+  freight: ComponentAmountApi
+  duties: ComponentAmountApi
+  packaging_value: number
+  computed_total: number
 }
 
 export type ProductWeeklyNetSalesPointApi = {
@@ -158,6 +175,7 @@ export type ProductDetailApi = {
   stock_alert_summary: StockAlertListingSummaryApi[]
   cost_history: ProductCostHistorySegmentApi[]
   listing_price_history: ProductListingPriceSegmentApi[]
+  cost_breakdown?: ProductCostBreakdownApi | null
 }
 
 export type CatalogJobStatus = 'queued' | 'running' | 'succeeded' | 'failed'

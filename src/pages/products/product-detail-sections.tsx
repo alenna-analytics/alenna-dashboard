@@ -45,6 +45,7 @@ type ProductDetailSectionsProps = {
   insightKpi: (value: ReactNode) => ReactNode
   insightsFetching: boolean
   onEditCost: () => void
+  onOpenVariantCostEditor: (productId: string) => void
   dateLocale: string
 }
 
@@ -69,6 +70,7 @@ export function ProductDetailSections({
   insightKpi,
   insightsFetching,
   onEditCost,
+  onOpenVariantCostEditor,
   dateLocale,
 }: ProductDetailSectionsProps) {
   const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
@@ -229,9 +231,9 @@ export function ProductDetailSections({
       {hasVariants ? (
         <ProductDetailVariantsTable
           variants={detail.variants}
-          parentProductId={detail.id}
           t={t}
           fmtBase={fmtBase}
+          onOpenCostEditor={onOpenVariantCostEditor}
         />
       ) : (
         <Card

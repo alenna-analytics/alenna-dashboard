@@ -51,25 +51,13 @@ export function sortVariantsByStockAlert(
 export type ProductDetailVariantsColumnLabels = {
   t: (key: ShellStringKey) => string
   fmtBase: (value: number) => string
-  activeEditProductId: string | null
-  onEditActivate: (productId: string) => void
-  onEditDeactivate: () => void
-  onSaveCost: (productId: string, cost: number) => Promise<void>
-  saveCostPending: boolean
+  onOpenCostEditor: (productId: string) => void
 }
 
 export function createProductDetailVariantsColumns(
   labels: ProductDetailVariantsColumnLabels,
 ): ColumnDef<ProductVariantSummaryApi>[] {
-  const {
-    t,
-    fmtBase,
-    activeEditProductId,
-    onEditActivate,
-    onEditDeactivate,
-    onSaveCost,
-    saveCostPending,
-  } = labels
+  const { t, fmtBase, onOpenCostEditor } = labels
   return [
     {
       id: 'variant',
@@ -115,11 +103,7 @@ export function createProductDetailVariantsColumns(
             cost={variant.cost}
             costMissing={variant.cost_missing}
             formatMoney={fmtBase}
-            isActive={activeEditProductId === variant.id}
-            onActivate={onEditActivate}
-            onDeactivate={onEditDeactivate}
-            onSave={onSaveCost}
-            isSaving={saveCostPending && activeEditProductId === variant.id}
+            onOpenEditor={onOpenCostEditor}
             t={t}
           />
         )

@@ -68,6 +68,12 @@ function initialListingId(editing: StockOverrideApi | null): string {
   return editing.scope_id ?? ''
 }
 
+function scopeTypeLabel(lang: string, scopeType: AlertScopeType): string {
+  if (scopeType === 'channel') return shellT(lang, 'alarmsScopeChannel')
+  if (scopeType === 'product') return shellT(lang, 'alarmsScopeProduct')
+  return shellT(lang, 'alarmsScopeListing')
+}
+
 function OverrideSheetForm({
   lang,
   editing,
@@ -173,7 +179,7 @@ function OverrideSheetForm({
   const needsProduct = scopeType === 'product' || scopeType === 'product_listing'
 
   return (
-    <>
+    <div className="flex min-h-0 flex-1 flex-col">
       <SheetHeader>
         <SheetTitle>
           {editing ? shellT(lang, 'alarmsEditRule') : shellT(lang, 'alarmsAddRule')}
@@ -181,7 +187,7 @@ function OverrideSheetForm({
         <SheetDescription>{shellT(lang, 'alarmsOverrideSheetDescription')}</SheetDescription>
       </SheetHeader>
 
-      <div className="space-y-4 py-4">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
         <div className="space-y-2">
           <Label>{shellT(lang, 'alarmsColScope')}</Label>
           <Select
@@ -189,8 +195,8 @@ function OverrideSheetForm({
             onValueChange={(value) => setScopeType(value as AlertScopeType)}
             disabled={Boolean(editing) || saving}
           >
-            <SelectTrigger>
-              <SelectValue />
+            <SelectTrigger className="w-full">
+              <SelectValue>{scopeTypeLabel(lang, scopeType)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="channel">{shellT(lang, 'alarmsScopeChannel')}</SelectItem>
@@ -211,7 +217,7 @@ function OverrideSheetForm({
               }}
               disabled={saving || Boolean(editing)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder={shellT(lang, 'alarmsChannelPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
@@ -236,7 +242,7 @@ function OverrideSheetForm({
               }}
               disabled={saving || Boolean(editing)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder={shellT(lang, 'alarmsProductPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
@@ -258,7 +264,7 @@ function OverrideSheetForm({
               onValueChange={(value) => setListingId(value ?? '')}
               disabled={saving || !productId || Boolean(editing)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder={shellT(lang, 'alarmsListingPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
@@ -302,7 +308,7 @@ function OverrideSheetForm({
           {saving ? shellT(lang, 'alarmsSaving') : shellT(lang, 'alarmsSaveRule')}
         </Button>
       </SheetFooter>
-    </>
+    </div>
   )
 }
 
@@ -318,7 +324,7 @@ export function OverrideSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="overflow-y-auto sm:max-w-lg">
+      <SheetContent side="right" className="sm:max-w-lg">
         {open ? (
           <OverrideSheetForm
             key={formKey}

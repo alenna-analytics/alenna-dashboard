@@ -28,12 +28,12 @@ import { useMoney } from "@/hooks/use-money"
 import { useLanguage } from "@/shell/providers/language-provider"
 
 import { createProductColumns, type ProductTableSelectionBinding } from "./products-columns"
-import { showProductCostErrorToast, showProductCostSuccessToast } from "./product-cost-toast"
+import { ProductCostEditorSheet } from "./product-cost-editor-sheet"
 import {
   normalizeStockAlertLevelsFilter,
   type ProductsListFiltersState,
 } from "./products-list-filter-state"
-import { usePatchProductCostMutation, useProductListQuery } from "./use-catalog-queries"
+import { useProductListQuery } from "./use-catalog-queries"
 
 const PAGE_SIZE = 10
 const COLUMN_LABEL_KEY_BY_ID = {
@@ -78,8 +78,8 @@ export function ProductsDataTable({
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [bulkAllMatching, setBulkAllMatching] = useState(false)
   const [excludedIds, setExcludedIds] = useState<ReadonlySet<string>>(() => new Set())
-  const [activeEditProductId, setActiveEditProductId] = useState<string | null>(null)
-  const patchCostMutation = usePatchProductCostMutation()
+  const [costEditorOpen, setCostEditorOpen] = useState(false)
+  const [costEditorProductId, setCostEditorProductId] = useState<string | null>(null)
 
   const sort = sorting[0]
   const sortBy = sort?.id ?? "title"
@@ -102,14 +102,12 @@ export function ProductsDataTable({
 
   useEffect(() => {
     setPagination((p) => ({ ...p, pageIndex: 0 }))
-    setActiveEditProductId(null)
   }, [debouncedSearchQ, sortBy, sortDir, filters.statuses, filters.platforms, stockAlertLevels])
 
   useEffect(() => {
     setRowSelection({})
     setBulkAllMatching(false)
     setExcludedIds(new Set())
-    setActiveEditProductId(null)
   }, [debouncedSearchQ, filters.statuses, filters.platforms, stockAlertLevels])
 
   const listQuery = useProductListQuery({
@@ -149,26 +147,10 @@ export function ProductsDataTable({
     [navigate],
   )
 
-  const onEditActivate = useCallback((productId: string) => {
-    setActiveEditProductId(productId)
+  const onOpenCostEditor = useCallback((productId: string) => {
+    setCostEditorProductId(productId)
+    setCostEditorOpen(true)
   }, [])
-
-  const onEditDeactivate = useCallback(() => {
-    setActiveEditProductId(null)
-  }, [])
-
-  const onSaveCost = useCallback(
-    async (productId: string, cost: number) => {
-      try {
-        await patchCostMutation.mutateAsync({ productId, cost })
-        showProductCostSuccessToast(lang)
-      } catch (error) {
-        showProductCostErrorToast(lang, error)
-        throw error
-      }
-    },
-    [lang, patchCostMutation],
-  )
 
   const pageIds = useMemo(() => items.map((i) => i.id), [items])
 
@@ -297,11 +279,7 @@ export function ProductsDataTable({
         onCopySku,
         onGoDetail,
         selection: selectionBinding,
-        activeEditProductId,
-        onEditActivate,
-        onEditDeactivate,
-        onSaveCost,
-        saveCostPending: patchCostMutation.isPending,
+        onOpenCostEditor,
       }),
     [
       t,
@@ -309,11 +287,7 @@ export function ProductsDataTable({
       onCopySku,
       onGoDetail,
       selectionBinding,
-      activeEditProductId,
-      onEditActivate,
-      onEditDeactivate,
-      onSaveCost,
-      patchCostMutation.isPending,
+      onOpenCostEditor,
     ],
   )
 
@@ -354,6 +328,12 @@ export function ProductsDataTable({
 
   return (
     <div className="flex flex-col gap-3">
+      <ProductCostEditorSheet
+        lang={lang}
+        open={costEditorOpen}
+        productId={costEditorProductId}
+        onOpenChange={setCostEditorOpen}
+      />
       <DataTable
         table={table}
         isLoading={listQuery.isLoading}

@@ -24,4 +24,15 @@ describe('computeCogsTotal', () => {
       }),
     ).toBe(115.5)
   })
+
+  it('uses fixed freight when mode is fixed', () => {
+    expect(
+      computeCogsTotal({
+        supplierPrice: 100,
+        freight: { mode: 'fixed', value: 3 },
+        duties: { mode: 'percent', value: 10 },
+        packagingValue: 0,
+      }),
+    ).toBe(113.3)
+  })
 })

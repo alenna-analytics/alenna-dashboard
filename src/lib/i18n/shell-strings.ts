@@ -882,7 +882,7 @@ const SHELL_STRINGS = {
     homeKpiRoasGlobal: 'Global ROAS',
     homeKpiRoasGlobalHelp:
       'Blended return on ad spend. If it drops below your profitable floor, act immediately.',
-    homeKpiContributionMarginPct: 'Contribution margin %',
+    homeKpiContributionMarginPct: 'Marginal Contribution %',
     homeKpiContributionMarginPctHelp:
       'Links sales to real profitability. Record revenue with negative CM can still mean losses.',
     homeKpiActiveAlerts: 'Active alerts',
@@ -1239,7 +1239,7 @@ const SHELL_STRINGS = {
     reportsGrossRevenue: 'Gross Revenue',
     reportsNetRevenue: 'Net Revenue',
     reportsGrossProfit: 'Gross Profit',
-    reportsContributionMargin: 'Contribution Margin',
+    reportsContributionMargin: 'Marginal Contribution',
     reportsEbitda: 'EBITDA',
     reportsUnits: 'Units',
     reportsOrders: 'Orders',
@@ -1262,7 +1262,7 @@ const SHELL_STRINGS = {
     reportsKpiHelpGrossMargin: 'Gross profit as a percentage of net revenue.',
     reportsKpiHelpContributionMargin:
       'Gross profit minus platform fees, merchant shipping cost, and ads spend. Avoid net revenue − COGS − … if net revenue already deducts fees/shipping (double-count risk).',
-    reportsKpiHelpEbitda: 'Contribution margin minus fixed operating expenses.',
+    reportsKpiHelpEbitda: 'Marginal Contribution minus fixed operating expenses.',
     reportsOrdersTotal: 'Total orders',
     reportsOrdersPaid: 'Paid',
     reportsOrdersRefunded: 'Refunded',
@@ -1287,7 +1287,7 @@ const SHELL_STRINGS = {
     reportsWfAdsSpend: 'Ads Spend',
     reportsKpiHelpAdsSpend:
       'Advertising spend attributed to the period (per connected sources and attribution rules).',
-    reportsWfContributionMargin: 'Contribution Margin',
+    reportsWfContributionMargin: 'Marginal Contribution',
     reportsWfOpex: 'Fixed OpEx',
     reportsWfEbitda: 'EBITDA',
     reportsCurrencyMismatchWarning:
@@ -1328,7 +1328,7 @@ const SHELL_STRINGS = {
     reportsKpiFulfillmentCost: 'Fulfillment cost',
     reportsKpiHelpFulfillmentCost:
       'What you pay to ship orders to customers (not shipping charged to the buyer).',
-    reportsKpiContributionMarginPctLabel: 'Contribution margin %',
+    reportsKpiContributionMarginPctLabel: 'Marginal Contribution %',
     reportsKpiHelpContributionMarginPct:
       '(CM ÷ Net revenue) × 100. Useful benchmark above ~20%; below ~10% is risky.',
     reportsKpiFixedOpex: 'Fixed operating expenses',
@@ -1435,7 +1435,7 @@ const SHELL_STRINGS = {
       'Range net sales minus product COGS. Excludes ads, shipping, and fixed opex.',
     productsDetailKpiGrossProfitOnGrossSalesHelp:
       'Range gross sales minus product COGS. Excludes ads, shipping, and fixed opex.',
-    productsDetailKpiContributionMarginPct: 'Contribution margin %',
+    productsDetailKpiContributionMarginPct: 'Marginal Contribution %',
     productsDetailKpiContributionMarginPctHelp:
       'Product gross margin: gross profit ÷ range sales. Excludes ads, shipping, and fixed opex.',
     productsDetailKpiInventoryDays: 'Days of inventory',

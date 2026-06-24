@@ -7,14 +7,8 @@ import type { AlertItemApi, AlertPostponeDuration } from '@/lib/types/alerts'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
+import { EmbeddedShellPanel } from '@/ui/embedded-shell-panel'
 import { Skeleton } from '@/ui/skeleton'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/ui/sheet'
 import { SheetRowButton, sheetRowButtonClassName } from '@/ui/sheet-row'
 
 import {
@@ -68,6 +62,21 @@ function severityBadgeVariant(severity: AlertItemApi['severity']): 'error' | 'wa
 function filterItems(items: AlertItemApi[], severityFilter: AlertSeverityFilter): AlertItemApi[] {
   if (severityFilter === 'all') return items
   return items.filter((item) => item.severity === severityFilter)
+}
+
+function AlertPanelHeader({
+  title,
+  description,
+}: {
+  title: string
+  description: string
+}) {
+  return (
+    <div className="shrink-0 border-b border-border-subtle px-6 py-4 pr-14">
+      <h2 className="font-heading text-base font-semibold text-text-primary">{title}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+    </div>
+  )
 }
 
 function AlertListSkeleton() {
@@ -340,10 +349,10 @@ function AlertListView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <SheetHeader className="shrink-0">
-        <SheetTitle>{t('homeAlertsDialogTitle')}</SheetTitle>
-        <SheetDescription>{t('homeAlertsDialogDescription')}</SheetDescription>
-      </SheetHeader>
+      <AlertPanelHeader
+        title={t('homeAlertsDialogTitle')}
+        description={t('homeAlertsDialogDescription')}
+      />
 
       <div
         className="flex shrink-0 gap-6 border-b border-border-subtle px-6"
@@ -444,51 +453,53 @@ export function ActiveAlertsSheet({
   const showDetail = selectedItem !== null
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetContent className="flex w-full max-w-xl flex-col overflow-hidden sm:max-w-xl">
-        <div className="relative min-h-0 flex-1 overflow-hidden">
-          <div
-            className={cn(
-              'absolute inset-0 flex flex-col transition-transform duration-300 ease-out motion-reduce:transition-none',
-              showDetail ? '-translate-x-full' : 'translate-x-0',
-            )}
-          >
-            <AlertListView
-              tab={tab}
-              onTabChange={handleTabChange}
-              items={items}
-              loading={loading}
-              emptyLabel={emptyLabel}
-              filterEmptyLabel={filterEmptyLabel}
-              severityFilter={severityFilter}
-              onSeverityFilterChange={setSeverityFilter}
+    <EmbeddedShellPanel
+      open={open}
+      onOpenChange={handleOpenChange}
+      closeAriaLabel={t('productsDetailSheetCancel')}
+    >
+      <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+        <div
+          className={cn(
+            'absolute inset-0 flex flex-col transition-transform duration-300 ease-out motion-reduce:transition-none',
+            showDetail ? '-translate-x-full' : 'translate-x-0',
+          )}
+        >
+          <AlertListView
+            tab={tab}
+            onTabChange={handleTabChange}
+            items={items}
+            loading={loading}
+            emptyLabel={emptyLabel}
+            filterEmptyLabel={filterEmptyLabel}
+            severityFilter={severityFilter}
+            onSeverityFilterChange={setSeverityFilter}
+            connectionPlatformById={connectionPlatformById}
+            onSelect={setSelectedId}
+            t={t}
+          />
+        </div>
+        <div
+          className={cn(
+            'absolute inset-0 flex flex-col transition-transform duration-300 ease-out motion-reduce:transition-none',
+            showDetail ? 'translate-x-0' : 'translate-x-full',
+          )}
+          aria-hidden={!showDetail}
+        >
+          {selectedItem ? (
+            <AlertDetailView
+              item={selectedItem}
               connectionPlatformById={connectionPlatformById}
-              onSelect={setSelectedId}
+              isAdmin={isAdmin}
+              postponePending={postponePending}
+              isPostponedSection={tab === 'postponed'}
+              onBack={() => setSelectedId(null)}
+              onPostpone={handlePostpone}
               t={t}
             />
-          </div>
-          <div
-            className={cn(
-              'absolute inset-0 flex flex-col transition-transform duration-300 ease-out motion-reduce:transition-none',
-              showDetail ? 'translate-x-0' : 'translate-x-full',
-            )}
-            aria-hidden={!showDetail}
-          >
-            {selectedItem ? (
-              <AlertDetailView
-                item={selectedItem}
-                connectionPlatformById={connectionPlatformById}
-                isAdmin={isAdmin}
-                postponePending={postponePending}
-                isPostponedSection={tab === 'postponed'}
-                onBack={() => setSelectedId(null)}
-                onPostpone={handlePostpone}
-                t={t}
-              />
-            ) : null}
-          </div>
+          ) : null}
         </div>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </EmbeddedShellPanel>
   )
 }

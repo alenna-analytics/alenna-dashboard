@@ -6,7 +6,7 @@ export function AppToaster() {
   return (
     <Toaster
       className="alenna-sonner"
-      position="top-center"
+      position="bottom-right"
       closeButton
       theme="light"
       icons={{

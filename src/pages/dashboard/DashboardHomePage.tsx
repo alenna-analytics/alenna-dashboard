@@ -25,6 +25,7 @@ import {
   productKpiProfit,
   productKpiSales,
   profitHelpKey,
+  profitLabelKey,
   salesLabelKey,
 } from '@/lib/sales-metric-basis'
 import { KpiCard } from '@/ui/kpi-card'
@@ -92,8 +93,10 @@ function zeroKpiResponse(currency: string): KpiResponse {
 function zeroProductKpi(currency: string): ProductKpiResponse {
   return {
     gross_revenue: 0,
+    net_revenue: 0,
     cogs: 0,
     gross_profit: 0,
+    gross_profit_on_gross: 0,
     gross_margin_pct: 0,
     units_sold: 0,
     order_count: 0,
@@ -488,14 +491,14 @@ export function DashboardHomePage() {
     ? (displayProductKpi?.order_count ?? 0)
     : (displayKpi?.order_count ?? 0)
   const salesCurrent = productMode
-    ? productKpiSales(displayProductKpi ?? zeroProductKpi(currency))
+    ? productKpiSales(displayProductKpi ?? zeroProductKpi(currency), salesMetricBasis)
     : orderKpiSales(displayKpi ?? zeroKpiResponse(currency), salesMetricBasis)
   const profitCurrent = productMode
     ? productKpiProfit(displayProductKpi ?? zeroProductKpi(currency), salesMetricBasis)
     : orderKpiProfit(displayKpi ?? zeroKpiResponse(currency), salesMetricBasis)
   const salesPriorValue = productMode
     ? pkpiPrev
-      ? productKpiSales(pkpiPrev)
+      ? productKpiSales(pkpiPrev, salesMetricBasis)
       : undefined
     : kpiPrev
       ? orderKpiSales(kpiPrev, salesMetricBasis)
@@ -598,7 +601,7 @@ export function DashboardHomePage() {
   const aovCur = aov ?? 0
   const aovPrev = productMode
     ? pkpiPrev && (pkpiPrev.order_count ?? 0) > 0
-      ? productKpiSales(pkpiPrev) / pkpiPrev.order_count
+      ? productKpiSales(pkpiPrev, salesMetricBasis) / pkpiPrev.order_count
       : undefined
     : kpiPrev && kpiPrev.order_count > 0
       ? orderKpiSales(kpiPrev, salesMetricBasis) / kpiPrev.order_count
@@ -764,7 +767,7 @@ export function DashboardHomePage() {
                   <KpiCard
                     bare
                     compact
-                    label={t('reportsGrossProfit')}
+                    label={t(profitLabelKey(salesMetricBasis))}
                     helpText={t(profitHelpKey(salesMetricBasis))}
                     value={formatMoney(profitCurrent, { nativeCurrency: currency })}
                     vsPriorLabel={vsPrior}

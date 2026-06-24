@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu"
 
+import { ProductCostInlineCell } from "./product-cost-inline-cell"
 import { ProductPlatformLogoName } from "./product-platform-logo-name"
 import { ProductStockAlertBadge } from "./product-stock-alert-ui"
 import { ProductTableThumb } from "./product-table-thumb"
@@ -53,6 +54,11 @@ export type ProductTableColumnLabels = {
   onCopySku: (sku: string | null) => void
   onGoDetail: (productId: string) => void
   selection: ProductTableSelectionBinding
+  activeEditProductId: string | null
+  onEditActivate: (productId: string) => void
+  onEditDeactivate: () => void
+  onSaveCost: (productId: string, cost: number) => Promise<void>
+  saveCostPending: boolean
 }
 
 function statusBadgeVariant(status: string): ComponentProps<typeof Badge>["variant"] {
@@ -86,7 +92,18 @@ function statusLabel(t: (key: ShellStringKey) => string, status: string): string
 }
 
 export function createProductColumns(labels: ProductTableColumnLabels): ColumnDef<ProductSummaryApi>[] {
-  const { t, formatBaseMoney, onCopySku, onGoDetail, selection } = labels
+  const {
+    t,
+    formatBaseMoney,
+    onCopySku,
+    onGoDetail,
+    selection,
+    activeEditProductId,
+    onEditActivate,
+    onEditDeactivate,
+    onSaveCost,
+    saveCostPending,
+  } = labels
 
   return [
     {
@@ -206,14 +223,25 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
         <DataTableColumnHeader className="justify-end" column={column} title={t("productsColCost")} />
       ),
       cell: ({ row }) => {
-        const c = row.original.cost
-        if (c != null) {
-          return <span className="block text-right tabular-nums">{formatBaseMoney(c)}</span>
-        }
+        const rowData = row.original
+        const label = rowData.internal_sku?.trim() || rowData.title
+        const hasVariants = (rowData.variant_count ?? 0) > 0
         return (
-          <div className="flex justify-end text-text-tertiary tabular-nums">
-            {EMPTY_CELL}
-          </div>
+          <ProductCostInlineCell
+            productId={rowData.id}
+            label={label}
+            cost={rowData.cost}
+            costMissing={rowData.cost_missing}
+            formatMoney={formatBaseMoney}
+            readOnly={hasVariants}
+            readOnlyHint={hasVariants ? t("productsInlineCostVariantHint") : undefined}
+            isActive={activeEditProductId === rowData.id}
+            onActivate={onEditActivate}
+            onDeactivate={onEditDeactivate}
+            onSave={onSaveCost}
+            isSaving={saveCostPending && activeEditProductId === rowData.id}
+            t={t}
+          />
         )
       },
       enableHiding: true,

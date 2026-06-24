@@ -7,6 +7,7 @@ import {
   productDetailSalesValue,
   productProfitHelpKey,
   productSalesHelpKey,
+  profitLabelKey,
   salesLabelKey,
 } from '@/lib/sales-metric-basis'
 import type { ProductDetailApi } from '@/lib/types/catalog'
@@ -110,7 +111,7 @@ export function ProductDetailSections({
       />
     ) : undefined
 
-  const salesValue = productDetailSalesValue(detail)
+  const salesValue = productDetailSalesValue(detail, salesMetricBasis)
   const profitValue = productDetailProfitValue(detail, salesMetricBasis)
 
   const insightKpis = [
@@ -125,7 +126,7 @@ export function ProductDetailSections({
     },
     {
       key: 'profit',
-      label: t('productsDetailKpiGrossProfit'),
+      label: t(profitLabelKey(salesMetricBasis)),
       helpText: t(productProfitHelpKey(salesMetricBasis)),
       value: insightKpi(
         costAmountWithBaseCode(fmtBase(profitValue), baseCurrency, 'text-xs'),
@@ -226,7 +227,12 @@ export function ProductDetailSections({
       </Card>
 
       {hasVariants ? (
-        <ProductDetailVariantsTable variants={detail.variants} t={t} fmtBase={fmtBase} />
+        <ProductDetailVariantsTable
+          variants={detail.variants}
+          parentProductId={detail.id}
+          t={t}
+          fmtBase={fmtBase}
+        />
       ) : (
         <Card
           id="product-channels-table"

@@ -137,7 +137,6 @@ export function AppShellLayout() {
         <GlobalActivityProvider>
           <AlertsSheetProvider>
             <TooltipProvider delayDuration={200}>
-              <ActiveAlertsSheetHost />
               <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh overflow-hidden bg-white">
               <AppSidebar
                 className="hidden lg:flex"
@@ -152,35 +151,40 @@ export function AppShellLayout() {
                 companyName={sidebarCompanyName}
                 companySubtitle={sidebarCompanySubtitle}
               />
-              <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-[var(--shell-structure-border)] bg-white">
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-[var(--shell-structure-border)] bg-white">
                 <div className="sticky top-0 z-30 shrink-0 bg-card">
                   <AppHeader onOpenMobileNav={openMobileNav} />
                   <GlobalActivityBar className="hidden lg:block" />
                 </div>
-                <main
-                  ref={mainRef}
-                  className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
-                >
-                  <div
-                    className={cn(
-                      WORKSPACE_SHELL_COLUMN_CLASS,
-                      'min-h-full py-3 lg:py-4',
-                    )}
-                  >
-                    {!tenantId && tenants.length > 1 ? (
-                      <p className="mb-4 text-sm text-text-secondary">
-                        Select a workspace in your account menu if prompted.
-                      </p>
-                    ) : null}
-                    <div
-                      key={location.pathname}
-                      className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150 motion-safe:fill-mode-both"
+                <div className="flex min-h-0 flex-1 overflow-hidden">
+                  <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
+                    <main
+                      ref={mainRef}
+                      className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
                     >
-                      <Outlet />
-                    </div>
-                  </div>
-                </main>
-              </section>
+                      <div
+                        className={cn(
+                          WORKSPACE_SHELL_COLUMN_CLASS,
+                          'min-h-full py-3 lg:py-4',
+                        )}
+                      >
+                        {!tenantId && tenants.length > 1 ? (
+                          <p className="mb-4 text-sm text-text-secondary">
+                            Select a workspace in your account menu if prompted.
+                          </p>
+                        ) : null}
+                        <div
+                          key={location.pathname}
+                          className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150 motion-safe:fill-mode-both"
+                        >
+                          <Outlet />
+                        </div>
+                      </div>
+                    </main>
+                  </section>
+                  <ActiveAlertsSheetHost />
+                </div>
+              </div>
               </div>
             </TooltipProvider>
           </AlertsSheetProvider>

@@ -53,6 +53,9 @@ export type ProductVariantSummaryApi = {
   platforms: string[]
   stock_quantity: number | null
   stock_alert: StockAlertLevel
+  cost: number | null
+  currency: string | null
+  cost_missing: boolean
   period_sales: number
   period_orders: number
   period_units_sold: number
@@ -119,7 +122,10 @@ export type ProductDetailApi = {
   internal_sku: string | null
   period_units_sold: number
   period_cogs: number
+  period_gross_sales: number
+  period_net_sales: number
   period_sales: number
+  period_gross_profit: number
   period_orders: number
   period_start: string | null
   period_end: string | null

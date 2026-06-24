@@ -10,7 +10,7 @@ const SHELL_STRINGS = {
     navExpenses: 'Gastos',
     navConnections: 'Conexiones',
     navIntegrations: 'Integraciones',
-    navWorkspaceConfiguration: 'Configuración / Settings',
+    navWorkspaceConfiguration: 'Configuración',
     workspaceConfigHeroSubtitle: 'Administra reglas y preferencias del workspace.',
     workspaceConfigAlarmsDescription: 'Umbrales de stock, alertas activas y reglas por alcance.',
     navAlarms: 'Alarmas',
@@ -75,10 +75,10 @@ const SHELL_STRINGS = {
       'Ingresos netos del periodo seleccionado. Es el pulso del negocio: ventas reales, no brutas.',
     homeKpiGrossSalesHelp:
       'Ingresos brutos del periodo antes de descuentos y devoluciones.',
-    kpiSalesMetricBasisToggleLabel: 'Ventas',
-    kpiSalesMetricBasisToggleAria: 'Mostrar ventas y utilidad en bruto o neto',
-    kpiSalesMetricBasisNet: 'Netas',
-    kpiSalesMetricBasisGross: 'Brutas',
+    kpiSalesMetricBasisShowGross: 'Mostrar Ventas/Utilidad Bruta',
+    kpiSalesMetricBasisToggleAria: 'Mostrar ventas y utilidad en bruto',
+    reportsNetProfit: 'Utilidad neta',
+    reportsKpiHelpNetProfit: 'Ventas netas menos el costo de bienes vendidos (CMV).',
     homeKpiRoasGlobal: 'ROAS global',
     homeKpiRoasGlobalHelp:
       'Retorno de la inversión publicitaria agregada. Si cae por debajo del mínimo rentable, requiere acción inmediata.',
@@ -599,6 +599,11 @@ const SHELL_STRINGS = {
     productsColListings: 'Publicaciones',
     productsColUnits: 'Unidades vendidas',
     productsCostMissingBadge: 'Sin costo',
+    productsToastCostSaveFailed: 'No se pudo guardar el costo.',
+    productsInlineCostForwardHelp:
+      'El costo aplica desde hoy. Para corregir COGS histórico, usa recálculo en el detalle del producto.',
+    productsInlineCostVariantHint: 'Edita el costo por variante en el detalle del producto.',
+    productsInlineCostEditAria: 'Editar costo de {label}',
     productsDetailBack: 'Volver',
     productsDetailCostOverTimeTitle: 'Costo en el tiempo',
     productsDetailCostVsPriceOverTimeTitle: 'Costo vs Precio en el tiempo',
@@ -633,7 +638,7 @@ const SHELL_STRINGS = {
     productsDetailKpiGrossSalesHelp:
       'Ingreso bruto del producto en el rango (agregados diarios). Antes de descuentos y devoluciones a nivel línea.',
     productsDetailKpiGrossProfit: 'Utilidad bruta',
-    productsDetailKpiGrossProfitHelp:
+    productsDetailKpiNetProfitHelp:
       'Ventas netas del rango menos COGS del producto. No incluye ads, envío ni gastos fijos.',
     productsDetailKpiGrossProfitOnGrossSalesHelp:
       'Ventas brutas del rango menos COGS del producto. No incluye ads, envío ni gastos fijos.',
@@ -805,7 +810,7 @@ const SHELL_STRINGS = {
     navExpenses: 'Expenses',
     navConnections: 'Connections',
     navIntegrations: 'Integrations',
-    navWorkspaceConfiguration: 'Configuration / Settings',
+    navWorkspaceConfiguration: 'Settings',
     workspaceConfigHeroSubtitle: 'Manage workspace-wide rules and preferences.',
     workspaceConfigAlarmsDescription: 'Stock thresholds, active alerts, and scoped override rules.',
     navAlarms: 'Alarms',
@@ -870,10 +875,10 @@ const SHELL_STRINGS = {
       'Net revenue for the selected period. The business pulse: real sales, not gross.',
     homeKpiGrossSalesHelp:
       'Gross revenue for the period before discounts and returns.',
-    kpiSalesMetricBasisToggleLabel: 'Sales',
-    kpiSalesMetricBasisToggleAria: 'Show sales and profit as gross or net',
-    kpiSalesMetricBasisNet: 'Net',
-    kpiSalesMetricBasisGross: 'Gross',
+    kpiSalesMetricBasisShowGross: 'Show gross sales/profit',
+    kpiSalesMetricBasisToggleAria: 'Show gross sales and profit',
+    reportsNetProfit: 'Net profit',
+    reportsKpiHelpNetProfit: 'Net revenue minus cost of goods sold.',
     homeKpiRoasGlobal: 'Global ROAS',
     homeKpiRoasGlobalHelp:
       'Blended return on ad spend. If it drops below your profitable floor, act immediately.',
@@ -1387,6 +1392,11 @@ const SHELL_STRINGS = {
     productsColListings: 'Listings',
     productsColUnits: 'Units sold',
     productsCostMissingBadge: 'Missing cost',
+    productsToastCostSaveFailed: 'Could not save unit cost.',
+    productsInlineCostForwardHelp:
+      'Cost applies from today. To fix historical COGS, use backfill on the product detail page.',
+    productsInlineCostVariantHint: 'Edit cost per variant on the product detail page.',
+    productsInlineCostEditAria: 'Edit unit cost for {label}',
     productsDetailBack: 'Back',
     productsDetailCostOverTimeTitle: 'Cost over time',
     productsDetailCostVsPriceOverTimeTitle: 'Cost vs Price over time',
@@ -1421,7 +1431,7 @@ const SHELL_STRINGS = {
     productsDetailKpiGrossSalesHelp:
       'Product gross revenue in the range (daily aggregates). Before line-level discounts and returns.',
     productsDetailKpiGrossProfit: 'Gross profit',
-    productsDetailKpiGrossProfitHelp:
+    productsDetailKpiNetProfitHelp:
       'Range net sales minus product COGS. Excludes ads, shipping, and fixed opex.',
     productsDetailKpiGrossProfitOnGrossSalesHelp:
       'Range gross sales minus product COGS. Excludes ads, shipping, and fixed opex.',

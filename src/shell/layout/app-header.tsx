@@ -13,7 +13,8 @@ import { Button } from '@/ui/button'
 import { chromeIconButtonClassName, chromeTextButtonClassName } from '@/ui/surface'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { shellChromeHeaderRowClassName } from '@/shell/layout/sidebar-layout'
-import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
+
+const shellHeaderRowPaddingClassName = 'w-full px-4 lg:px-5'
 
 type AppHeaderProps = {
   className?: string
@@ -31,7 +32,7 @@ export function AppHeader({ className, onOpenMobileNav }: AppHeaderProps) {
       <div
         className={cn(
           shellChromeHeaderRowClassName,
-          WORKSPACE_SHELL_COLUMN_CLASS,
+          shellHeaderRowPaddingClassName,
           'justify-between gap-3 lg:hidden',
         )}
       >
@@ -55,7 +56,7 @@ export function AppHeader({ className, onOpenMobileNav }: AppHeaderProps) {
       <div
         className={cn(
           shellChromeHeaderRowClassName,
-          WORKSPACE_SHELL_COLUMN_CLASS,
+          shellHeaderRowPaddingClassName,
           'hidden justify-between gap-3 lg:flex',
         )}
       >

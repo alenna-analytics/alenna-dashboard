@@ -155,17 +155,22 @@ export function useProductDetailQuery(
   })
 }
 
-export function usePatchProductCostMutation(productId: string | undefined) {
+export type PatchProductCostBody = {
+  productId?: string
+  parentProductId?: string
+  cost?: number
+  currency?: string | null
+  internal_sku?: string | null
+}
+
+export function usePatchProductCostMutation(defaultProductId?: string) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const qc = useQueryClient()
 
   return useMutation({
-    mutationFn: async (body: {
-      cost?: number
-      currency?: string | null
-      internal_sku?: string | null
-    }) => {
+    mutationFn: async (body: PatchProductCostBody) => {
+      const productId = body.productId ?? defaultProductId
       if (!productId) throw new Error('Missing product')
       const payload: Record<string, unknown> = {}
       if (body.cost !== undefined) payload.cost = body.cost
@@ -181,8 +186,15 @@ export function usePatchProductCostMutation(productId: string | undefined) {
       if (!res.ok) throw new Error(await res.text())
       return (await res.json()) as ProductDetailApi
     },
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
+    onSuccess: (_data, variables) => {
+      const productId = variables.productId ?? defaultProductId
+      const parentProductId = variables.parentProductId ?? productId
+      if (parentProductId) {
+        void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, parentProductId] })
+      }
+      if (productId && productId !== parentProductId) {
+        void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
+      }
       void qc.invalidateQueries({ queryKey: ['catalog', 'products', tenantId] })
       void qc.invalidateQueries({ queryKey: ['catalog', 'stock-alert-counts', tenantId] })
     },

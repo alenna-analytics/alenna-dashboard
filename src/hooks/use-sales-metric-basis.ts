@@ -21,7 +21,7 @@ export function useSalesMetricBasis(): [SalesMetricBasis, (basis: SalesMetricBas
   const { tenantId } = useCurrentTenant()
   const [state, setPatch] = useTenantPersistedJson(
     tenantId,
-    'alenna:sales-metric-basis',
+    'alenna:sales-metric-basis:v2',
     DEFAULTS,
     parseSalesMetricBasis,
   )

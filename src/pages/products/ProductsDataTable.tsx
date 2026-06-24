@@ -25,13 +25,15 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu"
 import { useMoney } from "@/hooks/use-money"
+import { useLanguage } from "@/shell/providers/language-provider"
 
 import { createProductColumns, type ProductTableSelectionBinding } from "./products-columns"
+import { showProductCostErrorToast, showProductCostSuccessToast } from "./product-cost-toast"
 import {
   normalizeStockAlertLevelsFilter,
   type ProductsListFiltersState,
 } from "./products-list-filter-state"
-import { useProductListQuery } from "./use-catalog-queries"
+import { usePatchProductCostMutation, useProductListQuery } from "./use-catalog-queries"
 
 const PAGE_SIZE = 10
 const COLUMN_LABEL_KEY_BY_ID = {
@@ -66,6 +68,7 @@ export function ProductsDataTable({
   errorContent,
 }: ProductsDataTableProps) {
   const navigate = useNavigate()
+  const { lang } = useLanguage()
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: PAGE_SIZE })
   const [sorting, setSorting] = useState<SortingState>([{ id: "title", desc: false }])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
@@ -75,6 +78,8 @@ export function ProductsDataTable({
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [bulkAllMatching, setBulkAllMatching] = useState(false)
   const [excludedIds, setExcludedIds] = useState<ReadonlySet<string>>(() => new Set())
+  const [activeEditProductId, setActiveEditProductId] = useState<string | null>(null)
+  const patchCostMutation = usePatchProductCostMutation()
 
   const sort = sorting[0]
   const sortBy = sort?.id ?? "title"
@@ -97,12 +102,14 @@ export function ProductsDataTable({
 
   useEffect(() => {
     setPagination((p) => ({ ...p, pageIndex: 0 }))
+    setActiveEditProductId(null)
   }, [debouncedSearchQ, sortBy, sortDir, filters.statuses, filters.platforms, stockAlertLevels])
 
   useEffect(() => {
     setRowSelection({})
     setBulkAllMatching(false)
     setExcludedIds(new Set())
+    setActiveEditProductId(null)
   }, [debouncedSearchQ, filters.statuses, filters.platforms, stockAlertLevels])
 
   const listQuery = useProductListQuery({
@@ -140,6 +147,27 @@ export function ProductsDataTable({
       void navigate(`/dashboard/products/${productId}`)
     },
     [navigate],
+  )
+
+  const onEditActivate = useCallback((productId: string) => {
+    setActiveEditProductId(productId)
+  }, [])
+
+  const onEditDeactivate = useCallback(() => {
+    setActiveEditProductId(null)
+  }, [])
+
+  const onSaveCost = useCallback(
+    async (productId: string, cost: number) => {
+      try {
+        await patchCostMutation.mutateAsync({ productId, cost })
+        showProductCostSuccessToast(lang)
+      } catch (error) {
+        showProductCostErrorToast(lang, error)
+        throw error
+      }
+    },
+    [lang, patchCostMutation],
   )
 
   const pageIds = useMemo(() => items.map((i) => i.id), [items])
@@ -269,8 +297,24 @@ export function ProductsDataTable({
         onCopySku,
         onGoDetail,
         selection: selectionBinding,
+        activeEditProductId,
+        onEditActivate,
+        onEditDeactivate,
+        onSaveCost,
+        saveCostPending: patchCostMutation.isPending,
       }),
-    [t, formatBaseMoney, onCopySku, onGoDetail, selectionBinding],
+    [
+      t,
+      formatBaseMoney,
+      onCopySku,
+      onGoDetail,
+      selectionBinding,
+      activeEditProductId,
+      onEditActivate,
+      onEditDeactivate,
+      onSaveCost,
+      patchCostMutation.isPending,
+    ],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design

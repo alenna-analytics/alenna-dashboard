@@ -202,6 +202,8 @@ export function AppSidebarPanel({
   const enabledModules = useEnabledModules()
   const analyticsModules = modulesForSection(enabledModules, 'analytics')
   const configModules = useConfigSectionModules()
+  const integrationsModule = configModules.find((mod) => mod.id === 'integrations')
+  const otherConfigModules = configModules.filter((mod) => mod.id !== 'integrations')
   const workspaceConfigEnabled = useWorkspaceConfigModuleEnabled()
   const showConfigSection = configModules.length > 0 || workspaceConfigEnabled
 
@@ -273,11 +275,21 @@ export function AppSidebarPanel({
         ) : null}
         {showConfigSection ? (
           <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionConfiguration')}>
+            {integrationsModule ? (
+              <NavItem
+                icon={integrationsModule.icon}
+                to={integrationsModule.path}
+                end
+                label={t(integrationsModule.labelKey)}
+                collapsed={collapsed}
+                onNavigate={onNavigate}
+              />
+            ) : null}
             {workspaceConfigEnabled ? (
               <WorkspaceConfigNavItem collapsed={collapsed} onNavigate={onNavigate} />
             ) : null}
             <ModuleNavItems
-              modules={configModules}
+              modules={otherConfigModules}
               collapsed={collapsed}
               onNavigate={onNavigate}
             />

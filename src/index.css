@@ -632,6 +632,52 @@
     font-variant-numeric: tabular-nums;
   }
 
+  .home-onboarding-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background-color: var(--platinum-blonde-300);
+    background-image:
+      radial-gradient(
+        ellipse 90% 80% at 100% 20%,
+        color-mix(in srgb, var(--firefly-base) 22%, transparent) 0%,
+        transparent 58%
+      ),
+      radial-gradient(
+        ellipse 70% 60% at 88% 8%,
+        color-mix(in srgb, var(--zara-base) 42%, transparent) 0%,
+        transparent 62%
+      ),
+      radial-gradient(
+        ellipse 80% 70% at 8% 90%,
+        color-mix(in srgb, var(--country-green-200) 28%, transparent) 0%,
+        transparent 65%
+      ),
+      radial-gradient(
+        ellipse 120% 100% at 50% 100%,
+        color-mix(in srgb, var(--platinum-blonde-base) 80%, transparent) 0%,
+        transparent 70%
+      );
+  }
+
+  .home-onboarding-hero::before {
+    content: '';
+    position: absolute;
+    inset: -20% -10% auto auto;
+    z-index: 0;
+    width: min(52vw, 640px);
+    height: min(52vw, 640px);
+    pointer-events: none;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--firefly-base) 18%, transparent) 0%,
+      transparent 68%
+    );
+    filter: blur(48px);
+    opacity: 0.9;
+  }
+
   .glass-panel {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);

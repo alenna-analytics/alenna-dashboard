@@ -1,7 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useCallback, useMemo, useState } from 'react'
 
-import { useCurrentTenant } from '@/auth/hooks'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type {
   ComponentAmountApi,
@@ -14,16 +12,11 @@ import {
 } from '@/shell/providers/global-activity-provider'
 import { LoadingIcon } from '@/ui/app-icon'
 import { Button } from '@/ui/button'
+import { DatePicker } from '@/ui/date-picker'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/ui/select'
+import { Switch } from '@/ui/switch'
 import {
   Sheet,
   SheetContent,
@@ -39,12 +32,13 @@ import { defaultBackfillRange, todayYmd } from './product-cost-date-utils'
 import { formatCostDraft, parseCostInput } from './product-cost-input-utils'
 import { showProductCostErrorToast, showProductCostSuccessToast } from './product-cost-toast'
 import {
-  useCatalogJobQuery,
   useProductDetailQuery,
   useSaveProductCostBreakdownMutation,
 } from './use-catalog-queries'
 
-type CostApplyMode = 'forward' | 'backfill'
+type CostApplyMode = 'today' | 'from_date' | 'range'
+
+const ZERO_DUTIES: ComponentAmountApi = { mode: 'fixed', value: 0 }
 
 type ProductCostEditorSheetProps = {
   lang: string
@@ -65,6 +59,22 @@ type ComponentFieldProps = {
   disabled: boolean
   modeFixedLabel: string
   modePercentLabel: string
+  fixedSuffix: string
+}
+
+function currencyInputSuffix(currency: string): string {
+  try {
+    const part = new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: currency.toUpperCase(),
+      currencyDisplay: 'narrowSymbol',
+    })
+      .formatToParts(0)
+      .find((p) => p.type === 'currency')
+    return part?.value ?? '$'
+  } catch {
+    return '$'
+  }
 }
 
 function ComponentField({
@@ -77,33 +87,58 @@ function ComponentField({
   disabled,
   modeFixedLabel,
   modePercentLabel,
+  fixedSuffix,
 }: ComponentFieldProps) {
+  const isPercent = mode === 'percent'
+  const modeSwitchId = `${id}-mode`
+  const valueSuffix = isPercent ? '%' : fixedSuffix
+
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
-      <div className="flex gap-2">
-        <Select
-          value={mode}
-          onValueChange={(next) => onModeChange(next as ComponentAmountMode)}
-          disabled={disabled}
-        >
-          <SelectTrigger className="w-[7.5rem] shrink-0">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="fixed">{modeFixedLabel}</SelectItem>
-            <SelectItem value="percent">{modePercentLabel}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Input
-          id={id}
-          type="text"
-          inputMode="decimal"
-          value={valueDraft}
-          onChange={(event) => onValueChange(event.target.value)}
-          disabled={disabled}
-          className="font-numeric tabular-nums"
-        />
+      <div className="flex items-center gap-3">
+        <div className="relative min-w-0 flex-1">
+          <Input
+            id={id}
+            type="text"
+            inputMode="decimal"
+            value={valueDraft}
+            onChange={(event) => onValueChange(event.target.value)}
+            disabled={disabled}
+            className="pr-8 font-numeric tabular-nums"
+          />
+          <span
+            className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-text-secondary"
+            aria-hidden
+          >
+            {valueSuffix}
+          </span>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span
+            className={cn(
+              'text-xs font-medium',
+              !isPercent ? 'text-text-primary' : 'text-text-tertiary',
+            )}
+          >
+            {modeFixedLabel}
+          </span>
+          <Switch
+            id={modeSwitchId}
+            checked={isPercent}
+            onCheckedChange={(checked) => onModeChange(checked ? 'percent' : 'fixed')}
+            disabled={disabled}
+            aria-label={`${label}: ${modeFixedLabel} / ${modePercentLabel}`}
+          />
+          <span
+            className={cn(
+              'text-xs font-medium',
+              isPercent ? 'text-text-primary' : 'text-text-tertiary',
+            )}
+          >
+            {modePercentLabel}
+          </span>
+        </div>
       </div>
     </div>
   )
@@ -113,9 +148,7 @@ function breakdownFromDetail(detail: ProductDetailApi): {
   supplier: string
   freightMode: ComponentAmountMode
   freightValue: string
-  dutiesMode: ComponentAmountMode
-  dutiesValue: string
-  packaging: string
+  shipping: string
 } {
   const breakdown: ProductCostBreakdownApi | null | undefined = detail.cost_breakdown
   if (breakdown) {
@@ -123,9 +156,7 @@ function breakdownFromDetail(detail: ProductDetailApi): {
       supplier: formatCostDraft(breakdown.supplier_price),
       freightMode: breakdown.freight.mode,
       freightValue: formatCostDraft(breakdown.freight.value),
-      dutiesMode: breakdown.duties.mode,
-      dutiesValue: formatCostDraft(breakdown.duties.value),
-      packaging: formatCostDraft(breakdown.packaging_value),
+      shipping: formatCostDraft(breakdown.packaging_value),
     }
   }
   if (detail.cost != null) {
@@ -133,18 +164,14 @@ function breakdownFromDetail(detail: ProductDetailApi): {
       supplier: formatCostDraft(detail.cost),
       freightMode: 'fixed',
       freightValue: '0',
-      dutiesMode: 'fixed',
-      dutiesValue: '0',
-      packaging: '0',
+      shipping: '0',
     }
   }
   return {
     supplier: '',
     freightMode: 'fixed',
     freightValue: '0',
-    dutiesMode: 'fixed',
-    dutiesValue: '0',
-    packaging: '0',
+    shipping: '0',
   }
 }
 
@@ -170,26 +197,22 @@ function ProductCostEditorForm({
   onOpenChange,
 }: ProductCostEditorFormProps) {
   const t = useCallback((key: Parameters<typeof shellT>[1]) => shellT(lang, key), [lang])
-  const { tenantId } = useCurrentTenant()
-  const qc = useQueryClient()
-  const { upsertActivity, patchActivity } = useGlobalActivity()
+  const { upsertActivity } = useGlobalActivity()
   const saveMutation = useSaveProductCostBreakdownMutation(productId, parentProductId)
 
   const seed = useMemo(() => breakdownFromDetail(detail), [detail])
   const [supplierDraft, setSupplierDraft] = useState(seed.supplier)
   const [freightMode, setFreightMode] = useState<ComponentAmountMode>(seed.freightMode)
   const [freightDraft, setFreightDraft] = useState(seed.freightValue)
-  const [dutiesMode, setDutiesMode] = useState<ComponentAmountMode>(seed.dutiesMode)
-  const [dutiesDraft, setDutiesDraft] = useState(seed.dutiesValue)
-  const [packagingDraft, setPackagingDraft] = useState(seed.packaging)
-  const [effectiveFrom, setEffectiveFrom] = useState(todayYmd())
-  const [applyMode, setApplyMode] = useState<CostApplyMode>('forward')
+  const [shippingDraft, setShippingDraft] = useState(seed.shipping)
+  const [applyMode, setApplyMode] = useState<CostApplyMode>('today')
+  const [effectiveFromDate, setEffectiveFromDate] = useState(todayYmd())
   const [rangeStart, setRangeStart] = useState(defaultBackfillRange().start)
   const [rangeEnd, setRangeEnd] = useState(defaultBackfillRange().end)
-  const [activeJobId, setActiveJobId] = useState<string | null>(null)
 
-  const jobQuery = useCatalogJobQuery(activeJobId, Boolean(activeJobId))
   const baseCurrency = detail.base_currency
+  const fixedSuffix = useMemo(() => currencyInputSuffix(baseCurrency), [baseCurrency])
+  const today = todayYmd()
 
   const pickerStrings: DateRangePickerStrings = useMemo(
     () => ({
@@ -211,47 +234,59 @@ function ProductCostEditorForm({
 
   const supplierParsed = parseCostInput(supplierDraft)
   const freightParsed = parseComponent(freightMode, freightDraft)
-  const dutiesParsed = parseComponent(dutiesMode, dutiesDraft)
-  const packagingParsed = parseCostInput(packagingDraft)
+  const shippingParsed = parseCostInput(shippingDraft)
 
   const computedTotal = useMemo(() => {
-    if (supplierParsed === null || freightParsed === null || dutiesParsed === null || packagingParsed === null) {
+    if (supplierParsed === null || freightParsed === null || shippingParsed === null) {
       return null
     }
     return computeCogsTotal({
       supplierPrice: supplierParsed,
       freight: freightParsed,
-      duties: dutiesParsed,
-      packagingValue: packagingParsed,
+      duties: ZERO_DUTIES,
+      packagingValue: shippingParsed,
     })
-  }, [supplierParsed, freightParsed, dutiesParsed, packagingParsed])
+  }, [supplierParsed, freightParsed, shippingParsed])
 
   const rangeOk = rangeStart <= rangeEnd
+  const fromDateOk = effectiveFromDate.trim() !== '' && effectiveFromDate <= today
+  const fromDateInvalid = applyMode === 'from_date' && effectiveFromDate.trim() !== '' && !fromDateOk
+
+  const selectApplyMode = (mode: CostApplyMode) => {
+    setApplyMode(mode)
+    if (mode === 'from_date' && effectiveFromDate > today) {
+      setEffectiveFromDate(today)
+    }
+  }
   const formValid =
     supplierParsed !== null &&
     freightParsed !== null &&
-    dutiesParsed !== null &&
-    packagingParsed !== null &&
-    (applyMode === 'forward' ? effectiveFrom.trim() !== '' : rangeOk)
+    shippingParsed !== null &&
+    (applyMode === 'today' ||
+      (applyMode === 'from_date' && fromDateOk) ||
+      (applyMode === 'range' && rangeOk))
 
   const saving = saveMutation.isPending
 
   const handleSave = async () => {
-    if (!formValid || supplierParsed === null || freightParsed === null || dutiesParsed === null || packagingParsed === null) {
+    if (!formValid || supplierParsed === null || freightParsed === null || shippingParsed === null) {
       return
     }
+    const apiApplyMode = applyMode === 'range' ? 'backfill' : 'forward'
+    const effectiveFrom =
+      applyMode === 'today' ? today : applyMode === 'from_date' ? effectiveFromDate : rangeStart
+
     try {
       const res = await saveMutation.mutateAsync({
         supplier_price: supplierParsed,
         freight: freightParsed,
-        duties: dutiesParsed,
-        packaging_value: packagingParsed,
-        effective_from: applyMode === 'forward' ? effectiveFrom : rangeStart,
-        apply_mode: applyMode,
-        effective_to: applyMode === 'backfill' ? rangeEnd : null,
+        duties: ZERO_DUTIES,
+        packaging_value: shippingParsed,
+        effective_from: effectiveFrom,
+        apply_mode: apiApplyMode,
+        effective_to: applyMode === 'range' ? rangeEnd : null,
       })
       if (res.apply_mode === 'backfill' && res.job_id) {
-        setActiveJobId(res.job_id)
         upsertActivity({
           id: cogsBackfillActivityId(res.job_id),
           phase: 'loading',
@@ -270,33 +305,6 @@ function ProductCostEditorForm({
       showProductCostErrorToast(lang, error)
     }
   }
-
-  useEffect(() => {
-    if (jobQuery.data?.status !== 'succeeded' || !tenantId) return
-    void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
-    if (parentProductId && parentProductId !== productId) {
-      void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, parentProductId] })
-    }
-  }, [jobQuery.data?.status, parentProductId, productId, qc, tenantId])
-
-  useEffect(() => {
-    if (!activeJobId || !jobQuery.data) return
-    const job = jobQuery.data
-    if (job.id !== activeJobId) return
-    const gid = cogsBackfillActivityId(activeJobId)
-    if (job.status === 'queued') {
-      patchActivity(gid, { phase: 'loading', subtitle: t('productsJobQueued') })
-    } else if (job.status === 'running') {
-      patchActivity(gid, { phase: 'loading', subtitle: t('productsJobRunning') })
-    } else if (job.status === 'succeeded') {
-      patchActivity(gid, { phase: 'success', subtitle: t('productsJobSucceeded') })
-    } else if (job.status === 'failed') {
-      patchActivity(gid, {
-        phase: 'error',
-        subtitle: job.error_message ?? t('productsJobFailed'),
-      })
-    }
-  }, [activeJobId, jobQuery.data, patchActivity, t])
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -333,30 +341,19 @@ function ProductCostEditorForm({
           disabled={saving}
           modeFixedLabel={t('productsCostEditorModeFixed')}
           modePercentLabel={t('productsCostEditorModePercent')}
-        />
-
-        <ComponentField
-          id="cost-duties"
-          label={t('productsCostEditorDuties')}
-          mode={dutiesMode}
-          valueDraft={dutiesDraft}
-          onModeChange={setDutiesMode}
-          onValueChange={setDutiesDraft}
-          disabled={saving}
-          modeFixedLabel={t('productsCostEditorModeFixed')}
-          modePercentLabel={t('productsCostEditorModePercent')}
+          fixedSuffix={fixedSuffix}
         />
 
         <div className="space-y-2">
-          <Label htmlFor="cost-packaging">
-            {t('productsCostEditorPackaging').replace('{currency}', baseCurrency)}
+          <Label htmlFor="cost-shipping">
+            {t('productsCostEditorShipping').replace('{currency}', baseCurrency)}
           </Label>
           <Input
-            id="cost-packaging"
+            id="cost-shipping"
             type="text"
             inputMode="decimal"
-            value={packagingDraft}
-            onChange={(event) => setPackagingDraft(event.target.value)}
+            value={shippingDraft}
+            onChange={(event) => setShippingDraft(event.target.value)}
             disabled={saving}
             className="font-numeric tabular-nums"
           />
@@ -369,87 +366,122 @@ function ProductCostEditorForm({
           </p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="cost-effective-from">{t('productsCostEditorEffectiveDate')}</Label>
-          <Input
-            id="cost-effective-from"
-            type="date"
-            value={effectiveFrom}
-            onChange={(event) => setEffectiveFrom(event.target.value)}
-            disabled={saving || applyMode === 'backfill'}
-          />
-        </div>
-
         <div className="space-y-2" role="radiogroup" aria-label={t('productsDetailCostModeGroupAria')}>
           <p className="text-xs font-medium text-text-secondary">{t('productsDetailCostModeGroupLabel')}</p>
-          <label
-            className={cn(
-              'flex cursor-pointer items-start gap-3 rounded-md border p-3 text-sm transition-colors',
-              applyMode === 'forward'
-                ? 'border-border-default bg-muted/30'
-                : 'border-border-subtle hover:bg-muted/20',
-            )}
-          >
-            <input
-              type="radio"
-              name="cost-apply-mode"
-              className="mt-0.5"
-              checked={applyMode === 'forward'}
-              onChange={() => setApplyMode('forward')}
-              disabled={saving}
-            />
-            <span className="min-w-0">
-              <span className="font-medium text-text-primary">{t('productsDetailCostModeForward')}</span>
-              <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
-                {t('productsDetailCostModeForwardHelp')}
-              </span>
-            </span>
-          </label>
-          <label
-            className={cn(
-              'flex cursor-pointer items-start gap-3 rounded-md border p-3 text-sm transition-colors',
-              applyMode === 'backfill'
-                ? 'border-border-default bg-muted/30'
-                : 'border-border-subtle hover:bg-muted/20',
-            )}
-          >
-            <input
-              type="radio"
-              name="cost-apply-mode"
-              className="mt-0.5"
-              checked={applyMode === 'backfill'}
-              onChange={() => setApplyMode('backfill')}
-              disabled={saving}
-            />
-            <span className="min-w-0">
-              <span className="font-medium text-text-primary">{t('productsDetailCostModeHistory')}</span>
-              <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
-                {t('productsDetailCostModeHistoryHelp')}
-              </span>
-            </span>
-          </label>
-        </div>
 
-        {applyMode === 'backfill' ? (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-text-secondary">{t('productsDetailRecalcCogsRangeLabel')}</p>
-            <DateRangePicker
-              strings={pickerStrings}
-              startValue={rangeStart}
-              endValue={rangeEnd}
-              onStartChange={(value) => value && setRangeStart(value)}
-              onEndChange={(value) => value && setRangeEnd(value)}
-              filterLabel={t('filterDateTimeLabel')}
-              clearAriaLabel={t('filterClear')}
-              onClear={() => {
-                const d0 = defaultBackfillRange()
-                setRangeStart(d0.start)
-                setRangeEnd(d0.end)
-              }}
-              className="max-w-full"
-            />
+          <div
+            className={cn(
+              'rounded-md border p-3 transition-colors',
+              applyMode === 'today'
+                ? 'border-border-default bg-muted/30'
+                : 'border-border-subtle hover:bg-muted/20',
+            )}
+          >
+            <label className="flex cursor-pointer items-start gap-3 text-sm">
+              <input
+                type="radio"
+                name="cost-apply-mode"
+                className="mt-0.5"
+                checked={applyMode === 'today'}
+                onChange={() => selectApplyMode('today')}
+                disabled={saving}
+              />
+              <span className="min-w-0">
+                <span className="font-medium text-text-primary">{t('productsDetailCostModeForward')}</span>
+                <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
+                  {t('productsDetailCostModeForwardHelp')}
+                </span>
+              </span>
+            </label>
           </div>
-        ) : null}
+
+          <div
+            className={cn(
+              'rounded-md border p-3 transition-colors',
+              applyMode === 'from_date'
+                ? 'border-border-default bg-muted/30'
+                : 'border-border-subtle hover:bg-muted/20',
+            )}
+          >
+            <label className="flex cursor-pointer items-start gap-3 text-sm">
+              <input
+                type="radio"
+                name="cost-apply-mode"
+                className="mt-0.5"
+                checked={applyMode === 'from_date'}
+                onChange={() => selectApplyMode('from_date')}
+                disabled={saving}
+              />
+              <span className="min-w-0 flex-1">
+                <span className="font-medium text-text-primary">{t('productsDetailCostModeFromDate')}</span>
+                <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
+                  {t('productsDetailCostModeFromDateHelp')}
+                </span>
+              </span>
+            </label>
+            {applyMode === 'from_date' ? (
+              <div className="mt-3 space-y-2 pl-7">
+                <Label htmlFor="cost-effective-from">{t('productsCostEditorEffectiveDate')}</Label>
+                <DatePicker
+                  id="cost-effective-from"
+                  value={effectiveFromDate}
+                  onChange={setEffectiveFromDate}
+                  maxDate={today}
+                  disabled={saving}
+                  openAriaLabel={t('productsCostEditorDatePickerAria')}
+                />
+                {fromDateInvalid ? (
+                  <p className="text-xs text-destructive">{t('productsCostEditorEffectiveDateInvalid')}</p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
+          <div
+            className={cn(
+              'rounded-md border p-3 transition-colors',
+              applyMode === 'range'
+                ? 'border-border-default bg-muted/30'
+                : 'border-border-subtle hover:bg-muted/20',
+            )}
+          >
+            <label className="flex cursor-pointer items-start gap-3 text-sm">
+              <input
+                type="radio"
+                name="cost-apply-mode"
+                className="mt-0.5"
+                checked={applyMode === 'range'}
+                onChange={() => selectApplyMode('range')}
+                disabled={saving}
+              />
+              <span className="min-w-0">
+                <span className="font-medium text-text-primary">{t('productsDetailCostModeHistory')}</span>
+                <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
+                  {t('productsDetailCostModeHistoryHelp')}
+                </span>
+              </span>
+            </label>
+            {applyMode === 'range' ? (
+              <div className="mt-3 pl-7">
+                <DateRangePicker
+                  strings={pickerStrings}
+                  startValue={rangeStart}
+                  endValue={rangeEnd}
+                  onStartChange={(value) => value && setRangeStart(value)}
+                  onEndChange={(value) => value && setRangeEnd(value)}
+                  filterLabel={t('filterDateTimeLabel')}
+                  clearAriaLabel={t('filterClear')}
+                  onClear={() => {
+                    const d0 = defaultBackfillRange()
+                    setRangeStart(d0.start)
+                    setRangeEnd(d0.end)
+                  }}
+                  className="max-w-full"
+                />
+              </div>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       <SheetFooter>

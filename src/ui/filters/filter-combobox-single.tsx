@@ -3,7 +3,6 @@ import { Check } from 'lucide-react'
 
 import { LoadingIcon } from '@/ui/app-icon'
 
-import { cn } from '@/lib/utils'
 import {
   Command,
   CommandEmpty,
@@ -13,19 +12,24 @@ import {
   CommandList,
 } from '@/ui/command'
 import { Popover, PopoverContent } from '@/ui/popover'
-import { Button } from '@/ui/button'
 import { FilterPillTriggerArea } from '@/ui/filters/filter-pill-trigger'
 import type { FilterOption } from '@/ui/filters/types'
 import { TruncatedOptionLabel } from '@/ui/filters/truncated-option-label'
+
+export type FilterComboboxSelectionMode = 'single' | 'multi'
+
+const filterComboboxPanelClassName =
+  'w-[min(calc(100vw-24px),18rem)] border-border-subtle bg-white shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)] p-0 backdrop-blur-none'
 
 export type FilterComboboxSingleProps = {
   label: string
   options: FilterOption[]
   value: string
   onValueChange: (value: string) => void
-  applyLabel: string
   searchPlaceholder: string
   emptyLabel: string
+  /** Single-select closes on pick; multi-select toggles checkboxes (use FilterComboboxMulti for full multi UX). */
+  selectionMode?: Extract<FilterComboboxSelectionMode, 'single'>
   triggerClassName?: string
   clearAriaLabel?: string
   /**
@@ -50,7 +54,6 @@ export function FilterComboboxSingle({
   options,
   value,
   onValueChange,
-  applyLabel,
   searchPlaceholder,
   emptyLabel,
   triggerClassName,
@@ -63,17 +66,11 @@ export function FilterComboboxSingle({
   popoverSide = 'bottom',
 }: FilterComboboxSingleProps) {
   const [open, setOpen] = React.useState(false)
-  const [draftValue, setDraftValue] = React.useState(value)
   const selected = options.find((o) => o.value === value)
   const summary = selected?.label ?? (value ? value : null)
   const active = Boolean(value && summary)
 
   const serverSide = typeof onSearchChange === 'function'
-
-  React.useEffect(() => {
-    if (!open) return
-    setDraftValue(value)
-  }, [open, value])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -93,14 +90,14 @@ export function FilterComboboxSingle({
         positionMethod="fixed"
         collisionPadding={12}
         collisionAvoidance={{ side: 'shift', align: 'shift', fallbackAxisSide: 'end' }}
-        className="w-[min(calc(100vw-24px),18rem)] border-border-subtle bg-popover shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)] p-0 backdrop-blur-none"
+        className={filterComboboxPanelClassName}
       >
-        <Command shouldFilter={!serverSide}>
+        <Command shouldFilter={!serverSide} className="bg-white">
           <CommandInput
             placeholder={searchPlaceholder}
             onValueChange={onSearchChange}
           />
-          <CommandList className="max-h-72 overflow-y-auto">
+          <CommandList className="max-h-72 overflow-y-auto bg-white">
             <CommandEmpty>
               {loading ? (
                 <span className="inline-flex items-center gap-2 text-text-secondary">
@@ -111,45 +108,30 @@ export function FilterComboboxSingle({
                 emptyLabel
               )}
             </CommandEmpty>
-            <CommandGroup>
-              {options.map((o) => (
-                <CommandItem
-                  key={o.value}
-                  value={serverSide ? o.value : `${o.label} ${o.value}`}
-                  onSelect={() => {
-                    setDraftValue(o.value)
-                  }}
-                >
-                  <span
-                    className={cn(
-                      'grid size-4 shrink-0 place-items-center rounded-[4px] border border-border-default',
-                      draftValue === o.value
-                        ? 'bg-secondary text-primary-foreground'
-                        : 'bg-bg-default text-transparent',
-                    )}
-                    aria-hidden
+            <CommandGroup className="bg-white">
+              {options.map((o) => {
+                const isSelected = value === o.value
+                return (
+                  <CommandItem
+                    key={o.value}
+                    value={serverSide ? o.value : `${o.label} ${o.value}`}
+                    onSelect={() => {
+                      onValueChange(o.value)
+                      setOpen(false)
+                    }}
+                    className="justify-between gap-2"
                   >
-                    <Check className="size-3" />
-                  </span>
-                  <TruncatedOptionLabel label={o.label} />
-                </CommandItem>
-              ))}
+                    <TruncatedOptionLabel label={o.label} />
+                    {isSelected ? (
+                      <Check className="size-4 shrink-0 text-secondary" aria-hidden />
+                    ) : (
+                      <span className="size-4 shrink-0" aria-hidden />
+                    )}
+                  </CommandItem>
+                )
+              })}
             </CommandGroup>
           </CommandList>
-          <div className="border-t border-border-default p-2">
-            <Button
-              type="button"
-              variant="default"
-              size="xs"
-              className="w-full"
-              onClick={() => {
-                onValueChange(draftValue)
-                setOpen(false)
-              }}
-            >
-              {applyLabel}
-            </Button>
-          </div>
         </Command>
       </PopoverContent>
     </Popover>

@@ -5,10 +5,14 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
   productDetailProfitValue,
   productDetailSalesValue,
+  productDetailUnitsValue,
+  productPlatformSalesValue,
+  productPlatformUnitsValue,
   productProfitHelpKey,
   productSalesHelpKey,
   profitLabelKey,
   salesLabelKey,
+  unitsLabelKey,
 } from '@/lib/sales-metric-basis'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
@@ -100,7 +104,7 @@ export function ProductDetailSections({
       <ProductDetailKpiPlatformBreakdown
         rows={periodByPlatform}
         t={t}
-        formatValue={(row) => fmtBase(row.sales)}
+        formatValue={(row) => fmtBase(productPlatformSalesValue(row, salesMetricBasis))}
       />
     ) : undefined
 
@@ -109,12 +113,15 @@ export function ProductDetailSections({
       <ProductDetailKpiPlatformBreakdown
         rows={periodByPlatform}
         t={t}
-        formatValue={(row) => row.units_sold.toLocaleString()}
+        formatValue={(row) =>
+          productPlatformUnitsValue(row, salesMetricBasis).toLocaleString()
+        }
       />
     ) : undefined
 
   const salesValue = productDetailSalesValue(detail, salesMetricBasis)
   const profitValue = productDetailProfitValue(detail, salesMetricBasis)
+  const unitsValue = productDetailUnitsValue(detail, salesMetricBasis)
 
   const insightKpis = [
     {
@@ -136,8 +143,8 @@ export function ProductDetailSections({
     },
     {
       key: 'units',
-      label: t('productsDetailKpiUnitsSold'),
-      value: insightKpi(detail.period_units_sold.toLocaleString()),
+      label: t(unitsLabelKey(salesMetricBasis)),
+      value: insightKpi(unitsValue.toLocaleString()),
       breakdown: platformUnitsBreakdown,
     },
     {

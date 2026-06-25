@@ -1,5 +1,5 @@
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { ProductDetailApi } from '@/lib/types/catalog'
+import type { ProductDetailApi, ProductPlatformPeriodApi } from '@/lib/types/catalog'
 import type { KpiResponse, ProductKpiResponse } from '@/lib/types/reports'
 
 export type SalesMetricBasis = 'net' | 'gross'
@@ -52,4 +52,35 @@ export function productDetailSalesValue(detail: ProductDetailApi, basis: SalesMe
 
 export function productDetailProfitValue(detail: ProductDetailApi, basis: SalesMetricBasis): number {
   return basis === 'net' ? detail.gross_profit : detail.period_gross_profit
+}
+
+export function unitsLabelKey(basis: SalesMetricBasis): ShellStringKey {
+  return basis === 'net' ? 'productsDetailKpiNetUnitsSold' : 'productsDetailKpiGrossUnitsSold'
+}
+
+export function productDetailUnitsValue(detail: ProductDetailApi, basis: SalesMetricBasis): number {
+  if (basis === 'net') {
+    return detail.period_net_units_sold ?? detail.period_units_sold
+  }
+  return detail.period_gross_units_sold ?? detail.period_units_sold
+}
+
+export function productPlatformSalesValue(
+  row: ProductPlatformPeriodApi,
+  basis: SalesMetricBasis,
+): number {
+  if (basis === 'net') {
+    return row.net_sales ?? row.sales
+  }
+  return row.gross_sales ?? row.sales
+}
+
+export function productPlatformUnitsValue(
+  row: ProductPlatformPeriodApi,
+  basis: SalesMetricBasis,
+): number {
+  if (basis === 'net') {
+    return row.net_units_sold ?? row.units_sold
+  }
+  return row.gross_units_sold ?? row.units_sold
 }

@@ -2,14 +2,45 @@ import { useAuth } from '@clerk/react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useCurrentTenant } from '@/auth/hooks'
-import { apiFetch, apiPatchJson, apiPostJson, apiPutJson } from '@/lib/api'
+import { apiFetch, apiPatchJson, apiPostJson, apiPutJson, type GetTokenFn } from '@/lib/api'
 import type {
   CatalogJobApi,
   ProductDetailApi,
   ProductListResponse,
   ProductStockAlertCountsApi,
+  ProductSummaryApi,
   StockAlertLevel,
 } from '@/lib/types/catalog'
+
+const CATALOG_PICKER_PAGE_SIZE = 200
+
+/** Paginate through `/catalog/products` until all rows are loaded (for pickers). */
+export async function fetchAllCatalogProducts(
+  getToken: GetTokenFn,
+  tenantId: string | null,
+  q?: string,
+): Promise<ProductSummaryApi[]> {
+  let offset = 0
+  let total = 0
+  const items: ProductSummaryApi[] = []
+  do {
+    const sp = new URLSearchParams({
+      limit: String(CATALOG_PICKER_PAGE_SIZE),
+      offset: String(offset),
+      sort_by: 'title',
+      sort_dir: 'asc',
+    })
+    if (q?.trim()) sp.set('q', q.trim())
+    const res = await apiFetch(`/catalog/products?${sp.toString()}`, (a) => getToken(a), {}, tenantId)
+    if (!res.ok) throw new Error(await res.text())
+    const page = (await res.json()) as ProductListResponse
+    total = page.total
+    items.push(...page.items)
+    offset += page.items.length
+    if (page.items.length === 0) break
+  } while (offset < total)
+  return items
+}
 
 export type ProductListQueryParams = {
   q: string

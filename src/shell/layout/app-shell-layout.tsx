@@ -15,6 +15,7 @@ import { WorkspaceProvider } from '@/shell/providers/workspace-context'
 import { ActiveAlertsSheetHost } from '@/shell/alerts/active-alerts-sheet-host'
 import { AlertsSheetProvider } from '@/shell/alerts/alerts-sheet-context'
 import { GlobalActivityBar } from '@/shell/layout/global-activity-bar'
+import { CogsBackfillActivityPollers } from '@/shell/layout/cogs-backfill-activity-pollers'
 import { TrialExpiredScreen } from '@/shell/trial-expired-screen'
 import { onTrialExpired } from '@/lib/trial-expired-signal'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
@@ -135,6 +136,7 @@ export function AppShellLayout() {
     <WorkspaceProvider value={workspaceValue}>
       <DisplayCurrencyProvider me={me} refetchMe={refetchMe}>
         <GlobalActivityProvider>
+          <CogsBackfillActivityPollers />
           <AlertsSheetProvider>
             <TooltipProvider delayDuration={200}>
               <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh overflow-hidden bg-white">

@@ -40,6 +40,7 @@ import { HomeTopProductsChart } from './home-top-products-chart'
 import { getTopProductsChartHeightPx } from './home-top-products-chart-layout'
 import { homeActiveAlertsKpiLabels } from './home-active-alerts-kpi-labels'
 import { HomeActiveAlertsKpi } from './home-active-alerts-kpi'
+import { HomeNoIntegrationsState } from './home-no-integrations-state'
 import { invalidateAlertsQueries, useAlertsSummaryQuery } from './use-alerts-queries'
 import { useAlertsSheet } from '@/shell/alerts/alerts-sheet-context'
 import type { ReactNode } from 'react'
@@ -319,6 +320,8 @@ export function DashboardHomePage() {
 
   const connections = useMemo(() => connectionsQuery.data ?? [], [connectionsQuery.data])
   const connectorsLoading = Boolean(tenantId) && connectionsQuery.isLoading
+  const hasNoIntegrations =
+    !connectorsLoading && connectionsQuery.isSuccess && connections.length === 0
 
   // Default to "all enabled" when no persisted selection exists. Preserves
   // the legacy single-connection behaviour without forcing the user to
@@ -634,61 +637,65 @@ export function DashboardHomePage() {
       : displayKpi === null)
 
   return (
-    <DashboardPage className="flex flex-1 flex-col gap-4">
-      <header className="flex flex-col gap-4">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
-            {t('navHome')}
-          </h1>
-        </div>
-        <div className="flex w-full flex-wrap items-center gap-2">
-          <div className="min-w-60">
-            <FilterDates
-              strings={pickerStrings}
-              startValue={startDate}
-              endValue={endDate}
-              onStartChange={(v) => v && setFilters({ startDate: v })}
-              onEndChange={(v) => v && setFilters({ endDate: v })}
-              label={t('filterDateTimeLabel')}
+    <DashboardPage className={cn('flex flex-1 flex-col', hasNoIntegrations ? 'gap-0' : 'gap-4')}>
+      {!hasNoIntegrations ? (
+        <header className="flex flex-col gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
+              {t('navHome')}
+            </h1>
+          </div>
+          <div className="flex w-full flex-wrap items-center gap-2">
+            <div className="min-w-60">
+              <FilterDates
+                strings={pickerStrings}
+                startValue={startDate}
+                endValue={endDate}
+                onStartChange={(v) => v && setFilters({ startDate: v })}
+                onEndChange={(v) => v && setFilters({ endDate: v })}
+                label={t('filterDateTimeLabel')}
+                clearAriaLabel={t('filterClear')}
+                onClear={() =>
+                  setFilters({
+                    startDate: defaultFilters.startDate,
+                    endDate: defaultFilters.endDate,
+                  })
+                }
+              />
+            </div>
+            <FilterComboboxMulti
+              label={t('homeFilterChannels')}
+              options={channelOptions}
+              values={connectionIds}
+              onValuesChange={(next) => setFilters({ connectionIds: next })}
+              applyLabel={t('datePickerApply')}
+              searchPlaceholder={t('homeFilterChannelsSearch')}
+              emptyLabel={t('homeFilterChannelsEmpty')}
               clearAriaLabel={t('filterClear')}
-              onClear={() =>
-                setFilters({
-                  startDate: defaultFilters.startDate,
-                  endDate: defaultFilters.endDate,
-                })
-              }
+              selectAllLabel={t('homeFilterSelectAll')}
+              deselectAllLabel={t('homeFilterDeselectAll')}
+            />
+            <HomeProductFilter
+              values={productIds}
+              onValuesChange={(next) => setFilters({ productIds: next })}
+              label={t('homeFilterProduct')}
+              applyLabel={t('datePickerApply')}
+              searchPlaceholder={t('homeFilterProductSearch')}
+              emptyLabel={t('homeFilterProductEmpty')}
+              loadingLabel={t('homeFilterProductLoading')}
+              selectAllLabel={t('homeFilterSelectAll')}
+              deselectAllLabel={t('homeFilterDeselectAll')}
+              selectAllContainingLabel={t('homeFilterSelectAllContaining')}
+              deselectAllContainingLabel={t('homeFilterDeselectAllContaining')}
+              allContainingSummaryLabel={t('homeFilterAllContainingSummary')}
             />
           </div>
-          <FilterComboboxMulti
-            label={t('homeFilterChannels')}
-            options={channelOptions}
-            values={connectionIds}
-            onValuesChange={(next) => setFilters({ connectionIds: next })}
-            applyLabel={t('datePickerApply')}
-            searchPlaceholder={t('homeFilterChannelsSearch')}
-            emptyLabel={t('homeFilterChannelsEmpty')}
-            clearAriaLabel={t('filterClear')}
-            selectAllLabel={t('homeFilterSelectAll')}
-            deselectAllLabel={t('homeFilterDeselectAll')}
-          />
-          <HomeProductFilter
-            values={productIds}
-            onValuesChange={(next) => setFilters({ productIds: next })}
-            label={t('homeFilterProduct')}
-            applyLabel={t('datePickerApply')}
-            searchPlaceholder={t('homeFilterProductSearch')}
-            emptyLabel={t('homeFilterProductEmpty')}
-            loadingLabel={t('homeFilterProductLoading')}
-            selectAllLabel={t('homeFilterSelectAll')}
-            deselectAllLabel={t('homeFilterDeselectAll')}
-            selectAllContainingLabel={t('homeFilterSelectAllContaining')}
-            deselectAllContainingLabel={t('homeFilterDeselectAllContaining')}
-            allContainingSummaryLabel={t('homeFilterAllContainingSummary')}
-          />
-        </div>
-      </header>
+        </header>
+      ) : null}
 
-      {isInitialLoad ? (
+      {hasNoIntegrations ? (
+        <HomeNoIntegrationsState lang={lang} />
+      ) : isInitialLoad ? (
         <DashboardHomeLoadingSkeleton />
       ) : (
         <>

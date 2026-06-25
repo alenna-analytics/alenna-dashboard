@@ -130,6 +130,10 @@ export type ProductWeeklyNetSalesPointApi = {
 
 export type ProductPlatformPeriodApi = {
   platform: string
+  gross_sales: number
+  net_sales: number
+  gross_units_sold: number
+  net_units_sold: number
   sales: number
   units_sold: number
 }
@@ -137,6 +141,8 @@ export type ProductPlatformPeriodApi = {
 export type ProductDetailApi = {
   id: string
   internal_sku: string | null
+  period_gross_units_sold: number
+  period_net_units_sold: number
   period_units_sold: number
   period_cogs: number
   period_gross_sales: number

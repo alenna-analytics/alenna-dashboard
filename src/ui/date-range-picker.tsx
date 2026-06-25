@@ -65,7 +65,7 @@ export function toYmdFromDate(d: Date | undefined): string | undefined {
   return `${y}-${m}-${day}`
 }
 
-function parseYmd(v: string): Date | undefined {
+export function parseYmd(v: string): Date | undefined {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v.trim())
   if (!match) return undefined
   const d = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
@@ -311,6 +311,9 @@ export function DateRangePickerPanel({
         <div className="flex min-w-0 flex-1 flex-col p-2">
           <Calendar
             mode="range"
+            captionLayout="dropdown"
+            startMonth={new Date(new Date().getFullYear() - 10, 0, 1)}
+            endMonth={new Date(new Date().getFullYear() + 1, 11, 31)}
             month={visibleMonth}
             onMonthChange={setVisibleMonth}
             showOutsideDays={false}

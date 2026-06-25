@@ -6,19 +6,16 @@ import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch } from '@/lib/api'
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { fetchAllCatalogProducts } from '@/pages/products/use-catalog-queries'
 import type { AlertScopeType, StockOverrideApi } from '@/lib/types/alert-rules'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import type { PlatformConnection } from '@/lib/types/connectors'
+import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
+import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
+import type { FilterOption } from '@/ui/filters/types'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -68,12 +65,6 @@ function initialListingId(editing: StockOverrideApi | null): string {
   return editing.scope_id ?? ''
 }
 
-function scopeTypeLabel(lang: string, scopeType: AlertScopeType): string {
-  if (scopeType === 'channel') return shellT(lang, 'alarmsScopeChannel')
-  if (scopeType === 'product') return shellT(lang, 'alarmsScopeProduct')
-  return shellT(lang, 'alarmsScopeListing')
-}
-
 function OverrideSheetForm({
   lang,
   editing,
@@ -92,6 +83,8 @@ function OverrideSheetForm({
     editing ? String(Math.round(editing.velocity_pct * 100)) : '20',
   )
 
+  const searchPlaceholder = shellT(lang, 'filterSearch')
+
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
     enabled: Boolean(tenantId),
@@ -103,25 +96,9 @@ function OverrideSheetForm({
   })
 
   const productsQuery = useQuery({
-    queryKey: ['catalog', 'products', 'picker', tenantId],
+    queryKey: ['catalog', 'products', 'picker-all', tenantId],
     enabled: Boolean(tenantId) && scopeType !== 'channel',
-    queryFn: async (): Promise<{ id: string; title: string | null }[]> => {
-      const params = new URLSearchParams({
-        limit: '50',
-        offset: '0',
-        sort_by: 'title',
-        sort_dir: 'asc',
-      })
-      const res = await apiFetch(
-        `/catalog/products?${params.toString()}`,
-        (a) => getToken(a),
-        {},
-        tenantId,
-      )
-      if (!res.ok) throw new Error(await res.text())
-      const body = (await res.json()) as { items: { id: string; title: string | null }[] }
-      return body.items
-    },
+    queryFn: async () => fetchAllCatalogProducts((a) => getToken(a), tenantId),
   })
 
   const productDetailQuery = useQuery({
@@ -150,6 +127,42 @@ function OverrideSheetForm({
     return listings.filter((listing) => listing.platform === selectedConnection.platform)
   }, [productDetailQuery.data?.listings, selectedConnection])
 
+  const scopeOptions = useMemo(
+    (): FilterOption[] => [
+      { value: 'channel', label: shellT(lang, 'alarmsScopeChannel') },
+      { value: 'product', label: shellT(lang, 'alarmsScopeProduct') },
+      { value: 'product_listing', label: shellT(lang, 'alarmsScopeListing') },
+    ],
+    [lang],
+  )
+
+  const connectionOptions = useMemo(
+    (): FilterOption[] =>
+      (connectionsQuery.data ?? []).map((connection) => ({
+        value: connection.id,
+        label: connectionLabel(lang, connection),
+      })),
+    [connectionsQuery.data, lang],
+  )
+
+  const productOptions = useMemo(
+    (): FilterOption[] =>
+      (productsQuery.data ?? []).map((product) => ({
+        value: product.id,
+        label: product.title?.trim() || product.id,
+      })),
+    [productsQuery.data],
+  )
+
+  const listingFilterOptions = useMemo(
+    (): FilterOption[] =>
+      listingOptions.map((listing) => ({
+        value: listing.id,
+        label: listing.platform_title?.trim() || listing.platform_sku || listing.id,
+      })),
+    [listingOptions],
+  )
+
   const handleSave = () => {
     const parsed = Number(velocityPct)
     if (!Number.isFinite(parsed) || parsed <= 0 || parsed > 100) return
@@ -177,6 +190,7 @@ function OverrideSheetForm({
 
   const needsConnection = scopeType === 'channel' || scopeType === 'product_listing'
   const needsProduct = scopeType === 'product' || scopeType === 'product_listing'
+  const identityLocked = Boolean(editing) || saving
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -188,93 +202,87 @@ function OverrideSheetForm({
       </SheetHeader>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
-        <div className="space-y-2">
-          <Label>{shellT(lang, 'alarmsColScope')}</Label>
-          <Select
+        <div className={cn(identityLocked && 'pointer-events-none opacity-60')}>
+          <FilterComboboxSingle
+            label={shellT(lang, 'alarmsColScope')}
+            options={scopeOptions}
             value={scopeType}
-            onValueChange={(value) => setScopeType(value as AlertScopeType)}
-            disabled={Boolean(editing) || saving}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue>{scopeTypeLabel(lang, scopeType)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="channel">{shellT(lang, 'alarmsScopeChannel')}</SelectItem>
-              <SelectItem value="product">{shellT(lang, 'alarmsScopeProduct')}</SelectItem>
-              <SelectItem value="product_listing">{shellT(lang, 'alarmsScopeListing')}</SelectItem>
-            </SelectContent>
-          </Select>
+            onValueChange={(value) => {
+              if (value === 'channel' || value === 'product' || value === 'product_listing') {
+                setScopeType(value)
+              }
+            }}
+            selectionMode="single"
+            searchPlaceholder={searchPlaceholder}
+            emptyLabel={shellT(lang, 'filterComingSoon')}
+            allowClear={false}
+            triggerClassName="w-full max-w-none"
+            popoverSide="bottom"
+          />
         </div>
 
         {needsConnection ? (
-          <div className="space-y-2">
-            <Label>{shellT(lang, 'alarmsChannelLabel')}</Label>
-            <Select
-              value={connectionId || undefined}
+          <div className={cn(identityLocked && 'pointer-events-none opacity-60')}>
+            <FilterComboboxSingle
+              label={shellT(lang, 'alarmsChannelLabel')}
+              options={connectionOptions}
+              value={connectionId}
               onValueChange={(value) => {
-                setConnectionId(value ?? '')
+                setConnectionId(value)
                 setListingId('')
               }}
-              disabled={saving || Boolean(editing)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={shellT(lang, 'alarmsChannelPlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {(connectionsQuery.data ?? []).map((connection) => (
-                  <SelectItem key={connection.id} value={connection.id}>
-                    {connectionLabel(lang, connection)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              selectionMode="single"
+              searchPlaceholder={searchPlaceholder}
+              emptyLabel={shellT(lang, 'alarmsChannelPlaceholder')}
+              loading={connectionsQuery.isLoading}
+              loadingLabel={shellT(lang, 'alarmsChannelPlaceholder')}
+              allowClear={false}
+              triggerClassName="w-full max-w-none"
+              popoverSide="bottom"
+            />
           </div>
         ) : null}
 
         {needsProduct ? (
-          <div className="space-y-2">
-            <Label>{shellT(lang, 'alarmsProductLabel')}</Label>
-            <Select
-              value={productId || undefined}
+          <div className={cn(identityLocked && 'pointer-events-none opacity-60')}>
+            <FilterComboboxSingle
+              label={shellT(lang, 'alarmsProductLabel')}
+              options={productOptions}
+              value={productId}
               onValueChange={(value) => {
-                setProductId(value ?? '')
+                setProductId(value)
                 setListingId('')
               }}
-              disabled={saving || Boolean(editing)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={shellT(lang, 'alarmsProductPlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {(productsQuery.data ?? []).map((product) => (
-                  <SelectItem key={product.id} value={product.id}>
-                    {product.title?.trim() || product.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              selectionMode="single"
+              searchPlaceholder={searchPlaceholder}
+              emptyLabel={shellT(lang, 'alarmsProductPlaceholder')}
+              loading={productsQuery.isLoading}
+              loadingLabel={shellT(lang, 'alarmsProductPlaceholder')}
+              allowClear={false}
+              triggerClassName="w-full max-w-none"
+              popoverSide="bottom"
+            />
           </div>
         ) : null}
 
         {scopeType === 'product_listing' ? (
-          <div className="space-y-2">
-            <Label>{shellT(lang, 'alarmsListingLabel')}</Label>
-            <Select
-              value={listingId || undefined}
-              onValueChange={(value) => setListingId(value ?? '')}
-              disabled={saving || !productId || Boolean(editing)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={shellT(lang, 'alarmsListingPlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {listingOptions.map((listing) => (
-                  <SelectItem key={listing.id} value={listing.id}>
-                    {listing.platform_title?.trim() || listing.platform_sku || listing.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div
+            className={cn((identityLocked || !productId) && 'pointer-events-none opacity-60')}
+          >
+            <FilterComboboxSingle
+              label={shellT(lang, 'alarmsListingLabel')}
+              options={listingFilterOptions}
+              value={listingId}
+              onValueChange={setListingId}
+              selectionMode="single"
+              searchPlaceholder={searchPlaceholder}
+              emptyLabel={shellT(lang, 'alarmsListingPlaceholder')}
+              loading={productDetailQuery.isLoading}
+              loadingLabel={shellT(lang, 'alarmsListingPlaceholder')}
+              allowClear={false}
+              triggerClassName="w-full max-w-none"
+              popoverSide="bottom"
+            />
           </div>
         ) : null}
 

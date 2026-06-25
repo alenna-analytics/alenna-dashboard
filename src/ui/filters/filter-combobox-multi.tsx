@@ -23,6 +23,7 @@ export type FilterComboboxMultiProps = {
   options: FilterOption[]
   values: string[]
   onValuesChange: (next: string[]) => void
+  selectionMode?: 'multi'
   applyLabel: string
   searchPlaceholder: string
   emptyLabel: string
@@ -169,9 +170,9 @@ export function FilterComboboxMulti({
         positionMethod="fixed"
         collisionPadding={12}
         collisionAvoidance={{ side: 'shift', align: 'none', fallbackAxisSide: 'none' }}
-        className="w-[min(calc(100vw-24px),18rem)] border-border-subtle shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)] p-0"
+        className="w-[min(calc(100vw-24px),18rem)] border-border-subtle bg-white shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)] p-0 backdrop-blur-none"
       >
-        <Command shouldFilter={false}>
+        <Command shouldFilter={false} className="bg-white">
           <CommandInput
             className="bg-white"
             placeholder={searchPlaceholder}
@@ -180,7 +181,7 @@ export function FilterComboboxMulti({
               onSearchChange?.(next)
             }}
           />
-          <CommandList className="max-h-72 overflow-y-auto">
+          <CommandList className="max-h-72 overflow-y-auto bg-white">
             <CommandEmpty>
               {loading ? (
                 <span

@@ -750,7 +750,7 @@ const SHELL_STRINGS = {
       'El nuevo costo entra en vigor hoy y se mantiene en adelante.',
     productsDetailCostModeFromDate: 'A partir de',
     productsDetailCostModeFromDateHelp:
-      'Elige una fecha hasta hoy. El costo aplica desde ese día en adelante.',
+      'Elige una fecha hasta hoy. El costo aplica desde ese día en adelante y se recalculan los COGS desde esa fecha.',
     productsCostEditorEffectiveDateInvalid:
       'La fecha no puede ser futura.',
     productsDetailCostModeHistory: 'Rango de fechas',
@@ -1589,7 +1589,7 @@ const SHELL_STRINGS = {
       'The new cost takes effect today and stays in place going forward.',
     productsDetailCostModeFromDate: 'Starting on',
     productsDetailCostModeFromDateHelp:
-      'Pick a date up to today. The cost applies from that day forward.',
+      'Pick a date up to today. The cost applies from that day forward and COGS are recalculated from that date.',
     productsCostEditorEffectiveDateInvalid:
       'The date cannot be in the future.',
     productsDetailCostModeHistory: 'Date range',

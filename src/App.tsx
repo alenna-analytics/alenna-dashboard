@@ -15,6 +15,7 @@ import { SalesPage } from '@/pages/sales/SalesPage'
 import { AdsPage } from '@/pages/ads/AdsPage'
 import { SimulationsPage } from '@/pages/simulations/SimulationsPage'
 import { ChannelsPage } from '@/pages/channels/ChannelsPage'
+import { ConfigurationShellLayout } from '@/pages/configuration/configuration-shell-layout'
 import { ConfigurationHomePage } from '@/pages/configuration/ConfigurationHomePage'
 import { AlarmsConfigurationListPage } from '@/pages/configuration/alarms/AlarmsConfigurationListPage'
 import { StockAlarmConfigurationPage } from '@/pages/configuration/alarms/stock/StockAlarmConfigurationPage'
@@ -33,11 +34,11 @@ function App() {
           <Route path="products/:productId" element={<ProductDetailPage />} />
           <Route path="integrations" element={<IntegrationsListPage />} />
           <Route path="integrations/:slug" element={<IntegrationDetailPage />} />
-          <Route path="configuration" element={<ConfigurationHomePage />} />
-          <Route path="configuration/alarms" element={<AlarmsConfigurationListPage />} />
-          <Route path="configuration/alarms/stock" element={<StockAlarmConfigurationPage />} />
-          <Route path="alarms" element={<Navigate to="/dashboard/configuration/alarms" replace />} />
-          <Route path="alarms/*" element={<Navigate to="/dashboard/configuration/alarms" replace />} />
+          <Route path="configuration" element={<ConfigurationShellLayout />}>
+            <Route index element={<ConfigurationHomePage />} />
+            <Route path="alarms" element={<AlarmsConfigurationListPage />} />
+            <Route path="alarms/stock" element={<StockAlarmConfigurationPage />} />
+          </Route>
           <Route path="sales" element={<SalesPage />} />
           <Route path="ads" element={<AdsPage />} />
           <Route path="simulations" element={<SimulationsPage />} />

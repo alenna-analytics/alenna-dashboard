@@ -356,28 +356,28 @@
   --shell-chrome-header-height: 47px;
 
   /** Global activity bar + header chip (Shopify sync, COGS backfill, etc.). */
-  --global-activity-loading-bg: var(--status-blue-600);
+  --global-activity-bar-height: 44px;
+  --global-activity-loading-bg: #fdf6ec;
   --global-activity-loading-border: color-mix(
     in srgb,
-    var(--global-activity-loading-bg) 40%,
+    var(--status-amber-200) 55%,
     transparent
   );
-  --global-activity-success-bg: var(--status-green-600);
+  --global-activity-success-bg: var(--primitive-pill-green-bg);
   --global-activity-success-border: color-mix(
     in srgb,
-    var(--global-activity-success-bg) 40%,
+    var(--status-green-500) 28%,
     transparent
   );
-  --global-activity-error-bg: var(--status-red-600);
+  --global-activity-error-bg: var(--status-red-50);
   --global-activity-error-border: color-mix(
     in srgb,
-    var(--global-activity-error-bg) 40%,
+    var(--status-red-200) 55%,
     transparent
   );
-  --global-activity-on-tint-fg: var(--text-inverse);
   --global-activity-divider: color-mix(
     in srgb,
-    var(--global-activity-on-tint-fg) 15%,
+    var(--ink) 8%,
     transparent
   );
   --global-activity-bar-outer-border: color-mix(
@@ -800,6 +800,28 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes global-activity-bar-enter {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--global-activity-bar-height)));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes global-activity-bar-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--global-activity-bar-height)));
   }
 }
 

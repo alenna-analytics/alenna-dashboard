@@ -26,7 +26,7 @@ export function SidebarNavSection({
         aria-hidden
         className={cn(
           'shrink-0 border-t border-[var(--shell-structure-border)]',
-          collapsed ? 'mx-auto my-2 w-6' : 'mx-2 mt-3 mb-1',
+          collapsed ? 'mx-auto my-2 w-6' : 'mx-2 mt-0 mb-1',
         )}
       />
       {children}

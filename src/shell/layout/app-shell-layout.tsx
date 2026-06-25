@@ -139,7 +139,11 @@ export function AppShellLayout() {
           <CogsBackfillActivityPollers />
           <AlertsSheetProvider>
             <TooltipProvider delayDuration={200}>
-              <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh overflow-hidden bg-white">
+              <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh flex-col overflow-hidden bg-white">
+              <div className="z-40 shrink-0">
+                <GlobalActivityBar />
+              </div>
+              <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
               <AppSidebar
                 className="hidden lg:flex"
                 collapsed={sidebarCollapsed}
@@ -156,7 +160,6 @@ export function AppShellLayout() {
               <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-[var(--shell-structure-border)] bg-white">
                 <div className="sticky top-0 z-30 shrink-0 bg-card">
                   <AppHeader onOpenMobileNav={openMobileNav} />
-                  <GlobalActivityBar className="hidden lg:block" />
                 </div>
                 <div className="flex min-h-0 flex-1 overflow-hidden">
                   <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
@@ -186,6 +189,7 @@ export function AppShellLayout() {
                   </section>
                   <ActiveAlertsSheetHost />
                 </div>
+              </div>
               </div>
               </div>
             </TooltipProvider>

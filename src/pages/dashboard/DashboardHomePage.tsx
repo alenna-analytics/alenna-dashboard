@@ -576,30 +576,30 @@ export function DashboardHomePage() {
       : null
   const unitsSold = showKpiCards
     ? deltaBlock(
-        productMode
-          ? (displayProductKpi?.units_sold ?? 0)
-          : (displayKpi?.units_sold ?? 0),
-        productMode ? pkpiPrev?.units_sold : kpiPrev?.units_sold,
-        'count',
-      )
+      productMode
+        ? (displayProductKpi?.units_sold ?? 0)
+        : (displayKpi?.units_sold ?? 0),
+      productMode ? pkpiPrev?.units_sold : kpiPrev?.units_sold,
+      'count',
+    )
     : null
   const cmPct = showKpiCards
     ? deltaBlock(
-        productMode
-          ? (displayProductKpi?.gross_margin_pct ?? 0)
-          : (displayKpi?.contribution_margin_pct ?? 0),
-        productMode
-          ? pkpiPrev?.gross_margin_pct
-          : kpiPrev?.contribution_margin_pct,
-        'percent',
-      )
+      productMode
+        ? (displayProductKpi?.gross_margin_pct ?? 0)
+        : (displayKpi?.contribution_margin_pct ?? 0),
+      productMode
+        ? pkpiPrev?.gross_margin_pct
+        : kpiPrev?.contribution_margin_pct,
+      'percent',
+    )
     : null
   const ord = showKpiCards
     ? deltaBlock(
-        productMode ? (displayProductKpi?.order_count ?? 0) : (displayKpi?.order_count ?? 0),
-        productMode ? pkpiPrev?.order_count : kpiPrev?.order_count,
-        'count',
-      )
+      productMode ? (displayProductKpi?.order_count ?? 0) : (displayKpi?.order_count ?? 0),
+      productMode ? pkpiPrev?.order_count : kpiPrev?.order_count,
+      'count',
+    )
     : null
   const aovCur = aov ?? 0
   const aovPrev = productMode
@@ -707,153 +707,153 @@ export function DashboardHomePage() {
                 t={t}
               />
               <section className="overflow-hidden rounded-md border border-border-default bg-bg-card-strong">
-              <div className="flex divide-x divide-border-default">
-                <div className="min-w-0 flex-1 p-4">
-                  <KpiCard
-                    bare
-                    label={t(salesLabelKey(salesMetricBasis))}
-                    helpText={t(homeSalesHelpKey(salesMetricBasis))}
-                    value={formatMoney(salesCurrent, { nativeCurrency: currency })}
-                    vsPriorLabel={vsPrior}
-                    priorValueDisplay={salesDelta!.priorDisplay}
-                    pct={salesDelta!.pct}
-                    trend={salesDelta!.trend}
-                    comparisonUnavailable={salesDelta!.unavailable}
-                  />
-                </div>
-                {adsModule?.enabled ? (
+                <div className="flex divide-x divide-border-default">
                   <div className="min-w-0 flex-1 p-4">
                     <KpiCard
                       bare
-                      label={t('homeKpiRoasGlobal')}
-                      helpText={t('homeKpiRoasGlobalHelp')}
-                      value="—"
-                      placeholder
-                      placeholderLabel={t('comingSoonBadge')}
+                      label={t(salesLabelKey(salesMetricBasis))}
+                      helpText={t(homeSalesHelpKey(salesMetricBasis))}
+                      value={formatMoney(salesCurrent, { nativeCurrency: currency })}
                       vsPriorLabel={vsPrior}
-                      priorValueDisplay={null}
-                      pct={null}
-                      trend="flat"
-                      comparisonUnavailable
-                      showComparison={false}
+                      priorValueDisplay={salesDelta!.priorDisplay}
+                      pct={salesDelta!.pct}
+                      trend={salesDelta!.trend}
+                      comparisonUnavailable={salesDelta!.unavailable}
                     />
                   </div>
-                ) : null}
-                <div className="min-w-0 flex-1 p-4">
-                  <KpiCard
-                    bare
-                    label={t('homeKpiContributionMarginPct')}
-                    helpText={t('homeKpiContributionMarginPctHelp')}
-                    value={`${(productMode
-                      ? (displayProductKpi?.gross_margin_pct ?? 0)
-                      : (displayKpi?.contribution_margin_pct ?? 0)
-                    ).toFixed(1)}%`}
-                    vsPriorLabel={vsPrior}
-                    priorValueDisplay={cmPct!.priorDisplay}
-                    pct={cmPct!.pct}
-                    trend={cmPct!.trend}
-                    comparisonUnavailable={cmPct!.unavailable}
-                    negativeMetric
-                  />
+                  {adsModule?.enabled ? (
+                    <div className="min-w-0 flex-1 p-4">
+                      <KpiCard
+                        bare
+                        label={t('homeKpiRoasGlobal')}
+                        helpText={t('homeKpiRoasGlobalHelp')}
+                        value="—"
+                        placeholder
+                        placeholderLabel={t('comingSoonBadge')}
+                        vsPriorLabel={vsPrior}
+                        priorValueDisplay={null}
+                        pct={null}
+                        trend="flat"
+                        comparisonUnavailable
+                        showComparison={false}
+                      />
+                    </div>
+                  ) : null}
+                  <div className="min-w-0 flex-1 p-4">
+                    <KpiCard
+                      bare
+                      label={t('homeKpiContributionMarginPct')}
+                      helpText={t('homeKpiContributionMarginPctHelp')}
+                      value={`${(productMode
+                        ? (displayProductKpi?.gross_margin_pct ?? 0)
+                        : (displayKpi?.contribution_margin_pct ?? 0)
+                      ).toFixed(1)}%`}
+                      vsPriorLabel={vsPrior}
+                      priorValueDisplay={cmPct!.priorDisplay}
+                      pct={cmPct!.pct}
+                      trend={cmPct!.trend}
+                      comparisonUnavailable={cmPct!.unavailable}
+                      negativeMetric
+                    />
+                  </div>
+                  <div className="min-w-0 overflow-hidden">
+                    <HomeActiveAlertsKpi
+                      bare
+                      lowCount={inventoryAlertLowCount}
+                      outCount={inventoryAlertOutCount}
+                      onClick={() => {
+                        invalidateAlertsQueries(queryClient, tenantId)
+                        openSheet()
+                      }}
+                      {...homeActiveAlertsKpiLabels(t, vsPrior)}
+                    />
+                  </div>
                 </div>
-                <div className="min-w-0 overflow-hidden">
-                  <HomeActiveAlertsKpi
-                    bare
-                    lowCount={inventoryAlertLowCount}
-                    outCount={inventoryAlertOutCount}
-                    onClick={() => {
-                      invalidateAlertsQueries(queryClient, tenantId)
-                      openSheet()
-                    }}
-                    {...homeActiveAlertsKpiLabels(t, vsPrior)}
-                  />
+                <div className="flex divide-x divide-border-default border-t border-border-default">
+                  <div className="min-w-0 flex-1 p-3">
+                    <KpiCard
+                      bare
+                      compact
+                      label={t(profitLabelKey(salesMetricBasis))}
+                      helpText={t(profitHelpKey(salesMetricBasis))}
+                      value={formatMoney(profitCurrent, { nativeCurrency: currency })}
+                      vsPriorLabel={vsPrior}
+                      priorValueDisplay={profitDelta!.priorDisplay}
+                      pct={profitDelta!.pct}
+                      trend={profitDelta!.trend}
+                      comparisonUnavailable={profitDelta!.unavailable}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1 p-3">
+                    <KpiCard
+                      bare
+                      compact
+                      label={t('reportsEbitda')}
+                      helpText={t('reportsKpiHelpEbitda')}
+                      value={
+                        productMode
+                          ? '—'
+                          : formatMoney(displayKpi?.ebitda ?? 0, { nativeCurrency: currency })
+                      }
+                      vsPriorLabel={vsPrior}
+                      priorValueDisplay={productMode ? null : ebitda!.priorDisplay}
+                      pct={productMode ? null : ebitda!.pct}
+                      trend={productMode ? 'flat' : ebitda!.trend}
+                      comparisonUnavailable={productMode ? true : ebitda!.unavailable}
+                      showComparison={!productMode}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1 p-3">
+                    <KpiCard
+                      bare
+                      compact
+                      label={t('reportsUnits')}
+                      helpText={t('reportsKpiHelpUnits')}
+                      value={(productMode
+                        ? (displayProductKpi?.units_sold ?? 0)
+                        : (displayKpi?.units_sold ?? 0)
+                      ).toLocaleString()}
+                      vsPriorLabel={vsPrior}
+                      priorValueDisplay={unitsSold!.priorDisplay}
+                      pct={unitsSold!.pct}
+                      trend={unitsSold!.trend}
+                      comparisonUnavailable={unitsSold!.unavailable}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1 p-3">
+                    <KpiCard
+                      bare
+                      compact
+                      label={t('reportsOrders')}
+                      helpText={t('reportsKpiHelpOrders')}
+                      value={orders.toLocaleString()}
+                      vsPriorLabel={vsPrior}
+                      priorValueDisplay={ord!.priorDisplay}
+                      pct={ord!.pct}
+                      trend={ord!.trend}
+                      comparisonUnavailable={ord!.unavailable}
+                      showComparison={orders > 0}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1 p-3">
+                    <KpiCard
+                      bare
+                      compact
+                      label={t('reportsKpiAov')}
+                      helpText={t('reportsKpiHelpAov')}
+                      value={
+                        aov === null ? '—' : formatMoney(aov, { nativeCurrency: currency })
+                      }
+                      vsPriorLabel={vsPrior}
+                      priorValueDisplay={aovDelta?.priorDisplay ?? null}
+                      pct={aovDelta?.pct ?? null}
+                      trend={aovDelta?.trend ?? 'flat'}
+                      comparisonUnavailable={aovDelta?.unavailable ?? true}
+                      showComparison={orders > 0 && aov !== null}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="flex divide-x divide-border-default border-t border-border-default">
-                <div className="min-w-0 flex-1 p-3">
-                  <KpiCard
-                    bare
-                    compact
-                    label={t(profitLabelKey(salesMetricBasis))}
-                    helpText={t(profitHelpKey(salesMetricBasis))}
-                    value={formatMoney(profitCurrent, { nativeCurrency: currency })}
-                    vsPriorLabel={vsPrior}
-                    priorValueDisplay={profitDelta!.priorDisplay}
-                    pct={profitDelta!.pct}
-                    trend={profitDelta!.trend}
-                    comparisonUnavailable={profitDelta!.unavailable}
-                  />
-                </div>
-                <div className="min-w-0 flex-1 p-3">
-                  <KpiCard
-                    bare
-                    compact
-                    label={t('reportsEbitda')}
-                    helpText={t('reportsKpiHelpEbitda')}
-                    value={
-                      productMode
-                        ? '—'
-                        : formatMoney(displayKpi?.ebitda ?? 0, { nativeCurrency: currency })
-                    }
-                    vsPriorLabel={vsPrior}
-                    priorValueDisplay={productMode ? null : ebitda!.priorDisplay}
-                    pct={productMode ? null : ebitda!.pct}
-                    trend={productMode ? 'flat' : ebitda!.trend}
-                    comparisonUnavailable={productMode ? true : ebitda!.unavailable}
-                    showComparison={!productMode}
-                  />
-                </div>
-                <div className="min-w-0 flex-1 p-3">
-                  <KpiCard
-                    bare
-                    compact
-                    label={t('reportsUnits')}
-                    helpText={t('reportsKpiHelpUnits')}
-                    value={(productMode
-                      ? (displayProductKpi?.units_sold ?? 0)
-                      : (displayKpi?.units_sold ?? 0)
-                    ).toLocaleString()}
-                    vsPriorLabel={vsPrior}
-                    priorValueDisplay={unitsSold!.priorDisplay}
-                    pct={unitsSold!.pct}
-                    trend={unitsSold!.trend}
-                    comparisonUnavailable={unitsSold!.unavailable}
-                  />
-                </div>
-                <div className="min-w-0 flex-1 p-3">
-                  <KpiCard
-                    bare
-                    compact
-                    label={t('reportsOrders')}
-                    helpText={t('reportsKpiHelpOrders')}
-                    value={orders.toLocaleString()}
-                    vsPriorLabel={vsPrior}
-                    priorValueDisplay={ord!.priorDisplay}
-                    pct={ord!.pct}
-                    trend={ord!.trend}
-                    comparisonUnavailable={ord!.unavailable}
-                    showComparison={orders > 0}
-                  />
-                </div>
-                <div className="min-w-0 flex-1 p-3">
-                  <KpiCard
-                    bare
-                    compact
-                    label={t('reportsKpiAov')}
-                    helpText={t('reportsKpiHelpAov')}
-                    value={
-                      aov === null ? '—' : formatMoney(aov, { nativeCurrency: currency })
-                    }
-                    vsPriorLabel={vsPrior}
-                    priorValueDisplay={aovDelta?.priorDisplay ?? null}
-                    pct={aovDelta?.pct ?? null}
-                    trend={aovDelta?.trend ?? 'flat'}
-                    comparisonUnavailable={aovDelta?.unavailable ?? true}
-                    showComparison={orders > 0 && aov !== null}
-                  />
-                </div>
-              </div>
-            </section>
+              </section>
             </div>
           ) : null}
 

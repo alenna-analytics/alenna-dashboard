@@ -251,19 +251,21 @@ export function AppSidebarPanel({
 
       <nav
         className={cn(
-          'flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pt-2',
+          'flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto',
           collapsed && 'items-center',
         )}
         aria-label={t('navMain')}
       >
-        <NavItem
-          icon="home"
-          to="/dashboard"
-          end
-          label={t('navHome')}
-          collapsed={collapsed}
-          onNavigate={onNavigate}
-        />
+        <div className={cn('flex w-full flex-col py-2', collapsed && 'items-center')}>
+          <NavItem
+            icon="home"
+            to="/dashboard"
+            end
+            label={t('navHome')}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
+        </div>
         {analyticsModules.length > 0 ? (
           <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionAnalytics')}>
             <ModuleNavItems

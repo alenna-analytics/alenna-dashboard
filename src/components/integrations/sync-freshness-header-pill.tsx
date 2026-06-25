@@ -1,103 +1,47 @@
-import { useAuth } from '@clerk/react'
-import { useQuery } from '@tanstack/react-query'
-
 import { LoadingIcon } from '@/ui/app-icon'
 
-import { useCurrentTenant } from '@/auth/hooks'
-import { formatSyncFreshnessPillLabel } from '@/lib/integrations/sync-freshness-pill-label'
-import { apiFetch } from '@/lib/api'
 import {
-  connectorsQueryRefetchIntervalMs,
-  resolveSyncFreshnessPillContent,
-  syncFreshnessPillBadgeVariant,
-} from '@/lib/integrations/sync-freshness'
-import { shellT } from '@/lib/i18n/shell-strings'
-import type { PlatformConnection } from '@/lib/types/connectors'
-import { useLanguage } from '@/shell/providers/language-provider'
-import {
-  GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
-  useGlobalActivity,
-} from '@/shell/providers/global-activity-provider'
+  useSyncFreshnessHeaderPill,
+  type SyncFreshnessPillViewModel,
+} from '@/components/integrations/use-sync-freshness-header-pill'
 import { Badge } from '@/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { cn } from '@/lib/utils'
-import { useShopifySyncBanner } from '@/components/integrations/use-shopify-sync-banner'
-import { useNowMinuteTick } from '@/hooks/use-now-minute-tick'
 
-export function SyncFreshnessHeaderPill() {
-  const { lang } = useLanguage()
-  const { getToken } = useAuth()
-  const { tenantId } = useCurrentTenant()
-  const { restoreAllActivities, upsertActivity } = useGlobalActivity()
-  const nowMs = useNowMinuteTick()
-
-  const { data: connections } = useQuery({
-    queryKey: ['connectors', tenantId],
-    enabled: Boolean(tenantId),
-    refetchOnWindowFocus: true,
-    refetchInterval: (query) =>
-      connectorsQueryRefetchIntervalMs(query.state.data),
-    queryFn: async (): Promise<PlatformConnection[]> => {
-      const res = await apiFetch('/connectors', (a) => getToken(a), {}, tenantId)
-      if (!res.ok) {
-        const t = await res.text()
-        throw new Error(t || res.statusText)
-      }
-      return (await res.json()) as PlatformConnection[]
-    },
-  })
-
-  useShopifySyncBanner(connections)
-
-  const pill = resolveSyncFreshnessPillContent(connections ?? [], { nowMs })
-  const isSyncing = pill?.kind === 'syncing'
-
-  if (!pill) return null
-
-  const label = formatSyncFreshnessPillLabel(lang, pill)
-  const variant = syncFreshnessPillBadgeVariant(pill)
-  const pillTooltip = shellT(lang, 'syncFreshnessPillTooltip')
-
-  const onBadgeClick = () => {
-    if (!isSyncing) return
-    upsertActivity({
-      id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
-      phase: 'loading',
-      title: shellT(lang, 'shopifySyncProgressTitle'),
-      subtitle: shellT(lang, 'shopifySyncProgressQueued'),
-      href: '/dashboard/integrations/shopify?tab=settings',
-      minimized: false,
-    })
-    restoreAllActivities()
-  }
-
+export function SyncFreshnessPillBadge({ model }: { model: SyncFreshnessPillViewModel }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Badge
-          variant={variant}
+          variant={model.variant}
           className={cn(
-            'h-7 max-w-[min(100vw-8rem,18rem)] min-w-0 shrink cursor-default gap-1.5 truncate px-2.5 py-0 text-xs font-medium',
-            isSyncing && 'cursor-pointer transition-opacity hover:opacity-90',
+            'h-7 max-w-[min(100vw-8rem,28rem)] min-w-0 shrink cursor-default gap-1.5 truncate px-2.5 py-0 text-xs font-medium',
+            model.isSyncing && 'cursor-pointer transition-opacity hover:opacity-90',
           )}
           render={
             <button
               type="button"
               className="inline-flex max-w-full min-w-0 items-center gap-1.5"
-              aria-label={label}
-              onClick={onBadgeClick}
+              aria-label={model.label}
+              onClick={model.onBadgeClick}
             />
           }
         >
-          {pill.kind === 'syncing' ? (
+          {model.pill.kind === 'syncing' ? (
             <LoadingIcon className="size-3 shrink-0" />
           ) : null}
-          <span className="truncate">{label}</span>
+          <span className="truncate">{model.label}</span>
         </Badge>
       </TooltipTrigger>
       <TooltipContent side="bottom" sideOffset={6} className="max-w-56 text-center">
-        {pillTooltip}
+        {model.pillTooltip}
       </TooltipContent>
     </Tooltip>
   )
+}
+
+export function SyncFreshnessHeaderPill() {
+  const model = useSyncFreshnessHeaderPill()
+  if (!model) return null
+  return <SyncFreshnessPillBadge model={model} />
 }

@@ -30,6 +30,14 @@ function scopeTypeLabel(lang: string, scopeType: StockOverrideApi['scope_type'])
   return shellT(lang, 'alarmsScopeListing')
 }
 
+function statusBadge(lang: string, enabled: boolean) {
+  return (
+    <Badge variant={enabled ? 'secondary' : 'outline'}>
+      {enabled ? shellT(lang, 'alarmsStatusEnabled') : shellT(lang, 'alarmsStatusDisabled')}
+    </Badge>
+  )
+}
+
 export function ScopedRulesTable({
   lang,
   items,
@@ -61,8 +69,9 @@ export function ScopedRulesTable({
               <TableRow>
                 <TableHead>{shellT(lang, 'alarmsColScope')}</TableHead>
                 <TableHead>{shellT(lang, 'alarmsColTarget')}</TableHead>
+                <TableHead>{shellT(lang, 'alarmsColOutOfStockStatus')}</TableHead>
+                <TableHead>{shellT(lang, 'alarmsColLowStockStatus')}</TableHead>
                 <TableHead>{shellT(lang, 'alarmsColThreshold')}</TableHead>
-                <TableHead>{shellT(lang, 'alarmsColStatus')}</TableHead>
                 {isAdmin ? <TableHead className="w-[120px]" /> : null}
               </TableRow>
             </TableHeader>
@@ -73,14 +82,9 @@ export function ScopedRulesTable({
                   <TableCell className="max-w-[240px] truncate" title={item.scope_label}>
                     {item.scope_label}
                   </TableCell>
+                  <TableCell>{statusBadge(lang, item.out_of_stock_enabled)}</TableCell>
+                  <TableCell>{statusBadge(lang, item.enabled)}</TableCell>
                   <TableCell>{Math.round(item.velocity_pct * 100)}%</TableCell>
-                  <TableCell>
-                    <Badge variant={item.enabled ? 'secondary' : 'outline'}>
-                      {item.enabled
-                        ? shellT(lang, 'alarmsStatusEnabled')
-                        : shellT(lang, 'alarmsStatusDisabled')}
-                    </Badge>
-                  </TableCell>
                   {isAdmin ? (
                     <TableCell>
                       <div className="flex items-center gap-1">

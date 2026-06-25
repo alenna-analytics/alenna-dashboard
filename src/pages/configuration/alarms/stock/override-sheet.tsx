@@ -37,6 +37,7 @@ type OverrideSheetProps = {
     scope_id: string | null
     platform_connection_id: string | null
     enabled: boolean
+    out_of_stock_enabled: boolean
     velocity_pct: number
   }) => void
 }
@@ -79,6 +80,9 @@ function OverrideSheetForm({
   const [productId, setProductId] = useState(() => initialProductId(editing))
   const [listingId, setListingId] = useState(() => initialListingId(editing))
   const [enabled, setEnabled] = useState(() => editing?.enabled ?? true)
+  const [outOfStockEnabled, setOutOfStockEnabled] = useState(
+    () => editing?.out_of_stock_enabled ?? true,
+  )
   const [velocityPct, setVelocityPct] = useState(() =>
     editing ? String(Math.round(editing.velocity_pct * 100)) : '20',
   )
@@ -184,6 +188,7 @@ function OverrideSheetForm({
       scope_id,
       platform_connection_id,
       enabled,
+      out_of_stock_enabled: outOfStockEnabled,
       velocity_pct: parsed / 100,
     })
   }
@@ -287,7 +292,25 @@ function OverrideSheetForm({
         ) : null}
 
         <div className="flex items-center justify-between gap-4">
-          <Label htmlFor="override-enabled">{shellT(lang, 'alarmsLowStockEnabledLabel')}</Label>
+          <div>
+            <Label htmlFor="override-out-of-stock-enabled">
+              {shellT(lang, 'alarmsOutOfStockEnabledLabel')}
+            </Label>
+            <p className="text-sm text-text-secondary">{shellT(lang, 'alarmsOutOfStockEnabledHelp')}</p>
+          </div>
+          <Switch
+            id="override-out-of-stock-enabled"
+            checked={outOfStockEnabled}
+            onCheckedChange={setOutOfStockEnabled}
+            disabled={saving}
+          />
+        </div>
+
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <Label htmlFor="override-enabled">{shellT(lang, 'alarmsLowStockEnabledLabel')}</Label>
+            <p className="text-sm text-text-secondary">{shellT(lang, 'alarmsLowStockEnabledHelp')}</p>
+          </div>
           <Switch id="override-enabled" checked={enabled} onCheckedChange={setEnabled} disabled={saving} />
         </div>
 

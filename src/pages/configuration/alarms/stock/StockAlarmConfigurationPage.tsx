@@ -8,7 +8,7 @@ import {
   showAlarmConfigSuccessToast,
 } from '@/pages/configuration/alarms/stock/alarm-config-toast'
 import type { AlertScopeType } from '@/lib/types/alert-rules'
-import { OutOfStockInfoCard } from '@/pages/configuration/alarms/stock/out-of-stock-info-card'
+import { OutOfStockDefaultForm } from '@/pages/configuration/alarms/stock/out-of-stock-default-form'
 import { OverrideSheet } from '@/pages/configuration/alarms/stock/override-sheet'
 import { ScopedRulesTable } from '@/pages/configuration/alarms/stock/scoped-rules-table'
 import { TenantDefaultForm } from '@/pages/configuration/alarms/stock/tenant-default-form'
@@ -62,7 +62,16 @@ export function StockAlarmConfigurationPage() {
     }
   }
 
-  const handleSaveDefault = async (payload: { enabled: boolean; velocity_pct: number }) => {
+  const handleSaveOutOfStockDefault = async (payload: { out_of_stock_enabled: boolean }) => {
+    try {
+      await patchRuleMutation.mutateAsync(payload)
+      showAlarmConfigSuccessToast(lang, 'alarmsToastDefaultSaved')
+    } catch (error) {
+      showAlarmConfigErrorToast(lang, error)
+    }
+  }
+
+  const handleSaveLowStockDefault = async (payload: { enabled: boolean; velocity_pct: number }) => {
     try {
       await patchRuleMutation.mutateAsync(payload)
       showAlarmConfigSuccessToast(lang, 'alarmsToastDefaultSaved')
@@ -76,6 +85,7 @@ export function StockAlarmConfigurationPage() {
     scope_id: string | null
     platform_connection_id: string | null
     enabled: boolean
+    out_of_stock_enabled: boolean
     velocity_pct: number
   }) => {
     try {
@@ -84,6 +94,7 @@ export function StockAlarmConfigurationPage() {
           overrideId: editingOverride.id,
           body: {
             enabled: payload.enabled,
+            out_of_stock_enabled: payload.out_of_stock_enabled,
             velocity_pct: payload.velocity_pct,
           },
         })
@@ -95,6 +106,7 @@ export function StockAlarmConfigurationPage() {
           scope_id: payload.scope_id,
           platform_connection_id: payload.platform_connection_id,
           enabled: payload.enabled,
+          out_of_stock_enabled: payload.out_of_stock_enabled,
           velocity_pct: payload.velocity_pct,
         })
         showAlarmConfigSuccessToast(lang, 'alarmsToastRuleCreated')
@@ -129,16 +141,7 @@ export function StockAlarmConfigurationPage() {
           <Skeleton className="h-64 w-full" />
         </div>
       ) : (
-        <section className="space-y-4">
-          <OutOfStockInfoCard lang={lang} />
-          <TenantDefaultForm
-            key={stockRuleQuery.data?.id ?? 'pending'}
-            lang={lang}
-            rule={stockRuleQuery.data}
-            isAdmin={isAdmin}
-            saving={patchRuleMutation.isPending}
-            onSave={handleSaveDefault}
-          />
+        <section className="space-y-6">
           <ScopedRulesTable
             lang={lang}
             items={overridesQuery.data?.items ?? []}
@@ -153,6 +156,32 @@ export function StockAlarmConfigurationPage() {
               setSheetOpen(true)
             }}
             onDelete={handleDelete}
+          />
+
+          <div className="space-y-2">
+            <h2 className="text-sm font-semibold text-text-primary">
+              {shellT(lang, 'alarmsGeneralRulesTitle')}
+            </h2>
+            <p className="text-sm text-text-secondary">
+              {shellT(lang, 'alarmsGeneralRulesDescription')}
+            </p>
+          </div>
+
+          <OutOfStockDefaultForm
+            key={`out-${stockRuleQuery.data?.id ?? 'pending'}-${stockRuleQuery.data?.out_of_stock_enabled}`}
+            lang={lang}
+            rule={stockRuleQuery.data}
+            isAdmin={isAdmin}
+            saving={patchRuleMutation.isPending}
+            onSave={handleSaveOutOfStockDefault}
+          />
+          <TenantDefaultForm
+            key={`low-${stockRuleQuery.data?.id ?? 'pending'}-${stockRuleQuery.data?.enabled}`}
+            lang={lang}
+            rule={stockRuleQuery.data}
+            isAdmin={isAdmin}
+            saving={patchRuleMutation.isPending}
+            onSave={handleSaveLowStockDefault}
           />
         </section>
       )}

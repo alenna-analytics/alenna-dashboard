@@ -39,7 +39,9 @@ export function WorkspaceConfigNavItem({ collapsed, onNavigate }: WorkspaceConfi
       onClick={() => onNavigate?.()}
     >
       <AppIcon name="config" colorize className={sidebarNavIconClassName} />
-      {!collapsed ? <span className={sidebarNavLabelClassName}>{label}</span> : null}
+      {!collapsed ? (
+        <span className={cn(sidebarNavLabelClassName, 'text-sm')}>{label}</span>
+      ) : null}
     </NavLink>
   )
 

@@ -16,7 +16,7 @@ import { AdsPage } from '@/pages/ads/AdsPage'
 import { SimulationsPage } from '@/pages/simulations/SimulationsPage'
 import { ChannelsPage } from '@/pages/channels/ChannelsPage'
 import { ConfigurationShellLayout } from '@/pages/configuration/configuration-shell-layout'
-import { ConfigurationHomePage } from '@/pages/configuration/ConfigurationHomePage'
+import { ConfigurationIndexRedirect } from '@/pages/configuration/configuration-index-redirect'
 import { AlarmsConfigurationListPage } from '@/pages/configuration/alarms/AlarmsConfigurationListPage'
 import { StockAlarmConfigurationPage } from '@/pages/configuration/alarms/stock/StockAlarmConfigurationPage'
 
@@ -35,7 +35,7 @@ function App() {
           <Route path="integrations" element={<IntegrationsListPage />} />
           <Route path="integrations/:slug" element={<IntegrationDetailPage />} />
           <Route path="configuration" element={<ConfigurationShellLayout />}>
-            <Route index element={<ConfigurationHomePage />} />
+            <Route index element={<ConfigurationIndexRedirect />} />
             <Route path="alarms" element={<AlarmsConfigurationListPage />} />
             <Route path="alarms/stock" element={<StockAlarmConfigurationPage />} />
           </Route>

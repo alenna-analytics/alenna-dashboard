@@ -1,7 +1,6 @@
 import { PanelLeft } from 'lucide-react'
 import { matchPath, NavLink, useLocation } from 'react-router-dom'
 
-import alennaIconWhite from '@/assets/alenna/alenna-icon-white.svg'
 import type { AppIconName } from '@/lib/icons/catalog'
 import { useEnabledModules } from '@/lib/modules/use-modules'
 import { useConfigSectionModules, useWorkspaceConfigModuleEnabled } from '@/lib/modules/use-workspace-config'
@@ -11,7 +10,6 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { SidebarNavSection } from '@/shell/layout/sidebar-nav-section'
 import { WorkspaceConfigNavItem } from '@/shell/layout/workspace-config-nav-group'
 import {
-  shellChromeHeaderRowClassName,
   sidebarNavIconClassName,
   sidebarNavItemCollapsedClassName,
   sidebarNavLabelClassName,
@@ -25,13 +23,8 @@ import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
-const DEFAULT_TENANT_MARK_SRC = alennaIconWhite
-
 export type AppSidebarPanelProps = {
   collapsed: boolean
-  companyName: string
-  companyLogoUrl?: string | null
-  companySubtitle: string
   onToggle?: () => void
   hideCollapseToggle?: boolean
   onNavigate?: () => void
@@ -94,11 +87,11 @@ function NavItem({
       <AppIcon name={icon} colorize className={sidebarNavIconClassName} />
       {!collapsed ? (
         <>
-          <span className={sidebarNavLabelClassName}>{label}</span>
+          <span className={cn(sidebarNavLabelClassName, 'text-sm')}>{label}</span>
           {comingSoon && comingSoonLabel ? (
             <Badge
               variant="info"
-              className="ml-auto !h-4 !min-h-0 !max-h-4 shrink-0 rounded-md px-1.5 py-0 text-[10px] font-medium leading-none"
+              className="ml-auto shrink-0 font-numeric"
             >
               {comingSoonLabel}
             </Badge>
@@ -123,29 +116,6 @@ function NavItem({
           {tooltipLabel}
         </TooltipContent>
       </Tooltip>
-    </div>
-  )
-}
-
-function TenantMark({
-  logoUrl,
-  className,
-}: {
-  logoUrl?: string | null
-  className?: string
-}) {
-  const trimmedLogo = logoUrl?.trim() ?? ''
-  const src = trimmedLogo.length > 0 ? trimmedLogo : DEFAULT_TENANT_MARK_SRC
-
-  return (
-    <div
-      className={cn(
-        'flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-text-primary p-1',
-        className,
-      )}
-      aria-hidden
-    >
-      <img src={src} alt="" className="size-5 object-contain" draggable={false} />
     </div>
   )
 }
@@ -189,9 +159,6 @@ function modulesForSection(modules: ModuleState[], section: ModuleSection): Modu
 export function AppSidebarPanel({
   collapsed,
   onToggle,
-  companyName,
-  companyLogoUrl,
-  companySubtitle,
   hideCollapseToggle = false,
   onNavigate,
   className,
@@ -205,7 +172,8 @@ export function AppSidebarPanel({
   const integrationsModule = configModules.find((mod) => mod.id === 'integrations')
   const otherConfigModules = configModules.filter((mod) => mod.id !== 'integrations')
   const workspaceConfigEnabled = useWorkspaceConfigModuleEnabled()
-  const showConfigSection = configModules.length > 0 || workspaceConfigEnabled
+  const showBottomSection =
+    integrationsModule != null || workspaceConfigEnabled || otherConfigModules.length > 0
 
   return (
     <div
@@ -215,67 +183,27 @@ export function AppSidebarPanel({
         className,
       )}
     >
-      <div
-        className={cn(
-          shellChromeHeaderRowClassName,
-          '-mx-2 px-2',
-          collapsed ? 'justify-center' : 'gap-2',
-        )}
-      >
-        {collapsed ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>
-                <TenantMark logoUrl={companyLogoUrl} className="size-7" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={8} className="max-w-[14rem]">
-              <p className="font-medium">{companyName}</p>
-              {companySubtitle ? (
-                <p className="text-xs text-text-tertiary">{companySubtitle}</p>
-              ) : null}
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          <>
-            <TenantMark logoUrl={companyLogoUrl} className="size-7" />
-            <div className="min-w-0 flex-1 leading-none">
-              <p className="truncate text-sm font-semibold text-text-primary">{companyName}</p>
-              {companySubtitle ? (
-                <p className="mt-0.5 truncate text-[11px] text-text-tertiary">{companySubtitle}</p>
-              ) : null}
-            </div>
-          </>
-        )}
-      </div>
-
       <nav
         className={cn(
-          'flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto',
+          'flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pt-2',
           collapsed && 'items-center',
         )}
         aria-label={t('navMain')}
       >
-        <div className={cn('flex w-full flex-col py-2', collapsed && 'items-center')}>
-          <NavItem
-            icon="home"
-            to="/dashboard"
-            end
-            label={t('navHome')}
-            collapsed={collapsed}
-            onNavigate={onNavigate}
-          />
-        </div>
-        {analyticsModules.length > 0 ? (
-          <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionAnalytics')}>
-            <ModuleNavItems
-              modules={analyticsModules}
-              collapsed={collapsed}
-              onNavigate={onNavigate}
-            />
-          </SidebarNavSection>
-        ) : null}
-        {showConfigSection ? (
+        <NavItem
+          icon="home"
+          to="/dashboard"
+          end
+          label={t('navHome')}
+          collapsed={collapsed}
+          onNavigate={onNavigate}
+        />
+        <ModuleNavItems
+          modules={analyticsModules}
+          collapsed={collapsed}
+          onNavigate={onNavigate}
+        />
+        {showBottomSection ? (
           <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionConfiguration')}>
             {integrationsModule ? (
               <NavItem
@@ -300,7 +228,12 @@ export function AppSidebarPanel({
       </nav>
 
       {!hideCollapseToggle && onToggle ? (
-        <div className={cn('mt-auto shrink-0 -mx-2 border-t border-[var(--shell-structure-border)]', sidebarInsetPaddingClassName)}>
+        <div
+          className={cn(
+            'mt-auto shrink-0 -mx-2',
+            sidebarInsetPaddingClassName,
+          )}
+        >
           <Button
             type="button"
             variant="ghost"

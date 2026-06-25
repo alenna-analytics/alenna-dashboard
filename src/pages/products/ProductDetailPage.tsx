@@ -196,18 +196,15 @@ function ProductDetailBody({ productId }: { productId: string }) {
 
   const pickerStrings: DateRangePickerStrings = useMemo(
     () => ({
-      startLabel: t('connectionsDateFrom'),
-      endLabel: t('connectionsDateTo'),
       applyLabel: t('datePickerApply'),
-      presetCustom: t('datePickerCustom'),
+      todayLabel: t('datePickerToday'),
+      placeholder: t('datePickerPlaceholder'),
       presetLast7Days: t('datePickerLast7Days'),
       presetLast30Days: t('datePickerLast30Days'),
-      presetLast3Months: t('datePickerLast3Months'),
-      presetLast12Months: t('datePickerLast12Months'),
-      presetCurrentMonth: t('datePickerCurrentMonth'),
-      presetCurrentQuarter: t('datePickerCurrentQuarter'),
-      presetYtd: t('datePickerYtd'),
-      presetLastYear: t('datePickerLastYear'),
+      presetLast6Months: t('datePickerLast6Months'),
+      presetLastYearRolling: t('datePickerLastYearRolling'),
+      presetCurrentYear: t('datePickerCurrentYear'),
+      presetPreviousYear: t('datePickerPreviousYear'),
     }),
     [t],
   )
@@ -293,12 +290,6 @@ function ProductDetailBody({ productId }: { productId: string }) {
     }
   }
 
-  const onInsightRangeClear = useCallback(() => {
-    const d0 = defaultProductInsightRange()
-    setInsightStart(d0.start)
-    setInsightEnd(d0.end)
-  }, [])
-
   if (detailQuery.isError) {
     return <div className="p-8 text-sm text-destructive">Failed to load product.</div>
   }
@@ -372,7 +363,6 @@ function ProductDetailBody({ productId }: { productId: string }) {
         insightEnd={insightEnd}
         setInsightStart={setInsightStart}
         setInsightEnd={setInsightEnd}
-        onInsightRangeClear={onInsightRangeClear}
         pickerStrings={pickerStrings}
         showInsightValues={showInsightValues}
         insightKpi={insightKpi}

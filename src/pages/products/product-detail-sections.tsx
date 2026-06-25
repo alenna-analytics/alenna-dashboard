@@ -43,7 +43,6 @@ type ProductDetailSectionsProps = {
   insightEnd: string
   setInsightStart: (value: string) => void
   setInsightEnd: (value: string) => void
-  onInsightRangeClear: () => void
   pickerStrings: DateRangePickerStrings
   showInsightValues: boolean
   insightKpi: (value: ReactNode) => ReactNode
@@ -68,7 +67,6 @@ export function ProductDetailSections({
   insightEnd,
   setInsightStart,
   setInsightEnd,
-  onInsightRangeClear,
   pickerStrings,
   showInsightValues,
   insightKpi,
@@ -186,9 +184,6 @@ export function ProductDetailSections({
             endValue={insightEnd}
             onStartChange={(v) => v && setInsightStart(v)}
             onEndChange={(v) => v && setInsightEnd(v)}
-            filterLabel={t('filterDateTimeLabel')}
-            clearAriaLabel={t('filterClear')}
-            onClear={onInsightRangeClear}
             className="w-full max-w-md shrink-0"
           />
         </CardHeader>

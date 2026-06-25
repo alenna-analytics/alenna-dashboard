@@ -13,6 +13,7 @@ import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { Skeleton } from '@/ui/skeleton'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
+import { presetDateRangeYmd } from '@/ui/date-range-picker'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { revenueTrendSubtitleForGranularity } from '@/pages/dashboard/revenue-trend-subtitle'
 import { cn } from '@/lib/utils'
@@ -49,7 +50,6 @@ import {
   computePreviousPeriod,
   computeShiftedPreviousPeriod,
   pctVersusPrevious,
-  toYmd,
 } from '@/pages/reports/reports-ui-helpers'
 import { useMoney } from '@/hooks/use-money'
 import { buildWaterfallSegments } from '@/pages/reports/waterfall-segments'
@@ -188,7 +188,7 @@ function PageSection({
   return (
     <section className={cn('flex flex-col gap-3', className)}>
       {heading ? (
-        <h2 className="text-xl font-semibold text-text-primary">{heading}</h2>
+        <h2 className="text-subtitle font-semibold text-text-primary">{heading}</h2>
       ) : null}
       {children}
     </section>
@@ -280,12 +280,10 @@ export function DashboardHomePage() {
   const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
 
   const defaultFilters = useMemo((): HomeFiltersState => {
-    const today = new Date()
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(today.getDate() - 29)
+    const { start, end } = presetDateRangeYmd('last30')
     return {
-      startDate: toYmd(thirtyDaysAgo),
-      endDate: toYmd(today),
+      startDate: start,
+      endDate: end,
       connectionIds: [],
       productIds: [],
       v: FILTERS_VERSION,
@@ -521,18 +519,15 @@ export function DashboardHomePage() {
   const previousReady = Boolean(prevPeriod) && (productMode ? !pkpiPrevLoading : !kpiPrevLoading)
 
   const pickerStrings = {
-    startLabel: t('connectionsDateFrom'),
-    endLabel: t('connectionsDateTo'),
     applyLabel: t('datePickerApply'),
-    presetCustom: t('datePickerCustom'),
+    todayLabel: t('datePickerToday'),
+    placeholder: t('datePickerPlaceholder'),
     presetLast7Days: t('datePickerLast7Days'),
     presetLast30Days: t('datePickerLast30Days'),
-    presetLast3Months: t('datePickerLast3Months'),
-    presetLast12Months: t('datePickerLast12Months'),
-    presetCurrentMonth: t('datePickerCurrentMonth'),
-    presetCurrentQuarter: t('datePickerCurrentQuarter'),
-    presetYtd: t('datePickerYtd'),
-    presetLastYear: t('datePickerLastYear'),
+    presetLast6Months: t('datePickerLast6Months'),
+    presetLastYearRolling: t('datePickerLastYearRolling'),
+    presetCurrentYear: t('datePickerCurrentYear'),
+    presetPreviousYear: t('datePickerPreviousYear'),
   }
 
   const vsPrior = t('reportsVsPreviousPeriod')
@@ -641,34 +636,23 @@ export function DashboardHomePage() {
       {!hasNoIntegrations ? (
         <header className="flex flex-col gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
+            <h1 className="text-title font-semibold tracking-[-0.02em] text-text-primary">
               {t('navHome')}
             </h1>
           </div>
           <div className="flex w-full flex-wrap items-center gap-2">
-            <div className="min-w-60">
-              <FilterDates
-                strings={pickerStrings}
-                startValue={startDate}
-                endValue={endDate}
-                onStartChange={(v) => v && setFilters({ startDate: v })}
-                onEndChange={(v) => v && setFilters({ endDate: v })}
-                label={t('filterDateTimeLabel')}
-                clearAriaLabel={t('filterClear')}
-                onClear={() =>
-                  setFilters({
-                    startDate: defaultFilters.startDate,
-                    endDate: defaultFilters.endDate,
-                  })
-                }
-              />
-            </div>
+            <FilterDates
+              strings={pickerStrings}
+              startValue={startDate}
+              endValue={endDate}
+              onStartChange={(v) => v && setFilters({ startDate: v })}
+              onEndChange={(v) => v && setFilters({ endDate: v })}
+            />
             <FilterComboboxMulti
               label={t('homeFilterChannels')}
               options={channelOptions}
               values={connectionIds}
               onValuesChange={(next) => setFilters({ connectionIds: next })}
-              applyLabel={t('datePickerApply')}
               searchPlaceholder={t('homeFilterChannelsSearch')}
               emptyLabel={t('homeFilterChannelsEmpty')}
               clearAriaLabel={t('filterClear')}
@@ -679,7 +663,6 @@ export function DashboardHomePage() {
               values={productIds}
               onValuesChange={(next) => setFilters({ productIds: next })}
               label={t('homeFilterProduct')}
-              applyLabel={t('datePickerApply')}
               searchPlaceholder={t('homeFilterProductSearch')}
               emptyLabel={t('homeFilterProductEmpty')}
               loadingLabel={t('homeFilterProductLoading')}

@@ -31,7 +31,7 @@ export function HomeOnboardingHero({ lang, onConnectFirst }: HomeOnboardingHeroP
           <p className="mt-6 max-w-lg text-lg leading-relaxed text-text-secondary">
             {shellT(lang, 'homeOnboardingSubheadline')}
           </p>
-          <Button size="lg" className="mt-10" onClick={onConnectFirst}>
+          <Button size="lg" variant="primary" className="mt-10" onClick={onConnectFirst}>
             {shellT(lang, 'homeOnboardingPrimaryCta')}
           </Button>
         </div>

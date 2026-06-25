@@ -18,6 +18,7 @@ import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import {
   Sheet,
+  SheetBody,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -203,10 +204,10 @@ function OverrideSheetForm({
         <SheetTitle>
           {editing ? shellT(lang, 'alarmsEditRule') : shellT(lang, 'alarmsAddRule')}
         </SheetTitle>
-        <SheetDescription>{shellT(lang, 'alarmsOverrideSheetDescription')}</SheetDescription>
       </SheetHeader>
 
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
+      <SheetBody className="space-y-4">
+        <SheetDescription>{shellT(lang, 'alarmsOverrideSheetDescription')}</SheetDescription>
         <div className={cn(identityLocked && 'pointer-events-none opacity-60')}>
           <FilterComboboxSingle
             label={shellT(lang, 'alarmsColScope')}
@@ -329,10 +330,10 @@ function OverrideSheetForm({
             <span className="text-sm text-text-secondary">%</span>
           </div>
         </div>
-      </div>
+      </SheetBody>
 
       <SheetFooter>
-        <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={saving}>
+        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
           {shellT(lang, 'alarmsCancel')}
         </Button>
         <Button type="button" onClick={handleSave} disabled={saving}>
@@ -355,7 +356,7 @@ export function OverrideSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="sm:max-w-lg">
+      <SheetContent side="right">
         {open ? (
           <OverrideSheetForm
             key={formKey}

@@ -5,7 +5,7 @@ import {
   type SyncFreshnessPillContent,
 } from '@/lib/integrations/sync-freshness'
 import { formatSyncFreshnessPillLabel } from '@/lib/integrations/sync-freshness-pill-label'
-import { Badge } from '@/ui/badge'
+import { StatusPill } from '@/ui/status-pill'
 import { cn } from '@/lib/utils'
 
 type SyncFreshnessPillBadgeProps = {
@@ -16,7 +16,7 @@ type SyncFreshnessPillBadgeProps = {
 
 export function SyncFreshnessPillBadge({ pill, lang, className }: SyncFreshnessPillBadgeProps) {
   return (
-    <Badge
+    <StatusPill
       variant={syncFreshnessPillBadgeVariant(pill)}
       className={cn('gap-1', className)}
     >
@@ -24,6 +24,6 @@ export function SyncFreshnessPillBadge({ pill, lang, className }: SyncFreshnessP
         <LoadingIcon className="size-3" />
       ) : null}
       {formatSyncFreshnessPillLabel(lang, pill)}
-    </Badge>
+    </StatusPill>
   )
 }

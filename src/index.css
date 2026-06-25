@@ -45,8 +45,8 @@
   --color-brand-light: var(--brand-light);
   --color-brand-dim: var(--brand-dim);
   --color-accent: var(--accent);
-  --color-accent-light: var(--brand-light);
-  --color-accent-dim: var(--brand-dim);
+  --color-accent-light: var(--accent-light);
+  --color-accent-dim: var(--accent-dim);
 
   --color-success: var(--success);
   --color-success-dim: var(--success-dim);
@@ -71,10 +71,14 @@
   --color-chart-line-secondary: var(--chart-line-secondary);
   --color-chart-monthly-gross-bar: var(--chart-monthly-gross-bar);
 
-  --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
   --font-heading: var(--font-sans);
   --font-numeric: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --text-title: 1.25rem;
+  --text-subtitle: 1.125rem;
+  --text-body: 0.875rem;
+  --text-micro: 0.625rem;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -150,7 +154,7 @@
   --status-amber-900: #78350f;
 
   --status-red-50: #fef2f2;
-  --status-red-200: #fecaca;
+  --status-red-200: #f3b0a2;
   --status-red-500: #ef4444;
   --status-red-600: #dc2626;
   --status-red-900: #7f1d1d;
@@ -187,6 +191,13 @@
     var(--pill-error-text) 22%,
     transparent
   );
+  --pill-warning-text: var(--status-amber-900);
+  --pill-warning-bg: var(--status-amber-50);
+  --pill-warning-border: color-mix(
+    in srgb,
+    var(--status-amber-500) 28%,
+    transparent
+  );
 
   /** Stock alert severity text (home KPI breakdown, banners). */
   --stock-alert-info: #16b674;
@@ -216,7 +227,7 @@
   --ink: var(--african-turquoise-base);
   --ink-rgb: 0, 0, 0;
 
-  --bg-base: var(--platinum-blonde-300);
+  --bg-base: #ffffff;
   --bg-section: color-mix(in srgb, var(--platinum-blonde-100) 70%, transparent);
   --bg-surface: color-mix(in srgb, var(--platinum-blonde-200) 86%, transparent);
   --bg-elevated: color-mix(
@@ -347,39 +358,30 @@
   --color-accent-forest: var(--firefly-100);
   /** Selected value text on filter pills (sync with accent forest green). */
   --filter-pill-value-active: var(--color-accent-forest);
-  --shell-structure-border: color-mix(
-    in srgb,
-    var(--color-accent-forest) 26%,
-    transparent
-  );
+  --shell-divider: #ccd1d2;
+  --shell-structure-border: var(--shell-divider);
   /** Sidebar workspace header + main AppHeader share this height so border-b lines align. */
   --shell-chrome-header-height: 47px;
+  --shell-sidebar-width: 200px;
+  --shell-sidebar-collapsed-width: 47px;
+  --shell-inner-sidebar-width: 250px;
+  --shell-alerts-panel-width: 400px;
+  --shell-sheet-width: 670px;
+  --shell-sheet-footer-height: 60px;
+  --shell-inner-header-height: 48px;
 
   /** Global activity bar + header chip (Shopify sync, COGS backfill, etc.). */
   --global-activity-bar-height: 44px;
-  --global-activity-loading-bg: #fdf6ec;
-  --global-activity-loading-border: color-mix(
-    in srgb,
-    var(--status-amber-200) 55%,
-    transparent
-  );
-  --global-activity-success-bg: var(--primitive-pill-green-bg);
-  --global-activity-success-border: color-mix(
-    in srgb,
-    var(--status-green-500) 28%,
-    transparent
-  );
+  --global-activity-loading-bg: var(--zara-base);
+  --global-activity-loading-fg: var(--firefly-100);
+  --global-activity-loading-border: var(--shell-divider);
+  --global-activity-success-bg: var(--country-green-base);
+  --global-activity-success-fg: #ffffff;
+  --global-activity-success-border: var(--shell-divider);
   --global-activity-error-bg: var(--status-red-50);
-  --global-activity-error-border: color-mix(
-    in srgb,
-    var(--status-red-200) 55%,
-    transparent
-  );
-  --global-activity-divider: color-mix(
-    in srgb,
-    var(--ink) 8%,
-    transparent
-  );
+  --global-activity-error-fg: var(--text-primary);
+  --global-activity-error-border: var(--status-red-200);
+  --global-activity-divider: color-mix(in srgb, var(--ink) 8%, transparent);
   --global-activity-bar-outer-border: color-mix(
     in srgb,
     var(--ink) 10%,
@@ -507,12 +509,6 @@
     @apply antialiased text-foreground;
     font-family: var(--font-display);
     background-color: var(--bg-base);
-    background-image: radial-gradient(
-      ellipse 120% 80% at 100% 0%,
-      rgba(232, 247, 211, 0.35) 0%,
-      transparent 55%
-    );
-    background-attachment: fixed;
   }
 
   html {

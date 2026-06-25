@@ -4,15 +4,15 @@ import {
   useSyncFreshnessHeaderPill,
   type SyncFreshnessPillViewModel,
 } from '@/components/integrations/use-sync-freshness-header-pill'
-import { Badge } from '@/ui/badge'
+import { StatusPill } from '@/ui/status-pill'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { cn } from '@/lib/utils'
 
-export function SyncFreshnessPillBadge({ model }: { model: SyncFreshnessPillViewModel }) {
+export function SyncFreshnessHeaderPillBadge({ model }: { model: SyncFreshnessPillViewModel }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Badge
+        <StatusPill
           variant={model.variant}
           className={cn(
             'h-7 max-w-[min(100vw-8rem,28rem)] min-w-0 shrink cursor-default gap-1.5 truncate px-2.5 py-0 text-xs font-medium',
@@ -31,7 +31,7 @@ export function SyncFreshnessPillBadge({ model }: { model: SyncFreshnessPillView
             <LoadingIcon className="size-3 shrink-0" />
           ) : null}
           <span className="truncate">{model.label}</span>
-        </Badge>
+        </StatusPill>
       </TooltipTrigger>
       <TooltipContent side="bottom" sideOffset={6} className="max-w-56 text-center">
         {model.pillTooltip}
@@ -43,5 +43,5 @@ export function SyncFreshnessPillBadge({ model }: { model: SyncFreshnessPillView
 export function SyncFreshnessHeaderPill() {
   const model = useSyncFreshnessHeaderPill()
   if (!model) return null
-  return <SyncFreshnessPillBadge model={model} />
+  return <SyncFreshnessHeaderPillBadge model={model} />
 }

@@ -2,7 +2,7 @@ import { Pencil, Trash2 } from 'lucide-react'
 
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { StockOverrideApi } from '@/lib/types/alert-rules'
-import { Badge } from '@/ui/badge'
+import { StatusPill } from '@/ui/status-pill'
 import { Button } from '@/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import {
@@ -30,11 +30,11 @@ function scopeTypeLabel(lang: string, scopeType: StockOverrideApi['scope_type'])
   return shellT(lang, 'alarmsScopeListing')
 }
 
-function statusBadge(lang: string, enabled: boolean) {
+function statusPill(lang: string, enabled: boolean) {
   return (
-    <Badge variant={enabled ? 'secondary' : 'outline'}>
+    <StatusPill variant={enabled ? 'success' : 'neutral'}>
       {enabled ? shellT(lang, 'alarmsStatusEnabled') : shellT(lang, 'alarmsStatusDisabled')}
-    </Badge>
+    </StatusPill>
   )
 }
 
@@ -55,7 +55,7 @@ export function ScopedRulesTable({
           <CardDescription>{shellT(lang, 'alarmsScopedRulesDescription')}</CardDescription>
         </div>
         {isAdmin ? (
-          <Button type="button" variant="secondary" onClick={onAdd}>
+          <Button type="button" variant="primary" onClick={onAdd}>
             {shellT(lang, 'alarmsAddRule')}
           </Button>
         ) : null}
@@ -82,8 +82,8 @@ export function ScopedRulesTable({
                   <TableCell className="max-w-[240px] truncate" title={item.scope_label}>
                     {item.scope_label}
                   </TableCell>
-                  <TableCell>{statusBadge(lang, item.out_of_stock_enabled)}</TableCell>
-                  <TableCell>{statusBadge(lang, item.enabled)}</TableCell>
+                  <TableCell>{statusPill(lang, item.out_of_stock_enabled)}</TableCell>
+                  <TableCell>{statusPill(lang, item.enabled)}</TableCell>
                   <TableCell>{Math.round(item.velocity_pct * 100)}%</TableCell>
                   {isAdmin ? (
                     <TableCell>

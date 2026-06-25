@@ -1,9 +1,9 @@
-import { matchPath } from 'react-router-dom'
+export const CONFIGURATION_BASE_PATH = '/dashboard/configuration'
 
-import { CONFIGURABLE_ALARM_TYPES } from '@/pages/configuration/alarms/alarm-types'
-
-export function hasConfigurationInnerNav(pathname: string): boolean {
-  return CONFIGURABLE_ALARM_TYPES.some(
-    (alarmType) => matchPath({ path: alarmType.path, end: true }, pathname) != null,
+export function isConfigurationRoute(pathname: string): boolean {
+  const normalized = pathname.replace(/\/$/, '') || '/'
+  return (
+    normalized === CONFIGURATION_BASE_PATH ||
+    normalized.startsWith(`${CONFIGURATION_BASE_PATH}/`)
   )
 }

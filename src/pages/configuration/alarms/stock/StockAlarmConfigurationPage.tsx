@@ -20,6 +20,7 @@ import {
   useStockOverridesQuery,
   useStockRuleQuery,
 } from '@/pages/configuration/alarms/stock/use-alert-rules-queries'
+import { ConfigurationInnerSubmoduleBreadcrumb } from '@/pages/configuration/configuration-inner-submodule-breadcrumb'
 import { useAlertsSheet } from '@/shell/alerts/alerts-sheet-context'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -122,14 +123,15 @@ export function StockAlarmConfigurationPage() {
     <DashboardPage className="space-y-8">
       <section className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-2xl">
-          <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
+          <ConfigurationInnerSubmoduleBreadcrumb />
+          <h1 className="text-subtitle font-semibold tracking-[-0.02em] text-text-primary">
             {shellT(lang, 'alarmsStockTypeTitle')}
           </h1>
           <p className="mt-1.5 text-sm text-text-secondary">
             {shellT(lang, 'alarmsStockTypeDescription')}
           </p>
         </div>
-        <Button type="button" variant="secondary" onClick={openSheet}>
+        <Button type="button" variant="primary" onClick={openSheet}>
           {shellT(lang, 'alarmsOpenActiveAlerts')}
         </Button>
       </section>

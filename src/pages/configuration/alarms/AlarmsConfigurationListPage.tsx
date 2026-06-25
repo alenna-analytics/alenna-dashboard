@@ -11,7 +11,7 @@ export function AlarmsConfigurationListPage() {
     <DashboardPage className="space-y-8">
       <section>
         <div className="max-w-2xl">
-          <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
+          <h1 className="text-subtitle font-semibold tracking-[-0.02em] text-text-primary">
             {shellT(lang, 'navAlarms')}
           </h1>
           <p className="mt-1.5 text-sm text-text-secondary">

@@ -1,31 +1,27 @@
 /* eslint-disable react-refresh/only-export-components -- types + date helpers + hook + picker component */
 import * as React from 'react'
 import type { DateRange } from 'react-day-picker'
-import { Check } from 'lucide-react'
+import { Check, ChevronDown, Clock } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
 import { Calendar } from '@/ui/calendar'
-import { Popover, PopoverContent } from '@/ui/popover'
-import { FilterPillTriggerArea } from '@/ui/filters/filter-pill-trigger'
+import { Popover, PopoverContent, PopoverTrigger } from '@/ui/popover'
 
 const DATE_RANGE_POPOVER_MAX_W = 740
 const DATE_RANGE_VIEWPORT_PAD = 24
 const DATE_RANGE_EDGE_MARGIN = 12
 
 export type DateRangePickerStrings = {
-  startLabel: string
-  endLabel: string
   applyLabel: string
-  presetCustom: string
+  todayLabel: string
+  placeholder: string
   presetLast7Days: string
   presetLast30Days: string
-  presetLast3Months: string
-  presetLast12Months: string
-  presetCurrentMonth: string
-  presetCurrentQuarter: string
-  presetYtd: string
-  presetLastYear: string
+  presetLast6Months: string
+  presetLastYearRolling: string
+  presetCurrentYear: string
+  presetPreviousYear: string
 }
 
 export type DateRangePickerProps = {
@@ -35,23 +31,11 @@ export type DateRangePickerProps = {
   onStartChange: (value: string | undefined) => void
   onEndChange: (value: string | undefined) => void
   className?: string
-  /** Label next to the range when active (img 1). If omitted, only the violet date span shows when active. */
-  filterLabel?: string
-  /** Clears to caller-defined defaults (e.g. reset persisted range). */
   onClear?: () => void
   clearAriaLabel?: string
 }
 
-type PresetId =
-  | 'last7'
-  | 'last30'
-  | 'last3m'
-  | 'last12m'
-  | 'currentMonth'
-  | 'currentQuarter'
-  | 'ytd'
-  | 'lastYear'
-  | 'custom'
+type PresetId = 'last7' | 'last30' | 'last6m' | 'last12m' | 'ytd' | 'lastYear' | 'custom'
 
 function sob(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate())
@@ -77,7 +61,7 @@ export function fmtDisplayDate(d: Date | undefined): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-function rangeForPreset(id: Exclude<PresetId, 'custom'>): { from: Date; to: Date } {
+export function rangeForPreset(id: Exclude<PresetId, 'custom'>): { from: Date; to: Date } {
   const today = sob(new Date())
 
   const subDays = (n: number) => {
@@ -90,25 +74,16 @@ function rangeForPreset(id: Exclude<PresetId, 'custom'>): { from: Date; to: Date
     r.setMonth(r.getMonth() - n)
     return r
   }
-  const som = new Date(today.getFullYear(), today.getMonth(), 1)
-  const eom = sob(new Date(today.getFullYear(), today.getMonth() + 1, 0))
-  const q0 = Math.floor(today.getMonth() / 3) * 3
-  const soq = new Date(today.getFullYear(), q0, 1)
-  const eoq = sob(new Date(today.getFullYear(), q0 + 3, 0))
 
   switch (id) {
     case 'last7':
       return { from: subDays(6), to: today }
     case 'last30':
       return { from: subDays(29), to: today }
-    case 'last3m':
-      return { from: subMonths(3), to: today }
+    case 'last6m':
+      return { from: subMonths(6), to: today }
     case 'last12m':
       return { from: subMonths(12), to: today }
-    case 'currentMonth':
-      return { from: som, to: eom }
-    case 'currentQuarter':
-      return { from: soq, to: eoq }
     case 'ytd':
       return { from: new Date(today.getFullYear(), 0, 1), to: today }
     case 'lastYear': {
@@ -118,7 +93,14 @@ function rangeForPreset(id: Exclude<PresetId, 'custom'>): { from: Date; to: Date
   }
 }
 
-/** Min width (px) of the calendar column for two month grids; below this, show one month. */
+export function presetDateRangeYmd(id: Exclude<PresetId, 'custom'>): { start: string; end: string } {
+  const r = rangeForPreset(id)
+  return {
+    start: toYmdFromDate(r.from) ?? '',
+    end: toYmdFromDate(r.to) ?? '',
+  }
+}
+
 const CALENDAR_COLUMN_MIN_FOR_TWO_MONTHS = 520
 
 function guessPreset(from?: Date, to?: Date): PresetId {
@@ -126,10 +108,8 @@ function guessPreset(from?: Date, to?: Date): PresetId {
   const ids: Exclude<PresetId, 'custom'>[] = [
     'last7',
     'last30',
-    'last3m',
+    'last6m',
     'last12m',
-    'currentMonth',
-    'currentQuarter',
     'ytd',
     'lastYear',
   ]
@@ -138,6 +118,33 @@ function guessPreset(from?: Date, to?: Date): PresetId {
     if (r.from.getTime() === sob(from).getTime() && r.to.getTime() === sob(to).getTime()) return id
   }
   return 'custom'
+}
+
+function buildPresets(strings: DateRangePickerStrings): { id: PresetId; label: string; divider?: boolean }[] {
+  return [
+    { id: 'last7', label: strings.presetLast7Days },
+    { id: 'last30', label: strings.presetLast30Days },
+    { id: 'last6m', label: strings.presetLast6Months },
+    { id: 'last12m', label: strings.presetLastYearRolling },
+    { id: 'ytd', label: strings.presetCurrentYear, divider: true },
+    { id: 'lastYear', label: strings.presetPreviousYear },
+  ]
+}
+
+function triggerLabelForPreset(
+  preset: PresetId,
+  presets: { id: PresetId; label: string }[],
+  strings: DateRangePickerStrings,
+  startDisplay: string,
+  endDisplay: string,
+  hasRange: boolean,
+): string {
+  if (!hasRange) return strings.placeholder
+  if (preset !== 'custom') {
+    const found = presets.find((p) => p.id === preset)
+    if (found) return found.label
+  }
+  return `${startDisplay} - ${endDisplay}`
 }
 
 export type DateRangePickerModel = {
@@ -150,6 +157,8 @@ export type DateRangePickerModel = {
   visibleMonth: Date
   setVisibleMonth: React.Dispatch<React.SetStateAction<Date>>
   handleApply: () => void
+  handleToday: () => void
+  triggerLabel: string
 }
 
 export function useDateRangePickerModel({
@@ -185,6 +194,8 @@ export function useDateRangePickerModel({
     return monthStart(new Date())
   })
 
+  const presets = React.useMemo(() => buildPresets(strings), [strings])
+
   const handleOpenChange = (next: boolean) => {
     if (next) {
       const from = parseYmd(startValue)
@@ -212,22 +223,29 @@ export function useDateRangePickerModel({
     setOpen(false)
   }
 
-  const presets: { id: PresetId; label: string; divider?: boolean }[] = [
-    { id: 'last7', label: strings.presetLast7Days },
-    { id: 'last30', label: strings.presetLast30Days },
-    { id: 'last3m', label: strings.presetLast3Months },
-    { id: 'last12m', label: strings.presetLast12Months },
-    { id: 'currentMonth', label: strings.presetCurrentMonth, divider: true },
-    { id: 'currentQuarter', label: strings.presetCurrentQuarter },
-    { id: 'ytd', label: strings.presetYtd },
-    { id: 'lastYear', label: strings.presetLastYear },
-    { id: 'custom', label: strings.presetCustom, divider: true },
-  ]
+  const handleToday = () => {
+    const today = sob(new Date())
+    setDraft({ from: today, to: today })
+    setPreset('custom')
+    setVisibleMonth(monthStart(today))
+  }
 
   const parsedStart = parseYmd(startValue)
   const parsedEnd = parseYmd(endValue)
   const startDisplay = fmtDisplayDate(parsedStart)
   const endDisplay = fmtDisplayDate(parsedEnd)
+  const hasRange = Boolean(parsedStart && parsedEnd)
+
+  const displayPreset = guessPreset(parsedStart, parsedEnd)
+
+  const triggerLabel = triggerLabelForPreset(
+    displayPreset,
+    presets,
+    strings,
+    startDisplay,
+    endDisplay,
+    hasRange,
+  )
 
   return {
     open,
@@ -241,11 +259,40 @@ export function useDateRangePickerModel({
     visibleMonth,
     setVisibleMonth,
     handleApply,
+    handleToday,
+    triggerLabel,
     parsedStart,
     parsedEnd,
     startDisplay,
     endDisplay,
   }
+}
+
+export function DateRangePickerTrigger({
+  label,
+  open,
+  className,
+}: {
+  label: string
+  open: boolean
+  className?: string
+}) {
+  return (
+    <PopoverTrigger
+      type="button"
+      className={cn(
+        'inline-flex h-9 max-w-full min-w-0 shrink-0 items-center gap-2 rounded-md border border-border-default bg-white px-3 text-sm font-medium text-text-primary shadow-none transition-colors',
+        'hover:bg-[var(--platinum-blonde-300)]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
+        'data-[state=open]:border-border-strong',
+        className,
+      )}
+      aria-expanded={open}
+    >
+      <Clock className="size-4 shrink-0 text-text-secondary" aria-hidden />
+      <span className="min-w-0 truncate">{label}</span>
+      <ChevronDown className="ml-auto size-4 shrink-0 text-text-secondary" aria-hidden />
+    </PopoverTrigger>
+  )
 }
 
 export function DateRangePickerPanel({
@@ -258,6 +305,7 @@ export function DateRangePickerPanel({
   visibleMonth,
   setVisibleMonth,
   handleApply,
+  handleToday,
 }: DateRangePickerModel) {
   const calendarColumnRef = React.useRef<HTMLDivElement>(null)
   const [numberOfMonths, setNumberOfMonths] = React.useState<1 | 2>(2)
@@ -277,26 +325,26 @@ export function DateRangePickerPanel({
   }, [])
 
   return (
-    <div className="flex min-w-0 flex-col sm:flex-row sm:items-stretch">
+    <div className="flex min-w-0 flex-col bg-white sm:flex-row sm:items-stretch">
       <nav
         aria-label="Date presets"
-        className="flex w-full shrink-0 flex-col gap-0.5 border-b border-border-subtle/70 p-1.5 sm:w-40 sm:border-b-0 sm:border-r sm:rounded-l-sm"
+        className="flex w-full shrink-0 flex-col gap-0.5 border-b border-[var(--shell-divider)] p-2 sm:w-44 sm:border-r sm:border-b-0"
       >
         {presets.map((p) => (
           <React.Fragment key={p.id}>
-            {p.divider ? <div className="my-1 h-px bg-border-subtle/70" /> : null}
+            {p.divider ? <div className="my-1 h-px bg-[var(--shell-divider)]" /> : null}
             <button
               type="button"
               onClick={() => applyPreset(p.id)}
               className={cn(
-                'flex w-full items-center gap-1.5 rounded-sm px-2 py-1.5 text-left text-xs transition-colors',
+                'flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm transition-colors',
                 preset === p.id
-                  ? 'bg-accent font-medium text-accent-foreground'
-                  : 'text-text-secondary hover:bg-accent hover:text-accent-foreground',
+                  ? 'bg-[var(--zara-400)] font-medium text-text-primary'
+                  : 'text-text-secondary hover:bg-[var(--platinum-blonde-300)] hover:text-text-primary',
               )}
             >
-              <span className="flex size-3 shrink-0 items-center justify-center">
-                {preset === p.id ? <Check className="size-3" aria-hidden /> : null}
+              <span className="flex size-3.5 shrink-0 items-center justify-center">
+                {preset === p.id ? <Check className="size-3.5" aria-hidden /> : null}
               </span>
               <span className="truncate">{p.label}</span>
             </button>
@@ -306,9 +354,9 @@ export function DateRangePickerPanel({
 
       <div
         ref={calendarColumnRef}
-        className="flex min-h-88 min-w-0 flex-1 flex-col sm:min-h-96"
+        className="flex min-h-88 min-w-0 flex-1 flex-col bg-white sm:min-h-96"
       >
-        <div className="flex min-w-0 flex-1 flex-col p-2">
+        <div className="flex min-w-0 flex-1 flex-col p-3">
           <Calendar
             mode="range"
             captionLayout="dropdown"
@@ -323,14 +371,21 @@ export function DateRangePickerPanel({
               applyPreset('custom')
             }}
             numberOfMonths={numberOfMonths}
+            className="bg-white p-0"
           />
         </div>
 
-        <div className="flex items-center justify-between border-t border-border-subtle/70 px-3 py-2">
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {fmtDisplayDate(draft.from)} → {fmtDisplayDate(draft.to)}
-          </span>
-          <Button type="button" size="sm" disabled={!draft.from || !draft.to} onClick={handleApply}>
+        <div className="flex items-center justify-end gap-2 border-t border-[var(--shell-divider)] bg-white px-4 py-3">
+          <Button type="button" variant="primary" size="sm" onClick={handleToday}>
+            {strings.todayLabel}
+          </Button>
+          <Button
+            type="button"
+            variant="accent"
+            size="sm"
+            disabled={!draft.from || !draft.to}
+            onClick={handleApply}
+          >
             {strings.applyLabel}
           </Button>
         </div>
@@ -339,6 +394,9 @@ export function DateRangePickerPanel({
   )
 }
 
+const popoverContentClassName =
+  'max-h-[min(90dvh,calc(100dvh-32px))] w-[min(calc(100vw-24px),740px)] max-w-[calc(100vw-24px)] min-w-0 overflow-x-auto overflow-y-auto border-[var(--shell-divider)] bg-white p-0 shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)]'
+
 export function DateRangePicker({
   strings,
   startValue,
@@ -346,9 +404,6 @@ export function DateRangePicker({
   onStartChange,
   onEndChange,
   className,
-  filterLabel,
-  onClear,
-  clearAriaLabel,
 }: DateRangePickerProps) {
   const m = useDateRangePickerModel({
     strings,
@@ -357,11 +412,6 @@ export function DateRangePicker({
     onStartChange,
     onEndChange,
   })
-
-  const inactiveLabel = filterLabel?.trim() || strings.presetCustom
-  const active = Boolean(m.parsedStart && m.parsedEnd)
-  const activeLabel = filterLabel?.trim() ?? ''
-  const valueSummary = active ? `${m.startDisplay} - ${m.endDisplay}` : null
 
   const pickerShellRef = React.useRef<HTMLDivElement>(null)
   const [popoverAlign, setPopoverAlign] = React.useState<'start' | 'end'>('start')
@@ -385,38 +435,31 @@ export function DateRangePicker({
 
   return (
     <div ref={pickerShellRef} className="inline-flex max-w-full min-w-0 flex-col">
-    <Popover open={m.open} onOpenChange={m.handleOpenChange}>
-      <FilterPillTriggerArea
-        active={active}
-        label={active ? activeLabel : inactiveLabel}
-        valueSummary={valueSummary}
-        onClear={onClear}
-        clearAriaLabel={clearAriaLabel ?? 'Clear date range'}
-        ariaExpanded={m.open}
-        triggerClassName={className}
-      />
-
-      <PopoverContent
-        align={popoverAlign}
-        sideOffset={6}
-        positionMethod="fixed"
-        collisionPadding={12}
-        collisionAvoidance={{ side: 'shift', align: 'none', fallbackAxisSide: 'none' }}
-        className="max-h-[min(90dvh,calc(100dvh-32px))] w-[min(calc(100vw-24px),740px)] max-w-[calc(100vw-24px)] min-w-0 overflow-x-auto overflow-y-auto p-0"
-      >
-        <DateRangePickerPanel
-          strings={m.strings}
-          preset={m.preset}
-          applyPreset={m.applyPreset}
-          presets={m.presets}
-          draft={m.draft}
-          setDraft={m.setDraft}
-          visibleMonth={m.visibleMonth}
-          setVisibleMonth={m.setVisibleMonth}
-          handleApply={m.handleApply}
-        />
-      </PopoverContent>
-    </Popover>
+      <Popover open={m.open} onOpenChange={m.handleOpenChange}>
+        <DateRangePickerTrigger label={m.triggerLabel} open={m.open} className={className} />
+        <PopoverContent
+          align={popoverAlign}
+          sideOffset={6}
+          positionMethod="fixed"
+          collisionPadding={12}
+          collisionAvoidance={{ side: 'shift', align: 'none', fallbackAxisSide: 'none' }}
+          className={popoverContentClassName}
+        >
+          <DateRangePickerPanel
+            strings={m.strings}
+            preset={m.preset}
+            applyPreset={m.applyPreset}
+            presets={m.presets}
+            draft={m.draft}
+            setDraft={m.setDraft}
+            visibleMonth={m.visibleMonth}
+            setVisibleMonth={m.setVisibleMonth}
+            handleApply={m.handleApply}
+            handleToday={m.handleToday}
+            triggerLabel={m.triggerLabel}
+          />
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }

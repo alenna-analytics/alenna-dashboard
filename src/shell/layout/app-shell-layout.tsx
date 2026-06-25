@@ -3,7 +3,6 @@ import { Outlet, useLocation } from 'react-router-dom'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { shellT } from '@/lib/i18n/shell-strings'
-import { formatTenantPlan } from '@/lib/utils'
 import { AppBootLoader } from '@/shell/layout/app-boot-loader'
 import { AppHeader } from '@/shell/layout/app-header'
 import { AppSidebar } from '@/shell/layout/app-sidebar'
@@ -22,6 +21,8 @@ import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { TooltipProvider } from '@/ui/tooltip'
 import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
+import { ConfigurationInternalSidebar } from '@/pages/configuration/configuration-internal-sidebar'
+import { isConfigurationRoute } from '@/pages/configuration/configuration-inner-nav'
 import { cn } from '@/lib/utils'
 
 const SIDEBAR_COLLAPSED_KEY = 'alenna.sidebar.collapsed'
@@ -86,7 +87,7 @@ export function AppShellLayout() {
   const workspaceValue = useMemo(() => ({ me, refetchMe }), [me, refetchMe])
   const mainRef = useRef<HTMLElement>(null)
 
-  const sidebarCompanyName = useMemo(() => {
+  const companyName = useMemo(() => {
     const fromMe = me?.tenant_name?.trim()
     if (fromMe) return fromMe
     const row =
@@ -96,15 +97,7 @@ export function AppShellLayout() {
     return raw && raw.length > 0 ? raw : shellT(lang, 'shellSidebarWorkspaceFallback')
   }, [me?.tenant_name, tenants, tenantId, lang])
 
-  const sidebarCompanySubtitle = useMemo(() => {
-    const fromMe = me?.plan?.trim()
-    if (fromMe) return formatTenantPlan(fromMe)
-    const row =
-      tenants.find((x) => tenantIdsEqual(x.tenant_id, tenantId)) ??
-      (tenants.length === 1 ? tenants[0] : undefined)
-    const p = row?.plan?.trim()
-    return p ? formatTenantPlan(p) : ''
-  }, [me?.plan, tenants, tenantId])
+  const showConfigurationInnerSidebar = isConfigurationRoute(location.pathname)
 
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
@@ -140,57 +133,52 @@ export function AppShellLayout() {
           <AlertsSheetProvider>
             <TooltipProvider delayDuration={200}>
               <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh flex-col overflow-hidden bg-white">
-              <div className="z-40 shrink-0">
-                <GlobalActivityBar />
-              </div>
-              <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-              <AppSidebar
-                className="hidden lg:flex"
-                collapsed={sidebarCollapsed}
-                onToggle={toggleSidebar}
-                companyName={sidebarCompanyName}
-                companySubtitle={sidebarCompanySubtitle}
-              />
-              <AppSidebarDrawer
-                open={mobileNavOpen}
-                onOpenChange={setMobileNavOpen}
-                companyName={sidebarCompanyName}
-                companySubtitle={sidebarCompanySubtitle}
-              />
-              <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border-l border-[var(--shell-structure-border)] bg-white">
-                <div className="sticky top-0 z-30 shrink-0 bg-card">
-                  <AppHeader onOpenMobileNav={openMobileNav} />
+                <div className="z-40 shrink-0">
+                  <GlobalActivityBar />
                 </div>
-                <div className="flex min-h-0 flex-1 overflow-hidden">
-                  <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
-                    <main
-                      ref={mainRef}
-                      className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
-                    >
-                      <div
-                        className={cn(
-                          WORKSPACE_SHELL_COLUMN_CLASS,
-                          'min-h-full py-3 lg:py-4',
-                        )}
+                <div className="sticky top-0 z-30 shrink-0 bg-white">
+                  <AppHeader companyName={companyName} onOpenMobileNav={openMobileNav} />
+                </div>
+                <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+                  <AppSidebar
+                    className="hidden lg:flex"
+                    collapsed={sidebarCollapsed}
+                    onToggle={toggleSidebar}
+                  />
+                  <AppSidebarDrawer
+                    open={mobileNavOpen}
+                    onOpenChange={setMobileNavOpen}
+                  />
+                  <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+                    {showConfigurationInnerSidebar ? <ConfigurationInternalSidebar /> : null}
+                    <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
+                      <main
+                        ref={mainRef}
+                        className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
                       >
-                        {!tenantId && tenants.length > 1 ? (
-                          <p className="mb-4 text-sm text-text-secondary">
-                            Select a workspace in your account menu if prompted.
-                          </p>
-                        ) : null}
                         <div
-                          key={location.pathname}
-                          className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150 motion-safe:fill-mode-both"
+                          className={cn(
+                            WORKSPACE_SHELL_COLUMN_CLASS,
+                            'min-h-full py-3 lg:py-4',
+                          )}
                         >
-                          <Outlet />
+                          {!tenantId && tenants.length > 1 ? (
+                            <p className="mb-4 text-sm text-text-secondary">
+                              Select a workspace in your account menu if prompted.
+                            </p>
+                          ) : null}
+                          <div
+                            key={location.pathname}
+                            className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150 motion-safe:fill-mode-both"
+                          >
+                            <Outlet />
+                          </div>
                         </div>
-                      </div>
-                    </main>
-                  </section>
-                  <ActiveAlertsSheetHost />
+                      </main>
+                    </section>
+                    <ActiveAlertsSheetHost />
+                  </div>
                 </div>
-              </div>
-              </div>
               </div>
             </TooltipProvider>
           </AlertsSheetProvider>

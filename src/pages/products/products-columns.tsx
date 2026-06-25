@@ -6,7 +6,7 @@ import { MoreVertical } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ShellStringKey } from "@/lib/i18n/shell-strings"
 import type { ProductSummaryApi } from "@/lib/types/catalog"
-import { Badge } from "@/ui/badge"
+import { StatusPill } from "@/ui/status-pill"
 import { Checkbox } from "@/ui/checkbox"
 import { DataTableColumnHeader } from "@/ui/data-table/data-table-column-header"
 import {
@@ -57,18 +57,18 @@ export type ProductTableColumnLabels = {
   onOpenCostEditor: (productId: string) => void
 }
 
-function statusBadgeVariant(status: string): ComponentProps<typeof Badge>["variant"] {
+function statusPillVariant(status: string): ComponentProps<typeof StatusPill>['variant'] {
   switch (status) {
-    case "active":
-      return "success"
-    case "inactive":
-      return "secondary"
-    case "archived":
-      return "info"
-    case "deleted":
-      return "error"
+    case 'active':
+      return 'success'
+    case 'inactive':
+      return 'neutral'
+    case 'archived':
+      return 'info'
+    case 'deleted':
+      return 'error'
     default:
-      return "secondary"
+      return 'neutral'
   }
 }
 
@@ -156,7 +156,7 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
       cell: ({ row }) => {
         const st = row.original.status
         return (
-          <Badge variant={statusBadgeVariant(st)}>{statusLabel(t, st)}</Badge>
+          <StatusPill variant={statusPillVariant(st)}>{statusLabel(t, st)}</StatusPill>
         )
       },
       enableHiding: true,

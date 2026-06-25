@@ -168,7 +168,7 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
         <Button
           type="button"
           className="w-full"
-          variant="secondary"
+          variant="primary"
           disabled={retryShopifySyncPending}
           onClick={() => retryShopifySync()}
         >

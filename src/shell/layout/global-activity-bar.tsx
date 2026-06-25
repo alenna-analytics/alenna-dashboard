@@ -19,11 +19,21 @@ type BannerPhase = 'hidden' | 'visible' | 'closing'
 
 const ROW_SURFACE: Record<GlobalActivityPhase, string> = {
   loading:
-    'border-b border-[var(--global-activity-loading-border)] bg-[var(--global-activity-loading-bg)]',
+    'border-b border-[var(--global-activity-loading-border)] bg-[var(--global-activity-loading-bg)] text-[var(--global-activity-loading-fg)]',
   success:
-    'border-b border-[var(--global-activity-success-border)] bg-[var(--global-activity-success-bg)]',
+    'border-b border-[var(--global-activity-success-border)] bg-[var(--global-activity-success-bg)] text-[var(--global-activity-success-fg)]',
   error:
-    'border-b border-[var(--global-activity-error-border)] bg-[var(--global-activity-error-bg)]',
+    'border-b border-[var(--global-activity-error-border)] bg-[var(--global-activity-error-bg)] text-[var(--global-activity-error-fg)]',
+}
+
+function phaseGlyphClass(phase: GlobalActivityPhase): string {
+  if (phase === 'loading') {
+    return 'text-[var(--global-activity-loading-fg)]'
+  }
+  if (phase === 'success') {
+    return 'text-[var(--global-activity-success-fg)]'
+  }
+  return 'text-[var(--global-activity-error-fg)]'
 }
 
 function itemsChanged(next: GlobalActivityItem[], current: GlobalActivityItem[]): boolean {
@@ -38,18 +48,14 @@ function itemsChanged(next: GlobalActivityItem[], current: GlobalActivityItem[])
 }
 
 function PhaseGlyph({ phase }: { phase: GlobalActivityPhase }) {
+  const glyphClass = cn('size-3.5 shrink-0', phaseGlyphClass(phase))
   if (phase === 'loading') {
-    return <LoadingIcon className="size-3.5 shrink-0 text-text-secondary" />
+    return <LoadingIcon className={glyphClass} />
   }
   if (phase === 'success') {
-    return (
-      <CheckCircle2
-        className="size-3.5 shrink-0 text-[var(--primitive-pill-green-text)]"
-        aria-hidden
-      />
-    )
+    return <CheckCircle2 className={glyphClass} aria-hidden />
   }
-  return <AlertCircle className="size-3.5 shrink-0 text-destructive" aria-hidden />
+  return <AlertCircle className={glyphClass} aria-hidden />
 }
 
 function ActivityRow({ item }: { item: GlobalActivityItem }) {
@@ -77,7 +83,7 @@ function ActivityRow({ item }: { item: GlobalActivityItem }) {
       <div
         className={cn(
           WORKSPACE_SHELL_COLUMN_CLASS,
-          'flex h-full items-center gap-2 text-sm text-text-secondary',
+          'flex h-full items-center gap-2 text-sm',
         )}
       >
         <PhaseGlyph phase={item.phase} />
@@ -86,16 +92,16 @@ function ActivityRow({ item }: { item: GlobalActivityItem }) {
           className="min-w-0 flex-1 truncate outline-none transition-opacity hover:opacity-90 focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           title={label}
         >
-          <span className="text-text-primary">{item.title}</span>
+          <span className="font-medium">{item.title}</span>
           {item.subtitle ? (
-            <span className="text-muted-foreground"> · {item.subtitle}</span>
+            <span className="opacity-80"> · {item.subtitle}</span>
           ) : null}
         </Link>
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="size-7 shrink-0 text-text-secondary hover:bg-black/5 hover:text-text-primary"
+          className="size-7 shrink-0 opacity-80 hover:bg-black/5 hover:opacity-100"
           aria-label={shellT(lang, 'globalActivityDismissAria')}
           onClick={(e) => {
             e.preventDefault()

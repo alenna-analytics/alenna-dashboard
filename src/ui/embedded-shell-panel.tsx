@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
 import { Sheet, SheetContent } from '@/ui/sheet'
 
-export const embeddedShellPanelWidthClass = 'w-[min(400px,38vw)]'
+export const embeddedShellPanelWidthClass = 'w-[var(--shell-alerts-panel-width)]'
 
 type EmbeddedShellPanelProps = {
   open: boolean
@@ -28,7 +28,7 @@ function EmbeddedShellPanelFrame({
   className?: string
 }) {
   return (
-    <div className={cn('relative flex h-full min-h-0 flex-col bg-white', className)}>
+    <div className={cn('relative flex h-full min-h-0 flex-col', className)}>
       <Button
         type="button"
         variant="ghost"
@@ -59,7 +59,7 @@ export function EmbeddedShellPanel({
       {open && isLargeScreen ? (
         <aside
           className={cn(
-            'flex h-full min-h-0 shrink-0 flex-col overflow-hidden border-l border-border-default bg-white',
+            'flex h-full min-h-0 shrink-0 flex-col overflow-hidden border-l border-[var(--shell-divider)] bg-[var(--platinum-blonde-300)]',
             embeddedShellPanelWidthClass,
             className,
           )}
@@ -73,8 +73,10 @@ export function EmbeddedShellPanel({
         <Sheet open={open} onOpenChange={onOpenChange}>
           <SheetContent
             side="right"
-            showCloseButton={false}
-            className={cn('flex max-w-xl flex-col overflow-hidden', className)}
+            className={cn(
+              'flex max-w-xl flex-col overflow-hidden bg-[var(--platinum-blonde-300)]',
+              className,
+            )}
           >
             <EmbeddedShellPanelFrame onClose={handleClose} closeAriaLabel={closeAriaLabel}>
               {children}

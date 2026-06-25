@@ -1,13 +1,13 @@
 /** Shared chrome row: sidebar workspace header + main AppHeader (border included in height). */
 export const shellChromeHeaderRowClassName =
-  'box-border flex shrink-0 items-center overflow-hidden border-b border-[var(--shell-structure-border)] h-[var(--shell-chrome-header-height)] max-h-[var(--shell-chrome-header-height)] min-h-[var(--shell-chrome-header-height)]'
+  'box-border flex shrink-0 items-center overflow-visible border-b border-[var(--shell-divider)] bg-white h-[var(--shell-chrome-header-height)] max-h-[var(--shell-chrome-header-height)] min-h-[var(--shell-chrome-header-height)]'
 
 /** Sidebar nav icon: 16px. */
 export const sidebarNavIconClassName = 'size-4 shrink-0'
 
 /** Label line-height matches icon box for vertical centering. */
 export const sidebarNavLabelClassName =
-  'min-w-0 flex-1 truncate text-sm font-medium leading-4'
+  'min-w-0 flex-1 truncate font-medium leading-4'
 
 /** Shared sidebar nav row: 32px tall (`h-8`), 8px horizontal inset (`px-2`). */
 export const sidebarNavItemClassName =

@@ -48,7 +48,7 @@ export function ProductDetailUnsavedBar({
         >
           {t('productsDetailSkuDiscard')}
         </Button>
-        <Button type="button" variant="default" size="default" onClick={onSave} disabled={savePending}>
+        <Button type="button" variant="primary" size="default" onClick={onSave} disabled={savePending}>
           {savePending ? (
             <>
               <LoadingIcon className="size-4" />

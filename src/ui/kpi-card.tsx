@@ -53,7 +53,7 @@ export function KpiDeltaPill({
   return (
     <Badge
       variant={variant}
-      className={cn('tabular-nums', !empty && 'font-medium')}
+      className={cn('font-numeric tabular-nums', !empty && 'font-medium')}
     >
       {pctStr}
     </Badge>

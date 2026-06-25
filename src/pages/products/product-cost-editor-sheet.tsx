@@ -19,6 +19,7 @@ import { Label } from '@/ui/label'
 import { Switch } from '@/ui/switch'
 import {
   Sheet,
+  SheetBody,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -216,18 +217,15 @@ function ProductCostEditorForm({
 
   const pickerStrings: DateRangePickerStrings = useMemo(
     () => ({
-      startLabel: t('connectionsDateFrom'),
-      endLabel: t('connectionsDateTo'),
       applyLabel: t('datePickerApply'),
-      presetCustom: t('datePickerCustom'),
+      todayLabel: t('datePickerToday'),
+      placeholder: t('datePickerPlaceholder'),
       presetLast7Days: t('datePickerLast7Days'),
       presetLast30Days: t('datePickerLast30Days'),
-      presetLast3Months: t('datePickerLast3Months'),
-      presetLast12Months: t('datePickerLast12Months'),
-      presetCurrentMonth: t('datePickerCurrentMonth'),
-      presetCurrentQuarter: t('datePickerCurrentQuarter'),
-      presetYtd: t('datePickerYtd'),
-      presetLastYear: t('datePickerLastYear'),
+      presetLast6Months: t('datePickerLast6Months'),
+      presetLastYearRolling: t('datePickerLastYearRolling'),
+      presetCurrentYear: t('datePickerCurrentYear'),
+      presetPreviousYear: t('datePickerPreviousYear'),
     }),
     [t],
   )
@@ -310,12 +308,12 @@ function ProductCostEditorForm({
     <div className="flex min-h-0 flex-1 flex-col">
       <SheetHeader>
         <SheetTitle>{t('productsCostEditorTitle')}</SheetTitle>
+      </SheetHeader>
+
+      <SheetBody className="space-y-4">
         <SheetDescription>
           {t('productsDetailCostHelp').replace('{currency}', baseCurrency)}
         </SheetDescription>
-      </SheetHeader>
-
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
         <div className="space-y-2">
           <Label htmlFor="cost-supplier">
             {t('productsCostEditorSupplier').replace('{currency}', baseCurrency)}
@@ -469,23 +467,16 @@ function ProductCostEditorForm({
                   endValue={rangeEnd}
                   onStartChange={(value) => value && setRangeStart(value)}
                   onEndChange={(value) => value && setRangeEnd(value)}
-                  filterLabel={t('filterDateTimeLabel')}
-                  clearAriaLabel={t('filterClear')}
-                  onClear={() => {
-                    const d0 = defaultBackfillRange()
-                    setRangeStart(d0.start)
-                    setRangeEnd(d0.end)
-                  }}
                   className="max-w-full"
                 />
               </div>
             ) : null}
           </div>
         </div>
-      </div>
+      </SheetBody>
 
       <SheetFooter>
-        <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={saving}>
+        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
           {t('productsDetailSheetCancel')}
         </Button>
         <Button type="button" onClick={() => void handleSave()} disabled={!formValid || saving}>
@@ -510,7 +501,7 @@ export function ProductCostEditorSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="sm:max-w-lg">
+      <SheetContent side="right">
         {open && productId ? (
           loading || !detail ? (
             <div className="flex flex-1 items-center justify-center p-8">

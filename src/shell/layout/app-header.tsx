@@ -1,84 +1,92 @@
+import type { ReactNode } from 'react'
 import { UserButton } from '@clerk/react'
 import { Menu } from 'lucide-react'
 
+import alennaIconBlack from '@/assets/alenna/alenna-icon-black.svg'
 import { AlertsHeaderButton } from '@/shell/alerts/alerts-header-button'
-import { AppBreadcrumbs } from '@/shell/layout/app-breadcrumbs'
-import { CurrencyIndicator } from '@/shell/layout/currency-indicator'
 import { CurrencyPicker } from '@/shell/layout/currency-picker'
-import { SyncFreshnessHeaderPill } from '@/components/integrations/sync-freshness-header-pill'
-import { GlobalActivityHeaderIndicator } from '@/shell/layout/global-activity-header-indicator'
+import { LanguageToggle } from '@/shell/layout/language-toggle'
+import { shellT } from '@/lib/i18n/shell-strings'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
-import { chromeIconButtonClassName, chromeTextButtonClassName } from '@/ui/surface'
-import { shellT } from '@/lib/i18n/shell-strings'
 import { shellChromeHeaderRowClassName } from '@/shell/layout/sidebar-layout'
 
 const shellHeaderRowPaddingClassName = 'w-full px-4 lg:px-5'
 
 type AppHeaderProps = {
   className?: string
+  companyName: string
   onOpenMobileNav?: () => void
 }
 
-export function AppHeader({ className, onOpenMobileNav }: AppHeaderProps) {
-  const { lang, toggleLang } = useLanguage()
+function HeaderChromeButton({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <div
+      className={cn(
+        'relative flex size-8 shrink-0 items-center justify-center overflow-visible rounded',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  )
+}
 
-  const ariaLang =
-    lang === 'es' ? shellT(lang, 'ariaSwitchToEnglish') : shellT(lang, 'ariaSwitchToSpanish')
+export function AppHeader({ className, companyName, onOpenMobileNav }: AppHeaderProps) {
+  const { lang } = useLanguage()
 
   return (
-    <header className={cn('min-w-0 shrink-0 bg-card', className)}>
+    <header className={cn('min-w-0 shrink-0 bg-white', className)}>
       <div
         className={cn(
           shellChromeHeaderRowClassName,
           shellHeaderRowPaddingClassName,
-          'justify-between gap-3 lg:hidden',
+          'justify-between gap-3',
         )}
       >
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className={cn(chromeIconButtonClassName, 'lg:hidden')}
-          aria-label={shellT(lang, 'ariaOpenNavMenu')}
-          onClick={onOpenMobileNav}
-        >
-          <Menu className="size-4" aria-hidden />
-        </Button>
-        <div className="flex shrink-0 items-center gap-2">
-          <CurrencyIndicator />
-          <AlertsHeaderButton />
-          <UserButton />
-        </div>
-      </div>
-
-      <div
-        className={cn(
-          shellChromeHeaderRowClassName,
-          shellHeaderRowPaddingClassName,
-          'hidden justify-between gap-3 lg:flex',
-        )}
-      >
-        <div className="min-w-0 max-w-[min(100%,42rem)] flex-1">
-          <AppBreadcrumbs className="min-w-0" />
-        </div>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <SyncFreshnessHeaderPill />
-          <GlobalActivityHeaderIndicator />
-          <CurrencyPicker />
+        <div className="flex min-w-0 items-center gap-2.5">
           <Button
             type="button"
             variant="ghost"
-            size="xs"
-            aria-label={ariaLang}
-            onClick={toggleLang}
-            className={chromeTextButtonClassName}
+            size="icon"
+            className="size-8 lg:hidden"
+            aria-label={shellT(lang, 'ariaOpenNavMenu')}
+            onClick={onOpenMobileNav}
           >
-            {lang === 'es' ? 'EN' : 'ES'}
+            <Menu className="size-4" aria-hidden />
           </Button>
-          <AlertsHeaderButton />
-          <UserButton />
+          <img
+            src={alennaIconBlack}
+            alt=""
+            className="size-8 shrink-0 object-contain"
+            draggable={false}
+          />
+          <p className="truncate text-subtitle font-semibold text-text-primary">{companyName}</p>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1.5 overflow-visible sm:gap-2">
+          <CurrencyPicker className="hidden h-8 sm:inline-flex" />
+          <HeaderChromeButton className="hidden bg-[var(--platinum-blonde-300)] sm:flex">
+            <LanguageToggle />
+          </HeaderChromeButton>
+          <HeaderChromeButton className="bg-[var(--platinum-blonde-300)]">
+            <AlertsHeaderButton />
+          </HeaderChromeButton>
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: 'size-8 rounded-full',
+                userButtonPopoverCard: 'shadow-lg',
+              },
+            }}
+          />
         </div>
       </div>
     </header>

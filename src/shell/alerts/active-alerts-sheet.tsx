@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Gauge, Package } from 'lucide-react'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { AlertItemApi, AlertPostponeDuration } from '@/lib/types/alerts'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/ui/badge'
+import { StatusPill } from '@/ui/status-pill'
 import { Button } from '@/ui/button'
 import { EmbeddedShellPanel } from '@/ui/embedded-shell-panel'
 import { Skeleton } from '@/ui/skeleton'
@@ -53,10 +53,12 @@ function severityBadgeLabel(
   return t('homeAlertsSheetSeverityInformational')
 }
 
-function severityBadgeVariant(severity: AlertItemApi['severity']): 'error' | 'warning' | 'secondary' {
+function severityStatusPillVariant(
+  severity: AlertItemApi['severity'],
+): 'error' | 'warning' | 'neutral' {
   if (severity === 'critical') return 'error'
   if (severity === 'low') return 'warning'
-  return 'secondary'
+  return 'neutral'
 }
 
 function filterItems(items: AlertItemApi[], severityFilter: AlertSeverityFilter): AlertItemApi[] {
@@ -242,12 +244,12 @@ function AlertDetailView({
             <h2 className="min-w-0 flex-1 text-base font-semibold leading-snug text-foreground">
               {headline}
             </h2>
-            <Badge
-              variant={severityBadgeVariant(item.severity)}
+            <StatusPill
+              variant={severityStatusPillVariant(item.severity)}
               className="h-5 shrink-0 rounded-md px-1.5 text-[10px] font-semibold tracking-wide uppercase"
             >
               {severityBadgeLabel(t, item.severity)}
-            </Badge>
+            </StatusPill>
           </div>
           <p className="mt-1 truncate text-xs text-muted-foreground">{productChannelLine}</p>
         </div>

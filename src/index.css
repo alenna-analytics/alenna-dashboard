@@ -224,8 +224,8 @@
     transparent
   );
 
-  --ink: var(--african-turquoise-base);
-  --ink-rgb: 0, 0, 0;
+  --ink: #171717;
+  --ink-rgb: 23, 23, 23;
 
   --bg-base: #ffffff;
   --bg-section: color-mix(in srgb, var(--platinum-blonde-100) 70%, transparent);
@@ -251,11 +251,7 @@
   );
 
   --text-primary: var(--ink);
-  --text-secondary: color-mix(
-    in srgb,
-    var(--african-turquoise-200) 82%,
-    transparent
-  );
+  --text-secondary: var(--ink);
   --text-tertiary: color-mix(
     in srgb,
     var(--african-turquoise-300) 74%,
@@ -378,9 +374,9 @@
   --global-activity-success-bg: var(--country-green-base);
   --global-activity-success-fg: #ffffff;
   --global-activity-success-border: var(--shell-divider);
-  --global-activity-error-bg: var(--status-red-50);
-  --global-activity-error-fg: var(--text-primary);
-  --global-activity-error-border: var(--status-red-200);
+  --global-activity-error-bg: #bf2b2b;
+  --global-activity-error-fg: #ffffff;
+  --global-activity-error-border: #bf2b2b;
   --global-activity-divider: color-mix(in srgb, var(--ink) 8%, transparent);
   --global-activity-bar-outer-border: color-mix(
     in srgb,
@@ -412,7 +408,11 @@
   --secondary: var(--country-green-base);
   --secondary-foreground: var(--platinum-blonde-400);
   --muted: var(--bg-muted);
-  --muted-foreground: var(--text-secondary);
+  --muted-foreground: color-mix(
+    in srgb,
+    var(--african-turquoise-200) 82%,
+    transparent
+  );
   --destructive: var(--danger);
   --border: var(--border-default);
   --input: rgba(var(--ink-rgb), 0.1);
@@ -627,52 +627,6 @@
   .font-numeric {
     font-family: var(--font-numeric);
     font-variant-numeric: tabular-nums;
-  }
-
-  .home-onboarding-hero {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    background-color: var(--platinum-blonde-300);
-    background-image:
-      radial-gradient(
-        ellipse 90% 80% at 100% 20%,
-        color-mix(in srgb, var(--firefly-base) 22%, transparent) 0%,
-        transparent 58%
-      ),
-      radial-gradient(
-        ellipse 70% 60% at 88% 8%,
-        color-mix(in srgb, var(--zara-base) 42%, transparent) 0%,
-        transparent 62%
-      ),
-      radial-gradient(
-        ellipse 80% 70% at 8% 90%,
-        color-mix(in srgb, var(--country-green-200) 28%, transparent) 0%,
-        transparent 65%
-      ),
-      radial-gradient(
-        ellipse 120% 100% at 50% 100%,
-        color-mix(in srgb, var(--platinum-blonde-base) 80%, transparent) 0%,
-        transparent 70%
-      );
-  }
-
-  .home-onboarding-hero::before {
-    content: '';
-    position: absolute;
-    inset: -20% -10% auto auto;
-    z-index: 0;
-    width: min(52vw, 640px);
-    height: min(52vw, 640px);
-    pointer-events: none;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--firefly-base) 18%, transparent) 0%,
-      transparent 68%
-    );
-    filter: blur(48px);
-    opacity: 0.9;
   }
 
   .glass-panel {

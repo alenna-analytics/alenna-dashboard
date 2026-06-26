@@ -38,7 +38,7 @@ function linkClassNames(isActive: boolean, collapsed: boolean): string {
     'bg-[var(--sidebar-active-bg)] font-medium text-text-primary shadow-none',
   )
   const inactive = cn(
-    'text-text-secondary hover:bg-[var(--sidebar-accent)] hover:text-text-primary',
+    'text-text-tertiary hover:bg-[var(--sidebar-accent)] hover:text-text-primary',
   )
   if (collapsed) {
     return cn(
@@ -209,7 +209,6 @@ export function AppSidebarPanel({
               <NavItem
                 icon={integrationsModule.icon}
                 to={integrationsModule.path}
-                end
                 label={t(integrationsModule.labelKey)}
                 collapsed={collapsed}
                 onNavigate={onNavigate}
@@ -240,7 +239,7 @@ export function AppSidebarPanel({
             size="icon"
             onClick={onToggle}
             aria-label={toggleAria}
-            className="size-8 shrink-0 text-text-secondary hover:bg-[var(--sidebar-accent)] hover:text-text-primary"
+            className="size-8 shrink-0 text-text-tertiary hover:bg-[var(--sidebar-accent)] hover:text-text-primary"
           >
             <PanelLeft className="size-4" aria-hidden />
           </Button>

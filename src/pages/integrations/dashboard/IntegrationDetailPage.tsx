@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 
-import { LoadingIcon } from '@/ui/app-icon'
+import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
+import { connectionNeedsInitialSync } from '@/lib/integrations/sync-freshness'
 import {
   findActiveConnection,
   isIntegrationConnected,
 } from '@/pages/integrations/dashboard/integration-connection'
+import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
 import { IntegrationDetailBreadcrumb } from '@/pages/integrations/dashboard/integration-detail-breadcrumb'
 import { IntegrationDetailLayout } from '@/pages/integrations/dashboard/integration-detail-layout'
 import { IntegrationOverviewPanel } from '@/pages/integrations/dashboard/integration-overview-panel'
@@ -22,7 +24,7 @@ import { useShopifyIntegration } from '@/pages/integrations/details/use-shopify-
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { shellT } from '@/lib/i18n/shell-strings'
-import { Button } from '@/ui/button'
+import { StatusPill } from '@/ui/status-pill'
 
 function IntegrationPlaceholderSettings({ lang }: { lang: string }) {
   return (
@@ -80,16 +82,52 @@ export function IntegrationDetailPage() {
   const description = integrationDescription(lang, integration)
   const isShopify = integration.slug === 'shopify'
   const isMercadolibre = integration.slug === 'mercadolibre'
-  const canDisconnect =
-    (isShopify && shopifyIntegration.isAdmin && shopifyIntegration.connected) ||
-    (isMercadolibre && mercadolibreIntegration.isAdmin && mercadolibreIntegration.connected)
+  const activeConnection = isShopify
+    ? shopifyConnection
+    : isMercadolibre
+      ? mercadolibreConnection
+      : null
+  const needsInitialSync = connectionNeedsInitialSync(activeConnection)
+  const syncPill =
+    connected && activeConnection
+      ? resolveConnectionSyncFreshnessPillContent(activeConnection, {
+          forceSyncing: isShopify && shopifyIntegration.shopifySyncPhase === 'working',
+        })
+      : null
+
+  const titleBadges = connected ? (
+    <>
+      <StatusPill variant="success">{shellT(lang, 'integrationDetailInstalledBadge')}</StatusPill>
+      {needsInitialSync ? (
+        <StatusPill variant="warning">{shellT(lang, 'integrationCardSyncPending')}</StatusPill>
+      ) : syncPill ? (
+        <SyncFreshnessPillBadge pill={syncPill} lang={lang} />
+      ) : null}
+    </>
+  ) : null
 
   const settingsBody = !integration.available ? (
     <IntegrationPlaceholderSettings lang={lang} />
   ) : isShopify ? (
-    <ShopifyManageBody shopify={shopifyIntegration} />
+    <ShopifyManageBody
+      shopify={shopifyIntegration}
+      onRequestDisconnect={
+        shopifyIntegration.isAdmin && shopifyIntegration.connected
+          ? () => setDisconnectDialogOpen(true)
+          : undefined
+      }
+      disconnectPending={shopifyIntegration.disconnectMutation.isPending}
+    />
   ) : isMercadolibre ? (
-    <MercadoLibreManageBody meli={mercadolibreIntegration} />
+    <MercadoLibreManageBody
+      meli={mercadolibreIntegration}
+      onRequestDisconnect={
+        mercadolibreIntegration.isAdmin && mercadolibreIntegration.connected
+          ? () => setDisconnectDialogOpen(true)
+          : undefined
+      }
+      disconnectPending={mercadolibreIntegration.disconnectMutation.isPending}
+    />
   ) : (
     <IntegrationPlaceholderSettings lang={lang} />
   )
@@ -101,48 +139,15 @@ export function IntegrationDetailPage() {
         definition={integration}
         title={title}
         description={description}
+        titleBadges={titleBadges}
         overview={
           <IntegrationOverviewPanel
             integration={integration}
             lang={lang}
             connected={connected}
-            connection={
-              isShopify
-                ? shopifyConnection
-                : isMercadolibre
-                  ? mercadolibreConnection
-                  : null
-            }
-            forceSyncing={
-              isShopify && shopifyIntegration.shopifySyncPhase === 'working'
-            }
           />
         }
-        settings={
-          <div className="flex flex-col gap-8">
-            {settingsBody}
-            {canDisconnect ? (
-              <div className="max-w-2xl border-t border-border-default pt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="inline-flex items-center justify-center gap-2 border-destructive/35 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  disabled={
-                    shopifyIntegration.disconnectMutation.isPending ||
-                    mercadolibreIntegration.disconnectMutation.isPending
-                  }
-                  onClick={() => setDisconnectDialogOpen(true)}
-                >
-                  {shopifyIntegration.disconnectMutation.isPending ||
-                  mercadolibreIntegration.disconnectMutation.isPending ? (
-                    <LoadingIcon className="size-4 shrink-0" />
-                  ) : null}
-                  {shellT(lang, 'integrationDetailDisconnect')}
-                </Button>
-              </div>
-            ) : null}
-          </div>
-        }
+        settings={settingsBody}
       />
 
       <IntegrationsDisconnectDialog

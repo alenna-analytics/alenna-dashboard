@@ -2,7 +2,10 @@ import { useMemo } from 'react'
 
 import { IntegrationCardSkeleton } from '@/pages/integrations/dashboard/integration-card-skeleton'
 import { IntegrationListCard } from '@/pages/integrations/dashboard/integration-list-card'
-import { isIntegrationConnected } from '@/pages/integrations/dashboard/integration-connection'
+import {
+  integrationNeedsInitialSync,
+  isIntegrationConnected,
+} from '@/pages/integrations/dashboard/integration-connection'
 import { IntegrationsErrorState } from '@/pages/integrations/dashboard/integrations-error-state'
 import { IntegrationsEmptyState } from '@/pages/integrations/dashboard/integrations-empty-state'
 import type { IntegrationsListCategory } from '@/pages/integrations/dashboard/integrations-list-category'
@@ -23,7 +26,7 @@ export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageP
   const shopifyIntegration = useShopifyIntegration()
   const mercadolibreIntegration = useMercadoLibreIntegration()
 
-  const { integrations, pageLoading, pageError, isFetching, refetch } =
+  const { integrations, connections, pageLoading, pageError, isFetching, refetch } =
     useIntegrationsListQueries()
 
   const visibleIntegrations = useMemo(() => {
@@ -89,6 +92,7 @@ export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageP
                   shopifyIntegration.connected,
                   mercadolibreIntegration.connected,
                 )}
+                needsInitialSync={integrationNeedsInitialSync(integration.slug, connections)}
               />
             ))}
           </ul>

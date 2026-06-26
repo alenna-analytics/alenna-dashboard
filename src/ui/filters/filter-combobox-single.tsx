@@ -1,8 +1,9 @@
 import * as React from 'react'
-import { Check } from 'lucide-react'
+import { Check, ChevronDown } from 'lucide-react'
 
 import { LoadingIcon } from '@/ui/app-icon'
 
+import { cn } from '@/lib/utils'
 import {
   Command,
   CommandEmpty,
@@ -11,7 +12,8 @@ import {
   CommandItem,
   CommandList,
 } from '@/ui/command'
-import { Popover, PopoverContent } from '@/ui/popover'
+import { Label } from '@/ui/label'
+import { Popover, PopoverContent, PopoverTrigger } from '@/ui/popover'
 import { FilterPillTriggerArea } from '@/ui/filters/filter-pill-trigger'
 import type { FilterOption } from '@/ui/filters/types'
 import { TruncatedOptionLabel } from '@/ui/filters/truncated-option-label'
@@ -47,7 +49,12 @@ export type FilterComboboxSingleProps = {
   allowClear?: boolean
   popoverAlign?: 'start' | 'center' | 'end'
   popoverSide?: 'top' | 'bottom' | 'left' | 'right'
+  /** Inline keeps the filter-pill label inside the trigger; stacked puts the label above a plain input-style trigger. */
+  labelLayout?: 'inline' | 'stacked'
 }
+
+const stackedTriggerClassName =
+  'flex h-[33px] w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border-default bg-white px-2 text-sm outline-none transition-colors hover:border-border-emphasis focus-visible:ring-3 focus-visible:ring-ring/45 disabled:cursor-not-allowed disabled:opacity-50'
 
 export function FilterComboboxSingle({
   label,
@@ -64,6 +71,7 @@ export function FilterComboboxSingle({
   allowClear = true,
   popoverAlign = 'start',
   popoverSide = 'bottom',
+  labelLayout = 'inline',
 }: FilterComboboxSingleProps) {
   const [open, setOpen] = React.useState(false)
   const selected = options.find((o) => o.value === value)
@@ -72,8 +80,24 @@ export function FilterComboboxSingle({
 
   const serverSide = typeof onSearchChange === 'function'
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
+  const trigger =
+    labelLayout === 'stacked' ? (
+      <PopoverTrigger
+        type="button"
+        className={cn(stackedTriggerClassName, triggerClassName)}
+        aria-expanded={open}
+      >
+        <span
+          className={cn(
+            'min-w-0 flex-1 truncate text-left',
+            summary ? 'text-text-primary' : 'text-muted-foreground',
+          )}
+        >
+          {summary ?? emptyLabel}
+        </span>
+        <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+      </PopoverTrigger>
+    ) : (
       <FilterPillTriggerArea
         active={active}
         label={label}
@@ -83,6 +107,18 @@ export function FilterComboboxSingle({
         ariaExpanded={open}
         triggerClassName={triggerClassName}
       />
+    )
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      {labelLayout === 'stacked' ? (
+        <div className="space-y-2">
+          <Label>{label}</Label>
+          {trigger}
+        </div>
+      ) : (
+        trigger
+      )}
       <PopoverContent
         align={popoverAlign}
         side={popoverSide}

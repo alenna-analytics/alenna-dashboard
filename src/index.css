@@ -423,6 +423,7 @@
   --sidebar-foreground: var(--text-primary);
   --sidebar-primary: var(--firefly-base);
   --sidebar-primary-foreground: var(--platinum-blonde-400);
+  --table-row-hover-bg: #f5f5f5;
   --sidebar-active-bg: #ebebeb;
   --sidebar-active-foreground: var(--firefly-base);
   --sidebar-accent: #ebebeb;

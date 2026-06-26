@@ -154,7 +154,7 @@ export function DataTable<TData>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() ? "selected" : undefined}
-                  className="group bg-white hover:bg-[color-mix(in_srgb,var(--bg-section)_38%,white_62%)] data-[state=selected]:bg-[color-mix(in_srgb,var(--bg-section)_45%,white_55%)]"
+                  className="group bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as ColumnMetaWithCellClass | undefined

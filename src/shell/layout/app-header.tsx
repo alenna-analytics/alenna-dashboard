@@ -65,7 +65,7 @@ export function AppHeader({ className, companyName, onOpenMobileNav }: AppHeader
           <img
             src={alennaIconBlack}
             alt=""
-            className="size-8 shrink-0 object-contain"
+            className="size-6 shrink-0 object-contain"
             draggable={false}
           />
           <p className="truncate text-subtitle font-semibold text-text-primary">{companyName}</p>

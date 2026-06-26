@@ -4,6 +4,7 @@ import billingIcon from '@/assets/icons/billing.svg'
 import channelsIcon from '@/assets/icons/channels.svg'
 import companyIcon from '@/assets/icons/company.svg'
 import configIcon from '@/assets/icons/config.svg'
+import decreaseIcon from '@/assets/icons/decrease.svg'
 import downloadIcon from '@/assets/icons/download.svg'
 import growthIcon from '@/assets/icons/growth.svg'
 import homeIcon from '@/assets/icons/home.svg'
@@ -28,6 +29,7 @@ import channelsIconRaw from '@/assets/icons/channels.svg?raw'
 import simulationsIconRaw from '@/assets/icons/simulations.svg?raw'
 import integrationsIconRaw from '@/assets/icons/integrations.svg?raw'
 import configIconRaw from '@/assets/icons/config.svg?raw'
+import decreaseIconRaw from '@/assets/icons/decrease.svg?raw'
 import aiIconRaw from '@/assets/icons/ai.svg?raw'
 import billingIconRaw from '@/assets/icons/billing.svg?raw'
 import companyIconRaw from '@/assets/icons/company.svg?raw'
@@ -50,6 +52,7 @@ export const APP_ICONS = {
   simulations: simulationsIcon,
   integrations: integrationsIcon,
   config: configIcon,
+  decrease: decreaseIcon,
   ai: aiIcon,
   billing: billingIcon,
   company: companyIcon,
@@ -73,6 +76,7 @@ export const APP_ICONS_RAW = {
   simulations: simulationsIconRaw,
   integrations: integrationsIconRaw,
   config: configIconRaw,
+  decrease: decreaseIconRaw,
   ai: aiIconRaw,
   billing: billingIconRaw,
   company: companyIconRaw,

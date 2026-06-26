@@ -1,17 +1,29 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useAuth } from '@clerk/react'
+import { useQuery } from '@tanstack/react-query'
 
+import { useCurrentTenant } from '@/auth/hooks'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
+import { apiFetch } from '@/lib/api'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { StockOverrideApi } from '@/lib/types/alert-rules'
+import type { PlatformConnection } from '@/lib/types/connectors'
 import {
   showAlarmConfigErrorToast,
   showAlarmConfigSuccessToast,
 } from '@/pages/configuration/alarms/stock/alarm-config-toast'
-import type { AlertScopeType } from '@/lib/types/alert-rules'
-import { OutOfStockDefaultForm } from '@/pages/configuration/alarms/stock/out-of-stock-default-form'
-import { OverrideSheet } from '@/pages/configuration/alarms/stock/override-sheet'
-import { ScopedRulesTable } from '@/pages/configuration/alarms/stock/scoped-rules-table'
-import { TenantDefaultForm } from '@/pages/configuration/alarms/stock/tenant-default-form'
+import { LowStockRuleSheet } from '@/pages/configuration/alarms/stock/low-stock-rule-sheet'
+import { LowStockRulesTable } from '@/pages/configuration/alarms/stock/low-stock-rules-table'
+import {
+  channelAlertEnabled,
+  findChannelOverride,
+  globalAlertEnabled,
+  lowStockScopedRules,
+  resolveStockRuleTargetLabel,
+  type StockAlertConfigureKind,
+} from '@/pages/configuration/alarms/stock/stock-alert-config-helpers'
+import { StockAlertConfigureSheet } from '@/pages/configuration/alarms/stock/stock-alert-configure-sheet'
+import { StockAlertTypeCard } from '@/pages/configuration/alarms/stock/stock-alert-type-card'
 import {
   useCreateStockOverrideMutation,
   useDeleteStockOverrideMutation,
@@ -21,16 +33,15 @@ import {
   useStockRuleQuery,
 } from '@/pages/configuration/alarms/stock/use-alert-rules-queries'
 import { ConfigurationInnerSubmoduleBreadcrumb } from '@/pages/configuration/configuration-inner-submodule-breadcrumb'
-import { useAlertsSheet } from '@/shell/alerts/alerts-sheet-context'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
-import { Button } from '@/ui/button'
 import { Skeleton } from '@/ui/skeleton'
 
 export function StockAlarmConfigurationPage() {
   const { lang } = useLanguage()
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
   const { me } = useAppBootstrap()
-  const { openSheet } = useAlertsSheet()
   const isAdmin = me?.role === 'admin' || me?.role === 'owner'
 
   const stockRuleQuery = useStockRuleQuery()
@@ -40,9 +51,40 @@ export function StockAlarmConfigurationPage() {
   const patchOverrideMutation = usePatchStockOverrideMutation()
   const deleteOverrideMutation = useDeleteStockOverrideMutation()
 
-  const [sheetOpen, setSheetOpen] = useState(false)
+  const [configureKind, setConfigureKind] = useState<StockAlertConfigureKind | null>(null)
+  const [ruleSheetOpen, setRuleSheetOpen] = useState(false)
   const [editingOverride, setEditingOverride] = useState<StockOverrideApi | null>(null)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
+
+  const rule = stockRuleQuery.data
+  const overrides = useMemo(
+    () => overridesQuery.data?.items ?? [],
+    [overridesQuery.data?.items],
+  )
+  const lowStockRules = useMemo(() => lowStockScopedRules(overrides), [overrides])
+
+  const connectionsQuery = useQuery({
+    queryKey: ['connectors', tenantId],
+    enabled: Boolean(tenantId),
+    queryFn: async (): Promise<PlatformConnection[]> => {
+      const res = await apiFetch('/connectors', (a) => getToken(a), {}, tenantId)
+      if (!res.ok) throw new Error(await res.text())
+      return (await res.json()) as PlatformConnection[]
+    },
+  })
+
+  const connectionsById = useMemo(() => {
+    const map = new Map<string, PlatformConnection>()
+    for (const connection of connectionsQuery.data ?? []) {
+      map.set(connection.id, connection)
+    }
+    return map
+  }, [connectionsQuery.data])
+
+  const resolveTargetLabel = useMemo(
+    () => (item: StockOverrideApi) => resolveStockRuleTargetLabel(lang, item, connectionsById),
+    [lang, connectionsById],
+  )
 
   const loading = stockRuleQuery.isLoading || overridesQuery.isLoading
   const saving =
@@ -51,51 +93,110 @@ export function StockAlarmConfigurationPage() {
     patchOverrideMutation.isPending ||
     deleteOverrideMutation.isPending
 
-  const handleDelete = async (item: StockOverrideApi) => {
-    setDeletingId(item.id)
+  const handleDelete = async () => {
+    if (!editingOverride) return
+
     try {
-      await deleteOverrideMutation.mutateAsync(item.id)
+      await deleteOverrideMutation.mutateAsync(editingOverride.id)
       showAlarmConfigSuccessToast(lang, 'alarmsToastRuleDeleted')
+      setRuleSheetOpen(false)
+      setEditingOverride(null)
+    } catch (error) {
+      showAlarmConfigErrorToast(lang, error)
+      throw error
+    }
+  }
+
+  const handleToggleEnabled = async (item: StockOverrideApi, enabled: boolean) => {
+    setTogglingId(item.id)
+    try {
+      await patchOverrideMutation.mutateAsync({
+        overrideId: item.id,
+        body: { enabled },
+      })
+      showAlarmConfigSuccessToast(lang, 'alarmsToastRuleUpdated')
     } catch (error) {
       showAlarmConfigErrorToast(lang, error)
     } finally {
-      setDeletingId(null)
+      setTogglingId(null)
     }
   }
 
-  const handleSaveOutOfStockDefault = async (payload: { out_of_stock_enabled: boolean }) => {
+  const handleSaveConfigure = async (payload: {
+    kind: StockAlertConfigureKind
+    globalEnabled: boolean
+    globalVelocityPct?: number
+    channelStates: { connectionId: string; enabled: boolean }[]
+  }) => {
+    if (!rule) return
+
     try {
-      await patchRuleMutation.mutateAsync(payload)
+      if (payload.kind === 'out_of_stock') {
+        if (payload.globalEnabled !== rule.out_of_stock_enabled) {
+          await patchRuleMutation.mutateAsync({ out_of_stock_enabled: payload.globalEnabled })
+        }
+      } else {
+        const body: { enabled?: boolean; velocity_pct?: number } = {}
+        if (payload.globalEnabled !== rule.enabled) body.enabled = payload.globalEnabled
+        if (
+          payload.globalVelocityPct != null &&
+          payload.globalVelocityPct !== rule.velocity_pct
+        ) {
+          body.velocity_pct = payload.globalVelocityPct
+        }
+        if (Object.keys(body).length > 0) {
+          await patchRuleMutation.mutateAsync(body)
+        }
+      }
+
+      for (const channelState of payload.channelStates) {
+        const existing = findChannelOverride(overrides, channelState.connectionId)
+        const currentEnabled = channelAlertEnabled(payload.kind, rule, existing)
+        if (channelState.enabled === currentEnabled) continue
+
+        if (existing) {
+          await patchOverrideMutation.mutateAsync({
+            overrideId: existing.id,
+            body:
+              payload.kind === 'out_of_stock'
+                ? { out_of_stock_enabled: channelState.enabled }
+                : { enabled: channelState.enabled },
+          })
+        } else {
+          await createOverrideMutation.mutateAsync({
+            alert_type: 'stock',
+            scope_type: 'channel',
+            platform_connection_id: channelState.connectionId,
+            enabled: payload.kind === 'low_stock' ? channelState.enabled : rule.enabled,
+            out_of_stock_enabled:
+              payload.kind === 'out_of_stock' ? channelState.enabled : rule.out_of_stock_enabled,
+            velocity_pct: rule.velocity_pct,
+          })
+        }
+      }
+
       showAlarmConfigSuccessToast(lang, 'alarmsToastDefaultSaved')
+      setConfigureKind(null)
     } catch (error) {
       showAlarmConfigErrorToast(lang, error)
     }
   }
 
-  const handleSaveLowStockDefault = async (payload: { enabled: boolean; velocity_pct: number }) => {
-    try {
-      await patchRuleMutation.mutateAsync(payload)
-      showAlarmConfigSuccessToast(lang, 'alarmsToastDefaultSaved')
-    } catch (error) {
-      showAlarmConfigErrorToast(lang, error)
-    }
-  }
-
-  const handleSaveOverride = async (payload: {
-    scope_type: AlertScopeType
+  const handleSaveLowStockRule = async (payload: {
+    scope_type: 'channel' | 'product' | 'product_listing'
     scope_id: string | null
     platform_connection_id: string | null
     enabled: boolean
-    out_of_stock_enabled: boolean
     velocity_pct: number
   }) => {
+    if (!rule) return
+
     try {
       if (editingOverride) {
         await patchOverrideMutation.mutateAsync({
           overrideId: editingOverride.id,
           body: {
             enabled: payload.enabled,
-            out_of_stock_enabled: payload.out_of_stock_enabled,
             velocity_pct: payload.velocity_pct,
           },
         })
@@ -107,12 +208,12 @@ export function StockAlarmConfigurationPage() {
           scope_id: payload.scope_id,
           platform_connection_id: payload.platform_connection_id,
           enabled: payload.enabled,
-          out_of_stock_enabled: payload.out_of_stock_enabled,
+          out_of_stock_enabled: rule.out_of_stock_enabled,
           velocity_pct: payload.velocity_pct,
         })
         showAlarmConfigSuccessToast(lang, 'alarmsToastRuleCreated')
       }
-      setSheetOpen(false)
+      setRuleSheetOpen(false)
       setEditingOverride(null)
     } catch (error) {
       showAlarmConfigErrorToast(lang, error)
@@ -121,80 +222,90 @@ export function StockAlarmConfigurationPage() {
 
   return (
     <DashboardPage className="space-y-8">
-      <section className="flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-2xl">
-          <ConfigurationInnerSubmoduleBreadcrumb />
-          <h1 className="text-subtitle font-semibold tracking-[-0.02em] text-text-primary">
-            {shellT(lang, 'alarmsStockTypeTitle')}
-          </h1>
-          <p className="mt-1.5 text-sm text-text-secondary">
-            {shellT(lang, 'alarmsStockTypeDescription')}
-          </p>
-        </div>
-        <Button type="button" variant="primary" onClick={openSheet}>
-          {shellT(lang, 'alarmsOpenActiveAlerts')}
-        </Button>
+      <section className="max-w-2xl">
+        <ConfigurationInnerSubmoduleBreadcrumb />
+        <h1 className="text-subtitle font-semibold tracking-[-0.02em] text-text-primary">
+          {shellT(lang, 'alarmsStockTypeTitle')}
+        </h1>
+        <p className="mt-1.5 text-sm text-text-secondary">
+          {shellT(lang, 'alarmsStockTypeDescription')}
+        </p>
       </section>
 
       {loading ? (
         <div className="space-y-4">
-          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
           <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-64 w-full" />
         </div>
       ) : (
-        <section className="space-y-6">
-          <ScopedRulesTable
+        <>
+          <section className="grid w-full gap-3">
+            <StockAlertTypeCard
+              lang={lang}
+              titleKey="alarmsOutOfStockTitle"
+              descriptionKey="alarmsOutOfStockDescription"
+              active={rule ? globalAlertEnabled('out_of_stock', rule) : false}
+              disabled={!isAdmin}
+              onConfigure={() => setConfigureKind('out_of_stock')}
+            />
+            <StockAlertTypeCard
+              lang={lang}
+              titleKey="alarmsLowStockTitle"
+              descriptionKey="alarmsLowStockDescription"
+              active={rule ? globalAlertEnabled('low_stock', rule) : false}
+              disabled={!isAdmin}
+              currentValueLabelKey="alarmsCurrentThresholdLabel"
+              currentValue={rule ? `${Math.round(rule.velocity_pct * 100)}%` : undefined}
+              onConfigure={() => setConfigureKind('low_stock')}
+            />
+          </section>
+
+          <LowStockRulesTable
             lang={lang}
-            items={overridesQuery.data?.items ?? []}
+            items={lowStockRules}
             isAdmin={isAdmin}
-            deletingId={deletingId}
+            togglingId={togglingId}
+            resolveTargetLabel={resolveTargetLabel}
             onAdd={() => {
               setEditingOverride(null)
-              setSheetOpen(true)
+              setRuleSheetOpen(true)
             }}
             onEdit={(item) => {
               setEditingOverride(item)
-              setSheetOpen(true)
+              setRuleSheetOpen(true)
             }}
-            onDelete={handleDelete}
+            onToggleEnabled={handleToggleEnabled}
           />
-
-          <div className="space-y-2">
-            <h2 className="text-sm font-semibold text-text-primary">
-              {shellT(lang, 'alarmsGeneralRulesTitle')}
-            </h2>
-            <p className="text-sm text-text-secondary">
-              {shellT(lang, 'alarmsGeneralRulesDescription')}
-            </p>
-          </div>
-
-          <OutOfStockDefaultForm
-            key={`out-${stockRuleQuery.data?.id ?? 'pending'}-${stockRuleQuery.data?.out_of_stock_enabled}`}
-            lang={lang}
-            rule={stockRuleQuery.data}
-            isAdmin={isAdmin}
-            saving={patchRuleMutation.isPending}
-            onSave={handleSaveOutOfStockDefault}
-          />
-          <TenantDefaultForm
-            key={`low-${stockRuleQuery.data?.id ?? 'pending'}-${stockRuleQuery.data?.enabled}`}
-            lang={lang}
-            rule={stockRuleQuery.data}
-            isAdmin={isAdmin}
-            saving={patchRuleMutation.isPending}
-            onSave={handleSaveLowStockDefault}
-          />
-        </section>
+        </>
       )}
 
-      <OverrideSheet
+      <StockAlertConfigureSheet
         lang={lang}
-        open={sheetOpen}
-        editing={editingOverride}
+        kind={configureKind}
+        open={configureKind != null}
+        rule={rule}
+        overrides={overrides}
         saving={saving}
-        onOpenChange={setSheetOpen}
-        onSave={handleSaveOverride}
+        onOpenChange={(open) => {
+          if (!open) setConfigureKind(null)
+        }}
+        onSave={handleSaveConfigure}
+      />
+
+      <LowStockRuleSheet
+        lang={lang}
+        open={ruleSheetOpen}
+        editing={editingOverride}
+        rule={rule}
+        saving={saving}
+        deleting={deleteOverrideMutation.isPending}
+        onOpenChange={(open) => {
+          setRuleSheetOpen(open)
+          if (!open) setEditingOverride(null)
+        }}
+        onSave={handleSaveLowStockRule}
+        onDelete={handleDelete}
       />
     </DashboardPage>
   )

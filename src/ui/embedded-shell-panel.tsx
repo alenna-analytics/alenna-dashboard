@@ -59,7 +59,7 @@ export function EmbeddedShellPanel({
       {open && isLargeScreen ? (
         <aside
           className={cn(
-            'flex h-full min-h-0 shrink-0 flex-col overflow-hidden border-l border-[var(--shell-divider)] bg-[var(--platinum-blonde-300)]',
+            'flex h-full min-h-0 shrink-0 flex-col overflow-hidden border-l border-[var(--shell-divider)] bg-white',
             embeddedShellPanelWidthClass,
             className,
           )}
@@ -73,10 +73,7 @@ export function EmbeddedShellPanel({
         <Sheet open={open} onOpenChange={onOpenChange}>
           <SheetContent
             side="right"
-            className={cn(
-              'flex max-w-xl flex-col overflow-hidden bg-[var(--platinum-blonde-300)]',
-              className,
-            )}
+            className={cn('flex max-w-xl flex-col overflow-hidden bg-white', className)}
           >
             <EmbeddedShellPanelFrame onClose={handleClose} closeAriaLabel={closeAriaLabel}>
               {children}

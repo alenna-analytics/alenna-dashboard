@@ -21,6 +21,7 @@ export type StockOverrideApi = {
   out_of_stock_enabled: boolean
   velocity_pct: number
   scope_label: string
+  product_id?: string | null
   created_at: string
   updated_at: string
 }

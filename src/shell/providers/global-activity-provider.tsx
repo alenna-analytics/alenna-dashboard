@@ -22,12 +22,16 @@ export type GlobalActivityItem = {
 /** Single slot for Shopify channel order sync (one concurrent sync per workspace UX). */
 export const GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID = 'shopify-channel-sync'
 
+/** Single slot when bulk COGS save enqueues many backfill jobs. */
+export const GLOBAL_ACTIVITY_COGS_BULK_BACKFILL_ID = 'cogs-bulk-backfill'
+
 export function cogsBackfillActivityId(jobId: string): string {
   return `cogs-backfill:${jobId}`
 }
 
 type GlobalActivityState = {
   items: GlobalActivityItem[]
+  cogsBulkBackfillJobIds: string[]
 }
 
 type GlobalActivityAction =
@@ -43,6 +47,8 @@ type GlobalActivityAction =
   | { type: 'minimize'; id: string }
   | { type: 'restoreAll' }
   | { type: 'remove'; id: string }
+  | { type: 'registerCogsBulkBackfillJobs'; jobIds: string[] }
+  | { type: 'removeCogsBulkBackfillJob'; jobId: string }
 
 function reducer(state: GlobalActivityState, action: GlobalActivityAction): GlobalActivityState {
   switch (action.type) {
@@ -65,37 +71,48 @@ function reducer(state: GlobalActivityState, action: GlobalActivityAction): Glob
         idx === -1
           ? [...state.items, item]
           : state.items.map((x, i) => (i === idx ? { ...x, ...item } : x))
-      return { items }
+      return { ...state, items }
     }
     case 'patch': {
       const items = state.items.map((x) =>
         x.id === action.id ? { ...x, ...action.patch } : x,
       )
-      return { items }
+      return { ...state, items }
     }
     case 'minimize': {
       const items = state.items.map((x) =>
         x.id === action.id ? { ...x, minimized: true } : x,
       )
-      return { items }
+      return { ...state, items }
     }
     case 'restoreAll': {
       const items = state.items.map((x) => ({ ...x, minimized: false }))
-      return { items }
+      return { ...state, items }
     }
     case 'remove': {
       const items = state.items.filter((x) => x.id !== action.id)
-      return { items }
+      return { ...state, items }
+    }
+    case 'registerCogsBulkBackfillJobs': {
+      const merged = new Set([...state.cogsBulkBackfillJobIds, ...action.jobIds])
+      return { ...state, cogsBulkBackfillJobIds: [...merged] }
+    }
+    case 'removeCogsBulkBackfillJob': {
+      return {
+        ...state,
+        cogsBulkBackfillJobIds: state.cogsBulkBackfillJobIds.filter((id) => id !== action.jobId),
+      }
     }
     default:
       return state
   }
 }
 
-const initialState: GlobalActivityState = { items: [] }
+const initialState: GlobalActivityState = { items: [], cogsBulkBackfillJobIds: [] }
 
 type GlobalActivityContextValue = {
   items: GlobalActivityItem[]
+  cogsBulkBackfillJobIds: string[]
   visibleItems: GlobalActivityItem[]
   hasMinimized: boolean
   minimizedAggregatePhase: GlobalActivityPhase | null
@@ -109,6 +126,8 @@ type GlobalActivityContextValue = {
   minimizeActivity: (id: string) => void
   restoreAllActivities: () => void
   removeActivity: (id: string) => void
+  registerCogsBulkBackfillJobs: (jobIds: string[]) => void
+  removeCogsBulkBackfillJob: (jobId: string) => void
 }
 
 const GlobalActivityContext = createContext<GlobalActivityContextValue | null>(null)
@@ -145,6 +164,15 @@ export function GlobalActivityProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'remove', id })
   }, [])
 
+  const registerCogsBulkBackfillJobs = useCallback((jobIds: string[]) => {
+    if (jobIds.length === 0) return
+    dispatch({ type: 'registerCogsBulkBackfillJobs', jobIds })
+  }, [])
+
+  const removeCogsBulkBackfillJob = useCallback((jobId: string) => {
+    dispatch({ type: 'removeCogsBulkBackfillJob', jobId })
+  }, [])
+
   const visibleItems = useMemo(
     () => state.items.filter((x) => !x.minimized),
     [state.items],
@@ -165,6 +193,7 @@ export function GlobalActivityProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     (): GlobalActivityContextValue => ({
       items: state.items,
+      cogsBulkBackfillJobIds: state.cogsBulkBackfillJobIds,
       visibleItems,
       hasMinimized,
       minimizedAggregatePhase,
@@ -173,9 +202,12 @@ export function GlobalActivityProvider({ children }: { children: ReactNode }) {
       minimizeActivity,
       restoreAllActivities,
       removeActivity,
+      registerCogsBulkBackfillJobs,
+      removeCogsBulkBackfillJob,
     }),
     [
       state.items,
+      state.cogsBulkBackfillJobIds,
       visibleItems,
       hasMinimized,
       minimizedAggregatePhase,
@@ -184,6 +216,8 @@ export function GlobalActivityProvider({ children }: { children: ReactNode }) {
       minimizeActivity,
       restoreAllActivities,
       removeActivity,
+      registerCogsBulkBackfillJobs,
+      removeCogsBulkBackfillJob,
     ],
   )
 

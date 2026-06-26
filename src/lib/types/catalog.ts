@@ -208,3 +208,38 @@ export type CatalogJobApi = {
   max_order_date?: string | null
   created_by_user_id?: string | null
 }
+
+export type ProductCostBulkRowApi = {
+  product_id: string
+  parent_product_id: string | null
+  parent_title: string
+  variant_label: string | null
+  internal_sku: string | null
+  cost_missing: boolean
+  supplier_price: number | null
+  freight_value: number | null
+  packaging_value: number | null
+  computed_total: number | null
+}
+
+export type ProductCostBulkRowsResponse = {
+  items: ProductCostBulkRowApi[]
+  total: number
+  base_currency: string
+}
+
+export type ProductCostBulkSaveItem = {
+  product_id: string
+  supplier_price: number
+  freight_value: number
+  packaging_value: number
+}
+
+export type ProductCostBulkSaveResponse = {
+  saved_count: number
+  backfill_jobs: Array<{
+    product_id: string
+    job_id: string
+    status: string
+  }>
+}

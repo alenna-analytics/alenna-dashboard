@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
 
-import { useGlobalActivity } from '@/shell/providers/global-activity-provider'
 import { useCogsBackfillJobWatcher } from '@/shell/hooks/use-cogs-backfill-job-watcher'
+import { useCogsBulkBackfillBanner } from '@/shell/hooks/use-cogs-bulk-backfill-banner'
+import { useGlobalActivity } from '@/shell/providers/global-activity-provider'
 
 function CogsBackfillJobWatcher({ jobId }: { jobId: string }) {
   useCogsBackfillJobWatcher(jobId)
@@ -9,6 +10,7 @@ function CogsBackfillJobWatcher({ jobId }: { jobId: string }) {
 }
 
 export function CogsBackfillActivityPollers() {
+  useCogsBulkBackfillBanner()
   const { items } = useGlobalActivity()
 
   const loadingJobIds = useMemo(

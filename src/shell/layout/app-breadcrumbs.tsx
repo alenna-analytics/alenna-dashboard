@@ -66,6 +66,12 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
   if (normalized === '/dashboard/products') {
     return [{ label: shellT(lang, 'navProducts') }]
   }
+  if (normalized === '/dashboard/products/bulk-cogs') {
+    return [
+      { label: shellT(lang, 'navProducts'), to: '/dashboard/products' },
+      { label: shellT(lang, 'productsBulkCogsTitle') },
+    ]
+  }
   if (/^\/dashboard\/products\/[^/]+$/.test(normalized)) {
     const crumbs: Crumb[] = [
       { label: shellT(lang, 'navProducts'), to: '/dashboard/products' },
@@ -98,7 +104,7 @@ export function AppBreadcrumbs({ className }: { className?: string }) {
   const { pathname } = useLocation()
   const { lang } = useLanguage()
 
-  const productMatch = pathname.match(/^\/dashboard\/products\/([^/]+)$/)
+  const productMatch = pathname.match(/^\/dashboard\/products\/(?!bulk-cogs$)([^/]+)$/)
   const productId = productMatch?.[1]
   const detailQuery = useProductDetailQuery(productId)
   const detail = detailQuery.data

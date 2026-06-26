@@ -13,6 +13,7 @@ import { ReportsPage } from '@/pages/reports/ReportsPage'
 import { ComponentsShowcasePage } from '@/pages/dev/ComponentsShowcasePage'
 import { ProductsListPage } from '@/pages/products/ProductsListPage'
 import { ProductDetailPage } from '@/pages/products/ProductDetailPage'
+import { BulkCogsEditorPage } from '@/pages/products/bulk-cogs/BulkCogsEditorPage'
 import { SalesPage } from '@/pages/sales/SalesPage'
 import { AdsPage } from '@/pages/ads/AdsPage'
 import { SimulationsPage } from '@/pages/simulations/SimulationsPage'
@@ -35,6 +36,7 @@ function App() {
           <Route path="components" element={<ComponentsShowcasePage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="products" element={<ProductsListPage />} />
+          <Route path="products/bulk-cogs" element={<BulkCogsEditorPage />} />
           <Route path="products/:productId" element={<ProductDetailPage />} />
           <Route path="integrations/ecommerce" element={<IntegrationsListPage category="ecommerce" />} />
           <Route path="integrations/ads" element={<IntegrationsAdsComingSoonPage />} />

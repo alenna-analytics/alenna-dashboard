@@ -29,6 +29,7 @@ import { useLanguage } from "@/shell/providers/language-provider"
 
 import { createProductColumns, type ProductTableSelectionBinding } from "./products-columns"
 import { ProductCostEditorSheet } from "./product-cost-editor-sheet"
+import { writeBulkCogsScope } from "./bulk-cogs/bulk-cogs-scope"
 import {
   normalizeStockAlertLevelsFilter,
   type ProductsListFiltersState,
@@ -260,6 +261,40 @@ export function ProductsDataTable({
     setRowSelection({})
   }, [])
 
+  const openBulkCogsEditor = useCallback(() => {
+    const filterScope = {
+      q: debouncedSearchQ,
+      statuses: filters.statuses,
+      platforms: filters.platforms,
+      stockAlertLevels,
+    }
+    if (bulkAllMatching) {
+      writeBulkCogsScope({
+        mode: "filter",
+        filters: filterScope,
+        excludeParentIds: [...excludedIds],
+      })
+    } else if (effectiveSelectedCount > 0) {
+      const parentProductIds = Object.entries(rowSelection)
+        .filter(([, selected]) => selected)
+        .map(([id]) => id)
+      writeBulkCogsScope({ mode: "parents", parentProductIds })
+    } else {
+      writeBulkCogsScope({ mode: "filter", filters: filterScope })
+    }
+    void navigate("/dashboard/products/bulk-cogs")
+  }, [
+    bulkAllMatching,
+    debouncedSearchQ,
+    effectiveSelectedCount,
+    excludedIds,
+    filters.platforms,
+    filters.statuses,
+    navigate,
+    rowSelection,
+    stockAlertLevels,
+  ])
+
   const selectionBinding: ProductTableSelectionBinding = useMemo(
     () => ({
       headerChecked,
@@ -343,6 +378,9 @@ export function ProductsDataTable({
         skeletonRowCount={PAGE_SIZE}
         toolbar={
           <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={openBulkCogsEditor}>
+              {t("productsBulkCogsEntry")}
+            </Button>
             {effectiveSelectedCount > 0 ? (
               <div className="flex h-8 max-w-full shrink-0 items-center gap-2 rounded-md border border-border-subtle bg-glass-fill-muted px-2.5 text-xs font-medium text-text-primary sm:gap-3 sm:px-3">
                 <span className="whitespace-nowrap tabular-nums">

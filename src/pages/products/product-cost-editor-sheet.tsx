@@ -12,8 +12,6 @@ import {
 } from '@/shell/providers/global-activity-provider'
 import { LoadingIcon } from '@/ui/app-icon'
 import { Button } from '@/ui/button'
-import { DatePicker } from '@/ui/date-picker'
-import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import { Switch } from '@/ui/switch'
@@ -29,15 +27,21 @@ import {
 import { cn } from '@/lib/utils'
 
 import { computeCogsTotal, type ComponentAmountMode } from './product-cost-breakdown'
-import { defaultBackfillRange, todayYmd } from './product-cost-date-utils'
 import { formatCostDraft, parseCostInput } from './product-cost-input-utils'
+import {
+  isCostApplyModeValid,
+  ProductCostApplyModeFields,
+  useCostApplyModeDefaults,
+} from './product-cost-apply-mode-fields'
+import { mapCostApplyUiModeToApi } from './product-cost-apply-mode-api'
+import type { BulkCogsApplyUiMode } from './bulk-cogs/bulk-cogs-types'
 import { showProductCostErrorToast, showProductCostSuccessToast } from './product-cost-toast'
 import {
   useProductDetailQuery,
   useSaveProductCostBreakdownMutation,
 } from './use-catalog-queries'
 
-type CostApplyMode = 'today' | 'from_date' | 'range'
+type CostApplyMode = BulkCogsApplyUiMode
 
 const ZERO_DUTIES: ComponentAmountApi = { mode: 'fixed', value: 0 }
 
@@ -202,33 +206,18 @@ function ProductCostEditorForm({
   const saveMutation = useSaveProductCostBreakdownMutation(productId, parentProductId)
 
   const seed = useMemo(() => breakdownFromDetail(detail), [detail])
+  const applyDefaults = useCostApplyModeDefaults()
   const [supplierDraft, setSupplierDraft] = useState(seed.supplier)
   const [freightMode, setFreightMode] = useState<ComponentAmountMode>(seed.freightMode)
   const [freightDraft, setFreightDraft] = useState(seed.freightValue)
   const [shippingDraft, setShippingDraft] = useState(seed.shipping)
   const [applyMode, setApplyMode] = useState<CostApplyMode>('today')
-  const [effectiveFromDate, setEffectiveFromDate] = useState(todayYmd())
-  const [rangeStart, setRangeStart] = useState(defaultBackfillRange().start)
-  const [rangeEnd, setRangeEnd] = useState(defaultBackfillRange().end)
+  const [effectiveFromDate, setEffectiveFromDate] = useState(applyDefaults.effectiveFromDate)
+  const [rangeStart, setRangeStart] = useState(applyDefaults.rangeStart)
+  const [rangeEnd, setRangeEnd] = useState(applyDefaults.rangeEnd)
 
   const baseCurrency = detail.base_currency
   const fixedSuffix = useMemo(() => currencyInputSuffix(baseCurrency), [baseCurrency])
-  const today = todayYmd()
-
-  const pickerStrings: DateRangePickerStrings = useMemo(
-    () => ({
-      applyLabel: t('datePickerApply'),
-      todayLabel: t('datePickerToday'),
-      placeholder: t('datePickerPlaceholder'),
-      presetLast7Days: t('datePickerLast7Days'),
-      presetLast30Days: t('datePickerLast30Days'),
-      presetLast6Months: t('datePickerLast6Months'),
-      presetLastYearRolling: t('datePickerLastYearRolling'),
-      presetCurrentYear: t('datePickerCurrentYear'),
-      presetPreviousYear: t('datePickerPreviousYear'),
-    }),
-    [t],
-  )
 
   const supplierParsed = parseCostInput(supplierDraft)
   const freightParsed = parseComponent(freightMode, freightDraft)
@@ -246,23 +235,11 @@ function ProductCostEditorForm({
     })
   }, [supplierParsed, freightParsed, shippingParsed])
 
-  const rangeOk = rangeStart <= rangeEnd
-  const fromDateOk = effectiveFromDate.trim() !== '' && effectiveFromDate <= today
-  const fromDateInvalid = applyMode === 'from_date' && effectiveFromDate.trim() !== '' && !fromDateOk
-
-  const selectApplyMode = (mode: CostApplyMode) => {
-    setApplyMode(mode)
-    if (mode === 'from_date' && effectiveFromDate > today) {
-      setEffectiveFromDate(today)
-    }
-  }
   const formValid =
     supplierParsed !== null &&
     freightParsed !== null &&
     shippingParsed !== null &&
-    (applyMode === 'today' ||
-      (applyMode === 'from_date' && fromDateOk) ||
-      (applyMode === 'range' && rangeOk))
+    isCostApplyModeValid(applyMode, effectiveFromDate, rangeStart, rangeEnd)
 
   const saving = saveMutation.isPending
 
@@ -270,9 +247,7 @@ function ProductCostEditorForm({
     if (!formValid || supplierParsed === null || freightParsed === null || shippingParsed === null) {
       return
     }
-    const apiApplyMode = applyMode === 'range' ? 'backfill' : 'forward'
-    const effectiveFrom =
-      applyMode === 'today' ? today : applyMode === 'from_date' ? effectiveFromDate : rangeStart
+    const apiApply = mapCostApplyUiModeToApi(applyMode, effectiveFromDate, rangeStart, rangeEnd)
 
     try {
       const res = await saveMutation.mutateAsync({
@@ -280,9 +255,9 @@ function ProductCostEditorForm({
         freight: freightParsed,
         duties: ZERO_DUTIES,
         packaging_value: shippingParsed,
-        effective_from: effectiveFrom,
-        apply_mode: apiApplyMode,
-        effective_to: applyMode === 'range' ? rangeEnd : null,
+        effective_from: apiApply.effective_from,
+        apply_mode: apiApply.apply_mode,
+        effective_to: apiApply.effective_to,
       })
       if (res.apply_mode === 'backfill' && res.job_id) {
         upsertActivity({
@@ -364,115 +339,18 @@ function ProductCostEditorForm({
           </p>
         </div>
 
-        <div className="space-y-2" role="radiogroup" aria-label={t('productsDetailCostModeGroupAria')}>
-          <p className="text-xs font-medium text-text-secondary">{t('productsDetailCostModeGroupLabel')}</p>
-
-          <div
-            className={cn(
-              'rounded-md border p-3 transition-colors',
-              applyMode === 'today'
-                ? 'border-border-default bg-muted/30'
-                : 'border-border-subtle hover:bg-muted/20',
-            )}
-          >
-            <label className="flex cursor-pointer items-start gap-3 text-sm">
-              <input
-                type="radio"
-                name="cost-apply-mode"
-                className="mt-0.5"
-                checked={applyMode === 'today'}
-                onChange={() => selectApplyMode('today')}
-                disabled={saving}
-              />
-              <span className="min-w-0">
-                <span className="font-medium text-text-primary">{t('productsDetailCostModeForward')}</span>
-                <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
-                  {t('productsDetailCostModeForwardHelp')}
-                </span>
-              </span>
-            </label>
-          </div>
-
-          <div
-            className={cn(
-              'rounded-md border p-3 transition-colors',
-              applyMode === 'from_date'
-                ? 'border-border-default bg-muted/30'
-                : 'border-border-subtle hover:bg-muted/20',
-            )}
-          >
-            <label className="flex cursor-pointer items-start gap-3 text-sm">
-              <input
-                type="radio"
-                name="cost-apply-mode"
-                className="mt-0.5"
-                checked={applyMode === 'from_date'}
-                onChange={() => selectApplyMode('from_date')}
-                disabled={saving}
-              />
-              <span className="min-w-0 flex-1">
-                <span className="font-medium text-text-primary">{t('productsDetailCostModeFromDate')}</span>
-                <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
-                  {t('productsDetailCostModeFromDateHelp')}
-                </span>
-              </span>
-            </label>
-            {applyMode === 'from_date' ? (
-              <div className="mt-3 space-y-2 pl-7">
-                <Label htmlFor="cost-effective-from">{t('productsCostEditorEffectiveDate')}</Label>
-                <DatePicker
-                  id="cost-effective-from"
-                  value={effectiveFromDate}
-                  onChange={setEffectiveFromDate}
-                  maxDate={today}
-                  disabled={saving}
-                  openAriaLabel={t('productsCostEditorDatePickerAria')}
-                />
-                {fromDateInvalid ? (
-                  <p className="text-xs text-destructive">{t('productsCostEditorEffectiveDateInvalid')}</p>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-
-          <div
-            className={cn(
-              'rounded-md border p-3 transition-colors',
-              applyMode === 'range'
-                ? 'border-border-default bg-muted/30'
-                : 'border-border-subtle hover:bg-muted/20',
-            )}
-          >
-            <label className="flex cursor-pointer items-start gap-3 text-sm">
-              <input
-                type="radio"
-                name="cost-apply-mode"
-                className="mt-0.5"
-                checked={applyMode === 'range'}
-                onChange={() => selectApplyMode('range')}
-                disabled={saving}
-              />
-              <span className="min-w-0">
-                <span className="font-medium text-text-primary">{t('productsDetailCostModeHistory')}</span>
-                <span className="mt-0.5 block text-xs leading-relaxed text-text-tertiary">
-                  {t('productsDetailCostModeHistoryHelp')}
-                </span>
-              </span>
-            </label>
-            {applyMode === 'range' ? (
-              <div className="mt-3 pl-7">
-                <DateRangePicker
-                  strings={pickerStrings}
-                  startValue={rangeStart}
-                  endValue={rangeEnd}
-                  onStartChange={(value) => value && setRangeStart(value)}
-                  onEndChange={(value) => value && setRangeEnd(value)}
-                  className="max-w-full"
-                />
-              </div>
-            ) : null}
-          </div>
-        </div>
+        <ProductCostApplyModeFields
+          applyMode={applyMode}
+          onApplyModeChange={setApplyMode}
+          effectiveFromDate={effectiveFromDate}
+          onEffectiveFromDateChange={setEffectiveFromDate}
+          rangeStart={rangeStart}
+          rangeEnd={rangeEnd}
+          onRangeStartChange={setRangeStart}
+          onRangeEndChange={setRangeEnd}
+          disabled={saving}
+          t={t}
+        />
       </SheetBody>
 
       <SheetFooter>

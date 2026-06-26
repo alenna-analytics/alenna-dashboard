@@ -1,29 +1,23 @@
 import { Popover, PopoverContent } from '@/ui/popover'
 import {
   DateRangePickerPanel,
+  DateRangePickerTrigger,
   type DateRangePickerProps,
   useDateRangePickerModel,
 } from '@/ui/date-range-picker'
 import { cn } from '@/lib/utils'
-import { FilterPillTriggerArea } from '@/ui/filters/filter-pill-trigger'
 
 export type FilterDatesProps = DateRangePickerProps & {
-  label: string
-  showSummary?: boolean
   triggerClassName?: string
 }
 
 export function FilterDates({
-  label,
-  showSummary = true,
   triggerClassName,
   strings,
   startValue,
   endValue,
   onStartChange,
   onEndChange,
-  onClear,
-  clearAriaLabel,
 }: FilterDatesProps) {
   const m = useDateRangePickerModel({
     strings,
@@ -33,21 +27,12 @@ export function FilterDates({
     onEndChange,
   })
 
-  const inactiveLabel = label.trim() || strings.presetCustom
-  const active = Boolean(m.parsedStart && m.parsedEnd)
-  const activeLabel = showSummary ? label.trim() : ''
-  const valueSummary = active ? `${m.startDisplay} - ${m.endDisplay}` : null
-
   return (
     <Popover open={m.open} onOpenChange={m.handleOpenChange}>
-      <FilterPillTriggerArea
-        active={active}
-        label={active ? activeLabel : inactiveLabel}
-        valueSummary={valueSummary}
-        onClear={onClear}
-        clearAriaLabel={clearAriaLabel ?? 'Clear date range'}
-        ariaExpanded={m.open}
-        triggerClassName={triggerClassName}
+      <DateRangePickerTrigger
+        label={m.triggerLabel}
+        open={m.open}
+        className={triggerClassName}
       />
       <PopoverContent
         align="start"
@@ -56,7 +41,7 @@ export function FilterDates({
         collisionPadding={12}
         collisionAvoidance={{ side: 'shift', align: 'none', fallbackAxisSide: 'none' }}
         className={cn(
-          'max-h-[min(90dvh,calc(100dvh-32px))] w-[min(calc(100vw-24px),740px)] max-w-[calc(100vw-24px)] min-w-0 overflow-x-auto overflow-y-auto border-border-subtle shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)] p-0',
+          'max-h-[min(90dvh,calc(100dvh-32px))] w-[min(calc(100vw-24px),740px)] max-w-[calc(100vw-24px)] min-w-0 overflow-x-auto overflow-y-auto border-[var(--shell-divider)] bg-white p-0 shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)]',
         )}
       >
         <DateRangePickerPanel
@@ -69,6 +54,8 @@ export function FilterDates({
           visibleMonth={m.visibleMonth}
           setVisibleMonth={m.setVisibleMonth}
           handleApply={m.handleApply}
+          handleToday={m.handleToday}
+          triggerLabel={m.triggerLabel}
         />
       </PopoverContent>
     </Popover>

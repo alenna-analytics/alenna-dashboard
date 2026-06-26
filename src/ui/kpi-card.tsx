@@ -3,6 +3,10 @@ import { HelpCircle } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Badge } from '@/ui/badge'
+import {
+  surfaceKpiClassName,
+  surfaceKpiCompactClassName,
+} from '@/ui/surface'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 type PctTrend = 'up' | 'down' | 'flat'
@@ -49,7 +53,7 @@ export function KpiDeltaPill({
   return (
     <Badge
       variant={variant}
-      className={cn('tabular-nums', !empty && 'font-semibold')}
+      className={cn('font-numeric tabular-nums', !empty && 'font-medium')}
     >
       {pctStr}
     </Badge>
@@ -74,6 +78,8 @@ export type KpiCardProps = {
   placeholderLabel?: string
   /** Smaller typography for secondary KPI rows. */
   compact?: boolean
+  /** Skip surface class (border/bg/padding) — parent cell provides styling. */
+  bare?: boolean
   footer?: ReactNode
   footerClassName?: string
   valueClassName?: string
@@ -83,7 +89,6 @@ export type KpiCardProps = {
 export function KpiCard({
   label,
   helpText,
-  variant = 'default',
   value,
   vsPriorLabel,
   priorValueDisplay,
@@ -95,31 +100,33 @@ export function KpiCard({
   placeholder = false,
   placeholderLabel = '—',
   compact = false,
+  bare = false,
   footer,
   footerClassName,
   valueClassName,
   className,
 }: KpiCardProps) {
-  const featured = variant === 'featured'
   const unavailable = comparisonUnavailable
   const showDelta = showComparison && !placeholder
 
   return (
     <div
       className={cn(
-        'flex min-w-0 flex-col gap-2.5 rounded-md text-left',
-        compact ? 'gap-2 p-3 sm:p-3' : 'gap-2.5 p-3.5 sm:p-4',
-        featured
-          ? 'border border-[var(--color-border)] bg-[var(--color-bg-section)] shadow-[var(--shadow-ink-sm)]'
-          : 'border border-[var(--shell-structure-border)] bg-white shadow-none',
+        'flex min-w-0 flex-col text-left',
+        bare
+          ? 'gap-2'
+          : compact
+            ? cn(surfaceKpiCompactClassName, 'gap-1.5')
+            : cn(surfaceKpiClassName, 'gap-2'),
+        placeholder && 'opacity-80',
         className,
       )}
     >
       <div className="flex w-full min-w-0 items-start justify-between gap-2">
         <span
           className={cn(
-            'min-w-0 font-medium leading-tight tracking-tight text-[var(--color-text-primary)]',
-            compact ? 'text-sm' : 'text-base',
+            'min-w-0 font-medium leading-tight tracking-tight text-text-secondary',
+            compact ? 'text-xs' : 'text-sm',
           )}
         >
           {label}
@@ -129,10 +136,10 @@ export function KpiCard({
             <TooltipTrigger asChild>
               <button
                 type="button"
-                className="shrink-0 rounded-full p-0.5 text-[var(--color-text-muted)] hover:text-text-secondary"
+                className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-text-secondary"
                 aria-label={helpText}
               >
-                <HelpCircle className="size-4" />
+                <HelpCircle className="size-3.5" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[260px] text-left text-xs font-normal leading-snug">
@@ -144,38 +151,37 @@ export function KpiCard({
 
       <p
         className={cn(
-          'font-numeric min-w-0 font-semibold leading-none tracking-tight',
+          'font-numeric min-w-0 font-medium leading-none tracking-tight text-xl',
           placeholder
-            ? 'text-lg text-text-secondary'
-            : 'text-[var(--color-accent-forest)]',
+            ? 'text-text-secondary'
+            : 'text-(--color-accent-forest)',
           valueClassName,
-          compact ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-[1.75rem]',
         )}
       >
         {placeholder ? placeholderLabel : value}
       </p>
 
       {showDelta ? (
-        <div className="mt-1 space-y-2">
-          <p className="text-xs leading-tight text-[var(--color-text-muted)]">{vsPriorLabel}</p>
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <span className="font-numeric min-w-0 text-lg font-semibold tabular-nums text-[var(--color-text-primary)]">
-              {priorValueDisplay ?? '—'}
-            </span>
-            <KpiDeltaPill
-              pct={pct}
-              trend={trend}
-              comparisonUnavailable={unavailable}
-              negativeMetric={negativeMetric}
-            />
-          </div>
+        <div
+          className="flex min-w-0 flex-wrap items-center gap-1.5"
+          aria-label={`${vsPriorLabel}: ${priorValueDisplay ?? '—'}`}
+        >
+          <span className="font-numeric min-w-0 text-xs tabular-nums text-text-secondary">
+            {priorValueDisplay ?? '—'}
+          </span>
+          <KpiDeltaPill
+            pct={pct}
+            trend={trend}
+            comparisonUnavailable={unavailable}
+            negativeMetric={negativeMetric}
+          />
         </div>
       ) : null}
 
       {footer ? (
         <div
           className={cn(
-            'mt-1 space-y-0.5 text-xs leading-snug tabular-nums text-[var(--color-text-muted)]',
+            'mt-1 space-y-0.5 text-xs leading-snug tabular-nums text-(--color-text-muted)',
             footerClassName,
           )}
         >

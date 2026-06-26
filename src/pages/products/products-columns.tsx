@@ -6,7 +6,7 @@ import { MoreVertical } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ShellStringKey } from "@/lib/i18n/shell-strings"
 import type { ProductSummaryApi } from "@/lib/types/catalog"
-import { Badge } from "@/ui/badge"
+import { StatusPill } from "@/ui/status-pill"
 import { Checkbox } from "@/ui/checkbox"
 import { DataTableColumnHeader } from "@/ui/data-table/data-table-column-header"
 import {
@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu"
 
+import { ProductCostInlineCell } from "./product-cost-inline-cell"
 import { ProductPlatformLogoName } from "./product-platform-logo-name"
 import { ProductStockAlertBadge } from "./product-stock-alert-ui"
 import { ProductTableThumb } from "./product-table-thumb"
@@ -53,20 +54,21 @@ export type ProductTableColumnLabels = {
   onCopySku: (sku: string | null) => void
   onGoDetail: (productId: string) => void
   selection: ProductTableSelectionBinding
+  onOpenCostEditor: (productId: string) => void
 }
 
-function statusBadgeVariant(status: string): ComponentProps<typeof Badge>["variant"] {
+function statusPillVariant(status: string): ComponentProps<typeof StatusPill>['variant'] {
   switch (status) {
-    case "active":
-      return "success"
-    case "inactive":
-      return "secondary"
-    case "archived":
-      return "info"
-    case "deleted":
-      return "error"
+    case 'active':
+      return 'success'
+    case 'inactive':
+      return 'neutral'
+    case 'archived':
+      return 'info'
+    case 'deleted':
+      return 'error'
     default:
-      return "secondary"
+      return 'neutral'
   }
 }
 
@@ -86,7 +88,14 @@ function statusLabel(t: (key: ShellStringKey) => string, status: string): string
 }
 
 export function createProductColumns(labels: ProductTableColumnLabels): ColumnDef<ProductSummaryApi>[] {
-  const { t, formatBaseMoney, onCopySku, onGoDetail, selection } = labels
+  const {
+    t,
+    formatBaseMoney,
+    onCopySku,
+    onGoDetail,
+    selection,
+    onOpenCostEditor,
+  } = labels
 
   return [
     {
@@ -147,7 +156,7 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
       cell: ({ row }) => {
         const st = row.original.status
         return (
-          <Badge variant={statusBadgeVariant(st)}>{statusLabel(t, st)}</Badge>
+          <StatusPill variant={statusPillVariant(st)}>{statusLabel(t, st)}</StatusPill>
         )
       },
       enableHiding: true,
@@ -206,14 +215,21 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
         <DataTableColumnHeader className="justify-end" column={column} title={t("productsColCost")} />
       ),
       cell: ({ row }) => {
-        const c = row.original.cost
-        if (c != null) {
-          return <span className="block text-right tabular-nums">{formatBaseMoney(c)}</span>
-        }
+        const rowData = row.original
+        const label = rowData.internal_sku?.trim() || rowData.title
+        const hasVariants = (rowData.variant_count ?? 0) > 0
         return (
-          <div className="flex justify-end text-text-tertiary tabular-nums">
-            {EMPTY_CELL}
-          </div>
+          <ProductCostInlineCell
+            productId={rowData.id}
+            label={label}
+            cost={rowData.cost}
+            costMissing={rowData.cost_missing}
+            formatMoney={formatBaseMoney}
+            readOnly={hasVariants}
+            readOnlyHint={hasVariants ? t("productsInlineCostVariantHint") : undefined}
+            onOpenEditor={onOpenCostEditor}
+            t={t}
+          />
         )
       },
       enableHiding: true,

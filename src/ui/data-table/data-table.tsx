@@ -52,7 +52,7 @@ export function DataTable<TData>({
   const showEmpty = !isLoading && hasEverLoaded && rows.length === 0
 
   return (
-    <div className="relative overflow-hidden rounded-md border border-border-subtle bg-bg-section shadow-[var(--shadow-ink-xs)]">
+    <div className="relative overflow-hidden rounded-md border border-border-subtle bg-bg-section">
       {toolbar || search ? (
         <div className="flex min-h-10 items-center justify-between gap-2 border-b border-border-subtle rounded-t-md bg-white px-3 py-2">
           <div className="min-w-0 flex-1">
@@ -154,7 +154,7 @@ export function DataTable<TData>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() ? "selected" : undefined}
-                  className="bg-white hover:bg-[color-mix(in_srgb,var(--bg-section)_38%,white_62%)] data-[state=selected]:bg-[color-mix(in_srgb,var(--bg-section)_45%,white_55%)]"
+                  className="group bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as ColumnMetaWithCellClass | undefined

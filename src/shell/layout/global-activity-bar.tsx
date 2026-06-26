@@ -1,4 +1,7 @@
-import { AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react'
+import { useState, type AnimationEvent } from 'react'
+import { AlertCircle, CheckCircle2, X } from 'lucide-react'
+
+import { LoadingIcon } from '@/ui/app-icon'
 import { Link } from 'react-router-dom'
 
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -12,28 +15,54 @@ import { shellT } from '@/lib/i18n/shell-strings'
 import { Button } from '@/ui/button'
 import { cn } from '@/lib/utils'
 
-const ROW_ACCENT: Record<GlobalActivityPhase, string> = {
-  loading: 'border-l-2 border-l-[var(--global-activity-loading-bg)]',
-  success: 'border-l-2 border-l-[var(--success)]',
-  error: 'border-l-2 border-l-[var(--destructive)]',
+type BannerPhase = 'hidden' | 'visible' | 'closing'
+
+const ROW_SURFACE: Record<GlobalActivityPhase, string> = {
+  loading:
+    'border-b border-[var(--global-activity-loading-border)] bg-[var(--global-activity-loading-bg)] text-[var(--global-activity-loading-fg)]',
+  success:
+    'border-b border-[var(--global-activity-success-border)] bg-[var(--global-activity-success-bg)] text-[var(--global-activity-success-fg)]',
+  error:
+    'border-b border-[var(--global-activity-error-border)] bg-[var(--global-activity-error-bg)] text-[var(--global-activity-error-fg)]',
+}
+
+function phaseGlyphClass(phase: GlobalActivityPhase): string {
+  if (phase === 'loading') {
+    return 'text-[var(--global-activity-loading-fg)]'
+  }
+  if (phase === 'success') {
+    return 'text-[var(--global-activity-success-fg)]'
+  }
+  return 'text-[var(--global-activity-error-fg)]'
+}
+
+function itemsChanged(next: GlobalActivityItem[], current: GlobalActivityItem[]): boolean {
+  if (next.length !== current.length) return true
+  return next.some(
+    (item, index) =>
+      item.id !== current[index]?.id ||
+      item.phase !== current[index]?.phase ||
+      item.subtitle !== current[index]?.subtitle ||
+      item.title !== current[index]?.title,
+  )
 }
 
 function PhaseGlyph({ phase }: { phase: GlobalActivityPhase }) {
-  const cls = 'size-3.5 shrink-0 text-text-secondary'
+  const glyphClass = cn('size-3.5 shrink-0', phaseGlyphClass(phase))
   if (phase === 'loading') {
-    return <Loader2 className={cn(cls, 'animate-spin')} aria-hidden />
+    return <LoadingIcon className={glyphClass} />
   }
   if (phase === 'success') {
-    return <CheckCircle2 className={cn(cls, 'text-success')} aria-hidden />
+    return <CheckCircle2 className={glyphClass} aria-hidden />
   }
-  return <AlertCircle className={cn(cls, 'text-destructive')} aria-hidden />
+  return <AlertCircle className={glyphClass} aria-hidden />
 }
 
 function ActivityRow({ item }: { item: GlobalActivityItem }) {
   const { lang } = useLanguage()
   const { minimizeActivity, removeActivity } = useGlobalActivity()
 
-  const accent = ROW_ACCENT[item.phase]
+  const surface = ROW_SURFACE[item.phase]
 
   const onClose = () => {
     if (item.phase === 'loading') {
@@ -49,12 +78,12 @@ function ActivityRow({ item }: { item: GlobalActivityItem }) {
     <div
       role="status"
       aria-live="polite"
-      className={cn('border-b border-border-subtle bg-muted/75 transition-colors last:border-b-0', accent)}
+      className={cn('h-[var(--global-activity-bar-height)] transition-colors last:border-b-0', surface)}
     >
       <div
         className={cn(
           WORKSPACE_SHELL_COLUMN_CLASS,
-          'flex h-9 items-center gap-2 text-sm text-text-secondary',
+          'flex h-full items-center gap-2 text-sm',
         )}
       >
         <PhaseGlyph phase={item.phase} />
@@ -63,16 +92,16 @@ function ActivityRow({ item }: { item: GlobalActivityItem }) {
           className="min-w-0 flex-1 truncate outline-none transition-opacity hover:opacity-90 focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           title={label}
         >
-          <span className="text-text-primary">{item.title}</span>
+          <span className="font-medium">{item.title}</span>
           {item.subtitle ? (
-            <span className="text-muted-foreground"> · {item.subtitle}</span>
+            <span className="opacity-80"> · {item.subtitle}</span>
           ) : null}
         </Link>
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="size-7 shrink-0 text-muted-foreground hover:bg-muted hover:text-text-primary"
+          className="size-7 shrink-0 opacity-80 hover:bg-black/5 hover:opacity-100"
           aria-label={shellT(lang, 'globalActivityDismissAria')}
           onClick={(e) => {
             e.preventDefault()
@@ -89,18 +118,58 @@ function ActivityRow({ item }: { item: GlobalActivityItem }) {
 export function GlobalActivityBar({ className }: { className?: string }) {
   const { visibleItems } = useGlobalActivity()
   const open = visibleItems.length > 0
+  const [heldItems, setHeldItems] = useState<GlobalActivityItem[]>(visibleItems)
+  const [phase, setPhase] = useState<BannerPhase>(open ? 'visible' : 'hidden')
+  const [prevOpen, setPrevOpen] = useState(open)
+
+  if (open !== prevOpen) {
+    setPrevOpen(open)
+    setPhase(open ? 'visible' : 'closing')
+  }
+
+  if (visibleItems.length > 0 && itemsChanged(visibleItems, heldItems)) {
+    setHeldItems(visibleItems)
+  }
+
+  const displayItems = visibleItems.length > 0 ? visibleItems : heldItems
+  const isVisible = phase === 'visible'
+  const isClosing = phase === 'closing'
+
+  if (phase === 'hidden') {
+    return null
+  }
+
+  const rowCount = Math.max(displayItems.length, 1)
+
+  const handleAnimationEnd = (event: AnimationEvent<HTMLDivElement>) => {
+    if (event.currentTarget !== event.target || !isClosing) return
+    setPhase('hidden')
+    setHeldItems([])
+  }
 
   return (
     <div
       className={cn(
-        'overflow-hidden transition-[max-height,opacity] duration-300 ease-out motion-reduce:transition-none',
-        open ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0',
+        'overflow-hidden transition-[max-height,opacity] duration-280 ease-out motion-reduce:transition-none',
+        isVisible
+          ? 'max-h-[calc(var(--global-activity-bar-height)*var(--global-activity-row-count))] opacity-100'
+          : 'max-h-0 opacity-0',
         className,
       )}
-      aria-hidden={!open}
+      style={{ ['--global-activity-row-count' as string]: String(rowCount) }}
+      aria-hidden={!isVisible}
     >
-      <div className="flex flex-col bg-muted/40">
-        {visibleItems.map((item) => (
+      <div
+        className={cn(
+          'flex flex-col',
+          isVisible &&
+            'motion-safe:animate-[global-activity-bar-enter_0.28s_ease-out_both] motion-reduce:animate-none',
+          isClosing &&
+            'motion-safe:animate-[global-activity-bar-exit_0.28s_ease-in_forwards] motion-reduce:animate-none',
+        )}
+        onAnimationEnd={handleAnimationEnd}
+      >
+        {displayItems.map((item) => (
           <ActivityRow key={item.id} item={item} />
         ))}
       </div>

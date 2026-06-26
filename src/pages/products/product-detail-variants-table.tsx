@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -15,14 +15,31 @@ type ProductDetailVariantsTableProps = {
   variants: ProductVariantSummaryApi[]
   t: (key: ShellStringKey) => string
   fmtBase: (value: number) => string
+  onOpenCostEditor: (productId: string) => void
 }
 
 export function ProductDetailVariantsTable({
   variants,
   t,
   fmtBase,
+  onOpenCostEditor,
 }: ProductDetailVariantsTableProps) {
-  const columns = useMemo(() => createProductDetailVariantsColumns(t, fmtBase), [t, fmtBase])
+  const onOpenVariantCostEditor = useCallback(
+    (productId: string) => {
+      onOpenCostEditor(productId)
+    },
+    [onOpenCostEditor],
+  )
+
+  const columns = useMemo(
+    () =>
+      createProductDetailVariantsColumns({
+        t,
+        fmtBase,
+        onOpenCostEditor: onOpenVariantCostEditor,
+      }),
+    [t, fmtBase, onOpenVariantCostEditor],
+  )
   const sortedVariants = useMemo(() => sortVariantsByStockAlert(variants), [variants])
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design

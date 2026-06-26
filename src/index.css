@@ -6,11 +6,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 12px;
 
   --color-bg-base: var(--bg-base);
   --color-bg-section: var(--bg-section);
@@ -18,6 +18,7 @@
   --color-bg-elevated: var(--bg-elevated);
   --color-bg-sunken: var(--bg-sunken);
   --color-bg-overlay: var(--bg-overlay);
+  --color-bg-card-strong: var(--bg-card-strong);
 
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
@@ -44,8 +45,8 @@
   --color-brand-light: var(--brand-light);
   --color-brand-dim: var(--brand-dim);
   --color-accent: var(--accent);
-  --color-accent-light: var(--brand-light);
-  --color-accent-dim: var(--brand-dim);
+  --color-accent-light: var(--accent-light);
+  --color-accent-dim: var(--accent-dim);
 
   --color-success: var(--success);
   --color-success-dim: var(--success-dim);
@@ -70,10 +71,14 @@
   --color-chart-line-secondary: var(--chart-line-secondary);
   --color-chart-monthly-gross-bar: var(--chart-monthly-gross-bar);
 
-  --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
   --font-heading: var(--font-sans);
   --font-numeric: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --text-title: 1.25rem;
+  --text-subtitle: 1.125rem;
+  --text-body: 0.875rem;
+  --text-micro: 0.625rem;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -149,7 +154,7 @@
   --status-amber-900: #78350f;
 
   --status-red-50: #fef2f2;
-  --status-red-200: #fecaca;
+  --status-red-200: #f3b0a2;
   --status-red-500: #ef4444;
   --status-red-600: #dc2626;
   --status-red-900: #7f1d1d;
@@ -186,6 +191,13 @@
     var(--pill-error-text) 22%,
     transparent
   );
+  --pill-warning-text: var(--status-amber-900);
+  --pill-warning-bg: var(--status-amber-50);
+  --pill-warning-border: color-mix(
+    in srgb,
+    var(--status-amber-500) 28%,
+    transparent
+  );
 
   /** Stock alert severity text (home KPI breakdown, banners). */
   --stock-alert-info: #16b674;
@@ -215,7 +227,7 @@
   --ink: var(--african-turquoise-base);
   --ink-rgb: 0, 0, 0;
 
-  --bg-base: var(--platinum-blonde-300);
+  --bg-base: #ffffff;
   --bg-section: color-mix(in srgb, var(--platinum-blonde-100) 70%, transparent);
   --bg-surface: color-mix(in srgb, var(--platinum-blonde-200) 86%, transparent);
   --bg-elevated: color-mix(
@@ -229,6 +241,7 @@
     var(--country-green-400) 28%
   );
   --bg-muted: color-mix(in srgb, var(--platinum-blonde-100) 78%, transparent);
+  --bg-card-strong: var(--platinum-blonde-400);
   --bg-overlay: rgba(var(--ink-rgb), 0.05);
   --bg-login: radial-gradient(
     ellipse 120% 95% at 100% 0%,
@@ -336,11 +349,7 @@
   --color-bg-page: var(--bg-base);
   --color-bg-section: color-mix(in srgb, var(--bg-section) 48%, #ffffff 52%);
   --color-bg-card: color-mix(in srgb, var(--card-solid) 35%, #ffffff 65%);
-  --color-bg-card-strong: color-mix(
-    in srgb,
-    var(--card-solid) 12%,
-    #ffffff 88%
-  );
+  --color-bg-card-strong: var(--bg-card-strong);
   --color-text-primary: var(--text-primary);
   --color-text-muted: var(--text-secondary);
   --color-positive: var(--success);
@@ -349,39 +358,30 @@
   --color-accent-forest: var(--firefly-100);
   /** Selected value text on filter pills (sync with accent forest green). */
   --filter-pill-value-active: var(--color-accent-forest);
-  --shell-structure-border: color-mix(
-    in srgb,
-    var(--color-accent-forest) 26%,
-    transparent
-  );
+  --shell-divider: #ccd1d2;
+  --shell-structure-border: var(--shell-divider);
   /** Sidebar workspace header + main AppHeader share this height so border-b lines align. */
-  --shell-chrome-header-height: 3.5rem;
+  --shell-chrome-header-height: 47px;
+  --shell-sidebar-width: 200px;
+  --shell-sidebar-collapsed-width: 47px;
+  --shell-inner-sidebar-width: 250px;
+  --shell-alerts-panel-width: 400px;
+  --shell-sheet-width: 670px;
+  --shell-sheet-footer-height: 60px;
+  --shell-inner-header-height: 48px;
 
   /** Global activity bar + header chip (Shopify sync, COGS backfill, etc.). */
-  --global-activity-loading-bg: var(--status-blue-600);
-  --global-activity-loading-border: color-mix(
-    in srgb,
-    var(--global-activity-loading-bg) 40%,
-    transparent
-  );
-  --global-activity-success-bg: var(--status-green-600);
-  --global-activity-success-border: color-mix(
-    in srgb,
-    var(--global-activity-success-bg) 40%,
-    transparent
-  );
-  --global-activity-error-bg: var(--status-red-600);
-  --global-activity-error-border: color-mix(
-    in srgb,
-    var(--global-activity-error-bg) 40%,
-    transparent
-  );
-  --global-activity-on-tint-fg: var(--text-inverse);
-  --global-activity-divider: color-mix(
-    in srgb,
-    var(--global-activity-on-tint-fg) 15%,
-    transparent
-  );
+  --global-activity-bar-height: 44px;
+  --global-activity-loading-bg: var(--zara-base);
+  --global-activity-loading-fg: var(--firefly-100);
+  --global-activity-loading-border: var(--shell-divider);
+  --global-activity-success-bg: var(--country-green-base);
+  --global-activity-success-fg: #ffffff;
+  --global-activity-success-border: var(--shell-divider);
+  --global-activity-error-bg: var(--status-red-50);
+  --global-activity-error-fg: var(--text-primary);
+  --global-activity-error-border: var(--status-red-200);
+  --global-activity-divider: color-mix(in srgb, var(--ink) 8%, transparent);
   --global-activity-bar-outer-border: color-mix(
     in srgb,
     var(--ink) 10%,
@@ -417,12 +417,13 @@
   --border: var(--border-default);
   --input: rgba(var(--ink-rgb), 0.1);
   --ring: var(--brand);
-  --radius: 1.35rem;
+  --radius: 0.375rem;
 
   --sidebar: transparent;
   --sidebar-foreground: var(--text-primary);
   --sidebar-primary: var(--firefly-base);
   --sidebar-primary-foreground: var(--platinum-blonde-400);
+  --table-row-hover-bg: #f5f5f5;
   --sidebar-active-bg: #ebebeb;
   --sidebar-active-foreground: var(--firefly-base);
   --sidebar-accent: #ebebeb;
@@ -509,12 +510,6 @@
     @apply antialiased text-foreground;
     font-family: var(--font-display);
     background-color: var(--bg-base);
-    background-image: radial-gradient(
-      ellipse 120% 80% at 100% 0%,
-      rgba(232, 247, 211, 0.35) 0%,
-      transparent 55%
-    );
-    background-attachment: fixed;
   }
 
   html {
@@ -632,6 +627,52 @@
   .font-numeric {
     font-family: var(--font-numeric);
     font-variant-numeric: tabular-nums;
+  }
+
+  .home-onboarding-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background-color: var(--platinum-blonde-300);
+    background-image:
+      radial-gradient(
+        ellipse 90% 80% at 100% 20%,
+        color-mix(in srgb, var(--firefly-base) 22%, transparent) 0%,
+        transparent 58%
+      ),
+      radial-gradient(
+        ellipse 70% 60% at 88% 8%,
+        color-mix(in srgb, var(--zara-base) 42%, transparent) 0%,
+        transparent 62%
+      ),
+      radial-gradient(
+        ellipse 80% 70% at 8% 90%,
+        color-mix(in srgb, var(--country-green-200) 28%, transparent) 0%,
+        transparent 65%
+      ),
+      radial-gradient(
+        ellipse 120% 100% at 50% 100%,
+        color-mix(in srgb, var(--platinum-blonde-base) 80%, transparent) 0%,
+        transparent 70%
+      );
+  }
+
+  .home-onboarding-hero::before {
+    content: '';
+    position: absolute;
+    inset: -20% -10% auto auto;
+    z-index: 0;
+    width: min(52vw, 640px);
+    height: min(52vw, 640px);
+    pointer-events: none;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--firefly-base) 18%, transparent) 0%,
+      transparent 68%
+    );
+    filter: blur(48px);
+    opacity: 0.9;
   }
 
   .glass-panel {
@@ -756,6 +797,28 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes global-activity-bar-enter {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--global-activity-bar-height)));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes global-activity-bar-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--global-activity-bar-height)));
   }
 }
 

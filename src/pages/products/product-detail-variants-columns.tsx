@@ -7,6 +7,7 @@ import type { ProductVariantSummaryApi, StockAlertLevel } from '@/lib/types/cata
 import { Badge } from '@/ui/badge'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 
+import { ProductCostInlineCell } from './product-cost-inline-cell'
 import { ProductDetailColumnHeaderWithHelp } from './product-detail-column-header-with-help'
 import { productDetailChannelPillClassName } from './product-detail-platform-badges'
 import {
@@ -47,10 +48,16 @@ export function sortVariantsByStockAlert(
   })
 }
 
+export type ProductDetailVariantsColumnLabels = {
+  t: (key: ShellStringKey) => string
+  fmtBase: (value: number) => string
+  onOpenCostEditor: (productId: string) => void
+}
+
 export function createProductDetailVariantsColumns(
-  t: (key: ShellStringKey) => string,
-  fmtBase: (value: number) => string,
+  labels: ProductDetailVariantsColumnLabels,
 ): ColumnDef<ProductVariantSummaryApi>[] {
+  const { t, fmtBase, onOpenCostEditor } = labels
   return [
     {
       id: 'variant',
@@ -76,6 +83,29 @@ export function createProductDetailVariantsColumns(
               {label}
             </Link>
           </div>
+        )
+      },
+    },
+    {
+      id: 'cost',
+      accessorKey: 'cost',
+      meta: NUMERIC_CELL_META,
+      header: ({ column }) => (
+        <DataTableColumnHeader className="justify-end" column={column} title={t('productsColCost')} />
+      ),
+      cell: ({ row }) => {
+        const variant = row.original
+        const label = variant.internal_sku?.trim() || variant.variant_label || variant.title
+        return (
+          <ProductCostInlineCell
+            productId={variant.id}
+            label={label}
+            cost={variant.cost}
+            costMissing={variant.cost_missing}
+            formatMoney={fmtBase}
+            onOpenEditor={onOpenCostEditor}
+            t={t}
+          />
         )
       },
     },

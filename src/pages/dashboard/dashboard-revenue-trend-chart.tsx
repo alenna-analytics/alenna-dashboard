@@ -241,7 +241,7 @@ export function DashboardRevenueTrendChart({
         'w-full min-w-0 [&_.recharts-surface:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-wrapper:focus]:outline-none [&_.recharts-brush-traveller:focus]:outline-none',
       )}
     >
-      <ResponsiveContainer width="100%" height={312}>
+      <ResponsiveContainer width="100%" height={180}>
         <LineChart
           key={zoomResetKey}
           data={visibleData}

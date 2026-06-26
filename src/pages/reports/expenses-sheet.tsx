@@ -15,6 +15,7 @@ import {
 } from '@/ui/select'
 import {
   Sheet,
+  SheetBody,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -148,12 +149,17 @@ export function ExpensesSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right">
-        <SheetHeader>
-          <SheetTitle>{t('expensesSheetTitle')}</SheetTitle>
-          <SheetDescription>{t('expensesSheetDescription')}</SheetDescription>
-        </SheetHeader>
+        <div className="flex min-h-0 flex-1 flex-col">
+          <SheetHeader>
+            <SheetTitle>{t('expensesSheetTitle')}</SheetTitle>
+          </SheetHeader>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-0 overflow-y-auto">
+          <SheetBody className="flex flex-col gap-0 py-0">
+            <SheetDescription className="px-0 pt-4 pb-2">
+              {t('expensesSheetDescription')}
+            </SheetDescription>
+
+            <div className="flex min-h-0 flex-1 flex-col gap-0 pb-4">
           {/* Expense list */}
           {expenses.length > 0 && (
             <div className="flex flex-col gap-0 px-6 py-4">
@@ -321,9 +327,10 @@ export function ExpensesSheet({
               </div>
             </div>
           </div>
-        </div>
+          </div>
+          </SheetBody>
 
-        <SheetFooter>
+          <SheetFooter>
           <Button
             variant="outline"
             onClick={() => {
@@ -339,7 +346,8 @@ export function ExpensesSheet({
           >
             {t('expensesSaveBtn')}
           </Button>
-        </SheetFooter>
+          </SheetFooter>
+        </div>
       </SheetContent>
     </Sheet>
   )

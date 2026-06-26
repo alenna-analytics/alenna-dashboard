@@ -1,24 +1,30 @@
-import type { LucideIcon } from 'lucide-react'
-import { LayoutDashboard, PanelLeft } from 'lucide-react'
+import { PanelLeft } from 'lucide-react'
 import { matchPath, NavLink, useLocation } from 'react-router-dom'
 
+import type { AppIconName } from '@/lib/icons/catalog'
 import { useEnabledModules } from '@/lib/modules/use-modules'
+import { useConfigSectionModules, useWorkspaceConfigModuleEnabled } from '@/lib/modules/use-workspace-config'
 import type { ModuleSection, ModuleState } from '@/lib/modules/types'
-import { useLanguage } from '@/shell/providers/language-provider'
-import { cn } from '@/lib/utils'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { useLanguage } from '@/shell/providers/language-provider'
 import { SidebarNavSection } from '@/shell/layout/sidebar-nav-section'
+import { WorkspaceConfigNavItem } from '@/shell/layout/workspace-config-nav-group'
+import {
+  sidebarNavIconClassName,
+  sidebarNavItemCollapsedClassName,
+  sidebarNavLabelClassName,
+  sidebarInsetPaddingClassName,
+  sidebarNavItemClassName,
+  sidebarShellPaddingClassName,
+} from '@/shell/layout/sidebar-layout'
+import { cn } from '@/lib/utils'
+import { AppIcon } from '@/ui/app-icon'
 import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
-const TENANT_FAVICON_SRC = '/favicon.svg'
-
 export type AppSidebarPanelProps = {
   collapsed: boolean
-  companyName: string
-  companyLogoUrl?: string | null
-  companySubtitle: string
   onToggle?: () => void
   hideCollapseToggle?: boolean
   onNavigate?: () => void
@@ -27,35 +33,26 @@ export type AppSidebarPanelProps = {
 
 function linkClassNames(isActive: boolean, collapsed: boolean): string {
   const baseTrans =
-    'text-xs font-medium transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
+    'font-medium transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
   const active = cn(
-    'bg-[var(--sidebar-active-bg)] font-medium shadow-none',
-    '[&_svg]:opacity-100',
+    'bg-[var(--sidebar-active-bg)] font-medium text-text-primary shadow-none',
   )
   const inactive = cn(
-    'text-text-secondary hover:bg-[var(--sidebar-accent)]',
-    !collapsed && '[&_svg]:opacity-75',
-    !collapsed && 'hover:[&_svg]:opacity-100',
+    'text-text-secondary hover:bg-[var(--sidebar-accent)] hover:text-text-primary',
   )
   if (collapsed) {
     return cn(
       baseTrans,
-      'flex size-8 shrink-0 items-center justify-center rounded-sm',
+      sidebarNavItemClassName,
+      sidebarNavItemCollapsedClassName,
       isActive ? active : inactive,
     )
   }
   return cn(
     baseTrans,
-    'w-full flex items-center gap-2 rounded-sm px-2 py-1.5',
+    sidebarNavItemClassName,
+    'w-full gap-2',
     isActive ? active : inactive,
-  )
-}
-
-function iconClassNames(isActive: boolean, collapsed: boolean): string {
-  return cn(
-    'size-3.5 shrink-0 transition-[color,opacity] duration-150',
-    collapsed &&
-    (isActive ? 'opacity-100' : 'text-text-secondary opacity-100'),
   )
 }
 
@@ -64,7 +61,7 @@ function NavItem({
   end,
   label,
   collapsed,
-  Icon,
+  icon,
   comingSoon,
   comingSoonLabel,
   onNavigate,
@@ -73,7 +70,7 @@ function NavItem({
   end?: boolean
   label: string
   collapsed: boolean
-  Icon: LucideIcon
+  icon: AppIconName
   comingSoon?: boolean
   comingSoonLabel?: string
   onNavigate?: () => void
@@ -87,19 +84,19 @@ function NavItem({
       className={linkClassNames(isActive, collapsed)}
       onClick={() => onNavigate?.()}
     >
-      <Icon className={iconClassNames(isActive, collapsed)} aria-hidden strokeWidth={2} />
+      <AppIcon name={icon} colorize className={sidebarNavIconClassName} />
       {!collapsed ? (
-        <span className="flex min-w-0 flex-1 items-center gap-1.5">
-          <span className="min-w-0 flex-1 truncate">{label}</span>
+        <>
+          <span className={cn(sidebarNavLabelClassName, 'text-sm')}>{label}</span>
           {comingSoon && comingSoonLabel ? (
             <Badge
               variant="info"
-              className="ml-auto !h-4 !min-h-0 !max-h-4 shrink-0 rounded px-1 py-0 text-[9px] font-medium leading-none"
+              className="ml-auto shrink-0 font-numeric"
             >
               {comingSoonLabel}
             </Badge>
           ) : null}
-        </span>
+        </>
       ) : null}
     </NavLink>
   )
@@ -112,36 +109,13 @@ function NavItem({
   }
 
   return (
-    <div className="flex w-full min-w-0 shrink-0 justify-center px-0 py-px">
+    <div className="flex w-full min-w-0 shrink-0 justify-center">
       <Tooltip>
         <TooltipTrigger asChild>{link}</TooltipTrigger>
         <TooltipContent side="right" sideOffset={8} className="max-w-[12rem]">
           {tooltipLabel}
         </TooltipContent>
       </Tooltip>
-    </div>
-  )
-}
-
-function TenantMark({
-  logoUrl,
-  className,
-}: {
-  logoUrl?: string | null
-  className?: string
-}) {
-  const trimmedLogo = logoUrl?.trim() ?? ''
-  const src = trimmedLogo.length > 0 ? trimmedLogo : TENANT_FAVICON_SRC
-
-  return (
-    <div
-      className={cn(
-        'flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm bg-[var(--color-text-primary)] p-1',
-        className,
-      )}
-      aria-hidden
-    >
-      <img src={src} alt="" className="size-5 object-contain" draggable={false} />
     </div>
   )
 }
@@ -164,7 +138,7 @@ function ModuleNavItems({
       {modules.map((mod) => (
         <NavItem
           key={mod.id}
-          Icon={mod.icon}
+          icon={mod.icon}
           to={mod.path}
           end={mod.id !== 'products'}
           label={t(mod.labelKey)}
@@ -185,9 +159,6 @@ function modulesForSection(modules: ModuleState[], section: ModuleSection): Modu
 export function AppSidebarPanel({
   collapsed,
   onToggle,
-  companyName,
-  companyLogoUrl,
-  companySubtitle,
   hideCollapseToggle = false,
   onNavigate,
   className,
@@ -197,104 +168,84 @@ export function AppSidebarPanel({
   const toggleAria = collapsed ? t('ariaExpandSidebar') : t('ariaCollapseSidebar')
   const enabledModules = useEnabledModules()
   const analyticsModules = modulesForSection(enabledModules, 'analytics')
-  const configModules = modulesForSection(enabledModules, 'config')
+  const configModules = useConfigSectionModules()
+  const integrationsModule = configModules.find((mod) => mod.id === 'integrations')
+  const otherConfigModules = configModules.filter((mod) => mod.id !== 'integrations')
+  const workspaceConfigEnabled = useWorkspaceConfigModuleEnabled()
+  const showBottomSection =
+    integrationsModule != null || workspaceConfigEnabled || otherConfigModules.length > 0
 
   return (
     <div
       className={cn(
-        'flex h-full min-h-0 flex-col rounded-md border border-[var(--shell-structure-border)] bg-white shadow-none',
-        collapsed ? 'p-2.5 pt-3' : 'px-2.5 pb-2.5 pt-0',
+        'flex h-full min-h-0 flex-col bg-white shadow-none',
+        sidebarShellPaddingClassName,
         className,
       )}
     >
-      <div
-        className={cn(
-          'flex w-full shrink-0 border-b border-[var(--shell-structure-border)]',
-          collapsed
-            ? 'flex-col items-center gap-2 pb-2.5'
-            : 'h-[var(--shell-chrome-header-height)] min-h-[var(--shell-chrome-header-height)] items-center gap-2',
-        )}
-      >
-        {collapsed ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>
-                <TenantMark logoUrl={companyLogoUrl} className="size-8" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={8} className="max-w-[14rem]">
-              <p className="font-medium">{companyName}</p>
-              {companySubtitle ? (
-                <p className="text-xs text-text-tertiary">{companySubtitle}</p>
-              ) : null}
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          <>
-            <TenantMark logoUrl={companyLogoUrl} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold leading-tight text-text-primary">
-                {companyName}
-              </p>
-              {companySubtitle ? (
-                <p className="mt-0.5 truncate text-xs leading-tight text-text-tertiary">
-                  {companySubtitle}
-                </p>
-              ) : null}
-            </div>
-          </>
-        )}
-        {!hideCollapseToggle && onToggle ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={onToggle}
-            aria-label={toggleAria}
-            className={cn(
-              'h-8 w-8 shrink-0 border-[var(--shell-structure-border)] bg-[var(--bg-base)]/30 text-text-secondary shadow-none hover:bg-[var(--bg-base)]/50 hover:text-text-primary',
-              collapsed && 'w-8',
-            )}
-          >
-            <PanelLeft className="size-4" aria-hidden />
-          </Button>
-        ) : null}
-      </div>
-
       <nav
         className={cn(
-          'flex min-h-0 flex-1 flex-col overflow-y-auto',
-          collapsed ? 'mt-2 w-full items-center gap-1' : 'mt-2 gap-1 p-0.5 pt-1',
+          'flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pt-2',
+          collapsed && 'items-center',
         )}
         aria-label={t('navMain')}
       >
         <NavItem
-          Icon={LayoutDashboard}
+          icon="home"
           to="/dashboard"
           end
           label={t('navHome')}
           collapsed={collapsed}
           onNavigate={onNavigate}
         />
-        {analyticsModules.length > 0 ? (
-          <SidebarNavSection collapsed={collapsed} sectionTitle={t('navSectionAnalytics')}>
+        <ModuleNavItems
+          modules={analyticsModules}
+          collapsed={collapsed}
+          onNavigate={onNavigate}
+        />
+        {showBottomSection ? (
+          <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionConfiguration')}>
+            {integrationsModule ? (
+              <NavItem
+                icon={integrationsModule.icon}
+                to={integrationsModule.path}
+                end
+                label={t(integrationsModule.labelKey)}
+                collapsed={collapsed}
+                onNavigate={onNavigate}
+              />
+            ) : null}
+            {workspaceConfigEnabled ? (
+              <WorkspaceConfigNavItem collapsed={collapsed} onNavigate={onNavigate} />
+            ) : null}
             <ModuleNavItems
-              modules={analyticsModules}
-              collapsed={collapsed}
-              onNavigate={onNavigate}
-            />
-          </SidebarNavSection>
-        ) : null}
-        {configModules.length > 0 ? (
-          <SidebarNavSection collapsed={collapsed} sectionTitle={t('navSectionConfiguration')}>
-            <ModuleNavItems
-              modules={configModules}
+              modules={otherConfigModules}
               collapsed={collapsed}
               onNavigate={onNavigate}
             />
           </SidebarNavSection>
         ) : null}
       </nav>
+
+      {!hideCollapseToggle && onToggle ? (
+        <div
+          className={cn(
+            'mt-auto shrink-0 -mx-2',
+            sidebarInsetPaddingClassName,
+          )}
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onToggle}
+            aria-label={toggleAria}
+            className="size-8 shrink-0 text-text-secondary hover:bg-[var(--sidebar-accent)] hover:text-text-primary"
+          >
+            <PanelLeft className="size-4" aria-hidden />
+          </Button>
+        </div>
+      ) : null}
     </div>
   )
 }

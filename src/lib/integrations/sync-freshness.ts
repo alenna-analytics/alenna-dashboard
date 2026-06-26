@@ -1,3 +1,5 @@
+import type { SyncFreshnessPillTiming } from '@/lib/integrations/sync-freshness-age'
+import { deriveSyncFreshnessAgeDisplay } from '@/lib/integrations/sync-freshness-age'
 import type { PlatformConnection, SyncPlanStatus } from '@/lib/types/connectors'
 
 /** After this age, incremental sync is considered stale (default 5m tick × 3). */
@@ -95,11 +97,9 @@ export function connectorsQueryRefetchIntervalMs(
   return state === 'syncing' ? 15_000 : false
 }
 
-export type SyncFreshnessPillContent = {
-  kind: 'syncing' | 'now' | 'minutes_ago'
-  minutes?: number
-  freshnessState: SyncFreshnessState
-}
+export type SyncFreshnessPillContent =
+  | { kind: 'syncing'; freshnessState: SyncFreshnessState }
+  | (SyncFreshnessPillTiming & { freshnessState: SyncFreshnessState })
 
 function latestSyncedAtMs(connections: PlatformConnection[]): number | null {
   let latest: number | null = null
@@ -133,11 +133,7 @@ export function resolveSyncFreshnessPillContent(
 
   const now = options?.nowMs ?? Date.now()
   const ageMs = now - latestMs
-  const minutes = Math.floor(ageMs / 60_000)
-  if (minutes < 1) {
-    return { kind: 'now', freshnessState }
-  }
-  return { kind: 'minutes_ago', minutes, freshnessState }
+  return { ...deriveSyncFreshnessAgeDisplay(ageMs), freshnessState }
 }
 
 /** Per-connection pill (integration card / manage sheet). */
@@ -161,11 +157,8 @@ export function resolveConnectionSyncFreshnessPillContent(
   if (Number.isNaN(ms)) return null
 
   const now = options?.nowMs ?? Date.now()
-  const minutes = Math.floor((now - ms) / 60_000)
-  if (minutes < 1) {
-    return { kind: 'now', freshnessState }
-  }
-  return { kind: 'minutes_ago', minutes, freshnessState }
+  const ageMs = now - ms
+  return { ...deriveSyncFreshnessAgeDisplay(ageMs), freshnessState }
 }
 
 export function syncFreshnessPillBadgeVariant(

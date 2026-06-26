@@ -42,8 +42,10 @@ export type KpiResponse = {
 
 export type ProductKpiResponse = {
   gross_revenue: number
+  net_revenue: number
   cogs: number
   gross_profit: number
+  gross_profit_on_gross: number
   gross_margin_pct: number
   units_sold: number
   order_count: number

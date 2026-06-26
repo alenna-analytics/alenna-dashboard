@@ -1,7 +1,7 @@
 import { CheckCircle2 } from 'lucide-react'
 
 import { LoadingIcon } from '@/ui/app-icon'
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 
 import type { ShopifyIntegrationHook } from '@/pages/integrations/details/use-shopify-integration'
 import {
@@ -38,11 +38,71 @@ function lifecycleButtonLabelKey(syncPlan: SyncPlan | null): ShellStringKey {
   return 'syncRunBtn'
 }
 
-function ShopifyIntroCopy({ lang }: { lang: string }) {
+function shopifyDomainInputWidthCh(value: string, placeholder: string): number {
+  const visibleLength = value.length > 0 ? value.length : placeholder.length
+  return Math.max(visibleLength, 3)
+}
+
+function ShopifyDomainInlineField({
+  id,
+  value,
+  placeholder,
+  onChange,
+  readOnly = false,
+}: {
+  id: string
+  value: string
+  placeholder: string
+  onChange?: (value: string) => void
+  readOnly?: boolean
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const widthCh = shopifyDomainInputWidthCh(value, placeholder)
+
+  const focusInput = () => {
+    inputRef.current?.focus()
+  }
+
+  if (readOnly) {
+    return (
+      <div
+        id={id}
+        className="flex min-w-0 flex-1 items-center truncate px-3 font-mono text-sm text-text-primary"
+      >
+        <span className="truncate">{value}</span>
+        <span className="shrink-0 text-text-tertiary">{SHOPIFY_MYSHOPIFY_SUFFIX}</span>
+      </div>
+    )
+  }
+
   return (
-    <p className="text-sm text-muted-foreground">
-      {shellT(lang, 'integrationSheetShopifyConnectIntro')}
-    </p>
+    <div
+      className="flex min-h-10 min-w-0 flex-1 cursor-text items-center px-3"
+      onPointerDown={(e) => {
+        const target = e.target as HTMLElement
+        if (target.closest('input, button, a')) return
+        e.preventDefault()
+        focusInput()
+      }}
+    >
+      <div className="inline-flex min-w-0 items-center">
+        <Input
+          ref={inputRef}
+          variant="bare"
+          id={id}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange?.(normalizeShopifySubdomainInput(e.target.value))}
+          autoComplete="off"
+          spellCheck={false}
+          className="h-10 min-h-0 w-auto min-w-0 max-w-full shrink-0 rounded-none px-0 py-0 font-mono text-sm text-text-primary caret-text-primary placeholder:text-text-tertiary field-sizing-content"
+          style={{ width: `${widthCh}ch` }}
+        />
+        <span className="shrink-0 font-mono text-sm text-text-tertiary">
+          {SHOPIFY_MYSHOPIFY_SUFFIX}
+        </span>
+      </div>
+    </div>
   )
 }
 
@@ -243,6 +303,7 @@ export function ShopifyManageBody({ shopify }: { shopify: ShopifyIntegrationHook
 
   const storeId = 'integration-shop-domain'
   const shopSubdomain = normalizeShopifySubdomainInput(activeConnection?.shop_domain ?? '')
+  const shopPlaceholder = shellT(lang, 'connectionsConnectShopPlaceholder')
 
   return (
     <div className="flex max-w-2xl flex-col gap-6">
@@ -259,47 +320,36 @@ export function ShopifyManageBody({ shopify }: { shopify: ShopifyIntegrationHook
           </p>
         ) : !connected ? (
           <div className="space-y-4">
-            <ShopifyIntroCopy lang={lang} />
             <div className="space-y-2">
               <Label htmlFor={storeId}>{shellT(lang, 'connectionsConnectShopLabel')}</Label>
               <div
-                className="flex h-10 min-h-10 min-w-0 items-stretch overflow-hidden rounded-sm bg-background backdrop-blur-xl focus-within:ring-3 focus-within:ring-ring/45 focus-within:ring-offset-0"
+                className="flex min-h-10 min-w-0 items-stretch overflow-hidden rounded-md border border-border-subtle bg-muted/30 focus-within:border-border-default focus-within:ring-3 focus-within:ring-ring/45 focus-within:ring-offset-0"
                 role="group"
                 aria-label={shellT(lang, 'connectionsConnectShopLabel')}
               >
-                <Input
-                  variant="bare"
+                <ShopifyDomainInlineField
                   id={storeId}
-                  placeholder={shellT(lang, 'connectionsConnectShopPlaceholder')}
                   value={shopInput}
-                  onChange={(e) =>
-                    setShopInput(normalizeShopifySubdomainInput(e.target.value))
-                  }
-                  autoComplete="off"
-                  className="h-full min-h-0 flex-1 rounded-none px-2.5 py-0"
+                  placeholder={shopPlaceholder}
+                  onChange={setShopInput}
                 />
-                <span
-                  className="flex shrink-0 items-center border-l border-border-subtle/80 bg-muted px-3 text-sm text-muted-foreground"
-                  aria-hidden
+                <Button
+                  type="button"
+                  variant="accent"
+                  size="sm"
+                  className="my-1.5 mr-1.5 shrink-0 self-center rounded-md px-3"
+                  disabled={
+                    oauthStarting || !normalizeShopifySubdomainInput(shopInput) || !tenantId
+                  }
+                  onClick={() => void startOAuth()}
                 >
-                  {SHOPIFY_MYSHOPIFY_SUFFIX}
-                </span>
+                  {oauthStarting ? (
+                    <LoadingIcon className="size-4 shrink-0" />
+                  ) : null}
+                  {shellT(lang, 'integrationConnectWithShopify')}
+                </Button>
               </div>
             </div>
-            <Button
-              type="button"
-              className="inline-flex w-full items-center justify-center gap-2 sm:w-auto"
-              size="default"
-              disabled={
-                oauthStarting || !normalizeShopifySubdomainInput(shopInput) || !tenantId
-              }
-              onClick={() => void startOAuth()}
-            >
-              {oauthStarting ? (
-                <LoadingIcon className="size-4 shrink-0" />
-              ) : null}
-              {shellT(lang, 'integrationConnectWithShopify')}
-            </Button>
             {previewMessage && !oauthStarting ? (
               <p className="text-sm text-destructive" role="alert">
                 {previewMessage}
@@ -312,28 +362,21 @@ export function ShopifyManageBody({ shopify }: { shopify: ShopifyIntegrationHook
         ) : (
           <div className="space-y-5">
             <div className="space-y-4">
-              {shopifySyncPhase === 'idle' ? <ShopifyIntroCopy lang={lang} /> : null}
               <div className="space-y-2">
                 <Label htmlFor={`${storeId}-ro`}>
                   {shellT(lang, 'connectionsConnectShopLabel')}
                 </Label>
                 <div
-                  className="flex h-10 min-h-10 min-w-0 items-stretch overflow-hidden rounded-sm border border-input bg-muted/60 text-sm text-foreground"
+                  className="flex h-10 min-h-10 min-w-0 items-stretch overflow-hidden rounded-md border border-border-subtle bg-muted/30 text-sm text-foreground"
                   role="group"
                   aria-label={shellT(lang, 'connectionsConnectShopLabel')}
                 >
-                  <div
+                  <ShopifyDomainInlineField
                     id={`${storeId}-ro`}
-                    className="min-w-0 flex-1 truncate px-2.5 py-2 text-muted-foreground"
-                  >
-                    {shopSubdomain}
-                  </div>
-                  <span
-                    className="flex shrink-0 items-center border-l border-input bg-muted px-3 text-sm text-muted-foreground"
-                    aria-hidden
-                  >
-                    {SHOPIFY_MYSHOPIFY_SUFFIX}
-                  </span>
+                    value={shopSubdomain}
+                    placeholder={shopPlaceholder}
+                    readOnly
+                  />
                 </div>
                 {shopifySyncPhase === 'idle' ? (
                   <p className="text-xs text-muted-foreground">

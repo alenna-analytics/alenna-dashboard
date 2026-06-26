@@ -15,7 +15,7 @@ function internalNavLinkClass(isActive: boolean): string {
     'text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
     isActive
       ? 'bg-[var(--sidebar-active-bg)] text-text-primary'
-      : 'text-text-secondary hover:bg-[var(--sidebar-accent)] hover:text-text-primary',
+      : 'text-text-tertiary hover:bg-[var(--sidebar-accent)] hover:text-text-primary',
   )
 }
 

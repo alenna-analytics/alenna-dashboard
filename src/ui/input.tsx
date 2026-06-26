@@ -8,9 +8,13 @@ type InputProps = React.ComponentProps<"input"> & {
   variant?: "default" | "bare"
 }
 
-function Input({ className, type, variant = "default", ...props }: InputProps) {
+const Input = React.forwardRef<HTMLInputElement, InputProps>(function Input(
+  { className, type, variant = "default", ...props },
+  ref,
+) {
   return (
     <InputPrimitive
+      ref={ref}
       type={type}
       data-slot="input"
       className={cn(
@@ -23,6 +27,6 @@ function Input({ className, type, variant = "default", ...props }: InputProps) {
       {...props}
     />
   )
-}
+})
 
 export { Input }

@@ -98,6 +98,7 @@ export function MercadoLibreManageBody({ meli }: MercadoLibreManageBodyProps) {
           <MercadoLibreIntroCopy lang={lang} />
           <Button
             type="button"
+            variant="accent"
             className="inline-flex w-full items-center justify-center gap-2 sm:w-auto"
             size="default"
             disabled={meli.oauthStarting}

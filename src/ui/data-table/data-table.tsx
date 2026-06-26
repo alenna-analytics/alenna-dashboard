@@ -32,6 +32,7 @@ type DataTableProps<TData> = {
     className?: string
   }
   footer?: React.ReactNode
+  onRowClick?: (row: TData) => void
 }
 
 export function DataTable<TData>({
@@ -45,6 +46,7 @@ export function DataTable<TData>({
   toolbar,
   search,
   footer,
+  onRowClick,
 }: DataTableProps<TData>) {
   const rows = table.getRowModel().rows
   const showSkeleton = isLoading && !hasEverLoaded
@@ -154,7 +156,11 @@ export function DataTable<TData>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() ? "selected" : undefined}
-                  className="group bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
+                  className={cn(
+                    "group bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]",
+                    onRowClick && "cursor-pointer",
+                  )}
+                  onClick={onRowClick ? () => onRowClick(row.original) : undefined}
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as ColumnMetaWithCellClass | undefined

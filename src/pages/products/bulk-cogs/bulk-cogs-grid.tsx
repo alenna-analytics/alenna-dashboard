@@ -1,8 +1,10 @@
 import { useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { Trash2 } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { Input } from '@/ui/input'
+import { Button } from '@/ui/button'
 import { cn } from '@/lib/utils'
 
 import { computeDraftTotal } from './bulk-cogs-validation'
@@ -15,9 +17,18 @@ type BulkCogsGridProps = {
   draftStore: BulkCogsDraftStore
   onPatchDraft: (productId: string, field: 'supplierDraft' | 'freightDraft' | 'packagingDraft', value: string) => void
   t: (key: ShellStringKey) => string
+  readOnly?: boolean
+  onRemoveRow?: (productId: string) => void
 }
 
-export function BulkCogsGrid({ rowIds, draftStore, onPatchDraft, t }: BulkCogsGridProps) {
+export function BulkCogsGrid({
+  rowIds,
+  draftStore,
+  onPatchDraft,
+  t,
+  readOnly = false,
+  onRemoveRow,
+}: BulkCogsGridProps) {
   const parentRef = useRef<HTMLDivElement>(null)
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual returns unstable function refs by design
   const virtualizer = useVirtualizer({
@@ -27,9 +38,13 @@ export function BulkCogsGrid({ rowIds, draftStore, onPatchDraft, t }: BulkCogsGr
     overscan: 12,
   })
 
+  const gridCols = onRemoveRow
+    ? 'grid-cols-[minmax(120px,1.2fr)_minmax(80px,0.9fr)_minmax(70px,0.7fr)_minmax(70px,0.7fr)_minmax(72px,0.75fr)_minmax(72px,0.75fr)_minmax(72px,0.75fr)_minmax(72px,0.75fr)_40px]'
+    : 'grid-cols-[minmax(120px,1.2fr)_minmax(80px,0.9fr)_minmax(70px,0.7fr)_minmax(70px,0.7fr)_minmax(72px,0.75fr)_minmax(72px,0.75fr)_minmax(72px,0.75fr)_minmax(72px,0.75fr)]'
+
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-md border border-border-subtle">
-      <div className="grid shrink-0 grid-cols-[minmax(120px,1.2fr)_minmax(80px,0.9fr)_minmax(70px,0.7fr)_minmax(70px,0.7fr)_minmax(72px,0.75fr)_minmax(72px,0.75fr)_minmax(72px,0.75fr)_minmax(72px,0.75fr)] gap-2 border-b border-border-subtle bg-muted/30 px-3 py-2 text-xs font-medium text-text-secondary">
+      <div className={cn('grid shrink-0 gap-2 border-b border-border-subtle bg-muted/30 px-3 py-2 text-xs font-medium text-text-secondary', gridCols)}>
         <span>{t('productsBulkCogsColProduct')}</span>
         <span>{t('productsBulkCogsColVariant')}</span>
         <span>{t('productsColSku')}</span>
@@ -38,6 +53,7 @@ export function BulkCogsGrid({ rowIds, draftStore, onPatchDraft, t }: BulkCogsGr
         <span>{t('productsCostEditorFreight')}</span>
         <span>{t('productsBulkCogsColShipping')}</span>
         <span>{t('productsCostEditorTotal')}</span>
+        {onRemoveRow ? <span /> : null}
       </div>
       <div ref={parentRef} className="min-h-0 flex-1 overflow-auto">
         <div
@@ -60,9 +76,9 @@ export function BulkCogsGrid({ rowIds, draftStore, onPatchDraft, t }: BulkCogsGr
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
                 className={cn(
-                  'grid grid-cols-[minmax(120px,1.2fr)_minmax(80px,0.9fr)_minmax(70px,0.7fr)_minmax(70px,0.7fr)_minmax(72px,0.75fr)_minmax(72px,0.75fr)_minmax(72px,0.75fr)_minmax(72px,0.75fr)] items-center gap-2 border-b border-border-subtle px-3 text-sm',
-                  draft.dirty && !draft.invalid && 'bg-primary/5',
-                  draft.invalid && draft.dirty && 'bg-destructive/5',
+                  'grid items-center gap-2 border-b border-border-subtle px-3 text-sm transition-colors hover:bg-[var(--table-row-hover-bg)]',
+                  gridCols,
+                  draft.invalid && 'bg-destructive/5',
                 )}
               >
                 <span className="truncate font-medium text-text-primary" title={draft.parentTitle}>
@@ -80,22 +96,38 @@ export function BulkCogsGrid({ rowIds, draftStore, onPatchDraft, t }: BulkCogsGr
                   onChange={(e) => onPatchDraft(productId, 'supplierDraft', e.target.value)}
                   className="h-8"
                   inputMode="decimal"
+                  disabled={readOnly}
                 />
                 <Input
                   value={draft.freightDraft}
                   onChange={(e) => onPatchDraft(productId, 'freightDraft', e.target.value)}
                   className="h-8"
                   inputMode="decimal"
+                  disabled={readOnly}
                 />
                 <Input
                   value={draft.packagingDraft}
                   onChange={(e) => onPatchDraft(productId, 'packagingDraft', e.target.value)}
                   className="h-8"
                   inputMode="decimal"
+                  disabled={readOnly}
                 />
                 <span className="text-text-secondary">
                   {total != null ? total.toFixed(4) : '—'}
                 </span>
+                {onRemoveRow ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => onRemoveRow(productId)}
+                    disabled={readOnly}
+                    aria-label={t('productsCogsLoadRemove')}
+                  >
+                    <Trash2 className="size-4 shrink-0" aria-hidden />
+                  </Button>
+                ) : null}
               </div>
             )
           })}

@@ -63,6 +63,21 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
   if (normalized === '/dashboard/alarms') {
     return [{ label: shellT(lang, 'navAlarms') }]
   }
+  if (normalized === '/dashboard/products/cogs') {
+    return [{ label: shellT(lang, 'productsNavCogs') }]
+  }
+  if (/^\/dashboard\/products\/cogs\/loads\/[^/]+\/view$/.test(normalized)) {
+    return [
+      { label: shellT(lang, 'productsNavCogs'), to: '/dashboard/products/cogs' },
+      { label: shellT(lang, 'productsCogsLoadViewTitle') },
+    ]
+  }
+  if (/^\/dashboard\/products\/cogs\/loads\/[^/]+$/.test(normalized)) {
+    return [
+      { label: shellT(lang, 'productsNavCogs'), to: '/dashboard/products/cogs' },
+      { label: shellT(lang, 'productsCogsLoadEditorBreadcrumb') },
+    ]
+  }
   if (normalized === '/dashboard/products') {
     return [{ label: shellT(lang, 'navProducts') }]
   }

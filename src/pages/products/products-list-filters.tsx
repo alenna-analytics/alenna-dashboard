@@ -20,9 +20,15 @@ type ProductsListFiltersProps = {
   filters: ProductsListFiltersState
   onFiltersChange: (patch: Partial<ProductsListFiltersState>) => void
   t: (key: ShellStringKey) => string
+  channelsOnly?: boolean
 }
 
-export function ProductsListFilters({ filters, onFiltersChange, t }: ProductsListFiltersProps) {
+export function ProductsListFilters({
+  filters,
+  onFiltersChange,
+  t,
+  channelsOnly = false,
+}: ProductsListFiltersProps) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
 
@@ -72,28 +78,32 @@ export function ProductsListFilters({ filters, onFiltersChange, t }: ProductsLis
 
   return (
     <div className="flex flex-wrap items-end gap-3">
-      <FilterComboboxMulti
-        label={t('productsColStatus')}
-        options={statusOptions}
-        values={filters.statuses}
-        onValuesChange={(statuses) => onFiltersChange({ statuses })}
-        searchPlaceholder={t('filterSearch')}
-        emptyLabel={t('filterComingSoon')}
-        clearAriaLabel={t('filterClear')}
-        selectAllLabel={t('homeFilterSelectAll')}
-        deselectAllLabel={t('homeFilterDeselectAll')}
-      />
-      <FilterComboboxMulti
-        label={t('productsDetailListingColAlert')}
-        options={alertOptions}
-        values={filters.stockAlertLevels}
-        onValuesChange={(stockAlertLevels) => onFiltersChange({ stockAlertLevels })}
-        searchPlaceholder={t('filterSearch')}
-        emptyLabel={t('filterComingSoon')}
-        clearAriaLabel={t('filterClear')}
-        selectAllLabel={t('homeFilterSelectAll')}
-        deselectAllLabel={t('homeFilterDeselectAll')}
-      />
+      {!channelsOnly ? (
+        <>
+          <FilterComboboxMulti
+            label={t('productsColStatus')}
+            options={statusOptions}
+            values={filters.statuses}
+            onValuesChange={(statuses) => onFiltersChange({ statuses })}
+            searchPlaceholder={t('filterSearch')}
+            emptyLabel={t('filterComingSoon')}
+            clearAriaLabel={t('filterClear')}
+            selectAllLabel={t('homeFilterSelectAll')}
+            deselectAllLabel={t('homeFilterDeselectAll')}
+          />
+          <FilterComboboxMulti
+            label={t('productsDetailListingColAlert')}
+            options={alertOptions}
+            values={filters.stockAlertLevels}
+            onValuesChange={(stockAlertLevels) => onFiltersChange({ stockAlertLevels })}
+            searchPlaceholder={t('filterSearch')}
+            emptyLabel={t('filterComingSoon')}
+            clearAriaLabel={t('filterClear')}
+            selectAllLabel={t('homeFilterSelectAll')}
+            deselectAllLabel={t('homeFilterDeselectAll')}
+          />
+        </>
+      ) : null}
       <FilterComboboxMulti
         label={t('productsColChannels')}
         options={platformOptions}

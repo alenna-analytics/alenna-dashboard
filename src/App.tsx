@@ -8,6 +8,7 @@ import { ServerErrorPage } from '@/pages/errors/ServerErrorPage'
 import { IntegrationsListPage } from '@/pages/integrations/dashboard/IntegrationsListPage'
 import { IntegrationDetailPage } from '@/pages/integrations/dashboard/IntegrationDetailPage'
 import { DashboardHomePage } from '@/pages/dashboard/DashboardHomePage'
+import { DashboardHomePageV2 } from '@/pages/dashboard/DashboardHomePageV2'
 import { ComponentsShowcasePage } from '@/pages/dev/ComponentsShowcasePage'
 import { ProductsListPage } from '@/pages/products/ProductsListPage'
 import { ProductDetailPage } from '@/pages/products/ProductDetailPage'
@@ -28,6 +29,7 @@ function App() {
       <Route element={<AppAuthBoundary />}>
         <Route path="/dashboard" element={<AppShellLayout />}>
           <Route index element={<DashboardHomePage />} />
+          <Route path="home-v2" element={<DashboardHomePageV2 />} />
           <Route path="components" element={<ComponentsShowcasePage />} />
           <Route path="reports" element={<Navigate to="/dashboard" replace />} />
           <Route path="products" element={<ProductsListPage />} />

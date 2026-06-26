@@ -21,6 +21,9 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
   if (normalized === '/dashboard') {
     return [{ label: shellT(lang, 'navHome') }]
   }
+  if (normalized === '/dashboard/home-v2') {
+    return [{ label: shellT(lang, 'navHomeV2') }]
+  }
   if (normalized === '/dashboard/components') {
     return [
       { label: shellT(lang, 'navHome'), to: '/dashboard' },

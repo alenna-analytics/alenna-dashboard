@@ -55,7 +55,8 @@ export type FilterPillTriggerAreaProps = {
 
 /**
  * Inactive: label only. Active: optional clear | label · value · chevron; shorter height.
- * Place inside `<Popover>` before `<PopoverContent />`.
+ * PopoverTrigger keeps a stable parent wrapper so the popover anchor does not jump
+ * when the pill switches from inactive to active while open.
  */
 export function FilterPillTriggerArea({
   active,
@@ -66,56 +67,43 @@ export function FilterPillTriggerArea({
   triggerClassName,
   ariaExpanded,
 }: FilterPillTriggerAreaProps) {
-  if (!active) {
-    return (
-      <PopoverTrigger
-        type="button"
-        className={cn(filterPillInactiveClassName(), triggerClassName)}
-        aria-expanded={ariaExpanded}
-      >
-        <span className="max-w-[12rem] truncate">{label}</span>
-      </PopoverTrigger>
-    )
-  }
-
   const summaryText = valueSummary ?? ''
+  const showClear = active && Boolean(onClear)
 
-  if (!onClear) {
-    return (
+  return (
+    <div
+      className={cn(
+        'inline-flex max-w-full shrink-0 items-stretch',
+        active && filterPillActiveShellClassName(),
+        triggerClassName,
+      )}
+    >
+      {showClear ? (
+        <button
+          type="button"
+          className={filterPillClearButtonClassName()}
+          aria-label={clearAriaLabel}
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            onClear?.()
+          }}
+        >
+          <CircleX className="size-3.5" aria-hidden />
+        </button>
+      ) : null}
       <PopoverTrigger
         type="button"
         className={cn(
-          filterPillActiveShellClassName(),
-          'inline-flex min-w-0 items-center gap-1.5 px-2',
-          triggerClassName,
+          active ? filterPillActiveTriggerClassName() : filterPillInactiveClassName(),
         )}
         aria-expanded={ariaExpanded}
       >
-        <FilterPillActiveContents label={label} valueSummary={summaryText} />
-      </PopoverTrigger>
-    )
-  }
-
-  return (
-    <div className={cn(filterPillActiveShellClassName(), triggerClassName)}>
-      <button
-        type="button"
-        className={filterPillClearButtonClassName()}
-        aria-label={clearAriaLabel}
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          onClear()
-        }}
-      >
-        <CircleX className="size-3.5" aria-hidden />
-      </button>
-      <PopoverTrigger
-        type="button"
-        className={filterPillActiveTriggerClassName()}
-        aria-expanded={ariaExpanded}
-      >
-        <FilterPillActiveContents label={label} valueSummary={summaryText} />
+        {active ? (
+          <FilterPillActiveContents label={label} valueSummary={summaryText} />
+        ) : (
+          <span className="max-w-[12rem] truncate">{label}</span>
+        )}
       </PopoverTrigger>
     </div>
   )

@@ -374,9 +374,9 @@
   --global-activity-success-bg: var(--country-green-base);
   --global-activity-success-fg: #ffffff;
   --global-activity-success-border: var(--shell-divider);
-  --global-activity-error-bg: var(--status-red-50);
-  --global-activity-error-fg: var(--text-primary);
-  --global-activity-error-border: var(--status-red-200);
+  --global-activity-error-bg: #bf2b2b;
+  --global-activity-error-fg: #ffffff;
+  --global-activity-error-border: #bf2b2b;
   --global-activity-divider: color-mix(in srgb, var(--ink) 8%, transparent);
   --global-activity-bar-outer-border: color-mix(
     in srgb,

@@ -10,7 +10,10 @@ export function IntegrationCardSkeleton() {
         )}
         aria-hidden
       >
-        <Skeleton className="mb-4 size-8 rounded-md" />
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <Skeleton className="size-11 rounded-md" />
+          <Skeleton className="h-5 w-20 rounded-full" />
+        </div>
         <Skeleton className="h-4 w-24 rounded" />
         <Skeleton className="mt-2 h-3 w-full max-w-56 rounded" />
         <Skeleton className="mt-1.5 h-3 w-3/4 max-w-40 rounded" />

@@ -324,6 +324,7 @@ const SHELL_STRINGS = {
     integrationDetailTabOverview: 'Resumen',
     integrationDetailTabSettings: 'Configuración',
     integrationDetailInstalledBadge: 'Instalado',
+    integrationCardSyncPending: 'Sincronización pendiente',
     integrationDetailBuiltBy: 'Desarrollado por',
     integrationDetailCategoryLabel: 'Categoría',
     integrationDetailStatusLabel: 'Estado',
@@ -339,6 +340,9 @@ const SHELL_STRINGS = {
     integrationDescWalmart: 'Pedidos de marketplace.',
     integrationDetailSyncNow: 'Sincronizar ahora',
     integrationDetailDisconnect: 'Desconectar',
+    integrationEnableTitle: 'Habilitar integración',
+    integrationEnableDescription:
+      'Activa o desactiva la conexión con tu tienda.',
     integrationDetailActiveLabel: 'Activo',
     integrationDetailStoreLabel: 'Tienda',
     integrationConnectionCardTitle: 'Estado de la conexión',
@@ -387,6 +391,8 @@ const SHELL_STRINGS = {
     syncSectionTitle: 'Sincronización de datos',
     syncSectionDescription:
       'Importamos pedidos y productos desde Shopify. La sincronización inicial trae los últimos 3 años calendario completos más lo que va del año actual, en el horario de tu tienda.',
+    syncSectionCardDescription:
+      'Importa pedidos y productos de los últimos 3 años calendario y el año en curso.',
     syncRunBtn: 'Ejecutar sincronización inicial',
     syncRefreshBtn: 'Re-sincronizar pedidos',
     syncRetryBtn: 'Reintentar sincronización',
@@ -417,6 +423,8 @@ const SHELL_STRINGS = {
     syncProductsUpdated: 'referencias de catálogo en pedidos',
     syncListingsImported: 'publicaciones importadas',
     syncErrorLabel: 'Error al sincronizar',
+    shopifySyncFailedUserMessage:
+      'No se pudo completar la sincronización. Puedes reintentar en unos momentos.',
     syncFullHistoryHelper:
       'Importamos pedidos desde enero {startYear} hasta hoy según el horario de tu tienda. Si tu integración de Shopify limita el historial visible, importaremos sólo lo disponible. Para más historia, escríbenos.',
     syncCoverageHelper:
@@ -433,6 +441,7 @@ const SHELL_STRINGS = {
     syncProgressLabel:
       'Explorando pedidos... más antiguo encontrado hasta ahora: {year} ({count})',
     shopifySyncProgressTitle: 'Sincronizando con Shopify',
+    shopifySyncFailedTitle: 'Error al sincronizar con Shopify',
     shopifySyncProgressQueued: 'En proceso...',
     jobTriggeredBySystem: 'Iniciado automáticamente por Alenna',
     shopifySyncProgressOrders: 'Pedidos importados',
@@ -443,7 +452,7 @@ const SHELL_STRINGS = {
     shopifySyncToastFailed: 'La sincronización de Shopify falló.',
     shopifySyncRetry: 'Reintentar',
     shopifySyncBlockedHint:
-      'Última ejecución terminó correctamente. Solo puedes volver a lanzarla si falló (Reintentar).',
+      'Última ejecución terminó correctamente.',
     globalActivityDismissAria: 'Ocultar barra y mostrar estado en la cabecera',
     globalActivityClearAria: 'Cerrar y descartar',
     globalActivityRestoreBarAria: 'Mostrar de nuevo la barra de actividad',
@@ -1306,6 +1315,7 @@ const SHELL_STRINGS = {
     integrationDetailTabOverview: 'Overview',
     integrationDetailTabSettings: 'Settings',
     integrationDetailInstalledBadge: 'Installed',
+    integrationCardSyncPending: 'Sync pending',
     integrationDetailBuiltBy: 'Built by',
     integrationDetailCategoryLabel: 'Category',
     integrationDetailStatusLabel: 'Status',
@@ -1321,6 +1331,9 @@ const SHELL_STRINGS = {
     integrationDescWalmart: 'Marketplace orders.',
     integrationDetailSyncNow: 'Sync now',
     integrationDetailDisconnect: 'Disconnect',
+    integrationEnableTitle: 'Enable integration',
+    integrationEnableDescription:
+      'Turn your store connection on or off.',
     integrationDetailActiveLabel: 'Active',
     integrationDetailStoreLabel: 'Store',
     integrationConnectionCardTitle: 'Connection',
@@ -1368,6 +1381,8 @@ const SHELL_STRINGS = {
     syncSectionTitle: 'Data Sync',
     syncSectionDescription:
       'We pull orders and products from Shopify. Initial sync brings the last 3 full calendar years plus the current year-to-date, in your store timezone.',
+    syncSectionCardDescription:
+      'Import orders and products from the last 3 calendar years and the current year.',
     syncRunBtn: 'Run Initial Sync',
     syncRefreshBtn: 'Re-sync orders',
     syncRetryBtn: 'Retry sync',
@@ -1395,6 +1410,8 @@ const SHELL_STRINGS = {
     syncProductsUpdated: 'order line catalog references',
     syncListingsImported: 'listings imported',
     syncErrorLabel: 'Sync error',
+    shopifySyncFailedUserMessage:
+      'The sync could not be completed. You can try again in a few moments.',
     syncFullHistoryHelper:
       'We import orders from January {startYear} through today in your store timezone. If your Shopify integration caps visible history, we will import only what is available. For more history, contact us.',
     syncCoverageHelper:
@@ -1411,6 +1428,7 @@ const SHELL_STRINGS = {
     syncProgressLabel:
       'Exploring orders... earliest found so far: {year} ({count})',
     shopifySyncProgressTitle: 'Syncing with Shopify',
+    shopifySyncFailedTitle: 'Shopify sync failed',
     shopifySyncProgressQueued: 'Queued, waiting for worker…',
     jobTriggeredBySystem: 'Started automatically by Alenna',
     shopifySyncProgressOrders: 'Orders imported',
@@ -1421,7 +1439,7 @@ const SHELL_STRINGS = {
     shopifySyncToastFailed: 'Shopify sync failed.',
     shopifySyncRetry: 'Retry',
     shopifySyncBlockedHint:
-      'Last run finished successfully. You can run again only after a failure (Retry).',
+      'Last run finished successfully.',
     globalActivityDismissAria: 'Hide bar and show status in the header',
     globalActivityClearAria: 'Dismiss',
     globalActivityRestoreBarAria: 'Show activity bar again',

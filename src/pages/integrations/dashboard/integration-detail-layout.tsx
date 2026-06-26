@@ -6,7 +6,8 @@ import { IntegrationLogo } from '@/pages/integrations/details/integration-logo'
 type IntegrationDetailLayoutProps = {
   definition: ManagedIntegration
   title: string
-  description: string
+  description?: string
+  titleBadges?: ReactNode
   overview: ReactNode
   settings: ReactNode
 }
@@ -15,6 +16,7 @@ export function IntegrationDetailLayout({
   definition,
   title,
   description,
+  titleBadges,
   overview,
   settings,
 }: IntegrationDetailLayoutProps) {
@@ -23,8 +25,13 @@ export function IntegrationDetailLayout({
       <div className="flex items-start gap-4">
         <IntegrationLogo src={definition.logoSrc} alt={title} size="xl" />
         <div className="min-w-0 flex-1 pt-0.5">
-          <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">{title}</h1>
-          <p className="mt-1 max-w-2xl text-sm text-text-secondary">{description}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">{title}</h1>
+            {titleBadges}
+          </div>
+          {description ? (
+            <p className="mt-1 max-w-3xl text-sm leading-relaxed text-text-secondary">{description}</p>
+          ) : null}
         </div>
       </div>
 

@@ -209,7 +209,6 @@ export function AppSidebarPanel({
               <NavItem
                 icon={integrationsModule.icon}
                 to={integrationsModule.path}
-                end
                 label={t(integrationsModule.labelKey)}
                 collapsed={collapsed}
                 onNavigate={onNavigate}

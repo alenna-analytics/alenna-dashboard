@@ -17,9 +17,9 @@ function Card({
       data-size={size}
       data-variant={variant}
       className={cn(
-        "group/card flex flex-col gap-4 overflow-hidden rounded-md border border-border-default bg-card py-6 text-sm text-card-foreground shadow-[var(--shadow-ink-sm)] transition-[box-shadow,border-color,background-color] duration-200 ease-out has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 hover:border-border-emphasis hover:shadow-[var(--shadow-ink-md)] data-[size=sm]:gap-3 data-[size=sm]:py-4 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-md *:[img:last-child]:rounded-b-md",
+        "group/card flex flex-col gap-4 overflow-hidden rounded-md border border-border-default bg-bg-card-strong py-6 text-sm text-card-foreground shadow-none has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-4 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-md *:[img:last-child]:rounded-b-md",
         variant === "solid" &&
-          "border-border-default bg-glass-fill-soft shadow-[var(--shadow-ink-sm)] hover:shadow-[var(--shadow-ink-md)]",
+          "border-border-default bg-glass-fill-soft shadow-none",
         className
       )}
       {...props}

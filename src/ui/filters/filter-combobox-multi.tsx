@@ -1,5 +1,7 @@
 import * as React from 'react'
-import { Check, Loader2 } from 'lucide-react'
+import { Check } from 'lucide-react'
+
+import { LoadingIcon } from '@/ui/app-icon'
 
 import { cn } from '@/lib/utils'
 import {
@@ -11,7 +13,6 @@ import {
   CommandList,
 } from '@/ui/command'
 import { Popover, PopoverContent } from '@/ui/popover'
-import { Button } from '@/ui/button'
 import { FilterPillTriggerArea } from '@/ui/filters/filter-pill-trigger'
 import type { FilterOption } from '@/ui/filters/types'
 import { TruncatedOptionLabel } from '@/ui/filters/truncated-option-label'
@@ -21,7 +22,7 @@ export type FilterComboboxMultiProps = {
   options: FilterOption[]
   values: string[]
   onValuesChange: (next: string[]) => void
-  applyLabel: string
+  selectionMode?: 'multi'
   searchPlaceholder: string
   emptyLabel: string
   triggerClassName?: string
@@ -54,7 +55,6 @@ export function FilterComboboxMulti({
   options,
   values,
   onValuesChange,
-  applyLabel,
   searchPlaceholder,
   emptyLabel,
   triggerClassName,
@@ -72,21 +72,21 @@ export function FilterComboboxMulti({
   onOpenChange,
 }: FilterComboboxMultiProps) {
   const [open, setOpen] = React.useState(false)
-  const [draftValues, setDraftValues] = React.useState<string[]>(values)
   const [query, setQuery] = React.useState('')
   const [appliedContainsQuery, setAppliedContainsQuery] = React.useState<string | null>(null)
-  const [draftContainsQuery, setDraftContainsQuery] = React.useState<string | null>(null)
-
-  React.useEffect(() => {
-    if (!open) return
-    setDraftValues(values)
-    setDraftContainsQuery(appliedContainsQuery)
-  }, [open, values, appliedContainsQuery])
 
   React.useEffect(() => {
     if (values.length > 0) return
     setAppliedContainsQuery(null)
   }, [values])
+
+  const applyValues = React.useCallback(
+    (next: string[], containsQuery: string | null = null) => {
+      onValuesChange(next)
+      setAppliedContainsQuery(containsQuery && next.length > 0 ? containsQuery : null)
+    },
+    [onValuesChange],
+  )
 
   const summary = React.useMemo(() => {
     if (values.length === 0) return null
@@ -120,29 +120,25 @@ export function FilterComboboxMulti({
   )
 
   const allSelected =
-    allOptionValues.length > 0 && allOptionValues.every((v) => draftValues.includes(v))
+    allOptionValues.length > 0 && allOptionValues.every((v) => values.includes(v))
   const filteredSelected =
     filteredOptionValues.length > 0 &&
-    filteredOptionValues.every((v) => draftValues.includes(v))
+    filteredOptionValues.every((v) => values.includes(v))
 
   const toggleSelectAll = React.useCallback(() => {
-    setDraftValues((current) => {
-      if (allSelected) return current.filter((v) => !allOptionValues.includes(v))
-      const merged = new Set([...current, ...allOptionValues])
-      return Array.from(merged)
-    })
-    setDraftContainsQuery(null)
-  }, [allOptionValues, allSelected])
+    const next = allSelected
+      ? values.filter((v) => !allOptionValues.includes(v))
+      : Array.from(new Set([...values, ...allOptionValues]))
+    applyValues(next, null)
+  }, [allOptionValues, allSelected, applyValues, values])
 
   const toggleSelectAllContaining = React.useCallback(() => {
-    setDraftValues((current) => {
-      if (filteredSelected) return current.filter((v) => !filteredOptionValues.includes(v))
-      const merged = new Set([...current, ...filteredOptionValues])
-      return Array.from(merged)
-    })
+    const next = filteredSelected
+      ? values.filter((v) => !filteredOptionValues.includes(v))
+      : Array.from(new Set([...values, ...filteredOptionValues]))
     const q = query.trim()
-    setDraftContainsQuery(q.length > 0 ? q : null)
-  }, [filteredOptionValues, filteredSelected, query])
+    applyValues(next, q.length > 0 ? q : null)
+  }, [applyValues, filteredOptionValues, filteredSelected, query, values])
 
   return (
     <Popover
@@ -156,7 +152,7 @@ export function FilterComboboxMulti({
         active={active}
         label={label}
         valueSummary={summary}
-        onClear={active ? () => onValuesChange([]) : undefined}
+        onClear={active ? () => applyValues([], null) : undefined}
         clearAriaLabel={clearAriaLabel}
         ariaExpanded={open}
         triggerClassName={triggerClassName}
@@ -167,9 +163,9 @@ export function FilterComboboxMulti({
         positionMethod="fixed"
         collisionPadding={12}
         collisionAvoidance={{ side: 'shift', align: 'none', fallbackAxisSide: 'none' }}
-        className="w-[min(calc(100vw-24px),18rem)] border-border-subtle shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)] p-0"
+        className="w-[min(calc(100vw-24px),18rem)] border-border-subtle bg-white shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)] p-0 backdrop-blur-none"
       >
-        <Command shouldFilter={false}>
+        <Command shouldFilter={false} className="bg-white">
           <CommandInput
             className="bg-white"
             placeholder={searchPlaceholder}
@@ -178,7 +174,7 @@ export function FilterComboboxMulti({
               onSearchChange?.(next)
             }}
           />
-          <CommandList className="max-h-72 overflow-y-auto">
+          <CommandList className="max-h-72 overflow-y-auto bg-white">
             <CommandEmpty>
               {loading ? (
                 <span
@@ -186,7 +182,7 @@ export function FilterComboboxMulti({
                   role="status"
                   aria-live="polite"
                 >
-                  <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+                  <LoadingIcon className="size-4 shrink-0" />
                   <span>{loadingLabel ?? searchPlaceholder}</span>
                 </span>
               ) : (
@@ -224,14 +220,13 @@ export function FilterComboboxMulti({
             <CommandGroup>
               {!loading &&
                 filteredOptions.map((o) => {
-                const checked = draftValues.includes(o.value)
+                const checked = values.includes(o.value)
                 return (
                   <CommandItem
                     key={o.value}
                     value={`${o.label} ${o.value}`}
                     onSelect={() => {
-                      setDraftValues((current) => toggle(current, o.value))
-                      setDraftContainsQuery(null)
+                      applyValues(toggle(values, o.value), null)
                     }}
                   >
                     <span
@@ -251,23 +246,6 @@ export function FilterComboboxMulti({
                 })}
             </CommandGroup>
           </CommandList>
-          <div className="border-t border-border-default p-2">
-            <Button
-              type="button"
-              variant="default"
-              size="xs"
-              className="w-full"
-              onClick={() => {
-                onValuesChange(draftValues)
-                setAppliedContainsQuery(
-                  draftContainsQuery && draftValues.length > 0 ? draftContainsQuery : null,
-                )
-                setOpen(false)
-              }}
-            >
-              {applyLabel}
-            </Button>
-          </div>
         </Command>
       </PopoverContent>
     </Popover>

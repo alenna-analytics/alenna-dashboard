@@ -3,8 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { shellT } from '@/lib/i18n/shell-strings'
-import { formatTenantPlan } from '@/lib/utils'
-import { AppBootLoader } from '@/shell/layout/app-boot-loader'
+import { AppShellBootSkeleton } from '@/shell/layout/app-shell-boot-skeleton'
 import { AppHeader } from '@/shell/layout/app-header'
 import { AppSidebar } from '@/shell/layout/app-sidebar'
 import { AppSidebarDrawer } from '@/shell/layout/app-sidebar-drawer'
@@ -12,13 +11,20 @@ import { ShellBootstrapError } from '@/shell/layout/shell-bootstrap-error'
 import { DisplayCurrencyProvider } from '@/shell/providers/display-currency-provider'
 import { GlobalActivityProvider } from '@/shell/providers/global-activity-provider'
 import { WorkspaceProvider } from '@/shell/providers/workspace-context'
+import { ActiveAlertsSheetHost } from '@/shell/alerts/active-alerts-sheet-host'
+import { AlertsSheetProvider } from '@/shell/alerts/alerts-sheet-context'
 import { GlobalActivityBar } from '@/shell/layout/global-activity-bar'
+import { CogsBackfillActivityPollers } from '@/shell/layout/cogs-backfill-activity-pollers'
 import { TrialExpiredScreen } from '@/shell/trial-expired-screen'
 import { onTrialExpired } from '@/lib/trial-expired-signal'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { TooltipProvider } from '@/ui/tooltip'
 import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
+import { ConfigurationInternalSidebar } from '@/pages/configuration/configuration-internal-sidebar'
+import { isConfigurationRoute } from '@/pages/configuration/configuration-inner-nav'
+import { IntegrationsInternalSidebar } from '@/pages/integrations/dashboard/integrations-internal-sidebar'
+import { isIntegrationsRoute } from '@/pages/integrations/dashboard/integrations-inner-nav'
 import { cn } from '@/lib/utils'
 
 const SIDEBAR_COLLAPSED_KEY = 'alenna.sidebar.collapsed'
@@ -83,7 +89,7 @@ export function AppShellLayout() {
   const workspaceValue = useMemo(() => ({ me, refetchMe }), [me, refetchMe])
   const mainRef = useRef<HTMLElement>(null)
 
-  const sidebarCompanyName = useMemo(() => {
+  const companyName = useMemo(() => {
     const fromMe = me?.tenant_name?.trim()
     if (fromMe) return fromMe
     const row =
@@ -93,15 +99,8 @@ export function AppShellLayout() {
     return raw && raw.length > 0 ? raw : shellT(lang, 'shellSidebarWorkspaceFallback')
   }, [me?.tenant_name, tenants, tenantId, lang])
 
-  const sidebarCompanySubtitle = useMemo(() => {
-    const fromMe = me?.plan?.trim()
-    if (fromMe) return formatTenantPlan(fromMe)
-    const row =
-      tenants.find((x) => tenantIdsEqual(x.tenant_id, tenantId)) ??
-      (tenants.length === 1 ? tenants[0] : undefined)
-    const p = row?.plan?.trim()
-    return p ? formatTenantPlan(p) : ''
-  }, [me?.plan, tenants, tenantId])
+  const showConfigurationInnerSidebar = isConfigurationRoute(location.pathname)
+  const showIntegrationsInnerSidebar = isIntegrationsRoute(location.pathname)
 
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
@@ -111,7 +110,7 @@ export function AppShellLayout() {
     tenantsLoading || resolvingSingleTenant || (Boolean(tenantId) && meLoading)
 
   if (bootLoading) {
-    return <AppBootLoader />
+    return <AppShellBootSkeleton />
   }
 
   if (error) {
@@ -133,55 +132,60 @@ export function AppShellLayout() {
     <WorkspaceProvider value={workspaceValue}>
       <DisplayCurrencyProvider me={me} refetchMe={refetchMe}>
         <GlobalActivityProvider>
-          <TooltipProvider delayDuration={200}>
-            <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh gap-0 overflow-hidden bg-[var(--bg-base)] p-2 lg:gap-3 lg:p-3">
-              <AppSidebar
-                className="hidden lg:flex"
-                collapsed={sidebarCollapsed}
-                onToggle={toggleSidebar}
-                companyName={sidebarCompanyName}
-                companySubtitle={sidebarCompanySubtitle}
-              />
-              <AppSidebarDrawer
-                open={mobileNavOpen}
-                onOpenChange={setMobileNavOpen}
-                companyName={sidebarCompanyName}
-                companySubtitle={sidebarCompanySubtitle}
-              />
-              <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-[var(--shell-structure-border)] bg-white">
-                <div className="sticky top-0 z-30 shrink-0 bg-card">
-                  <AppHeader
-                    className="border-b border-[var(--shell-structure-border)]"
-                    onOpenMobileNav={openMobileNav}
-                  />
-                  <GlobalActivityBar className="hidden lg:block" />
+          <CogsBackfillActivityPollers />
+          <AlertsSheetProvider>
+            <TooltipProvider delayDuration={200}>
+              <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh flex-col overflow-hidden bg-white">
+                <div className="z-40 shrink-0">
+                  <GlobalActivityBar />
                 </div>
-                <main
-                  ref={mainRef}
-                  className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
-                >
-                  <div
-                    className={cn(
-                      WORKSPACE_SHELL_COLUMN_CLASS,
-                      'min-h-full py-4 lg:py-5',
-                    )}
-                  >
-                    {!tenantId && tenants.length > 1 ? (
-                      <p className="mb-4 text-sm text-text-secondary">
-                        Select a workspace in your account menu if prompted.
-                      </p>
-                    ) : null}
-                    <div
-                      key={location.pathname}
-                      className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150 motion-safe:fill-mode-both"
-                    >
-                      <Outlet />
-                    </div>
+                <div className="sticky top-0 z-30 shrink-0 bg-white">
+                  <AppHeader companyName={companyName} onOpenMobileNav={openMobileNav} />
+                </div>
+                <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+                  <AppSidebar
+                    className="hidden lg:flex"
+                    collapsed={sidebarCollapsed}
+                    onToggle={toggleSidebar}
+                  />
+                  <AppSidebarDrawer
+                    open={mobileNavOpen}
+                    onOpenChange={setMobileNavOpen}
+                  />
+                  <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+                    {showConfigurationInnerSidebar ? <ConfigurationInternalSidebar /> : null}
+                    {showIntegrationsInnerSidebar ? <IntegrationsInternalSidebar /> : null}
+                    <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
+                      <main
+                        ref={mainRef}
+                        className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
+                      >
+                        <div
+                          className={cn(
+                            WORKSPACE_SHELL_COLUMN_CLASS,
+                            'min-h-full py-3 lg:py-4',
+                          )}
+                        >
+                          {!tenantId && tenants.length > 1 ? (
+                            <p className="mb-4 text-sm text-text-secondary">
+                              Select a workspace in your account menu if prompted.
+                            </p>
+                          ) : null}
+                          <div
+                            key={location.pathname}
+                            className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150 motion-safe:fill-mode-both"
+                          >
+                            <Outlet />
+                          </div>
+                        </div>
+                      </main>
+                    </section>
+                    <ActiveAlertsSheetHost />
                   </div>
-                </main>
-              </section>
-            </div>
-          </TooltipProvider>
+                </div>
+              </div>
+            </TooltipProvider>
+          </AlertsSheetProvider>
         </GlobalActivityProvider>
       </DisplayCurrencyProvider>
     </WorkspaceProvider>

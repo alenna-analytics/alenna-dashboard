@@ -53,6 +53,9 @@ export type ProductVariantSummaryApi = {
   platforms: string[]
   stock_quantity: number | null
   stock_alert: StockAlertLevel
+  cost: number | null
+  currency: string | null
+  cost_missing: boolean
   period_sales: number
   period_orders: number
   period_units_sold: number
@@ -101,6 +104,23 @@ export type ProductCostHistorySegmentApi = {
   currency: string
   effective_from: string
   effective_to: string | null
+  entry_method?: string
+  components?: Record<string, unknown> | null
+}
+
+export type ComponentAmountMode = 'fixed' | 'percent'
+
+export type ComponentAmountApi = {
+  mode: ComponentAmountMode
+  value: number
+}
+
+export type ProductCostBreakdownApi = {
+  supplier_price: number
+  freight: ComponentAmountApi
+  duties: ComponentAmountApi
+  packaging_value: number
+  computed_total: number
 }
 
 export type ProductWeeklyNetSalesPointApi = {
@@ -110,6 +130,10 @@ export type ProductWeeklyNetSalesPointApi = {
 
 export type ProductPlatformPeriodApi = {
   platform: string
+  gross_sales: number
+  net_sales: number
+  gross_units_sold: number
+  net_units_sold: number
   sales: number
   units_sold: number
 }
@@ -117,9 +141,14 @@ export type ProductPlatformPeriodApi = {
 export type ProductDetailApi = {
   id: string
   internal_sku: string | null
+  period_gross_units_sold: number
+  period_net_units_sold: number
   period_units_sold: number
   period_cogs: number
+  period_gross_sales: number
+  period_net_sales: number
   period_sales: number
+  period_gross_profit: number
   period_orders: number
   period_start: string | null
   period_end: string | null
@@ -152,6 +181,7 @@ export type ProductDetailApi = {
   stock_alert_summary: StockAlertListingSummaryApi[]
   cost_history: ProductCostHistorySegmentApi[]
   listing_price_history: ProductListingPriceSegmentApi[]
+  cost_breakdown?: ProductCostBreakdownApi | null
 }
 
 export type CatalogJobStatus = 'queued' | 'running' | 'succeeded' | 'failed'
@@ -177,4 +207,39 @@ export type CatalogJobApi = {
   min_order_date?: string | null
   max_order_date?: string | null
   created_by_user_id?: string | null
+}
+
+export type ProductCostBulkRowApi = {
+  product_id: string
+  parent_product_id: string | null
+  parent_title: string
+  variant_label: string | null
+  internal_sku: string | null
+  cost_missing: boolean
+  supplier_price: number | null
+  freight_value: number | null
+  packaging_value: number | null
+  computed_total: number | null
+}
+
+export type ProductCostBulkRowsResponse = {
+  items: ProductCostBulkRowApi[]
+  total: number
+  base_currency: string
+}
+
+export type ProductCostBulkSaveItem = {
+  product_id: string
+  supplier_price: number
+  freight_value: number
+  packaging_value: number
+}
+
+export type ProductCostBulkSaveResponse = {
+  saved_count: number
+  backfill_jobs: Array<{
+    product_id: string
+    job_id: string
+    status: string
+  }>
 }

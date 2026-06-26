@@ -10,7 +10,7 @@ import {
 
 import {
   TOP_PRODUCTS_BAR_ROW_PX,
-  TOP_PRODUCTS_SCROLL_VISIBLE_ROWS,
+  TOP_PRODUCTS_SCROLL_MAX_HEIGHT_CLASS,
 } from './home-top-products-chart-layout'
 
 export type HomeTopProductsChartProps = {
@@ -28,8 +28,8 @@ type BarRow = {
   revenue: number
 }
 
-const scrollMaxHeightPx = TOP_PRODUCTS_SCROLL_VISIBLE_ROWS * TOP_PRODUCTS_BAR_ROW_PX
 const BAR_STAGGER_MS = 40
+const scrollViewportClass = `min-h-0 min-w-0 w-full overflow-x-hidden overflow-y-auto pr-0.5 [scrollbar-gutter:stable] ${TOP_PRODUCTS_SCROLL_MAX_HEIGHT_CLASS}`
 
 function TopProductChartRow({
   row,
@@ -47,19 +47,19 @@ function TopProductChartRow({
   const scale = barsReady && widthPct > 0 ? widthPct / 100 : 0
 
   return (
-    <li className="flex min-h-0" style={{ minHeight: TOP_PRODUCTS_BAR_ROW_PX }}>
-      <div className="flex w-full flex-1 flex-col justify-center rounded-md px-1 py-2">
-        <p className="mb-1 truncate text-xs text-text-secondary" title={row.title}>
+    <li className="flex min-h-0 min-w-0" style={{ minHeight: TOP_PRODUCTS_BAR_ROW_PX }}>
+      <div className="flex w-full min-w-0 flex-1 flex-col justify-center rounded-md px-0.5 py-2 sm:px-1">
+        <p className="mb-1 min-w-0 truncate text-xs text-text-secondary" title={row.title}>
           <a
             href={`/dashboard/products/${row.productId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-text-secondary underline-offset-2 hover:text-[var(--country-green-base)] hover:underline"
+            className="block min-w-0 truncate text-text-secondary underline-offset-2 hover:text-[var(--country-green-base)] hover:underline"
           >
             {row.title}
           </a>
         </p>
-        <div className="flex min-h-4.5 items-center gap-2.5">
+        <div className="flex min-h-4.5 min-w-0 items-center gap-1.5 sm:gap-2.5">
           <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted/55">
             <div
               className="h-full w-full origin-left rounded-r-full bg-[var(--country-green-base)] will-change-transform motion-reduce:transition-none"
@@ -73,7 +73,10 @@ function TopProductChartRow({
               aria-hidden
             />
           </div>
-          <span className="font-numeric shrink-0 text-xs tabular-nums text-text-secondary">
+          <span
+            className="font-numeric max-w-[5.5rem] shrink-0 truncate text-right text-[11px] tabular-nums text-text-secondary sm:max-w-none sm:text-xs"
+            title={formatCompact(row.revenue)}
+          >
             {formatCompact(row.revenue)}
           </span>
         </div>
@@ -119,13 +122,8 @@ export function HomeTopProductsChart({
 
   if (isLoading && data.length === 0) {
     return (
-      <div
-        className="w-full overflow-hidden pr-0.5"
-        style={{ maxHeight: scrollMaxHeightPx }}
-        aria-busy
-        aria-label={t('homeTopProductsTitle')}
-      >
-        <ul className="w-full">
+      <div className={scrollViewportClass} aria-busy aria-label={t('homeTopProductsTitle')}>
+        <ul className="w-full min-w-0">
           {Array.from({ length: 5 }, (_, i) => (
             <TopProductChartRow
               key={i}
@@ -142,11 +140,8 @@ export function HomeTopProductsChart({
   }
 
   return (
-    <div
-      className="w-full overflow-x-hidden overflow-y-auto pr-0.5 [scrollbar-gutter:stable]"
-      style={{ maxHeight: scrollMaxHeightPx }}
-    >
-      <ul className="w-full">
+    <div className={scrollViewportClass}>
+      <ul className="w-full min-w-0">
         {data.map((row, index) => {
           const widthPct = maxRevenue > 0 ? (row.revenue / maxRevenue) * 100 : 0
 

@@ -71,7 +71,7 @@ export function useShopifySyncBanner(
       phase: 'loading',
       title: shellT(lang, 'shopifySyncProgressTitle'),
       subtitle,
-      href: '/dashboard/integrations',
+      href: '/dashboard/integrations/shopify?tab=settings',
     })
   }, [syncingConn, jobQuery.data, upsertActivity, removeActivity, items, lang])
 
@@ -95,7 +95,7 @@ export function useShopifySyncBanner(
         phase: 'success',
         title: shellT(lang, 'shopifySyncProgressTitle'),
         subtitle: buildShopifySuccessSubtitle(job, lang),
-        href: '/dashboard/integrations',
+        href: '/dashboard/integrations/shopify?tab=settings',
       })
       toast.success(shellT(lang, 'shopifySyncToastSuccess'))
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
@@ -108,7 +108,7 @@ export function useShopifySyncBanner(
         phase: 'error',
         title: shellT(lang, 'shopifySyncProgressTitle'),
         subtitle: job.error_message ?? shellT(lang, 'syncErrorLabel'),
-        href: '/dashboard/integrations',
+        href: '/dashboard/integrations/shopify?tab=settings',
       })
       toast.error(shellT(lang, 'shopifySyncToastFailed'))
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })

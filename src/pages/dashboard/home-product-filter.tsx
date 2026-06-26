@@ -13,7 +13,6 @@ type Props = {
   values: string[]
   onValuesChange: (values: string[]) => void
   label: string
-  applyLabel: string
   searchPlaceholder: string
   emptyLabel: string
   loadingLabel: string
@@ -44,7 +43,6 @@ export function HomeProductFilter({
   values,
   onValuesChange,
   label,
-  applyLabel,
   searchPlaceholder,
   emptyLabel,
   loadingLabel,
@@ -119,7 +117,6 @@ export function HomeProductFilter({
       }}
       values={values}
       onValuesChange={onValuesChange}
-      applyLabel={applyLabel}
       searchPlaceholder={searchPlaceholder}
       emptyLabel={emptyLabel}
       loading={isPending || isFetching}

@@ -1,11 +1,11 @@
-import { Loader2 } from 'lucide-react'
+import { LoadingIcon } from '@/ui/app-icon'
 
 import {
   syncFreshnessPillBadgeVariant,
   type SyncFreshnessPillContent,
 } from '@/lib/integrations/sync-freshness'
 import { formatSyncFreshnessPillLabel } from '@/lib/integrations/sync-freshness-pill-label'
-import { Badge } from '@/ui/badge'
+import { StatusPill } from '@/ui/status-pill'
 import { cn } from '@/lib/utils'
 
 type SyncFreshnessPillBadgeProps = {
@@ -16,14 +16,14 @@ type SyncFreshnessPillBadgeProps = {
 
 export function SyncFreshnessPillBadge({ pill, lang, className }: SyncFreshnessPillBadgeProps) {
   return (
-    <Badge
+    <StatusPill
       variant={syncFreshnessPillBadgeVariant(pill)}
       className={cn('gap-1', className)}
     >
       {pill.kind === 'syncing' ? (
-        <Loader2 className="size-3 animate-spin" aria-hidden />
+        <LoadingIcon className="size-3" />
       ) : null}
       {formatSyncFreshnessPillLabel(lang, pill)}
-    </Badge>
+    </StatusPill>
   )
 }

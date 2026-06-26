@@ -77,7 +77,6 @@ export function ProductsListFilters({ filters, onFiltersChange, t }: ProductsLis
         options={statusOptions}
         values={filters.statuses}
         onValuesChange={(statuses) => onFiltersChange({ statuses })}
-        applyLabel={t('datePickerApply')}
         searchPlaceholder={t('filterSearch')}
         emptyLabel={t('filterComingSoon')}
         clearAriaLabel={t('filterClear')}
@@ -89,7 +88,6 @@ export function ProductsListFilters({ filters, onFiltersChange, t }: ProductsLis
         options={alertOptions}
         values={filters.stockAlertLevels}
         onValuesChange={(stockAlertLevels) => onFiltersChange({ stockAlertLevels })}
-        applyLabel={t('datePickerApply')}
         searchPlaceholder={t('filterSearch')}
         emptyLabel={t('filterComingSoon')}
         clearAriaLabel={t('filterClear')}
@@ -101,7 +99,6 @@ export function ProductsListFilters({ filters, onFiltersChange, t }: ProductsLis
         options={platformOptions}
         values={filters.platforms}
         onValuesChange={(platforms) => onFiltersChange({ platforms })}
-        applyLabel={t('datePickerApply')}
         searchPlaceholder={t('homeFilterChannelsSearch')}
         emptyLabel={t('homeFilterChannelsEmpty')}
         clearAriaLabel={t('filterClear')}

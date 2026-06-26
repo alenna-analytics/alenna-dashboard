@@ -1,5 +1,7 @@
 import * as React from 'react'
-import { Check, Loader2 } from 'lucide-react'
+import { Check, ChevronDown } from 'lucide-react'
+
+import { LoadingIcon } from '@/ui/app-icon'
 
 import { cn } from '@/lib/utils'
 import {
@@ -10,20 +12,28 @@ import {
   CommandItem,
   CommandList,
 } from '@/ui/command'
-import { Popover, PopoverContent } from '@/ui/popover'
-import { Button } from '@/ui/button'
+import { Label } from '@/ui/label'
+import { Popover, PopoverContent, PopoverTrigger } from '@/ui/popover'
 import { FilterPillTriggerArea } from '@/ui/filters/filter-pill-trigger'
 import type { FilterOption } from '@/ui/filters/types'
 import { TruncatedOptionLabel } from '@/ui/filters/truncated-option-label'
+
+export type FilterComboboxSelectionMode = 'single' | 'multi'
+
+const filterComboboxPanelClassName =
+  'w-[min(calc(100vw-24px),18rem)] border-border-subtle bg-white shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)] p-0 backdrop-blur-none'
 
 export type FilterComboboxSingleProps = {
   label: string
   options: FilterOption[]
   value: string
   onValueChange: (value: string) => void
-  applyLabel: string
+  /** Shown in the trigger when the matched option label is unavailable. */
+  displayLabel?: string
   searchPlaceholder: string
   emptyLabel: string
+  /** Single-select closes on pick; multi-select toggles checkboxes (use FilterComboboxMulti for full multi UX). */
+  selectionMode?: Extract<FilterComboboxSelectionMode, 'single'>
   triggerClassName?: string
   clearAriaLabel?: string
   /**
@@ -41,14 +51,18 @@ export type FilterComboboxSingleProps = {
   allowClear?: boolean
   popoverAlign?: 'start' | 'center' | 'end'
   popoverSide?: 'top' | 'bottom' | 'left' | 'right'
+  /** Inline keeps the filter-pill label inside the trigger; stacked puts the label above a plain input-style trigger. */
+  labelLayout?: 'inline' | 'stacked'
 }
+
+const stackedTriggerClassName =
+  'flex h-[33px] w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border-default bg-white px-2 text-sm outline-none transition-colors hover:border-border-emphasis focus-visible:ring-3 focus-visible:ring-ring/45 disabled:cursor-not-allowed disabled:opacity-50'
 
 export function FilterComboboxSingle({
   label,
   options,
   value,
   onValueChange,
-  applyLabel,
   searchPlaceholder,
   emptyLabel,
   triggerClassName,
@@ -59,22 +73,40 @@ export function FilterComboboxSingle({
   allowClear = true,
   popoverAlign = 'start',
   popoverSide = 'bottom',
+  labelLayout = 'inline',
+  displayLabel,
 }: FilterComboboxSingleProps) {
   const [open, setOpen] = React.useState(false)
-  const [draftValue, setDraftValue] = React.useState(value)
-  const selected = options.find((o) => o.value === value)
-  const summary = selected?.label ?? (value ? value : null)
+  const selected = React.useMemo(() => {
+    if (!value) return undefined
+    const exact = options.find((o) => o.value === value)
+    if (exact) return exact
+    const norm = value.replace(/-/g, '').toLowerCase()
+    return options.find((o) => o.value.replace(/-/g, '').toLowerCase() === norm)
+  }, [options, value])
+  const summary = displayLabel ?? selected?.label ?? (value ? value : null)
   const active = Boolean(value && summary)
 
   const serverSide = typeof onSearchChange === 'function'
 
-  React.useEffect(() => {
-    if (!open) return
-    setDraftValue(value)
-  }, [open, value])
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
+  const trigger =
+    labelLayout === 'stacked' ? (
+      <PopoverTrigger
+        type="button"
+        className={cn(stackedTriggerClassName, triggerClassName)}
+        aria-expanded={open}
+      >
+        <span
+          className={cn(
+            'min-w-0 flex-1 truncate text-left',
+            summary ? 'text-text-primary' : 'text-muted-foreground',
+          )}
+        >
+          {summary ?? emptyLabel}
+        </span>
+        <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+      </PopoverTrigger>
+    ) : (
       <FilterPillTriggerArea
         active={active}
         label={label}
@@ -84,6 +116,18 @@ export function FilterComboboxSingle({
         ariaExpanded={open}
         triggerClassName={triggerClassName}
       />
+    )
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      {labelLayout === 'stacked' ? (
+        <div className={label.trim() ? 'space-y-2' : undefined}>
+          {label.trim() ? <Label>{label}</Label> : null}
+          {trigger}
+        </div>
+      ) : (
+        trigger
+      )}
       <PopoverContent
         align={popoverAlign}
         side={popoverSide}
@@ -91,63 +135,48 @@ export function FilterComboboxSingle({
         positionMethod="fixed"
         collisionPadding={12}
         collisionAvoidance={{ side: 'shift', align: 'shift', fallbackAxisSide: 'end' }}
-        className="w-[min(calc(100vw-24px),18rem)] border-border-subtle bg-popover shadow-[var(--shadow-popover)] ring-1 ring-[color:var(--ring-popover)] p-0 backdrop-blur-none"
+        className={filterComboboxPanelClassName}
       >
-        <Command shouldFilter={!serverSide}>
+        <Command shouldFilter={!serverSide} className="bg-white">
           <CommandInput
             placeholder={searchPlaceholder}
             onValueChange={onSearchChange}
           />
-          <CommandList className="max-h-72 overflow-y-auto">
+          <CommandList className="max-h-72 overflow-y-auto bg-white">
             <CommandEmpty>
               {loading ? (
                 <span className="inline-flex items-center gap-2 text-text-secondary">
-                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                  <LoadingIcon className="size-4" />
                   <span>{loadingLabel || emptyLabel}</span>
                 </span>
               ) : (
                 emptyLabel
               )}
             </CommandEmpty>
-            <CommandGroup>
-              {options.map((o) => (
-                <CommandItem
-                  key={o.value}
-                  value={serverSide ? o.value : `${o.label} ${o.value}`}
-                  onSelect={() => {
-                    setDraftValue(o.value)
-                  }}
-                >
-                  <span
-                    className={cn(
-                      'grid size-4 shrink-0 place-items-center rounded-[4px] border border-border-default',
-                      draftValue === o.value
-                        ? 'bg-secondary text-primary-foreground'
-                        : 'bg-bg-default text-transparent',
-                    )}
-                    aria-hidden
+            <CommandGroup className="bg-white">
+              {options.map((o) => {
+                const isSelected = value === o.value
+                return (
+                  <CommandItem
+                    key={o.value}
+                    value={serverSide ? o.value : `${o.label} ${o.value}`}
+                    onSelect={() => {
+                      onValueChange(o.value)
+                      setOpen(false)
+                    }}
+                    className="justify-between gap-2"
                   >
-                    <Check className="size-3" />
-                  </span>
-                  <TruncatedOptionLabel label={o.label} />
-                </CommandItem>
-              ))}
+                    <TruncatedOptionLabel label={o.label} />
+                    {isSelected ? (
+                      <Check className="size-4 shrink-0 text-secondary" aria-hidden />
+                    ) : (
+                      <span className="size-4 shrink-0" aria-hidden />
+                    )}
+                  </CommandItem>
+                )
+              })}
             </CommandGroup>
           </CommandList>
-          <div className="border-t border-border-default p-2">
-            <Button
-              type="button"
-              variant="default"
-              size="xs"
-              className="w-full"
-              onClick={() => {
-                onValueChange(draftValue)
-                setOpen(false)
-              }}
-            >
-              {applyLabel}
-            </Button>
-          </div>
         </Command>
       </PopoverContent>
     </Popover>

@@ -1,4 +1,4 @@
-import alennaLogo from '@/assets/alenna_logo.png'
+import alennaLogo from '@/assets/alenna/alenna-logo.svg'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'

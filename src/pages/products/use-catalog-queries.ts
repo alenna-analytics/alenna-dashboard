@@ -2,14 +2,51 @@ import { useAuth } from '@clerk/react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useCurrentTenant } from '@/auth/hooks'
-import { apiFetch, apiPatchJson, apiPostJson } from '@/lib/api'
+import { apiFetch, apiPatchJson, apiPostJson, apiPutJson, type GetTokenFn } from '@/lib/api'
 import type {
   CatalogJobApi,
+  ProductCostBulkRowsResponse,
+  ProductCostBulkSaveItem,
+  ProductCostBulkSaveResponse,
   ProductDetailApi,
   ProductListResponse,
   ProductStockAlertCountsApi,
+  ProductSummaryApi,
   StockAlertLevel,
 } from '@/lib/types/catalog'
+
+import { bulkScopeToQueryParams } from './bulk-cogs/bulk-cogs-scope-query'
+import type { BulkCogsScope } from './bulk-cogs/bulk-cogs-types'
+
+const CATALOG_PICKER_PAGE_SIZE = 200
+
+/** Paginate through `/catalog/products` until all rows are loaded (for pickers). */
+export async function fetchAllCatalogProducts(
+  getToken: GetTokenFn,
+  tenantId: string | null,
+  q?: string,
+): Promise<ProductSummaryApi[]> {
+  let offset = 0
+  let total = 0
+  const items: ProductSummaryApi[] = []
+  do {
+    const sp = new URLSearchParams({
+      limit: String(CATALOG_PICKER_PAGE_SIZE),
+      offset: String(offset),
+      sort_by: 'title',
+      sort_dir: 'asc',
+    })
+    if (q?.trim()) sp.set('q', q.trim())
+    const res = await apiFetch(`/catalog/products?${sp.toString()}`, (a) => getToken(a), {}, tenantId)
+    if (!res.ok) throw new Error(await res.text())
+    const page = (await res.json()) as ProductListResponse
+    total = page.total
+    items.push(...page.items)
+    offset += page.items.length
+    if (page.items.length === 0) break
+  } while (offset < total)
+  return items
+}
 
 export type ProductListQueryParams = {
   q: string
@@ -155,17 +192,22 @@ export function useProductDetailQuery(
   })
 }
 
-export function usePatchProductCostMutation(productId: string | undefined) {
+export type PatchProductCostBody = {
+  productId?: string
+  parentProductId?: string
+  cost?: number
+  currency?: string | null
+  internal_sku?: string | null
+}
+
+export function usePatchProductCostMutation(defaultProductId?: string) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const qc = useQueryClient()
 
   return useMutation({
-    mutationFn: async (body: {
-      cost?: number
-      currency?: string | null
-      internal_sku?: string | null
-    }) => {
+    mutationFn: async (body: PatchProductCostBody) => {
+      const productId = body.productId ?? defaultProductId
       if (!productId) throw new Error('Missing product')
       const payload: Record<string, unknown> = {}
       if (body.cost !== undefined) payload.cost = body.cost
@@ -181,9 +223,145 @@ export function usePatchProductCostMutation(productId: string | undefined) {
       if (!res.ok) throw new Error(await res.text())
       return (await res.json()) as ProductDetailApi
     },
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
+    onSuccess: (_data, variables) => {
+      const productId = variables.productId ?? defaultProductId
+      const parentProductId = variables.parentProductId ?? productId
+      if (parentProductId) {
+        void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, parentProductId] })
+      }
+      if (productId && productId !== parentProductId) {
+        void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
+      }
       void qc.invalidateQueries({ queryKey: ['catalog', 'products', tenantId] })
+      void qc.invalidateQueries({ queryKey: ['catalog', 'stock-alert-counts', tenantId] })
+    },
+  })
+}
+
+export function useSaveProductCostBreakdownMutation(
+  productId: string | undefined,
+  parentProductId?: string | null,
+) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (body: {
+      supplier_price: number
+      freight: { mode: 'fixed' | 'percent'; value: number }
+      duties: { mode: 'fixed' | 'percent'; value: number }
+      packaging_value: number
+      effective_from: string
+      apply_mode: 'forward' | 'backfill'
+      effective_to: string | null
+    }) => {
+      if (!productId) throw new Error('Missing product')
+      const res = await apiPutJson(
+        `/catalog/products/${productId}/cost-breakdown`,
+        (a) => getToken(a),
+        body,
+        {},
+        tenantId,
+      )
+      if (!res.ok) throw new Error(await res.text())
+      return (await res.json()) as {
+        apply_mode: 'forward' | 'backfill'
+        detail?: ProductDetailApi
+        job_id?: string
+        job_status?: string
+      }
+    },
+    onSuccess: () => {
+      if (productId) {
+        void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, productId] })
+      }
+      const parentId = parentProductId ?? productId
+      if (parentId && parentId !== productId) {
+        void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId, parentId] })
+      }
+      void qc.invalidateQueries({ queryKey: ['catalog', 'products', tenantId] })
+      void qc.invalidateQueries({ queryKey: ['catalog', 'stock-alert-counts', tenantId] })
+    },
+  })
+}
+
+const BULK_SAVE_CHUNK_SIZE = 500
+
+export function useProductCostBulkRowsQuery(scope: BulkCogsScope | null, page: number) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+
+  return useQuery({
+    queryKey: ['catalog', 'cost-bulk-rows', tenantId, scope, page],
+    enabled: Boolean(tenantId && scope),
+    placeholderData: keepPreviousData,
+    queryFn: async (): Promise<ProductCostBulkRowsResponse> => {
+      if (!scope) throw new Error('Missing scope')
+      const sp = bulkScopeToQueryParams(scope, page)
+      const res = await apiFetch(
+        `/catalog/products/cost-bulk-rows?${sp.toString()}`,
+        (a) => getToken(a),
+        {},
+        tenantId,
+      )
+      if (!res.ok) throw new Error(await res.text())
+      return (await res.json()) as ProductCostBulkRowsResponse
+    },
+  })
+}
+
+export type SaveProductCostBulkBody = {
+  items: ProductCostBulkSaveItem[]
+  effective_from: string
+  apply_mode: 'forward' | 'backfill'
+  effective_to: string | null
+}
+
+export function useSaveProductCostBulkMutation() {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (body: SaveProductCostBulkBody): Promise<ProductCostBulkSaveResponse> => {
+      const chunks: ProductCostBulkSaveItem[][] = []
+      for (let i = 0; i < body.items.length; i += BULK_SAVE_CHUNK_SIZE) {
+        chunks.push(body.items.slice(i, i + BULK_SAVE_CHUNK_SIZE))
+      }
+      let savedCount = 0
+      const backfillJobs: ProductCostBulkSaveResponse['backfill_jobs'] = []
+      for (const [index, chunk] of chunks.entries()) {
+        const res = await apiPostJson(
+          '/catalog/products/cost-breakdown/bulk',
+          (a) => getToken(a),
+          {
+            items: chunk,
+            effective_from: body.effective_from,
+            apply_mode: body.apply_mode,
+            effective_to: body.effective_to,
+          },
+          {},
+          tenantId,
+        )
+        if (!res.ok) {
+          const detail = await res.text()
+          throw new Error(
+            chunks.length > 1
+              ? `Chunk ${index + 1}/${chunks.length} failed after ${savedCount} rows saved. ${detail}`
+              : detail,
+          )
+        }
+        const parsed = (await res.json()) as ProductCostBulkSaveResponse
+        savedCount += parsed.saved_count
+        backfillJobs.push(...parsed.backfill_jobs)
+      }
+      return { saved_count: savedCount, backfill_jobs: backfillJobs }
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['catalog', 'products', tenantId] })
+      void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId] })
+      void qc.invalidateQueries({ queryKey: ['catalog', 'cost-bulk-rows', tenantId] })
       void qc.invalidateQueries({ queryKey: ['catalog', 'stock-alert-counts', tenantId] })
     },
   })

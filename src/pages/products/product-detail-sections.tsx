@@ -1,9 +1,23 @@
 import { useCallback, type ReactNode } from 'react'
 
+import { useSalesMetricBasis } from '@/hooks/use-sales-metric-basis'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import {
+  productDetailProfitValue,
+  productDetailSalesValue,
+  productDetailUnitsValue,
+  productPlatformSalesValue,
+  productPlatformUnitsValue,
+  productProfitHelpKey,
+  productSalesHelpKey,
+  profitLabelKey,
+  salesLabelKey,
+  unitsLabelKey,
+} from '@/lib/sales-metric-basis'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
+import { SalesMetricBasisToggle } from '@/ui/sales-metric-basis-toggle'
 import { Skeleton } from '@/ui/skeleton'
 import { ProductDetailChannelsTable } from './product-detail-channels-table'
 import { ProductDetailVariantsTable } from './product-detail-variants-table'
@@ -29,12 +43,12 @@ type ProductDetailSectionsProps = {
   insightEnd: string
   setInsightStart: (value: string) => void
   setInsightEnd: (value: string) => void
-  onInsightRangeClear: () => void
   pickerStrings: DateRangePickerStrings
   showInsightValues: boolean
   insightKpi: (value: ReactNode) => ReactNode
   insightsFetching: boolean
   onEditCost: () => void
+  onOpenVariantCostEditor: (productId: string) => void
   dateLocale: string
 }
 
@@ -53,14 +67,15 @@ export function ProductDetailSections({
   insightEnd,
   setInsightStart,
   setInsightEnd,
-  onInsightRangeClear,
   pickerStrings,
   showInsightValues,
   insightKpi,
   insightsFetching,
   onEditCost,
+  onOpenVariantCostEditor,
   dateLocale,
 }: ProductDetailSectionsProps) {
+  const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
   const hasVariants = (detail.variants?.length ?? 0) > 0
   const isVariantChild = Boolean(detail.parent_product_id)
 
@@ -87,7 +102,7 @@ export function ProductDetailSections({
       <ProductDetailKpiPlatformBreakdown
         rows={periodByPlatform}
         t={t}
-        formatValue={(row) => fmtBase(row.sales)}
+        formatValue={(row) => fmtBase(productPlatformSalesValue(row, salesMetricBasis))}
       />
     ) : undefined
 
@@ -96,24 +111,38 @@ export function ProductDetailSections({
       <ProductDetailKpiPlatformBreakdown
         rows={periodByPlatform}
         t={t}
-        formatValue={(row) => row.units_sold.toLocaleString()}
+        formatValue={(row) =>
+          productPlatformUnitsValue(row, salesMetricBasis).toLocaleString()
+        }
       />
     ) : undefined
 
+  const salesValue = productDetailSalesValue(detail, salesMetricBasis)
+  const profitValue = productDetailProfitValue(detail, salesMetricBasis)
+  const unitsValue = productDetailUnitsValue(detail, salesMetricBasis)
+
   const insightKpis = [
     {
-      key: 'net-sales',
-      label: t('productsDetailKpiNetSales'),
-      helpText: t('productsDetailKpiNetSalesHelp'),
+      key: 'sales',
+      label: t(salesLabelKey(salesMetricBasis)),
+      helpText: t(productSalesHelpKey(salesMetricBasis)),
       value: insightKpi(
-        costAmountWithBaseCode(fmtBase(detail.period_sales), baseCurrency, 'text-xs'),
+        costAmountWithBaseCode(fmtBase(salesValue), baseCurrency, 'text-xs'),
       ),
       breakdown: platformSalesBreakdown,
     },
     {
+      key: 'profit',
+      label: t(profitLabelKey(salesMetricBasis)),
+      helpText: t(productProfitHelpKey(salesMetricBasis)),
+      value: insightKpi(
+        costAmountWithBaseCode(fmtBase(profitValue), baseCurrency, 'text-xs'),
+      ),
+    },
+    {
       key: 'units',
-      label: t('productsDetailKpiUnitsSold'),
-      value: insightKpi(detail.period_units_sold.toLocaleString()),
+      label: t(unitsLabelKey(salesMetricBasis)),
+      value: insightKpi(unitsValue.toLocaleString()),
       breakdown: platformUnitsBreakdown,
     },
     {
@@ -155,14 +184,17 @@ export function ProductDetailSections({
             endValue={insightEnd}
             onStartChange={(v) => v && setInsightStart(v)}
             onEndChange={(v) => v && setInsightEnd(v)}
-            filterLabel={t('filterDateTimeLabel')}
-            clearAriaLabel={t('filterClear')}
-            onClear={onInsightRangeClear}
             className="w-full max-w-md shrink-0"
           />
         </CardHeader>
         <CardContent className="p-0">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <SalesMetricBasisToggle
+            basis={salesMetricBasis}
+            onBasisChange={setSalesMetricBasis}
+            t={t}
+            className="mb-3"
+          />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
             {insightKpis.map((kpi) => (
               <ProductDetailInsightKpiTile
                 key={kpi.key}
@@ -199,7 +231,12 @@ export function ProductDetailSections({
       </Card>
 
       {hasVariants ? (
-        <ProductDetailVariantsTable variants={detail.variants} t={t} fmtBase={fmtBase} />
+        <ProductDetailVariantsTable
+          variants={detail.variants}
+          t={t}
+          fmtBase={fmtBase}
+          onOpenCostEditor={onOpenVariantCostEditor}
+        />
       ) : (
         <Card
           id="product-channels-table"

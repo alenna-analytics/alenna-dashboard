@@ -25,8 +25,11 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu"
 import { useMoney } from "@/hooks/use-money"
+import { useLanguage } from "@/shell/providers/language-provider"
 
 import { createProductColumns, type ProductTableSelectionBinding } from "./products-columns"
+import { ProductCostEditorSheet } from "./product-cost-editor-sheet"
+import { writeBulkCogsScope } from "./bulk-cogs/bulk-cogs-scope"
 import {
   normalizeStockAlertLevelsFilter,
   type ProductsListFiltersState,
@@ -66,6 +69,7 @@ export function ProductsDataTable({
   errorContent,
 }: ProductsDataTableProps) {
   const navigate = useNavigate()
+  const { lang } = useLanguage()
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: PAGE_SIZE })
   const [sorting, setSorting] = useState<SortingState>([{ id: "title", desc: false }])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
@@ -75,6 +79,8 @@ export function ProductsDataTable({
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [bulkAllMatching, setBulkAllMatching] = useState(false)
   const [excludedIds, setExcludedIds] = useState<ReadonlySet<string>>(() => new Set())
+  const [costEditorOpen, setCostEditorOpen] = useState(false)
+  const [costEditorProductId, setCostEditorProductId] = useState<string | null>(null)
 
   const sort = sorting[0]
   const sortBy = sort?.id ?? "title"
@@ -141,6 +147,11 @@ export function ProductsDataTable({
     },
     [navigate],
   )
+
+  const onOpenCostEditor = useCallback((productId: string) => {
+    setCostEditorProductId(productId)
+    setCostEditorOpen(true)
+  }, [])
 
   const pageIds = useMemo(() => items.map((i) => i.id), [items])
 
@@ -250,6 +261,40 @@ export function ProductsDataTable({
     setRowSelection({})
   }, [])
 
+  const openBulkCogsEditor = useCallback(() => {
+    const filterScope = {
+      q: debouncedSearchQ,
+      statuses: filters.statuses,
+      platforms: filters.platforms,
+      stockAlertLevels,
+    }
+    if (bulkAllMatching) {
+      writeBulkCogsScope({
+        mode: "filter",
+        filters: filterScope,
+        excludeParentIds: [...excludedIds],
+      })
+    } else if (effectiveSelectedCount > 0) {
+      const parentProductIds = Object.entries(rowSelection)
+        .filter(([, selected]) => selected)
+        .map(([id]) => id)
+      writeBulkCogsScope({ mode: "parents", parentProductIds })
+    } else {
+      writeBulkCogsScope({ mode: "filter", filters: filterScope })
+    }
+    void navigate("/dashboard/products/bulk-cogs")
+  }, [
+    bulkAllMatching,
+    debouncedSearchQ,
+    effectiveSelectedCount,
+    excludedIds,
+    filters.platforms,
+    filters.statuses,
+    navigate,
+    rowSelection,
+    stockAlertLevels,
+  ])
+
   const selectionBinding: ProductTableSelectionBinding = useMemo(
     () => ({
       headerChecked,
@@ -269,8 +314,16 @@ export function ProductsDataTable({
         onCopySku,
         onGoDetail,
         selection: selectionBinding,
+        onOpenCostEditor,
       }),
-    [t, formatBaseMoney, onCopySku, onGoDetail, selectionBinding],
+    [
+      t,
+      formatBaseMoney,
+      onCopySku,
+      onGoDetail,
+      selectionBinding,
+      onOpenCostEditor,
+    ],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
@@ -310,6 +363,12 @@ export function ProductsDataTable({
 
   return (
     <div className="flex flex-col gap-3">
+      <ProductCostEditorSheet
+        lang={lang}
+        open={costEditorOpen}
+        productId={costEditorProductId}
+        onOpenChange={setCostEditorOpen}
+      />
       <DataTable
         table={table}
         isLoading={listQuery.isLoading}
@@ -319,6 +378,9 @@ export function ProductsDataTable({
         skeletonRowCount={PAGE_SIZE}
         toolbar={
           <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={openBulkCogsEditor}>
+              {t("productsBulkCogsEntry")}
+            </Button>
             {effectiveSelectedCount > 0 ? (
               <div className="flex h-8 max-w-full shrink-0 items-center gap-2 rounded-md border border-border-subtle bg-glass-fill-muted px-2.5 text-xs font-medium text-text-primary sm:gap-3 sm:px-3">
                 <span className="whitespace-nowrap tabular-nums">

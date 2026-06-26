@@ -29,7 +29,7 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
-        "group/calendar bg-background p-2 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(7)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent",
+        "group/calendar bg-background p-2 [--cell-radius:var(--radius-md)] [--cell-size:2.25rem] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
@@ -88,7 +88,7 @@ function Calendar({
             : "flex items-center gap-1 rounded-(--cell-radius) text-sm [&>svg]:size-3.5 [&>svg]:text-muted-foreground",
           defaultClassNames.caption_label
         ),
-        table: "w-full min-w-0 table-fixed border-separate border-spacing-y-2 [border-spacing-x:0]",
+        table: "w-full min-w-0 table-fixed border-separate border-spacing-y-1 [border-spacing-x:0]",
         weekdays: cn("table-row", defaultClassNames.weekdays),
         weekday: cn(
           "w-[14.285714%] table-cell rounded-(--cell-radius) p-0 text-center text-[0.8rem] font-normal text-muted-foreground select-none",
@@ -104,16 +104,16 @@ function Calendar({
           defaultClassNames.week_number
         ),
         day: cn(
-          "group/day relative aspect-square h-full w-[14.285714%] min-w-0 table-cell rounded-none p-0 text-center align-middle select-none",
+          "group/day relative h-(--cell-size) w-[14.285714%] min-w-0 table-cell rounded-none p-0 text-center align-middle select-none",
           defaultClassNames.day
         ),
         range_start: cn(
-          "relative isolate z-0 rounded-l-md rounded-r-none bg-primary/15 after:absolute after:inset-y-0 after:right-0 after:w-4 after:bg-primary/15",
+          "relative isolate z-0 rounded-l-md bg-[var(--zara-400)] after:absolute after:inset-y-0 after:right-0 after:w-4 after:bg-[var(--zara-400)]",
           defaultClassNames.range_start
         ),
-        range_middle: cn("rounded-none bg-primary/15", defaultClassNames.range_middle),
+        range_middle: cn("rounded-none bg-[var(--zara-400)]", defaultClassNames.range_middle),
         range_end: cn(
-          "relative isolate z-0 rounded-l-none rounded-r-full bg-primary/15 after:absolute after:inset-y-0 after:left-0 after:w-4 after:bg-primary/15",
+          "relative isolate z-0 rounded-r-md bg-[var(--zara-400)] after:absolute after:inset-y-0 after:left-0 after:w-4 after:bg-[var(--zara-400)]",
           defaultClassNames.range_end
         ),
         today: cn(
@@ -193,15 +193,14 @@ function CalendarDayButton({
   }, [modifiers.focused])
 
   const rangeCapsClass = modifiers.range_middle
-    ? "rounded-none bg-primary/15 text-foreground"
+    ? "rounded-none bg-[var(--zara-400)] text-foreground"
     : modifiers.range_start || modifiers.range_end
-      ? "rounded-full bg-primary text-primary-foreground"
+      ? "rounded-md bg-[var(--zara-base)] text-[var(--firefly-base)]"
       : ""
 
   return (
     <Button
       variant="ghost"
-      size="icon"
       data-day={day.date.toLocaleDateString(locale?.code)}
       data-selected-single={
         modifiers.selected &&
@@ -213,7 +212,7 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "relative isolate z-10 flex aspect-square w-full min-w-0 max-w-full flex-col gap-1 border-0 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[selected-single=true]:rounded-full data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground [&>span]:text-xs [&>span]:opacity-70",
+        "relative isolate z-10 h-(--cell-size) w-full min-w-0 max-w-full rounded-md border-0 p-0 text-sm leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[selected-single=true]:rounded-md data-[selected-single=true]:bg-[var(--zara-base)] data-[selected-single=true]:text-[var(--firefly-base)] [&>span]:text-xs [&>span]:opacity-70",
         defaultClassNames.day,
         rangeCapsClass,
         className

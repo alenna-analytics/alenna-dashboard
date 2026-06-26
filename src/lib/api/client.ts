@@ -87,3 +87,25 @@ export async function apiPatchJson(
     body: JSON.stringify(body),
   }, tenantId)
 }
+
+export async function apiPutJson(
+  path: string,
+  getToken: GetTokenFn,
+  body: unknown,
+  init: RequestInit = {},
+  tenantId?: string | null,
+): Promise<Response> {
+  const headers = new Headers(init.headers)
+  headers.set('Content-Type', 'application/json')
+  return apiFetch(
+    path,
+    getToken,
+    {
+      ...init,
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body),
+    },
+    tenantId,
+  )
+}

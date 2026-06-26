@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 import { KpiCard as KpiCardUi } from '@/ui/kpi-card'
+import { surfaceSectionClassName } from '@/ui/surface'
 import { useMoney } from '@/hooks/use-money'
 
 import { pctVersusPrevious } from './reports-ui-helpers'
@@ -14,12 +15,7 @@ export function SectionContainer({
   className?: string
 }) {
   return (
-    <div
-      className={cn(
-        'rounded-md border border-[var(--color-border)] bg-[var(--color-bg-section)] p-6 shadow-[var(--shadow-ink-sm)]',
-        className,
-      )}
-    >
+    <div className={cn(surfaceSectionClassName, className)}>
       {children}
     </div>
   )
@@ -39,7 +35,7 @@ export function SectionHeader({
   return (
     <div className={cn('mb-4 space-y-1', className)}>
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold tracking-[-0.02em] text-[var(--color-text-primary)]">
+        <h2 className="text-base font-semibold text-text-primary">
           {title}
         </h2>
         {aside}

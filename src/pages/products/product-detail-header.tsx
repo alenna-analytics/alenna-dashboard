@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
-import { cn } from '@/lib/utils'
+import { pageTitleClassName } from '@/shell/layout/dashboard-page'
 
 import { ProductDetailHeaderStats } from './product-detail-header-stats'
 import { ProductDetailPlatformBadges } from './product-detail-platform-badges'
@@ -35,13 +35,7 @@ export function ProductDetailHeader({
   return (
     <div className="flex min-w-0 items-start justify-between gap-6 border-b border-border-subtle pb-6">
       <div className="min-w-0 flex-1 space-y-3">
-        <h1
-          className={cn(
-            'text-2xl font-semibold tracking-[-0.03em] text-(--color-text-primary) sm:text-3xl',
-          )}
-        >
-          {displayTitle}
-        </h1>
+        <h1 className={pageTitleClassName}>{displayTitle}</h1>
 
         {detail.parent_product_id ? (
           <Link

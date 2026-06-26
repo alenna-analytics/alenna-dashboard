@@ -6,7 +6,7 @@ export function AppToaster() {
   return (
     <Toaster
       className="alenna-sonner"
-      position="top-right"
+      position="bottom-right"
       closeButton
       theme="light"
       icons={{
@@ -21,11 +21,11 @@ export function AppToaster() {
             '!border !border-solid !bg-white !text-text-primary shadow-[var(--shadow-ink-sm)] [&_[data-title]]:!text-text-primary',
           title: '!text-text-primary',
           description: '!text-text-secondary',
-          default: '!border-[color-mix(in_srgb,var(--brand)_35%,var(--border-default))]',
-          success: '!border-primary',
-          error: '!border-red-600',
-          warning: '!border-amber-500',
-          info: '!border-sky-600',
+          default: '!border-border-default',
+          success: '!border-border-default',
+          error: '!border-border-default',
+          warning: '!border-border-default',
+          info: '!border-border-default',
           closeButton:
             '!border-border-subtle !bg-white !text-text-secondary hover:!bg-muted/60 hover:!text-text-primary',
           icon: '!size-5 !min-w-5 [&_svg]:!size-5',

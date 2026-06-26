@@ -29,9 +29,9 @@ export function ChartGranularityFilter({ value, onChange, t }: ChartGranularityF
         onValueChange={(v) => {
           if (v === 'month' || v === 'week' || v === 'day') onChange(v)
         }}
-        applyLabel={t('datePickerApply')}
         searchPlaceholder={t('filterSearch')}
         emptyLabel={t('filterComingSoon')}
+        selectionMode="single"
         allowClear={false}
         popoverAlign="end"
         popoverSide="bottom"

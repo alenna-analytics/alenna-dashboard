@@ -17,6 +17,10 @@ export function configurationInnerSubmoduleCrumbs(
     if (matchPath({ path: alarmType.path, end: true }, pathname) == null) continue
     return [
       {
+        label: shellT(lang, 'navWorkspaceConfiguration'),
+        to: '/dashboard/configuration/general',
+      },
+      {
         label: shellT(lang, ALARMS_PARENT.labelKey),
         to: ALARMS_PARENT.path,
       },

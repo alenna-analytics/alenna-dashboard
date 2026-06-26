@@ -6,9 +6,10 @@ import { HomePage } from '@/pages/home/HomePage'
 import { NotFoundPage } from '@/pages/errors/NotFoundPage'
 import { ServerErrorPage } from '@/pages/errors/ServerErrorPage'
 import { IntegrationsListPage } from '@/pages/integrations/dashboard/IntegrationsListPage'
+import { IntegrationsAdsComingSoonPage } from '@/pages/integrations/dashboard/IntegrationsAdsComingSoonPage'
 import { IntegrationDetailPage } from '@/pages/integrations/dashboard/IntegrationDetailPage'
-import { DashboardHomePage } from '@/pages/dashboard/DashboardHomePage'
 import { DashboardHomePageV2 } from '@/pages/dashboard/DashboardHomePageV2'
+import { ReportsPage } from '@/pages/reports/ReportsPage'
 import { ComponentsShowcasePage } from '@/pages/dev/ComponentsShowcasePage'
 import { ProductsListPage } from '@/pages/products/ProductsListPage'
 import { ProductDetailPage } from '@/pages/products/ProductDetailPage'
@@ -20,6 +21,7 @@ import { ConfigurationShellLayout } from '@/pages/configuration/configuration-sh
 import { ConfigurationIndexRedirect } from '@/pages/configuration/configuration-index-redirect'
 import { AlarmsConfigurationListPage } from '@/pages/configuration/alarms/AlarmsConfigurationListPage'
 import { StockAlarmConfigurationPage } from '@/pages/configuration/alarms/stock/StockAlarmConfigurationPage'
+import { GeneralConfigurationPage } from '@/pages/configuration/general/GeneralConfigurationPage'
 
 function App() {
   return (
@@ -28,16 +30,19 @@ function App() {
       <Route path="/500" element={<ServerErrorPage />} />
       <Route element={<AppAuthBoundary />}>
         <Route path="/dashboard" element={<AppShellLayout />}>
-          <Route index element={<DashboardHomePage />} />
-          <Route path="home-v2" element={<DashboardHomePageV2 />} />
+          <Route index element={<DashboardHomePageV2 />} />
+          <Route path="home-v2" element={<Navigate to="/dashboard" replace />} />
           <Route path="components" element={<ComponentsShowcasePage />} />
-          <Route path="reports" element={<Navigate to="/dashboard" replace />} />
+          <Route path="reports" element={<ReportsPage />} />
           <Route path="products" element={<ProductsListPage />} />
           <Route path="products/:productId" element={<ProductDetailPage />} />
-          <Route path="integrations" element={<IntegrationsListPage />} />
+          <Route path="integrations/ecommerce" element={<IntegrationsListPage category="ecommerce" />} />
+          <Route path="integrations/ads" element={<IntegrationsAdsComingSoonPage />} />
           <Route path="integrations/:slug" element={<IntegrationDetailPage />} />
+          <Route path="integrations" element={<IntegrationsListPage category="all" />} />
           <Route path="configuration" element={<ConfigurationShellLayout />}>
             <Route index element={<ConfigurationIndexRedirect />} />
+            <Route path="general" element={<GeneralConfigurationPage />} />
             <Route path="alarms" element={<AlarmsConfigurationListPage />} />
             <Route path="alarms/stock" element={<StockAlarmConfigurationPage />} />
           </Route>

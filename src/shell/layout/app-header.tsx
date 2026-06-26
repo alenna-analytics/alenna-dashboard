@@ -5,7 +5,6 @@ import { Menu } from 'lucide-react'
 import alennaIconBlack from '@/assets/alenna/alenna-icon-black.svg'
 import { AlertsHeaderButton } from '@/shell/alerts/alerts-header-button'
 import { CurrencyPicker } from '@/shell/layout/currency-picker'
-import { LanguageToggle } from '@/shell/layout/language-toggle'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'
@@ -73,9 +72,6 @@ export function AppHeader({ className, companyName, onOpenMobileNav }: AppHeader
 
         <div className="flex shrink-0 items-center gap-1.5 overflow-visible sm:gap-2">
           <CurrencyPicker className="hidden h-8 sm:inline-flex" />
-          <HeaderChromeButton className="hidden bg-[var(--platinum-blonde-300)] sm:flex">
-            <LanguageToggle />
-          </HeaderChromeButton>
           <HeaderChromeButton className="bg-[var(--platinum-blonde-300)]">
             <AlertsHeaderButton />
           </HeaderChromeButton>

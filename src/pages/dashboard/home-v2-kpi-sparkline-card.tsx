@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { HelpCircle } from 'lucide-react'
 import { Area, AreaChart, ResponsiveContainer } from 'recharts'
 
@@ -16,10 +17,12 @@ export type HomeV2KpiSparklineCardProps = {
   trend: PctTrend
   comparisonUnavailable: boolean
   negativeMetric?: boolean
+  deltaTooltip?: string
   placeholder?: boolean
   placeholderLabel?: string
   sparklineValues?: number[]
   sparklineId: string
+  dragHandle?: ReactNode
   className?: string
 }
 
@@ -32,10 +35,12 @@ export function HomeV2KpiSparklineCard({
   trend,
   comparisonUnavailable,
   negativeMetric,
+  deltaTooltip,
   placeholder = false,
   placeholderLabel = '—',
   sparklineValues = [],
   sparklineId,
+  dragHandle,
   className,
 }: HomeV2KpiSparklineCardProps) {
   const sparkData = sparklineValues.map((v, index) => ({ index, v }))
@@ -43,15 +48,18 @@ export function HomeV2KpiSparklineCard({
 
   return (
     <article
+      data-kpi-card-shell
       className={cn(
         'flex min-h-[148px] min-w-0 flex-col rounded-md border border-border-default bg-white p-4',
         placeholder && 'opacity-80',
         className,
       )}
     >
-      <div className="flex w-full min-w-0 items-start justify-between gap-2">
-        <span className="min-w-0 text-sm font-medium leading-tight text-text-primary">{label}</span>
-        {helpText ? (
+      <div className="flex w-full min-w-0 items-start gap-1.5">
+        {dragHandle}
+        <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
+          <span className="min-w-0 text-sm font-medium leading-tight text-text-primary">{label}</span>
+          {helpText ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -67,6 +75,7 @@ export function HomeV2KpiSparklineCard({
             </TooltipContent>
           </Tooltip>
         ) : null}
+        </div>
       </div>
 
       <div className="mt-2 flex min-w-0 items-baseline justify-between gap-2">
@@ -79,12 +88,30 @@ export function HomeV2KpiSparklineCard({
           ) : null}
         </div>
         {!placeholder ? (
-          <KpiDeltaPill
-            pct={pct}
-            trend={trend}
-            comparisonUnavailable={comparisonUnavailable}
-            negativeMetric={negativeMetric}
-          />
+          deltaTooltip ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex shrink-0 cursor-default">
+                  <KpiDeltaPill
+                    pct={pct}
+                    trend={trend}
+                    comparisonUnavailable={comparisonUnavailable}
+                    negativeMetric={negativeMetric}
+                  />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[260px] text-left text-xs font-normal leading-snug">
+                {deltaTooltip}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <KpiDeltaPill
+              pct={pct}
+              trend={trend}
+              comparisonUnavailable={comparisonUnavailable}
+              negativeMetric={negativeMetric}
+            />
+          )
         ) : null}
       </div>
 

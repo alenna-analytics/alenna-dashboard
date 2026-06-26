@@ -28,6 +28,8 @@ export type FilterComboboxSingleProps = {
   options: FilterOption[]
   value: string
   onValueChange: (value: string) => void
+  /** Shown in the trigger when the matched option label is unavailable. */
+  displayLabel?: string
   searchPlaceholder: string
   emptyLabel: string
   /** Single-select closes on pick; multi-select toggles checkboxes (use FilterComboboxMulti for full multi UX). */
@@ -72,10 +74,17 @@ export function FilterComboboxSingle({
   popoverAlign = 'start',
   popoverSide = 'bottom',
   labelLayout = 'inline',
+  displayLabel,
 }: FilterComboboxSingleProps) {
   const [open, setOpen] = React.useState(false)
-  const selected = options.find((o) => o.value === value)
-  const summary = selected?.label ?? (value ? value : null)
+  const selected = React.useMemo(() => {
+    if (!value) return undefined
+    const exact = options.find((o) => o.value === value)
+    if (exact) return exact
+    const norm = value.replace(/-/g, '').toLowerCase()
+    return options.find((o) => o.value.replace(/-/g, '').toLowerCase() === norm)
+  }, [options, value])
+  const summary = displayLabel ?? selected?.label ?? (value ? value : null)
   const active = Boolean(value && summary)
 
   const serverSide = typeof onSearchChange === 'function'
@@ -112,8 +121,8 @@ export function FilterComboboxSingle({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       {labelLayout === 'stacked' ? (
-        <div className="space-y-2">
-          <Label>{label}</Label>
+        <div className={label.trim() ? 'space-y-2' : undefined}>
+          {label.trim() ? <Label>{label}</Label> : null}
           {trigger}
         </div>
       ) : (

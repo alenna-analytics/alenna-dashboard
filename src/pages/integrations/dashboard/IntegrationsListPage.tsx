@@ -1,8 +1,11 @@
+import { useMemo } from 'react'
+
 import { IntegrationCardSkeleton } from '@/pages/integrations/dashboard/integration-card-skeleton'
 import { IntegrationListCard } from '@/pages/integrations/dashboard/integration-list-card'
 import { isIntegrationConnected } from '@/pages/integrations/dashboard/integration-connection'
 import { IntegrationsErrorState } from '@/pages/integrations/dashboard/integrations-error-state'
 import { IntegrationsEmptyState } from '@/pages/integrations/dashboard/integrations-empty-state'
+import type { IntegrationsListCategory } from '@/pages/integrations/dashboard/integrations-list-category'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
 import { useMercadoLibreIntegration } from '@/pages/integrations/details/use-mercadolibre-integration'
 import { useShopifyIntegration } from '@/pages/integrations/details/use-shopify-integration'
@@ -10,7 +13,11 @@ import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { shellT } from '@/lib/i18n/shell-strings'
 
-export function IntegrationsListPage() {
+type IntegrationsListPageProps = {
+  category?: IntegrationsListCategory
+}
+
+export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageProps) {
   const { lang } = useLanguage()
 
   const shopifyIntegration = useShopifyIntegration()
@@ -19,7 +26,14 @@ export function IntegrationsListPage() {
   const { integrations, pageLoading, pageError, isFetching, refetch } =
     useIntegrationsListQueries()
 
-  const hasData = integrations.length > 0
+  const visibleIntegrations = useMemo(() => {
+    if (category === 'all') return integrations
+    return integrations.filter(
+      (integration) => integration.categoryKey === 'integrationsCategoryEcommerce',
+    )
+  }, [category, integrations])
+
+  const hasData = visibleIntegrations.length > 0
 
   return (
     <DashboardPage className="space-y-8">
@@ -65,7 +79,7 @@ export function IntegrationsListPage() {
           ) : null}
 
           <ul className="grid list-none gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {integrations.map((integration) => (
+            {visibleIntegrations.map((integration) => (
               <IntegrationListCard
                 key={integration.slug}
                 integration={integration}

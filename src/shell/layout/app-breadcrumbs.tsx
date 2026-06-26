@@ -22,7 +22,10 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
     return [{ label: shellT(lang, 'navHome') }]
   }
   if (normalized === '/dashboard/home-v2') {
-    return [{ label: shellT(lang, 'navHomeV2') }]
+    return [{ label: shellT(lang, 'navHome') }]
+  }
+  if (normalized === '/dashboard/reports') {
+    return [{ label: shellT(lang, 'navReports') }]
   }
   if (normalized === '/dashboard/components') {
     return [
@@ -31,6 +34,9 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
     ]
   }
   if (normalized === '/dashboard/configuration') {
+    return [{ label: shellT(lang, 'navWorkspaceConfiguration') }]
+  }
+  if (normalized === '/dashboard/configuration/general') {
     return [{ label: shellT(lang, 'navWorkspaceConfiguration') }]
   }
   if (normalized === '/dashboard/configuration/alarms') {

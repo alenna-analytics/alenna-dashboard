@@ -6,6 +6,7 @@ import {
   findActiveConnection,
   isIntegrationConnected,
 } from '@/pages/integrations/dashboard/integration-connection'
+import { IntegrationDetailBreadcrumb } from '@/pages/integrations/dashboard/integration-detail-breadcrumb'
 import { IntegrationDetailLayout } from '@/pages/integrations/dashboard/integration-detail-layout'
 import { IntegrationOverviewPanel } from '@/pages/integrations/dashboard/integration-overview-panel'
 import { IntegrationsDisconnectDialog } from '@/pages/integrations/dashboard/integrations-disconnect-dialog'
@@ -95,6 +96,7 @@ export function IntegrationDetailPage() {
 
   return (
     <DashboardPage className="space-y-6">
+      <IntegrationDetailBreadcrumb slug={slug} />
       <IntegrationDetailLayout
         definition={integration}
         title={title}

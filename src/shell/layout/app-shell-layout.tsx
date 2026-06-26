@@ -3,7 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { shellT } from '@/lib/i18n/shell-strings'
-import { AppBootLoader } from '@/shell/layout/app-boot-loader'
+import { AppShellBootSkeleton } from '@/shell/layout/app-shell-boot-skeleton'
 import { AppHeader } from '@/shell/layout/app-header'
 import { AppSidebar } from '@/shell/layout/app-sidebar'
 import { AppSidebarDrawer } from '@/shell/layout/app-sidebar-drawer'
@@ -23,6 +23,8 @@ import { TooltipProvider } from '@/ui/tooltip'
 import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
 import { ConfigurationInternalSidebar } from '@/pages/configuration/configuration-internal-sidebar'
 import { isConfigurationRoute } from '@/pages/configuration/configuration-inner-nav'
+import { IntegrationsInternalSidebar } from '@/pages/integrations/dashboard/integrations-internal-sidebar'
+import { isIntegrationsRoute } from '@/pages/integrations/dashboard/integrations-inner-nav'
 import { cn } from '@/lib/utils'
 
 const SIDEBAR_COLLAPSED_KEY = 'alenna.sidebar.collapsed'
@@ -98,6 +100,7 @@ export function AppShellLayout() {
   }, [me?.tenant_name, tenants, tenantId, lang])
 
   const showConfigurationInnerSidebar = isConfigurationRoute(location.pathname)
+  const showIntegrationsInnerSidebar = isIntegrationsRoute(location.pathname)
 
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
@@ -107,7 +110,7 @@ export function AppShellLayout() {
     tenantsLoading || resolvingSingleTenant || (Boolean(tenantId) && meLoading)
 
   if (bootLoading) {
-    return <AppBootLoader />
+    return <AppShellBootSkeleton />
   }
 
   if (error) {
@@ -151,6 +154,7 @@ export function AppShellLayout() {
                   />
                   <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
                     {showConfigurationInnerSidebar ? <ConfigurationInternalSidebar /> : null}
+                    {showIntegrationsInnerSidebar ? <IntegrationsInternalSidebar /> : null}
                     <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
                       <main
                         ref={mainRef}

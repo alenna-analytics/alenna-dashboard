@@ -198,14 +198,6 @@ export function AppSidebarPanel({
           collapsed={collapsed}
           onNavigate={onNavigate}
         />
-        <NavItem
-          icon="home"
-          to="/dashboard/home-v2"
-          end
-          label={t('navHomeV2')}
-          collapsed={collapsed}
-          onNavigate={onNavigate}
-        />
         <ModuleNavItems
           modules={analyticsModules}
           collapsed={collapsed}

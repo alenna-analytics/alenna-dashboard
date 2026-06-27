@@ -91,7 +91,9 @@ export function IntegrationDetailPage() {
   const syncPill =
     connected && activeConnection
       ? resolveConnectionSyncFreshnessPillContent(activeConnection, {
-          forceSyncing: isShopify && shopifyIntegration.shopifySyncPhase === 'working',
+          forceSyncing:
+            (isShopify && shopifyIntegration.shopifySyncPhase === 'working') ||
+            (isMercadolibre && mercadolibreIntegration.meliSyncPhase === 'working'),
         })
       : null
 

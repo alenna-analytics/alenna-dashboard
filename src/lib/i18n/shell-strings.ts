@@ -454,6 +454,15 @@ const SHELL_STRINGS = {
     shopifySyncRetry: 'Reintentar',
     shopifySyncBlockedHint:
       'Última ejecución terminó correctamente.',
+    meliSyncFailedUserMessage:
+      'No se pudo completar la sincronización con Mercado Libre. Puedes reintentar en unos momentos.',
+    meliSyncFailedPermissionsMessage:
+      'Mercado Libre no autorizó el acceso a pedidos. Desconecta y vuelve a conectar la integración.',
+    meliSyncProgressTitle: 'Sincronizando con Mercado Libre',
+    meliSyncFailedTitle: 'Error al sincronizar con Mercado Libre',
+    meliSyncProgressQueued: 'En proceso...',
+    meliSyncToastSuccess: 'Sincronización de Mercado Libre completada.',
+    meliSyncToastFailed: 'La sincronización de Mercado Libre falló.',
     globalActivityDismissAria: 'Ocultar barra y mostrar estado en la cabecera',
     globalActivityClearAria: 'Cerrar y descartar',
     globalActivityRestoreBarAria: 'Mostrar de nuevo la barra de actividad',
@@ -1447,6 +1456,15 @@ const SHELL_STRINGS = {
     shopifySyncRetry: 'Retry',
     shopifySyncBlockedHint:
       'Last run finished successfully.',
+    meliSyncFailedUserMessage:
+      'Mercado Libre sync could not be completed. You can try again in a moment.',
+    meliSyncFailedPermissionsMessage:
+      'Mercado Libre denied access to orders. Disconnect and reconnect the integration.',
+    meliSyncProgressTitle: 'Syncing with Mercado Libre',
+    meliSyncFailedTitle: 'Mercado Libre sync failed',
+    meliSyncProgressQueued: 'In progress…',
+    meliSyncToastSuccess: 'Mercado Libre sync finished.',
+    meliSyncToastFailed: 'Mercado Libre sync failed.',
     globalActivityDismissAria: 'Hide bar and show status in the header',
     globalActivityClearAria: 'Dismiss',
     globalActivityRestoreBarAria: 'Show activity bar again',

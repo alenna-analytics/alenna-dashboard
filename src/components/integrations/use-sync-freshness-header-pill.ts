@@ -18,6 +18,7 @@ import {
   useGlobalActivity,
 } from '@/shell/providers/global-activity-provider'
 import { useShopifySyncBanner } from '@/components/integrations/use-shopify-sync-banner'
+import { useMercadoLibreSyncBanner } from '@/components/integrations/use-mercadolibre-sync-banner'
 import { useNowMinuteTick } from '@/hooks/use-now-minute-tick'
 
 export type SyncFreshnessPillViewModel = {
@@ -53,6 +54,7 @@ export function useSyncFreshnessHeaderPill(): SyncFreshnessPillViewModel | null 
   })
 
   useShopifySyncBanner(connections)
+  useMercadoLibreSyncBanner(connections)
 
   const pill = resolveSyncFreshnessPillContent(connections ?? [], { nowMs })
   if (!pill) return null

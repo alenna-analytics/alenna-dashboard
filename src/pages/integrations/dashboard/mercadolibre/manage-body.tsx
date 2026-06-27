@@ -69,7 +69,9 @@ export function MercadoLibreManageBody({
     shellT(lang, 'integrationsStatusConnected')
 
   const syncInProgress =
-    meli.syncMutation.isPending || meli.syncPlan?.last_sync_status === 'syncing'
+    meli.syncMutation.isPending ||
+    meli.meliSyncPhase === 'working' ||
+    meli.syncPlan?.last_sync_status === 'syncing'
 
   return (
     <div className="flex w-full flex-col gap-4">

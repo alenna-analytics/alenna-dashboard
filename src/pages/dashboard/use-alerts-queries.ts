@@ -29,7 +29,8 @@ export function useAlertsSummaryQuery() {
   return useQuery({
     queryKey: alertsSummaryQueryKey(tenantId),
     enabled: Boolean(tenantId),
-    staleTime: 60_000,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
     queryFn: async (): Promise<AlertsSummaryApi> => {
       const res = await apiFetch('/alerts/summary', (a) => getToken(a), {}, tenantId)
       if (!res.ok) throw new Error(await res.text())

@@ -25,7 +25,8 @@ import {
   useGlobalActivity,
 } from '@/shell/providers/global-activity-provider'
 import { useCatalogJobQuery, useRetryCatalogJobMutation } from '@/pages/products/use-catalog-queries'
-import { extractShopifyJobProgressInfo } from '@/lib/integrations/shopify-job-progress'
+import { extractShopifyJobProgressInfo, buildShopifySuccessSubtitle } from '@/lib/integrations/shopify-job-progress'
+import { formatShopifySyncUserError } from '@/lib/integrations/shopify-sync-user-error'
 
 export type ShopifyIntegrationHook = ReturnType<typeof useShopifyIntegration>
 
@@ -276,18 +277,35 @@ export function useShopifyIntegration() {
           maxOrderDate: job.max_order_date ?? null,
         },
       })
+      upsertActivity({
+        id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
+        phase: 'success',
+        title: shellT(lang, 'shopifySyncProgressTitle'),
+        subtitle: buildShopifySuccessSubtitle(job, lang),
+        href: '/dashboard/integrations/shopify?tab=settings',
+        minimized: false,
+      })
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
       return
     }
 
     if (job.status === 'failed' && settledConn) {
+      const failedMessage = formatShopifySyncUserError(job.error_message, lang)
       setSyncPanel({
         pendingJobId: null,
         pendingConnectionId: null,
         failedJobId: job.id,
         failedConnectionId: settledConn,
-        failedMessage: job.error_message ?? shellT(lang, 'syncErrorLabel'),
+        failedMessage,
         blockSuccess: null,
+      })
+      upsertActivity({
+        id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
+        phase: 'error',
+        title: shellT(lang, 'shopifySyncFailedTitle'),
+        subtitle: failedMessage,
+        href: '/dashboard/integrations/shopify?tab=settings',
+        minimized: false,
       })
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
     }
@@ -298,13 +316,44 @@ export function useShopifyIntegration() {
     activeConnectionId,
     shopifyJobQuery.data,
     setSyncPanel,
+    upsertActivity,
     queryClient,
     tenantId,
     lang,
   ])
 
+  useEffect(() => {
+    if (!activeConnectionId) return
+    if (!syncPanel.failedJobId || syncPanel.failedConnectionId !== activeConnectionId) return
+    if (syncPanel.pendingJobId) return
+    const message = formatShopifySyncUserError(syncPanel.failedMessage, lang)
+    upsertActivity({
+      id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
+      phase: 'error',
+      title: shellT(lang, 'shopifySyncFailedTitle'),
+      subtitle: message,
+      href: '/dashboard/integrations/shopify?tab=settings',
+      minimized: false,
+    })
+  }, [
+    activeConnectionId,
+    syncPanel.failedJobId,
+    syncPanel.failedConnectionId,
+    syncPanel.failedMessage,
+    syncPanel.pendingJobId,
+    upsertActivity,
+    lang,
+  ])
+
   const shopifySyncPhase = useMemo((): 'idle' | 'working' | 'done_ok' | 'done_fail' => {
     if (!activeConnectionId) return 'idle'
+    if (
+      syncPanel.failedJobId &&
+      syncPanel.failedConnectionId === activeConnectionId &&
+      !syncPanel.pendingJobId
+    ) {
+      return 'done_fail'
+    }
     if (syncPanel.pendingJobId && syncPanel.pendingConnectionId === activeConnectionId) {
       return 'working'
     }
@@ -313,12 +362,6 @@ export function useShopifyIntegration() {
     }
     if (syncPanel.blockSuccess?.connectionId === activeConnectionId) {
       return 'done_ok'
-    }
-    if (
-      syncPanel.failedJobId &&
-      syncPanel.failedConnectionId === activeConnectionId
-    ) {
-      return 'done_fail'
     }
     return 'idle'
   }, [
@@ -433,7 +476,7 @@ export function useShopifyIntegration() {
       upsertActivity({
         id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
         phase: 'error',
-        title: shellT(lang, 'shopifySyncProgressTitle'),
+        title: shellT(lang, 'shopifySyncFailedTitle'),
         subtitle: e.message,
         href: '/dashboard/integrations/shopify?tab=settings',
         minimized: false,

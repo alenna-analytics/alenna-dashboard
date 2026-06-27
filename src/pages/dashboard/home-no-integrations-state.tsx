@@ -1,18 +1,19 @@
-import { useCallback, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 
-import { HomeOnboardingChannels } from '@/pages/dashboard/home-onboarding-channels'
-import { HomeOnboardingDashboardPreview } from '@/pages/dashboard/home-onboarding-dashboard-preview'
-import { HomeOnboardingHero } from '@/pages/dashboard/home-onboarding-hero'
-import { HomeOnboardingJourney } from '@/pages/dashboard/home-onboarding-journey'
+import { shellT } from '@/lib/i18n/shell-strings'
+import { IntegrationCardSkeleton } from '@/pages/integrations/dashboard/integration-card-skeleton'
+import { IntegrationListCard } from '@/pages/integrations/dashboard/integration-list-card'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
+import { pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 
 type HomeNoIntegrationsStateProps = {
   lang: string
 }
 
 export function HomeNoIntegrationsState({ lang }: HomeNoIntegrationsStateProps) {
-  const navigate = useNavigate()
+  const { me } = useWorkspace()
   const { integrations, pageLoading } = useIntegrationsListQueries()
 
   const sortedIntegrations = useMemo(
@@ -24,42 +25,49 @@ export function HomeNoIntegrationsState({ lang }: HomeNoIntegrationsStateProps) 
     [integrations],
   )
 
-  const firstAvailableSlug = useMemo(
-    () => sortedIntegrations.find((integration) => integration.available)?.slug,
-    [sortedIntegrations],
-  )
-
-  const handleConnect = useCallback(
-    (slug: string) => {
-      navigate(`/dashboard/integrations/${slug}`)
-    },
-    [navigate],
-  )
-
-  const handleConnectFirst = useCallback(() => {
-    if (firstAvailableSlug) {
-      navigate(`/dashboard/integrations/${firstAvailableSlug}`)
-      return
-    }
-    navigate('/dashboard/integrations')
-  }, [firstAvailableSlug, navigate])
+  const firstName = me?.first_name?.trim()
+  const title = firstName
+    ? shellT(lang, 'homeNoIntegrationsTitleNamed', { name: firstName })
+    : shellT(lang, 'homeNoIntegrationsTitle')
 
   return (
-    <div className="animate-in fade-in duration-500 flex flex-1 flex-col">
-      <HomeOnboardingHero lang={lang} onConnectFirst={handleConnectFirst} />
+    <div className="space-y-8">
+      <section>
+        <div className="max-w-2xl">
+          <h1 className={pageTitleClassName}>{title}</h1>
+          <p className="mt-1.5 text-sm text-text-secondary">
+            {shellT(lang, 'homeNoIntegrationsDescription')}
+          </p>
+        </div>
+      </section>
 
-      <div className="mx-auto w-full max-w-[1200px]">
-        <HomeOnboardingChannels
-          lang={lang}
-          integrations={sortedIntegrations}
-          loading={pageLoading}
-          onConnect={handleConnect}
-        />
+      {pageLoading ? (
+        <ul className="grid list-none gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <IntegrationCardSkeleton key={i} />
+          ))}
+        </ul>
+      ) : (
+        <ul className="grid list-none gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {sortedIntegrations.map((integration) => (
+            <IntegrationListCard
+              key={integration.slug}
+              integration={integration}
+              lang={lang}
+              connected={false}
+            />
+          ))}
+        </ul>
+      )}
 
-        <HomeOnboardingJourney lang={lang} />
-
-        <HomeOnboardingDashboardPreview lang={lang} />
-      </div>
+      <p className="text-sm">
+        <Link
+          to="/dashboard/integrations"
+          className="font-medium text-text-primary underline-offset-4 hover:underline"
+        >
+          {shellT(lang, 'homeNoIntegrationsViewAll')}
+        </Link>
+      </p>
     </div>
   )
 }

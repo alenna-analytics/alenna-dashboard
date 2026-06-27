@@ -18,6 +18,7 @@ export type DateRangePickerStrings = {
   placeholder: string
   presetLast7Days: string
   presetLast30Days: string
+  presetLast3Months: string
   presetLast6Months: string
   presetLastYearRolling: string
   presetCurrentYear: string
@@ -35,7 +36,7 @@ export type DateRangePickerProps = {
   clearAriaLabel?: string
 }
 
-type PresetId = 'last7' | 'last30' | 'last6m' | 'last12m' | 'ytd' | 'lastYear' | 'custom'
+type PresetId = 'last7' | 'last30' | 'last3m' | 'last6m' | 'last12m' | 'ytd' | 'lastYear' | 'custom'
 
 function sob(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate())
@@ -80,6 +81,8 @@ export function rangeForPreset(id: Exclude<PresetId, 'custom'>): { from: Date; t
       return { from: subDays(6), to: today }
     case 'last30':
       return { from: subDays(29), to: today }
+    case 'last3m':
+      return { from: subMonths(3), to: today }
     case 'last6m':
       return { from: subMonths(6), to: today }
     case 'last12m':
@@ -108,6 +111,7 @@ function guessPreset(from?: Date, to?: Date): PresetId {
   const ids: Exclude<PresetId, 'custom'>[] = [
     'last7',
     'last30',
+    'last3m',
     'last6m',
     'last12m',
     'ytd',
@@ -124,6 +128,7 @@ function buildPresets(strings: DateRangePickerStrings): { id: PresetId; label: s
   return [
     { id: 'last7', label: strings.presetLast7Days },
     { id: 'last30', label: strings.presetLast30Days },
+    { id: 'last3m', label: strings.presetLast3Months },
     { id: 'last6m', label: strings.presetLast6Months },
     { id: 'last12m', label: strings.presetLastYearRolling },
     { id: 'ytd', label: strings.presetCurrentYear, divider: true },

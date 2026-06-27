@@ -34,7 +34,7 @@ export function WorkspaceConfigNavItem({ collapsed, onNavigate }: WorkspaceConfi
         collapsed ? sidebarNavItemCollapsedClassName : 'w-full gap-2',
         isActive
           ? 'bg-[var(--sidebar-active-bg)] font-medium text-text-primary shadow-none'
-          : 'text-text-secondary hover:bg-[var(--sidebar-accent)] hover:text-text-primary',
+          : 'text-text-tertiary hover:bg-[var(--sidebar-accent)] hover:text-text-primary',
       )}
       onClick={() => onNavigate?.()}
     >

@@ -524,6 +524,7 @@ export function DashboardHomePage() {
     placeholder: t('datePickerPlaceholder'),
     presetLast7Days: t('datePickerLast7Days'),
     presetLast30Days: t('datePickerLast30Days'),
+    presetLast3Months: t('datePickerLast3Months'),
     presetLast6Months: t('datePickerLast6Months'),
     presetLastYearRolling: t('datePickerLastYearRolling'),
     presetCurrentYear: t('datePickerCurrentYear'),

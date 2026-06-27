@@ -16,8 +16,6 @@ import { useLanguage } from '@/shell/providers/language-provider'
 
 import { ActiveAlertsSheet } from './active-alerts-sheet'
 import { useAlertsSheet } from './alerts-sheet-context'
-import { useAlertsSyncInvalidation } from './use-alerts-sync-invalidation'
-
 export function ActiveAlertsSheetHost() {
   const { lang } = useLanguage()
   const { getToken } = useAuth()
@@ -26,8 +24,6 @@ export function ActiveAlertsSheetHost() {
   const { open, setOpen } = useAlertsSheet()
   const { me } = useAppBootstrap()
   const isAdmin = me?.role === 'admin' || me?.role === 'owner'
-
-  useAlertsSyncInvalidation()
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],

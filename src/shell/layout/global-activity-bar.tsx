@@ -101,7 +101,12 @@ function ActivityRow({ item }: { item: GlobalActivityItem }) {
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="size-7 shrink-0 opacity-80 hover:bg-black/5 hover:opacity-100"
+          className={cn(
+            'size-7 shrink-0 opacity-80 hover:opacity-100',
+            item.phase === 'error' || item.phase === 'success'
+              ? 'text-inherit hover:bg-white/15'
+              : 'hover:bg-black/5',
+          )}
           aria-label={shellT(lang, 'globalActivityDismissAria')}
           onClick={(e) => {
             e.preventDefault()

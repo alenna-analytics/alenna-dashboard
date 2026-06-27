@@ -13,7 +13,10 @@ import { ReportsPage } from '@/pages/reports/ReportsPage'
 import { ComponentsShowcasePage } from '@/pages/dev/ComponentsShowcasePage'
 import { ProductsListPage } from '@/pages/products/ProductsListPage'
 import { ProductDetailPage } from '@/pages/products/ProductDetailPage'
-import { BulkCogsEditorPage } from '@/pages/products/bulk-cogs/BulkCogsEditorPage'
+import { ProductsShellLayout } from '@/pages/products/products-shell-layout'
+import { CogsLoadsListPage } from '@/pages/products/cogs/CogsLoadsListPage'
+import { CogsLoadEditorPage } from '@/pages/products/cogs/CogsLoadEditorPage'
+import { CogsLoadDetailPage } from '@/pages/products/cogs/CogsLoadDetailPage'
 import { SalesPage } from '@/pages/sales/SalesPage'
 import { AdsPage } from '@/pages/ads/AdsPage'
 import { SimulationsPage } from '@/pages/simulations/SimulationsPage'
@@ -35,9 +38,13 @@ function App() {
           <Route path="home-v2" element={<Navigate to="/dashboard" replace />} />
           <Route path="components" element={<ComponentsShowcasePage />} />
           <Route path="reports" element={<ReportsPage />} />
-          <Route path="products" element={<ProductsListPage />} />
-          <Route path="products/bulk-cogs" element={<BulkCogsEditorPage />} />
-          <Route path="products/:productId" element={<ProductDetailPage />} />
+          <Route path="products" element={<ProductsShellLayout />}>
+            <Route index element={<ProductsListPage />} />
+            <Route path="cogs" element={<CogsLoadsListPage />} />
+            <Route path="cogs/loads/:loadId" element={<CogsLoadEditorPage />} />
+            <Route path="cogs/loads/:loadId/view" element={<CogsLoadDetailPage />} />
+            <Route path=":productId" element={<ProductDetailPage />} />
+          </Route>
           <Route path="integrations/ecommerce" element={<IntegrationsListPage category="ecommerce" />} />
           <Route path="integrations/ads" element={<IntegrationsAdsComingSoonPage />} />
           <Route path="integrations/:slug" element={<IntegrationDetailPage />} />

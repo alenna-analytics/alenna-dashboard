@@ -42,7 +42,9 @@ export function StockAlertTypeCard({
           <h2 className="text-sm font-semibold text-text-primary">{shellT(lang, titleKey)}</h2>
           {active ? (
             <StatusPill variant="success">{shellT(lang, 'alarmsStatusActive')}</StatusPill>
-          ) : null}
+          ) : (
+            <StatusPill variant="neutral">{shellT(lang, 'alarmsStatusInactive')}</StatusPill>
+          )}
         </div>
         <p className="mt-1 text-sm text-text-secondary">{shellT(lang, descriptionKey)}</p>
         {currentValue && currentValueLabelKey ? (

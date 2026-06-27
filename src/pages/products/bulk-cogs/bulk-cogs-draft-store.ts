@@ -24,6 +24,53 @@ export function createDraftFromRow(row: ProductCostBulkRowApi, baseCurrency: str
   }
 }
 
+export function createDraftFromLoadItem(
+  item: {
+    product_id: string
+    parent_product_id: string | null
+    parent_title: string
+    variant_label: string | null
+    internal_sku: string | null
+    supplier_price: number | null
+    freight_value: number | null
+    packaging_value: number | null
+    computed_total: number | null
+  },
+  baseCurrency: string,
+): BulkCogsDraft {
+  return createDraftFromRow(
+    {
+      product_id: item.product_id,
+      parent_product_id: item.parent_product_id,
+      parent_title: item.parent_title,
+      variant_label: item.variant_label,
+      internal_sku: item.internal_sku,
+      cost_missing: false,
+      supplier_price: item.supplier_price,
+      freight_value: item.freight_value,
+      packaging_value: item.packaging_value,
+      computed_total: item.computed_total,
+    },
+    baseCurrency,
+  )
+}
+
+export function mergeLoadItemsIntoDraftStore(
+  store: BulkCogsDraftStore,
+  items: Parameters<typeof createDraftFromLoadItem>[0][],
+  baseCurrency: string,
+): BulkCogsDraftStore {
+  const next = new Map(store)
+  const incomingIds = new Set(items.map((item) => item.product_id))
+  for (const key of [...next.keys()]) {
+    if (!incomingIds.has(key)) next.delete(key)
+  }
+  for (const item of items) {
+    next.set(item.product_id, createDraftFromLoadItem(item, baseCurrency))
+  }
+  return next
+}
+
 export function mergeRowsIntoDraftStore(
   store: BulkCogsDraftStore,
   rows: ProductCostBulkRowApi[],

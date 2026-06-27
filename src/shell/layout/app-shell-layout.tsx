@@ -12,6 +12,7 @@ import { DisplayCurrencyProvider } from '@/shell/providers/display-currency-prov
 import { GlobalActivityProvider } from '@/shell/providers/global-activity-provider'
 import { WorkspaceProvider } from '@/shell/providers/workspace-context'
 import { ActiveAlertsSheetHost } from '@/shell/alerts/active-alerts-sheet-host'
+import { AlertsInvalidationHost } from '@/shell/alerts/alerts-invalidation-host'
 import { AlertsSheetProvider } from '@/shell/alerts/alerts-sheet-context'
 import { GlobalActivityBar } from '@/shell/layout/global-activity-bar'
 import { CogsBackfillActivityPollers } from '@/shell/layout/cogs-backfill-activity-pollers'
@@ -25,6 +26,8 @@ import { ConfigurationInternalSidebar } from '@/pages/configuration/configuratio
 import { isConfigurationRoute } from '@/pages/configuration/configuration-inner-nav'
 import { IntegrationsInternalSidebar } from '@/pages/integrations/dashboard/integrations-internal-sidebar'
 import { isIntegrationsRoute } from '@/pages/integrations/dashboard/integrations-inner-nav'
+import { ProductsInternalSidebar } from '@/pages/products/products-internal-sidebar'
+import { isProductsRoute } from '@/pages/products/products-inner-nav'
 import { cn } from '@/lib/utils'
 
 const SIDEBAR_COLLAPSED_KEY = 'alenna.sidebar.collapsed'
@@ -101,6 +104,7 @@ export function AppShellLayout() {
 
   const showConfigurationInnerSidebar = isConfigurationRoute(location.pathname)
   const showIntegrationsInnerSidebar = isIntegrationsRoute(location.pathname)
+  const showProductsInnerSidebar = isProductsRoute(location.pathname)
 
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
@@ -134,6 +138,7 @@ export function AppShellLayout() {
         <GlobalActivityProvider>
           <CogsBackfillActivityPollers />
           <AlertsSheetProvider>
+            <AlertsInvalidationHost />
             <TooltipProvider delayDuration={200}>
               <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh flex-col overflow-hidden bg-white">
                 <div className="z-40 shrink-0">
@@ -155,6 +160,7 @@ export function AppShellLayout() {
                   <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
                     {showConfigurationInnerSidebar ? <ConfigurationInternalSidebar /> : null}
                     {showIntegrationsInnerSidebar ? <IntegrationsInternalSidebar /> : null}
+                    {showProductsInnerSidebar ? <ProductsInternalSidebar /> : null}
                     <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
                       <main
                         ref={mainRef}

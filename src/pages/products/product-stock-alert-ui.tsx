@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- badge helpers + cell component */
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { StockAlertLevel } from '@/lib/types/catalog'
+import { useEffectiveStockAlertLevel } from '@/pages/configuration/alarms/stock/use-stock-alert-display'
 import { StatusPill } from '@/ui/status-pill'
 import { cn } from '@/lib/utils'
 
@@ -15,15 +16,17 @@ export function ProductStockAlertBadge({
   t: (key: ShellStringKey) => string
   className?: string
 }) {
-  if (level === 'none') {
+  const effectiveLevel = useEffectiveStockAlertLevel(level)
+
+  if (effectiveLevel === 'none') {
     return <span className={cn('text-sm text-text-tertiary', className)}>—</span>
   }
   return (
     <StatusPill
-      variant={level === 'out' ? 'error' : 'warning'}
+      variant={effectiveLevel === 'out' ? 'error' : 'warning'}
       className={className}
     >
-      {stockAlertShortLabel(t, level)}
+      {stockAlertShortLabel(t, effectiveLevel)}
     </StatusPill>
   )
 }

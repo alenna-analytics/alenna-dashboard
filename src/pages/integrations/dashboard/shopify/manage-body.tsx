@@ -1,22 +1,24 @@
 import { CheckCircle2 } from 'lucide-react'
 
 import { LoadingIcon } from '@/ui/app-icon'
-import { useMemo } from 'react'
+import { useMemo, useRef, useState } from 'react'
 
 import type { ShopifyIntegrationHook } from '@/pages/integrations/details/use-shopify-integration'
 import {
   normalizeShopifySubdomainInput,
   SHOPIFY_MYSHOPIFY_SUFFIX,
 } from '@/lib/integrations/shopify-format'
-import { useLanguage } from '@/shell/providers/language-provider'
+import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { SyncPlan } from '@/lib/types/connectors'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
+import { formatShopifySyncUserError } from '@/lib/integrations/shopify-sync-user-error'
 import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
+import { IntegrationEnableCard } from '@/components/integrations/integration-enable-card'
+import { IntegrationSyncActionCard } from '@/components/integrations/integration-sync-action-card'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
-import { Separator } from '@/ui/separator'
 
 function formatYmdMedium(value: string | null, lang: string): string {
   if (!value) return ''
@@ -38,15 +40,75 @@ function lifecycleButtonLabelKey(syncPlan: SyncPlan | null): ShellStringKey {
   return 'syncRunBtn'
 }
 
-function ShopifyIntroCopy({ lang }: { lang: string }) {
+function shopifyDomainInputWidthCh(value: string, placeholder: string): number {
+  const visibleLength = value.length > 0 ? value.length : placeholder.length
+  return Math.max(visibleLength, 3)
+}
+
+function ShopifyDomainInlineField({
+  id,
+  value,
+  placeholder,
+  onChange,
+  readOnly = false,
+}: {
+  id: string
+  value: string
+  placeholder: string
+  onChange?: (value: string) => void
+  readOnly?: boolean
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const widthCh = shopifyDomainInputWidthCh(value, placeholder)
+
+  const focusInput = () => {
+    inputRef.current?.focus()
+  }
+
+  if (readOnly) {
+    return (
+      <div
+        id={id}
+        className="flex min-w-0 flex-1 items-center truncate px-3 font-mono text-sm text-text-primary"
+      >
+        <span className="truncate">{value}</span>
+        <span className="shrink-0 text-text-tertiary">{SHOPIFY_MYSHOPIFY_SUFFIX}</span>
+      </div>
+    )
+  }
+
   return (
-    <p className="text-sm text-muted-foreground">
-      {shellT(lang, 'integrationSheetShopifyConnectIntro')}
-    </p>
+    <div
+      className="flex min-h-10 min-w-0 flex-1 cursor-text items-center px-3"
+      onPointerDown={(e) => {
+        const target = e.target as HTMLElement
+        if (target.closest('input, button, a')) return
+        e.preventDefault()
+        focusInput()
+      }}
+    >
+      <div className="inline-flex min-w-0 items-center">
+        <Input
+          ref={inputRef}
+          variant="bare"
+          id={id}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange?.(normalizeShopifySubdomainInput(e.target.value))}
+          autoComplete="off"
+          spellCheck={false}
+          className="h-10 min-h-0 w-auto min-w-0 max-w-full shrink-0 rounded-none px-0 py-0 font-mono text-sm text-text-primary caret-text-primary placeholder:text-text-tertiary field-sizing-content"
+          style={{ width: `${widthCh}ch` }}
+        />
+        <span className="shrink-0 font-mono text-sm text-text-tertiary">
+          {SHOPIFY_MYSHOPIFY_SUFFIX}
+        </span>
+      </div>
+    </div>
   )
 }
 
-function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyIntegrationHook }) {
+function ShopifySyncSection({ lang, shopify }: { lang: Language; shopify: ShopifyIntegrationHook }) {
   const {
     activeConnection,
     lastSyncDisplay,
@@ -68,28 +130,6 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
 
   const buttonLabel = shellT(lang, lifecycleButtonLabelKey(syncPlan))
 
-  const helperText = useMemo<string | null>(() => {
-    if (!syncPlan) return shellT(lang, 'syncFullHistoryHelper', { startYear: '' })
-    const startYear = syncPlan.full_history_window.start_date.slice(0, 4)
-    const hasActual = Boolean(syncPlan.actual_min_created_at && syncPlan.actual_max_created_at)
-    if (hasActual) {
-      const min = formatYmdMedium(syncPlan.actual_min_created_at, lang)
-      const max = formatYmdMedium(syncPlan.actual_max_created_at, lang)
-      const count = syncPlan.last_sync_records_count ?? 0
-      const coverage = shellT(lang, 'syncCoverageHelper', {
-        count: count.toLocaleString(),
-        actualMin: min,
-        actualMax: max,
-      })
-      const isNoOp =
-        syncPlan.last_sync_records_count === 0 &&
-        (syncPlan.last_sync_records_touched_count ?? 0) === 0
-      if (isNoOp) return `${shellT(lang, 'syncNoNewOrdersHelper')} ${coverage}`
-      return coverage
-    }
-    return shellT(lang, 'syncFullHistoryHelper', { startYear })
-  }, [lang, syncPlan])
-
   const cooldownHelper = useMemo<string | null>(() => {
     if (!syncPlan?.retry_after_seconds || syncPlan.retry_after_seconds <= 0) return null
     if (syncPlan.cooldown_reason !== 'shopify_full_sync_cooldown') return null
@@ -97,8 +137,7 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
   }, [lang, syncPlan])
 
   if (shopifySyncPhase === 'working') {
-    const job = shopifyJobQuery.data
-    const queued = job?.status === 'queued'
+    const queued = shopifyJobQuery.data?.status === 'queued'
     const subtitle =
       ordersProcessed != null && !Number.isNaN(ordersProcessed) && oldestProcessedYear != null
         ? shellT(lang, 'syncProgressLabel', {
@@ -110,20 +149,17 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
           : shellT(lang, 'syncRunning')
 
     return (
-      <div className="space-y-4">
-        <div className="flex gap-3 rounded-md border border-border-subtle bg-white p-4">
-          <LoadingIcon className="size-5 shrink-0 text-muted-foreground" />
-          <div className="min-w-0 space-y-1">
-            <p className="text-sm font-medium text-text-primary">
-              {shellT(lang, 'shopifySyncProgressTitle')}
-            </p>
-            <p className="text-xs text-muted-foreground">{subtitle}</p>
-            {job?.created_by_user_id === null ? (
-              <p className="text-xs text-muted-foreground">{shellT(lang, 'jobTriggeredBySystem')}</p>
-            ) : null}
-          </div>
-        </div>
-      </div>
+      <IntegrationSyncActionCard
+        title={shellT(lang, 'syncSectionTitle')}
+        description={subtitle}
+        actionLabel={shellT(lang, 'syncRunning')}
+        onAction={() => {}}
+        actionDisabled
+        actionLoading
+        hideAction
+        badge={<SyncFreshnessPillBadge pill={{ kind: 'syncing', freshnessState: 'syncing' }} lang={lang} />}
+        className="w-full"
+      />
     )
   }
 
@@ -134,96 +170,67 @@ function ShopifySyncSection({ lang, shopify }: { lang: string; shopify: ShopifyI
     const range = from && to ? `${from} — ${to}` : from || to || ''
 
     return (
-      <div className="space-y-4">
-        <div className="rounded-md border border-border-subtle bg-white p-4 text-sm">
-          <div className="mb-2 flex items-center gap-1.5 font-medium text-text-primary">
-            <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />
-            {shellT(lang, 'integrationSyncDone')}
-          </div>
-          <ul className="space-y-1 text-xs text-muted-foreground">
-            <li className="text-sm text-text-primary">
-              {b.recordsSynced.toLocaleString()} {shellT(lang, 'reportsOrders')}
-            </li>
-            <li>
-              {b.catalogProductsUpserted.toLocaleString()} {shellT(lang, 'syncProductsUpdated')}
-            </li>
-            {range ? (
-              <li>
-                {shellT(lang, 'shopifySyncDateRange')}: {range}
-              </li>
-            ) : null}
-          </ul>
-          <p className="mt-3 text-xs text-muted-foreground">{shellT(lang, 'shopifySyncBlockedHint')}</p>
-        </div>
-      </div>
+      <IntegrationSyncActionCard
+        title={shellT(lang, 'integrationSyncDone')}
+        description={`${b.recordsSynced.toLocaleString()} ${shellT(lang, 'reportsOrders')} · ${b.catalogProductsUpserted.toLocaleString()} ${shellT(lang, 'syncProductsUpdated')}${range ? ` · ${range}` : ''}`}
+        actionLabel={shellT(lang, 'syncRefreshBtn')}
+        onAction={() => {}}
+        hideAction
+        badge={<CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />}
+        footer={shellT(lang, 'shopifySyncBlockedHint')}
+        className="w-full"
+      />
     )
   }
 
   if (shopifySyncPhase === 'done_fail') {
     return (
-      <div className="space-y-4">
-        <p className="text-sm text-destructive" role="alert">
-          {syncFailedMessage ?? shellT(lang, 'syncErrorLabel')}
-        </p>
-        <Button
-          type="button"
-          className="w-full"
-          variant="primary"
-          disabled={retryShopifySyncPending}
-          onClick={() => retryShopifySync()}
-        >
-          {retryShopifySyncPending ? (
-            <LoadingIcon className="size-4 shrink-0" />
-          ) : null}
-          {shellT(lang, 'shopifySyncRetry')}
-        </Button>
-      </div>
+      <IntegrationSyncActionCard
+        title={shellT(lang, 'syncSectionTitle')}
+        description={formatShopifySyncUserError(syncFailedMessage, lang)}
+        actionLabel={shellT(lang, 'shopifySyncRetry')}
+        onAction={() => retryShopifySync()}
+        actionDisabled={retryShopifySyncPending}
+        actionLoading={retryShopifySyncPending}
+        className="w-full"
+      />
     )
   }
 
+  const syncFooter = [
+    `${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`,
+    cooldownHelper,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
   return (
-    <div className="space-y-4">
-      <div className="space-y-0.5">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-medium text-text-primary">{shellT(lang, 'syncSectionTitle')}</p>
-          {syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : null}
-        </div>
-        <p className="text-xs text-muted-foreground">{shellT(lang, 'syncSectionDescription')}</p>
-        {syncPill ? (
-          <p className="text-xs text-muted-foreground">{shellT(lang, 'syncFreshnessManageLine')}</p>
-        ) : null}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Button
-          type="button"
-          className="w-full"
-          disabled={syncMutation.isPending}
-          onClick={() => syncMutation.mutate()}
-        >
-          {syncMutation.isPending ? (
-            <LoadingIcon className="size-4 shrink-0" />
-          ) : null}
-          {syncMutation.isPending ? shellT(lang, 'syncRunning') : buttonLabel}
-        </Button>
-      </div>
-
-      {helperText ? (
-        <p className="text-xs text-muted-foreground">{helperText}</p>
-      ) : null}
-
-      {cooldownHelper ? (
-        <p className="text-xs text-muted-foreground">{cooldownHelper}</p>
-      ) : null}
-
-      <p className="text-xs text-muted-foreground">
-        {shellT(lang, 'connectionsLastSynced')}: {lastSyncDisplay}
-      </p>
-    </div>
+    <IntegrationSyncActionCard
+      title={shellT(lang, 'syncSectionTitle')}
+      description={shellT(lang, 'syncSectionCardDescription')}
+      actionLabel={buttonLabel}
+      actionLoadingLabel={shellT(lang, 'syncRunning')}
+      onAction={() => syncMutation.mutate()}
+      actionDisabled={syncMutation.isPending || Boolean(cooldownHelper)}
+      actionLoading={syncMutation.isPending}
+      badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
+      footer={syncFooter}
+      className="w-full"
+    />
   )
 }
 
-export function ShopifyManageBody({ shopify }: { shopify: ShopifyIntegrationHook }) {
+type ShopifyManageBodyProps = {
+  shopify: ShopifyIntegrationHook
+  onRequestDisconnect?: () => void
+  disconnectPending?: boolean
+}
+
+export function ShopifyManageBody({
+  shopify,
+  onRequestDisconnect,
+  disconnectPending = false,
+}: ShopifyManageBodyProps) {
   const { lang } = useLanguage()
   const {
     tenantId,
@@ -243,9 +250,12 @@ export function ShopifyManageBody({ shopify }: { shopify: ShopifyIntegrationHook
 
   const storeId = 'integration-shop-domain'
   const shopSubdomain = normalizeShopifySubdomainInput(activeConnection?.shop_domain ?? '')
+  const shopPlaceholder = shellT(lang, 'connectionsConnectShopPlaceholder')
+  const [integrationEnabled, setIntegrationEnabled] = useState(true)
+  const syncInProgress = shopifySyncPhase === 'working'
 
   return (
-    <div className="flex max-w-2xl flex-col gap-6">
+    <div className="flex w-full flex-col gap-4">
         {!isAdmin ? (
           <p className="text-sm text-muted-foreground">{shellT(lang, 'connectionsAdminOnly')}</p>
         ) : isLoading ? (
@@ -259,47 +269,36 @@ export function ShopifyManageBody({ shopify }: { shopify: ShopifyIntegrationHook
           </p>
         ) : !connected ? (
           <div className="space-y-4">
-            <ShopifyIntroCopy lang={lang} />
             <div className="space-y-2">
               <Label htmlFor={storeId}>{shellT(lang, 'connectionsConnectShopLabel')}</Label>
               <div
-                className="flex h-10 min-h-10 min-w-0 items-stretch overflow-hidden rounded-sm bg-background backdrop-blur-xl focus-within:ring-3 focus-within:ring-ring/45 focus-within:ring-offset-0"
+                className="flex min-h-10 min-w-0 items-stretch overflow-hidden rounded-md border border-border-subtle bg-muted/30 focus-within:border-border-default focus-within:ring-3 focus-within:ring-ring/45 focus-within:ring-offset-0"
                 role="group"
                 aria-label={shellT(lang, 'connectionsConnectShopLabel')}
               >
-                <Input
-                  variant="bare"
+                <ShopifyDomainInlineField
                   id={storeId}
-                  placeholder={shellT(lang, 'connectionsConnectShopPlaceholder')}
                   value={shopInput}
-                  onChange={(e) =>
-                    setShopInput(normalizeShopifySubdomainInput(e.target.value))
-                  }
-                  autoComplete="off"
-                  className="h-full min-h-0 flex-1 rounded-none px-2.5 py-0"
+                  placeholder={shopPlaceholder}
+                  onChange={setShopInput}
                 />
-                <span
-                  className="flex shrink-0 items-center border-l border-border-subtle/80 bg-muted px-3 text-sm text-muted-foreground"
-                  aria-hidden
+                <Button
+                  type="button"
+                  variant="accent"
+                  size="sm"
+                  className="my-1.5 mr-1.5 shrink-0 self-center rounded-md px-3"
+                  disabled={
+                    oauthStarting || !normalizeShopifySubdomainInput(shopInput) || !tenantId
+                  }
+                  onClick={() => void startOAuth()}
                 >
-                  {SHOPIFY_MYSHOPIFY_SUFFIX}
-                </span>
+                  {oauthStarting ? (
+                    <LoadingIcon className="size-4 shrink-0" />
+                  ) : null}
+                  {shellT(lang, 'integrationConnectWithShopify')}
+                </Button>
               </div>
             </div>
-            <Button
-              type="button"
-              className="inline-flex w-full items-center justify-center gap-2 sm:w-auto"
-              size="default"
-              disabled={
-                oauthStarting || !normalizeShopifySubdomainInput(shopInput) || !tenantId
-              }
-              onClick={() => void startOAuth()}
-            >
-              {oauthStarting ? (
-                <LoadingIcon className="size-4 shrink-0" />
-              ) : null}
-              {shellT(lang, 'integrationConnectWithShopify')}
-            </Button>
             {previewMessage && !oauthStarting ? (
               <p className="text-sm text-destructive" role="alert">
                 {previewMessage}
@@ -310,47 +309,46 @@ export function ShopifyManageBody({ shopify }: { shopify: ShopifyIntegrationHook
             </p>
           </div>
         ) : (
-          <div className="space-y-5">
-            <div className="space-y-4">
-              {shopifySyncPhase === 'idle' ? <ShopifyIntroCopy lang={lang} /> : null}
+          <div className="flex w-full flex-col gap-4">
+            <IntegrationEnableCard
+              title={shellT(lang, 'integrationEnableTitle')}
+              description={shellT(lang, 'integrationEnableDescription')}
+              enabled={integrationEnabled}
+              onEnabledChange={setIntegrationEnabled}
+              switchId="integration-shopify-enabled"
+              switchDisabled={syncInProgress}
+              onDisconnect={onRequestDisconnect}
+              disconnectLabel={shellT(lang, 'integrationDetailDisconnect')}
+              disconnectPending={disconnectPending}
+            >
               <div className="space-y-2">
                 <Label htmlFor={`${storeId}-ro`}>
                   {shellT(lang, 'connectionsConnectShopLabel')}
                 </Label>
                 <div
-                  className="flex h-10 min-h-10 min-w-0 items-stretch overflow-hidden rounded-sm border border-input bg-muted/60 text-sm text-foreground"
+                  className="flex h-10 min-h-10 min-w-0 items-stretch overflow-hidden rounded-md border border-border-subtle bg-muted/30 text-sm text-foreground"
                   role="group"
                   aria-label={shellT(lang, 'connectionsConnectShopLabel')}
                 >
-                  <div
+                  <ShopifyDomainInlineField
                     id={`${storeId}-ro`}
-                    className="min-w-0 flex-1 truncate px-2.5 py-2 text-muted-foreground"
-                  >
-                    {shopSubdomain}
-                  </div>
-                  <span
-                    className="flex shrink-0 items-center border-l border-input bg-muted px-3 text-sm text-muted-foreground"
-                    aria-hidden
-                  >
-                    {SHOPIFY_MYSHOPIFY_SUFFIX}
-                  </span>
+                    value={shopSubdomain}
+                    placeholder={shopPlaceholder}
+                    readOnly
+                  />
                 </div>
-                {shopifySyncPhase === 'idle' ? (
-                  <p className="text-xs text-muted-foreground">
-                    {shellT(lang, 'integrationDetailHeroHelper')}
+              </div>
+            </IntegrationEnableCard>
+
+            {integrationEnabled ? (
+              <>
+                <ShopifySyncSection lang={lang} shopify={shopify} />
+                {syncMessage ? (
+                  <p className="text-xs text-muted-foreground" role="status">
+                    {syncMessage}
                   </p>
                 ) : null}
-              </div>
-            </div>
-
-            <Separator />
-
-            <ShopifySyncSection lang={lang} shopify={shopify} />
-
-            {syncMessage ? (
-              <p className="text-xs text-muted-foreground" role="status">
-                {syncMessage}
-              </p>
+              </>
             ) : null}
           </div>
         )}

@@ -39,6 +39,16 @@ function hasCompletedInitialSync(conn: PlatformConnection): boolean {
   return status === 'synced' || status === 'partial'
 }
 
+export function connectionNeedsInitialSync(
+  conn: PlatformConnection | null | undefined,
+): boolean {
+  if (!conn || conn.status !== 'active' || conn.connection_status !== 'active') {
+    return false
+  }
+  if (conn.sync_plan?.last_sync_status === 'syncing') return false
+  return !hasCompletedInitialSync(conn)
+}
+
 export function deriveConnectionSyncFreshness(
   conn: PlatformConnection | null | undefined,
   options?: DeriveSyncFreshnessOptions,

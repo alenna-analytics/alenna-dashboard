@@ -12,6 +12,7 @@ import { DisplayCurrencyProvider } from '@/shell/providers/display-currency-prov
 import { GlobalActivityProvider } from '@/shell/providers/global-activity-provider'
 import { WorkspaceProvider } from '@/shell/providers/workspace-context'
 import { ActiveAlertsSheetHost } from '@/shell/alerts/active-alerts-sheet-host'
+import { AlertsInvalidationHost } from '@/shell/alerts/alerts-invalidation-host'
 import { AlertsSheetProvider } from '@/shell/alerts/alerts-sheet-context'
 import { GlobalActivityBar } from '@/shell/layout/global-activity-bar'
 import { CogsBackfillActivityPollers } from '@/shell/layout/cogs-backfill-activity-pollers'
@@ -137,6 +138,7 @@ export function AppShellLayout() {
         <GlobalActivityProvider>
           <CogsBackfillActivityPollers />
           <AlertsSheetProvider>
+            <AlertsInvalidationHost />
             <TooltipProvider delayDuration={200}>
               <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh flex-col overflow-hidden bg-white">
                 <div className="z-40 shrink-0">

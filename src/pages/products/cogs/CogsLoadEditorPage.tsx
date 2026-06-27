@@ -30,6 +30,10 @@ import { CogsLoadReviewStep } from './cogs-load-review-step'
 import { countLoadReviewStates } from './cogs-load-review-utils'
 import { CogsLoadSelectStep } from './cogs-load-select-step'
 import {
+  CogsLoadSaveStatusPill,
+  type CogsLoadAutosaveStatus,
+} from './cogs-load-save-status-pill'
+import {
   useApplyCogsLoadMutation,
   useCogsLoadQuery,
   usePatchCogsLoadItemMutation,
@@ -41,6 +45,7 @@ type WizardStep = 'select' | 'grid' | 'review' | 'apply'
 
 const footerClassName = 'flex shrink-0 items-center border-t border-border-subtle bg-white px-0 py-3'
 const AUTOSAVE_MS = 1500
+const AUTOSAVE_SAVED_MS = 3000
 
 function WizardBackButton({
   ariaLabel,
@@ -72,9 +77,59 @@ export function CogsLoadEditorPage() {
   const [step, setStep] = useState<WizardStep>('select')
   const [draftStore, setDraftStore] = useState<BulkCogsDraftStore>(() => new Map())
   const [pendingSaves, setPendingSaves] = useState(0)
+  const [debouncingSaves, setDebouncingSaves] = useState(0)
+  const [savedPulse, setSavedPulse] = useState(false)
+  const [failedProductIds, setFailedProductIds] = useState<string[]>([])
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false)
   const saveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
   const loadUpdatedAtRef = useRef<string>('')
+  const savedStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const draftStoreRef = useRef(draftStore)
+  const wasSavingRef = useRef(false)
+
+  useEffect(() => {
+    draftStoreRef.current = draftStore
+  }, [draftStore])
+
+  useEffect(() => {
+    return () => {
+      if (savedStatusTimerRef.current) clearTimeout(savedStatusTimerRef.current)
+    }
+  }, [])
+
+  const autosaveStatus = useMemo((): CogsLoadAutosaveStatus => {
+    if (failedProductIds.length > 0 && pendingSaves === 0 && debouncingSaves === 0) {
+      return 'failed'
+    }
+    if (pendingSaves > 0 || debouncingSaves > 0) return 'saving'
+    if (savedPulse) return 'saved'
+    return 'idle'
+  }, [failedProductIds.length, pendingSaves, debouncingSaves, savedPulse])
+
+  useEffect(() => {
+    const isActive = pendingSaves > 0 || debouncingSaves > 0
+    if (isActive) {
+      wasSavingRef.current = true
+      if (savedStatusTimerRef.current) {
+        clearTimeout(savedStatusTimerRef.current)
+        savedStatusTimerRef.current = null
+      }
+      setSavedPulse(false)
+      return
+    }
+    if (failedProductIds.length > 0) {
+      wasSavingRef.current = false
+      setSavedPulse(false)
+      return
+    }
+    if (!wasSavingRef.current) return
+    wasSavingRef.current = false
+    setSavedPulse(true)
+    savedStatusTimerRef.current = setTimeout(() => {
+      setSavedPulse(false)
+      savedStatusTimerRef.current = null
+    }, AUTOSAVE_SAVED_MS)
+  }, [pendingSaves, debouncingSaves, failedProductIds.length])
 
   const applyDefaults = useCostApplyModeDefaults()
   const [applyMode, setApplyMode] = useState<BulkCogsApplyUiMode>('today')
@@ -104,13 +159,13 @@ export function CogsLoadEditorPage() {
 
   useEffect(() => {
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (pendingSaves > 0) {
+      if (pendingSaves > 0 || debouncingSaves > 0) {
         event.preventDefault()
       }
     }
     window.addEventListener('beforeunload', onBeforeUnload)
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
-  }, [pendingSaves])
+  }, [pendingSaves, debouncingSaves])
 
   const flushSave = useCallback(
     async (productId: string, store: BulkCogsDraftStore) => {
@@ -129,21 +184,42 @@ export function CogsLoadEditorPage() {
         })
         loadUpdatedAtRef.current = data.load.updated_at
         setDraftStore((prev) => mergeLoadItemsIntoDraftStore(prev, data.items, data.base_currency))
+        setFailedProductIds((prev) => prev.filter((id) => id !== productId))
       } catch (error) {
+        setFailedProductIds((prev) =>
+          prev.includes(productId) ? prev : [...prev, productId],
+        )
         toast.error(error instanceof Error ? error.message : t('productsCogsLoadSaveFailed'))
       } finally {
-        setPendingSaves((n) => Math.max(0, n - 1))
+        setPendingSaves((n) => {
+          const next = Math.max(0, n - 1)
+          return next
+        })
       }
     },
     [loadId, patchMutation, t],
   )
 
+  const retryFailedSaves = useCallback(async () => {
+    const ids = [...failedProductIds]
+    if (ids.length === 0) return
+    setFailedProductIds([])
+    for (const productId of ids) {
+      await flushSave(productId, draftStoreRef.current)
+    }
+  }, [failedProductIds, flushSave])
+
   const scheduleSave = useCallback(
     (productId: string, store: BulkCogsDraftStore) => {
       const existing = saveTimersRef.current.get(productId)
-      if (existing) clearTimeout(existing)
+      if (existing) {
+        clearTimeout(existing)
+      } else {
+        setDebouncingSaves((n) => n + 1)
+      }
       const timer = setTimeout(() => {
         saveTimersRef.current.delete(productId)
+        setDebouncingSaves((n) => Math.max(0, n - 1))
         void flushSave(productId, store)
       }, AUTOSAVE_MS)
       saveTimersRef.current.set(productId, timer)
@@ -288,9 +364,6 @@ export function CogsLoadEditorPage() {
         {detail.load.status === 'apply_failed' && detail.load.error_message ? (
           <p className="text-sm text-destructive">{detail.load.error_message}</p>
         ) : null}
-        {pendingSaves > 0 ? (
-          <p className="text-xs text-text-secondary">{t('productsCogsLoadSaving')}</p>
-        ) : null}
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -333,14 +406,24 @@ export function CogsLoadEditorPage() {
             </div>
             <footer className={footerClassName}>
               <div className="flex w-full items-center justify-between gap-2">
-                <WizardBackButton
-                  ariaLabel={t('productsCogsLoadBackSelect')}
-                  onClick={() => setStep('select')}
-                />
+                <div className="flex min-w-0 items-center gap-2">
+                  <WizardBackButton
+                    ariaLabel={t('productsCogsLoadBackSelect')}
+                    onClick={() => setStep('select')}
+                  />
+                  <CogsLoadSaveStatusPill
+                    status={autosaveStatus}
+                    t={t}
+                    onRetry={() => void retryFailedSaves()}
+                    retryPending={pendingSaves > 0}
+                  />
+                </div>
                 <Button
                   type="button"
                   onClick={() => setStep('review')}
-                  disabled={detail.items.length === 0 || pendingSaves > 0}
+                  disabled={
+                    detail.items.length === 0 || pendingSaves > 0 || debouncingSaves > 0
+                  }
                 >
                   {t('productsBulkCogsContinueReview')}
                 </Button>
@@ -368,7 +451,11 @@ export function CogsLoadEditorPage() {
                   type="button"
                   onClick={() => setStep('apply')}
                   disabled={
-                    reviewCounts.invalid > 0 || reviewCounts.ready === 0 || pendingSaves > 0 || !isDraft
+                    reviewCounts.invalid > 0 ||
+                    reviewCounts.ready === 0 ||
+                    pendingSaves > 0 ||
+                    debouncingSaves > 0 ||
+                    !isDraft
                   }
                 >
                   {t('productsBulkCogsContinueApply')}
@@ -408,6 +495,7 @@ export function CogsLoadEditorPage() {
                   disabled={
                     applyMutation.isPending ||
                     pendingSaves > 0 ||
+                    debouncingSaves > 0 ||
                     !isDraft ||
                     !isCostApplyModeValid(applyMode, effectiveFromDate, rangeStart, rangeEnd)
                   }

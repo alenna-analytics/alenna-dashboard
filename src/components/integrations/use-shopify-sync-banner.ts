@@ -11,6 +11,7 @@ import {
   buildShopifySuccessSubtitle,
 } from '@/lib/integrations/shopify-job-progress'
 import type { PlatformConnection } from '@/lib/types/connectors'
+import { invalidateAlertsQueries } from '@/pages/dashboard/use-alerts-queries'
 import { useCatalogJobQuery } from '@/pages/products/use-catalog-queries'
 import {
   GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
@@ -180,6 +181,7 @@ export function useShopifySyncBanner(
         })
         toast.success(shellT(lang, 'shopifySyncToastSuccess'))
         void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
+        invalidateAlertsQueries(queryClient, tenantId)
       }
       return
     }
@@ -205,6 +207,7 @@ export function useShopifySyncBanner(
           href: '/dashboard/integrations/shopify?tab=settings',
         })
         toast.success(shellT(lang, 'shopifySyncToastSuccess'))
+        invalidateAlertsQueries(queryClient, tenantId)
       }
       return
     }

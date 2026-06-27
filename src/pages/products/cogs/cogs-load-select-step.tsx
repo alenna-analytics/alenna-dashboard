@@ -1,5 +1,4 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -19,7 +18,7 @@ import { CogsLoadRemoveItemButton } from './cogs-load-remove-button'
 import {
   useAddCogsLoadItemsByFilterMutation,
   useAddCogsLoadItemsMutation,
-  useCogsLoadFilterMatchesQuery,
+  useCogsLoadFilterMatchesInfiniteQuery,
   useRemoveAllCogsLoadItemsMutation,
   useRemoveCogsLoadItemMutation,
 } from './use-cogs-load-queries'
@@ -65,11 +64,13 @@ function MatchPreviewRow({
   t,
   onAdd,
   adding,
+  added,
 }: {
   row: ProductCostBulkRowApi
   t: (key: ShellStringKey) => string
   onAdd: (productId: string) => void
   adding: boolean
+  added: boolean
 }) {
   return (
     <li className="flex items-center justify-between gap-2 px-3 py-2 text-sm transition-colors hover:bg-[var(--table-row-hover-bg)]">
@@ -79,13 +80,13 @@ function MatchPreviewRow({
       </div>
       <Button
         type="button"
-        variant="accent"
+        variant={added ? 'outline' : 'accent'}
         size="sm"
         className="shrink-0"
-        disabled={adding}
+        disabled={adding || added}
         onClick={() => onAdd(row.product_id)}
       >
-        {t('productsCogsLoadAddOne')}
+        {added ? t('productsCogsLoadAdded') : t('productsCogsLoadAddOne')}
       </Button>
     </li>
   )
@@ -122,28 +123,56 @@ function LoadItemRow({
 export function CogsLoadSelectStep({ loadId, detail, t }: CogsLoadSelectStepProps) {
   const [q, setQ] = useState('')
   const [filters, setFilters] = useState<ProductsListFiltersState>(EMPTY_PRODUCTS_LIST_FILTERS)
-  const [matchOffset, setMatchOffset] = useState(0)
 
   const filterParams = useMemo(
-    () =>
-      buildCogsLoadFilterSearchParams(q, filters, {
-        limit: MATCH_PAGE_SIZE,
-        offset: matchOffset,
-      }),
-    [q, filters, matchOffset],
+    () => buildCogsLoadFilterSearchParams(q, filters, { limit: MATCH_PAGE_SIZE, offset: 0 }),
+    [q, filters],
   )
 
-  const matchesQuery = useCogsLoadFilterMatchesQuery(loadId, filterParams, true)
+  const matchesQuery = useCogsLoadFilterMatchesInfiniteQuery(
+    loadId,
+    filterParams,
+    true,
+    MATCH_PAGE_SIZE,
+  )
+  const { fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, data } = matchesQuery
   const addByFilterMutation = useAddCogsLoadItemsByFilterMutation(loadId)
   const addItemsMutation = useAddCogsLoadItemsMutation(loadId)
   const removeMutation = useRemoveCogsLoadItemMutation(loadId)
   const removeAllMutation = useRemoveAllCogsLoadItemsMutation(loadId)
 
-  const matchTotal = matchesQuery.data?.total ?? 0
-  const matchItems = matchesQuery.data?.items ?? []
-  const matchPageCount = Math.max(1, Math.ceil(matchTotal / MATCH_PAGE_SIZE))
-  const matchPage = Math.floor(matchOffset / MATCH_PAGE_SIZE) + 1
-  const showMatchSkeleton = matchesQuery.isLoading || matchesQuery.isFetching
+  const loadProductIds = useMemo(
+    () => new Set(detail.items.map((item) => item.product_id)),
+    [detail.items],
+  )
+
+  const matchTotal = data?.pages[0]?.total ?? 0
+  const matchItems = useMemo(
+    () => data?.pages.flatMap((page) => page.items) ?? [],
+    [data?.pages],
+  )
+  const visibleMatchItems = useMemo(
+    () => matchItems.filter((row) => !loadProductIds.has(row.product_id)),
+    [matchItems, loadProductIds],
+  )
+  const showInitialSkeleton = isLoading && visibleMatchItems.length === 0
+
+  const loadMoreRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const node = loadMoreRef.current
+    if (!node || !hasNextPage || isFetchingNextPage) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          void fetchNextPage()
+        }
+      },
+      { rootMargin: '120px' },
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, visibleMatchItems.length])
 
   const addOneProduct = async (productId: string) => {
     try {
@@ -159,7 +188,7 @@ export function CogsLoadSelectStep({ loadId, detail, t }: CogsLoadSelectStepProp
       await addByFilterMutation.mutateAsync(
         buildAddByFilterBody(q, filters, false, {
           limit: MATCH_PAGE_SIZE,
-          offset: matchOffset,
+          offset: 0,
         }),
       )
       toast.success(t('productsCogsLoadItemsAdded'))
@@ -170,7 +199,9 @@ export function CogsLoadSelectStep({ loadId, detail, t }: CogsLoadSelectStepProp
 
   const addAllMatches = async () => {
     try {
-      await addByFilterMutation.mutateAsync(buildAddByFilterBody(q, filters, true, { limit: 200, offset: 0 }))
+      await addByFilterMutation.mutateAsync(
+        buildAddByFilterBody(q, filters, true, { limit: 200, offset: 0 }),
+      )
       toast.success(t('productsCogsLoadItemsAdded'))
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('productsCogsLoadAddFailed'))
@@ -197,16 +228,12 @@ export function CogsLoadSelectStep({ loadId, detail, t }: CogsLoadSelectStepProp
           channelsOnly
           onFiltersChange={(patch) => {
             setFilters((prev) => ({ ...prev, ...patch }))
-            setMatchOffset(0)
           }}
           t={t}
         />
         <Input
           value={q}
-          onChange={(e) => {
-            setQ(e.target.value)
-            setMatchOffset(0)
-          }}
+          onChange={(e) => setQ(e.target.value)}
           placeholder={t('productsSearchPlaceholder')}
           className="w-full max-w-none"
         />
@@ -217,7 +244,7 @@ export function CogsLoadSelectStep({ loadId, detail, t }: CogsLoadSelectStepProp
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border-subtle bg-muted/30 px-3 py-2">
             <p className="text-xs font-medium text-text-secondary">
               {t('productsCogsLoadMatchPreview')} ·{' '}
-              {showMatchSkeleton
+              {showInitialSkeleton
                 ? '…'
                 : t('productsCogsLoadMatchCount').replace('{count}', String(matchTotal))}
             </p>
@@ -226,7 +253,7 @@ export function CogsLoadSelectStep({ loadId, detail, t }: CogsLoadSelectStepProp
                 type="button"
                 variant="success"
                 size="sm"
-                disabled={adding || showMatchSkeleton || matchItems.length === 0}
+                disabled={adding || showInitialSkeleton || visibleMatchItems.length === 0}
                 onClick={() => void addCurrentPage()}
               >
                 {t('productsCogsLoadAddMatches')}
@@ -235,7 +262,7 @@ export function CogsLoadSelectStep({ loadId, detail, t }: CogsLoadSelectStepProp
                 type="button"
                 variant="success"
                 size="sm"
-                disabled={adding || showMatchSkeleton || matchTotal === 0}
+                disabled={adding || showInitialSkeleton || matchTotal === 0}
                 onClick={() => void addAllMatches()}
               >
                 {t('productsCogsLoadAddAll')}
@@ -243,55 +270,29 @@ export function CogsLoadSelectStep({ loadId, detail, t }: CogsLoadSelectStepProp
             </div>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
-            {showMatchSkeleton ? (
+            {showInitialSkeleton ? (
               <ProductListSkeleton />
-            ) : matchItems.length === 0 ? (
+            ) : visibleMatchItems.length === 0 ? (
               <p className="px-3 py-4 text-sm text-text-secondary">{t('productsCogsLoadMatchEmpty')}</p>
             ) : (
               <ul className="divide-y divide-border-subtle">
-                {matchItems.map((row) => (
+                {visibleMatchItems.map((row) => (
                   <MatchPreviewRow
                     key={row.product_id}
                     row={row}
                     t={t}
                     adding={adding}
+                    added={loadProductIds.has(row.product_id)}
                     onAdd={(productId) => void addOneProduct(productId)}
                   />
                 ))}
               </ul>
             )}
+            {isFetchingNextPage ? (
+              <ProductListSkeleton rows={3} />
+            ) : null}
+            <div ref={loadMoreRef} className="h-px shrink-0" aria-hidden />
           </div>
-          {matchTotal > MATCH_PAGE_SIZE ? (
-            <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border-subtle px-3 py-2">
-              <p className="text-xs text-text-secondary">
-                {t('productsCogsLoadMatchPage')
-                  .replace('{page}', String(matchPage))
-                  .replace('{pages}', String(matchPageCount))}
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon-sm"
-                  disabled={matchOffset === 0}
-                  aria-label={t('productsCogsLoadMatchPrev')}
-                  onClick={() => setMatchOffset((o) => Math.max(0, o - MATCH_PAGE_SIZE))}
-                >
-                  <ChevronLeft className="size-4 shrink-0" aria-hidden />
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon-sm"
-                  disabled={matchOffset + MATCH_PAGE_SIZE >= matchTotal}
-                  aria-label={t('productsCogsLoadMatchNext')}
-                  onClick={() => setMatchOffset((o) => o + MATCH_PAGE_SIZE)}
-                >
-                  <ChevronRight className="size-4 shrink-0" aria-hidden />
-                </Button>
-              </div>
-            </div>
-          ) : null}
         </div>
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-border-subtle lg:max-h-full">

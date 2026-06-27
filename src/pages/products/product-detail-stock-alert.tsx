@@ -1,7 +1,10 @@
 import { Info } from 'lucide-react'
+import { useMemo } from 'react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
+import { effectiveStockAlertLevel } from '@/pages/configuration/alarms/stock/use-stock-alert-display'
+import { useStockRuleQuery } from '@/pages/configuration/alarms/stock/use-alert-rules-queries'
 import { cn } from '@/lib/utils'
 
 import { productPlatformLabel } from './product-platform-label'
@@ -29,7 +32,15 @@ function uniqueAlertPlatformLabels(
 }
 
 export function ProductDetailStockAlert({ detail, t }: ProductDetailStockAlertProps) {
-  const alerts = detail.stock_alert_summary
+  const { data: rule } = useStockRuleQuery()
+
+  const alerts = useMemo(() => {
+    return detail.stock_alert_summary.filter((alert) => {
+      const level = effectiveStockAlertLevel(alert.stock_alert, rule)
+      return level === 'low' || level === 'out'
+    })
+  }, [detail.stock_alert_summary, rule])
+
   if (alerts.length === 0) return null
 
   const alertPlatformLabels = uniqueAlertPlatformLabels(alerts, t)
@@ -40,7 +51,7 @@ export function ProductDetailStockAlert({ detail, t }: ProductDetailStockAlertPr
       ? `${shown.join(', ')} ${t('productsDetailStockAlertMore').replace('{count}', String(moreAlerts))}`
       : shown.join(', ')
 
-  const isOut = alerts.some((a) => a.stock_alert === 'out')
+  const isOut = alerts.some((a) => effectiveStockAlertLevel(a.stock_alert, rule) === 'out')
   const message = (
     isOut ? t('productsDetailStockAlertBannerOut') : t('productsDetailStockAlertBannerLow')
   ).replace('{platforms}', platformsText)

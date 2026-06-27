@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch, apiPatchJson, apiPostJson } from '@/lib/api'
@@ -60,6 +60,60 @@ export function useCogsLoadQuery(loadId: string | undefined) {
   })
 }
 
+function cogsLoadFilterKey(tenantId: string | null, loadId: string | undefined) {
+  return ['catalog', 'cogs-load-filter', tenantId, loadId] as const
+}
+
+type CogsFilterInfiniteData = {
+  pages: CogsBulkLoadFilterMatchesResponse[]
+  pageParams: unknown[]
+}
+
+function isInfiniteFilterData(
+  value: CogsBulkLoadFilterMatchesResponse | CogsFilterInfiniteData,
+): value is CogsFilterInfiniteData {
+  return 'pages' in value && Array.isArray(value.pages)
+}
+
+function patchFilterMatchesAfterAdd(
+  qc: ReturnType<typeof useQueryClient>,
+  tenantId: string | null,
+  loadId: string,
+  productIds: string[],
+) {
+  const removed = new Set(productIds)
+  qc.setQueriesData(
+    { queryKey: cogsLoadFilterKey(tenantId, loadId) },
+    (
+      old: CogsBulkLoadFilterMatchesResponse | CogsFilterInfiniteData | undefined,
+    ): CogsBulkLoadFilterMatchesResponse | CogsFilterInfiniteData | undefined => {
+      if (!old) return old
+      if (isInfiniteFilterData(old)) {
+        let removedCount = 0
+        const pages = old.pages.map((page) => {
+          const nextItems = page.items.filter((row) => !removed.has(row.product_id))
+          removedCount += page.items.length - nextItems.length
+          return { ...page, items: nextItems }
+        })
+        if (pages[0]) {
+          pages[0] = {
+            ...pages[0],
+            total: Math.max(0, pages[0].total - removedCount),
+          }
+        }
+        return { ...old, pages }
+      }
+      const nextItems = old.items.filter((row) => !removed.has(row.product_id))
+      const removedCount = old.items.length - nextItems.length
+      return {
+        ...old,
+        items: nextItems,
+        total: Math.max(0, old.total - removedCount),
+      }
+    },
+  )
+}
+
 export function useCogsLoadFilterMatchesQuery(
   loadId: string | undefined,
   params: URLSearchParams,
@@ -70,7 +124,7 @@ export function useCogsLoadFilterMatchesQuery(
   const qs = params.toString()
 
   return useQuery({
-    queryKey: ['catalog', 'cogs-load-filter', tenantId, loadId, qs],
+    queryKey: [...cogsLoadFilterKey(tenantId, loadId), qs],
     queryFn: async () => {
       const res = await apiFetch(
         `/catalog/cogs-loads/${loadId}/filter-matches?${qs}`,
@@ -82,6 +136,42 @@ export function useCogsLoadFilterMatchesQuery(
       return (await res.json()) as CogsBulkLoadFilterMatchesResponse
     },
     enabled: Boolean(tenantId && loadId && enabled),
+    placeholderData: (previous) => previous,
+  })
+}
+
+export function useCogsLoadFilterMatchesInfiniteQuery(
+  loadId: string | undefined,
+  baseParams: URLSearchParams,
+  enabled: boolean,
+  pageSize: number,
+) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const filterKey = baseParams.toString()
+
+  return useInfiniteQuery({
+    queryKey: [...cogsLoadFilterKey(tenantId, loadId), 'infinite', filterKey, pageSize],
+    enabled: Boolean(tenantId && loadId && enabled),
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const params = new URLSearchParams(baseParams)
+      params.set('limit', String(pageSize))
+      params.set('offset', String(pageParam))
+      const res = await apiFetch(
+        `/catalog/cogs-loads/${loadId}/filter-matches?${params.toString()}`,
+        (a) => getToken(a),
+        {},
+        tenantId,
+      )
+      if (!res.ok) throw new Error('Failed to preview filter matches')
+      return (await res.json()) as CogsBulkLoadFilterMatchesResponse
+    },
+    getNextPageParam: (lastPage, _pages, lastPageParam) => {
+      const nextOffset = lastPageParam + pageSize
+      if (nextOffset >= lastPage.total) return undefined
+      return nextOffset
+    },
   })
 }
 
@@ -186,7 +276,7 @@ export function useAddCogsLoadItemsByFilterMutation(loadId: string) {
     onSuccess: (data) => {
       qc.setQueryData(cogsLoadKey(tenantId, loadId), data)
       void qc.invalidateQueries({ queryKey: cogsLoadsKey(tenantId) })
-      void qc.invalidateQueries({ queryKey: ['catalog', 'cogs-load-filter', tenantId, loadId] })
+      void qc.invalidateQueries({ queryKey: cogsLoadFilterKey(tenantId, loadId) })
     },
   })
 }
@@ -208,10 +298,10 @@ export function useAddCogsLoadItemsMutation(loadId: string) {
       if (!res.ok) throw new Error('Failed to add products')
       return (await res.json()) as CogsBulkLoadDetailApi
     },
-    onSuccess: (data) => {
+    onSuccess: (data, productIds) => {
       qc.setQueryData(cogsLoadKey(tenantId, loadId), data)
       void qc.invalidateQueries({ queryKey: cogsLoadsKey(tenantId) })
-      void qc.invalidateQueries({ queryKey: ['catalog', 'cogs-load-filter', tenantId, loadId] })
+      patchFilterMatchesAfterAdd(qc, tenantId, loadId, productIds)
     },
   })
 }
@@ -235,7 +325,7 @@ export function useRemoveCogsLoadItemMutation(loadId: string) {
     onSuccess: (data) => {
       qc.setQueryData(cogsLoadKey(tenantId, loadId), data)
       void qc.invalidateQueries({ queryKey: cogsLoadsKey(tenantId) })
-      void qc.invalidateQueries({ queryKey: ['catalog', 'cogs-load-filter', tenantId, loadId] })
+      void qc.invalidateQueries({ queryKey: cogsLoadFilterKey(tenantId, loadId) })
     },
   })
 }
@@ -259,7 +349,7 @@ export function useRemoveAllCogsLoadItemsMutation(loadId: string) {
     onSuccess: (data) => {
       qc.setQueryData(cogsLoadKey(tenantId, loadId), data)
       void qc.invalidateQueries({ queryKey: cogsLoadsKey(tenantId) })
-      void qc.invalidateQueries({ queryKey: ['catalog', 'cogs-load-filter', tenantId, loadId] })
+      void qc.invalidateQueries({ queryKey: cogsLoadFilterKey(tenantId, loadId) })
     },
   })
 }

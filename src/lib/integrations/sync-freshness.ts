@@ -33,6 +33,12 @@ function isActiveSyncableConnection(conn: PlatformConnection): boolean {
   return isActiveShopifyConnection(conn) || isActiveMercadoLibreConnection(conn)
 }
 
+export function filterActiveSyncableConnections(
+  connections: PlatformConnection[],
+): PlatformConnection[] {
+  return connections.filter(isActiveSyncableConnection)
+}
+
 export function isStaleSyncingPlan(conn: PlatformConnection): boolean {
   const plan = conn.sync_plan
   if (!plan || plan.last_sync_status !== 'syncing') return false

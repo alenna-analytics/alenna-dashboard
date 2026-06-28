@@ -21,6 +21,18 @@ function isActiveShopifyConnection(conn: PlatformConnection): boolean {
   )
 }
 
+function isActiveMercadoLibreConnection(conn: PlatformConnection): boolean {
+  return (
+    conn.platform === 'mercadolibre' &&
+    conn.status === 'active' &&
+    conn.connection_status === 'active'
+  )
+}
+
+function isActiveSyncableConnection(conn: PlatformConnection): boolean {
+  return isActiveShopifyConnection(conn) || isActiveMercadoLibreConnection(conn)
+}
+
 export function isStaleSyncingPlan(conn: PlatformConnection): boolean {
   const plan = conn.sync_plan
   if (!plan || plan.last_sync_status !== 'syncing') return false
@@ -53,7 +65,7 @@ export function deriveConnectionSyncFreshness(
   conn: PlatformConnection | null | undefined,
   options?: DeriveSyncFreshnessOptions,
 ): SyncFreshnessState | null {
-  if (!conn || !isActiveShopifyConnection(conn)) return null
+  if (!conn || !isActiveSyncableConnection(conn)) return null
 
   if (options?.forceSyncing) return 'syncing'
   if (conn.sync_plan?.last_sync_status === 'syncing' && !isStaleSyncingPlan(conn)) {
@@ -103,8 +115,14 @@ export function connectorsQueryRefetchIntervalMs(
   options?: DeriveSyncFreshnessOptions,
 ): number | false {
   if (!connections?.length) return false
-  const state = aggregateShopifySyncFreshness(connections, options)
-  return state === 'syncing' ? 15_000 : false
+  const shopifyState = aggregateShopifySyncFreshness(connections, options)
+  const meliSyncing = connections.some(
+    (c) =>
+      isActiveMercadoLibreConnection(c) &&
+      deriveConnectionSyncFreshness(c, options) === 'syncing',
+  )
+  if (shopifyState === 'syncing' || meliSyncing) return 15_000
+  return false
 }
 
 export type SyncFreshnessPillContent =
@@ -151,7 +169,7 @@ export function resolveConnectionSyncFreshnessPillContent(
   conn: PlatformConnection | null | undefined,
   options?: DeriveSyncFreshnessOptions,
 ): SyncFreshnessPillContent | null {
-  if (!conn || !isActiveShopifyConnection(conn)) return null
+  if (!conn || !isActiveSyncableConnection(conn)) return null
 
   const freshnessState = deriveConnectionSyncFreshness(conn, options)
   if (!freshnessState) return null

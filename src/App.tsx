@@ -14,9 +14,12 @@ import { ComponentsShowcasePage } from '@/pages/dev/ComponentsShowcasePage'
 import { ProductsListPage } from '@/pages/products/ProductsListPage'
 import { ProductDetailPage } from '@/pages/products/ProductDetailPage'
 import { ProductsShellLayout } from '@/pages/products/products-shell-layout'
+import { CogsHubPage } from '@/pages/products/cogs/CogsHubPage'
+import { CogsShellLayout } from '@/pages/products/cogs/cogs-shell-layout'
 import { CogsLoadsListPage } from '@/pages/products/cogs/CogsLoadsListPage'
 import { CogsLoadEditorPage } from '@/pages/products/cogs/CogsLoadEditorPage'
 import { CogsLoadDetailPage } from '@/pages/products/cogs/CogsLoadDetailPage'
+import { CogsPlatformSyncPage } from '@/pages/products/cogs/CogsPlatformSyncPage'
 import { SalesPage } from '@/pages/sales/SalesPage'
 import { AdsPage } from '@/pages/ads/AdsPage'
 import { SimulationsPage } from '@/pages/simulations/SimulationsPage'
@@ -40,9 +43,13 @@ function App() {
           <Route path="reports" element={<ReportsPage />} />
           <Route path="products" element={<ProductsShellLayout />}>
             <Route index element={<ProductsListPage />} />
-            <Route path="cogs" element={<CogsLoadsListPage />} />
-            <Route path="cogs/loads/:loadId" element={<CogsLoadEditorPage />} />
-            <Route path="cogs/loads/:loadId/view" element={<CogsLoadDetailPage />} />
+            <Route path="cogs" element={<CogsShellLayout />}>
+              <Route index element={<CogsHubPage />} />
+              <Route path="loads" element={<CogsLoadsListPage />} />
+              <Route path="loads/:loadId" element={<CogsLoadEditorPage />} />
+              <Route path="loads/:loadId/view" element={<CogsLoadDetailPage />} />
+              <Route path="sync" element={<CogsPlatformSyncPage />} />
+            </Route>
             <Route path=":productId" element={<ProductDetailPage />} />
           </Route>
           <Route path="integrations/ecommerce" element={<IntegrationsListPage category="ecommerce" />} />

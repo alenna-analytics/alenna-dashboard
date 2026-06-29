@@ -10,6 +10,7 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
 import { DataTable } from '@/ui/data-table/data-table'
 
+import { CogsPageBreadcrumb } from './cogs-page-breadcrumb'
 import { cogsLoadOpenPath, createCogsLoadsColumns } from './cogs-loads-columns'
 import {
   useCloneCogsLoadMutation,
@@ -87,10 +88,11 @@ export function CogsLoadsListPage() {
     <DashboardPage className="flex flex-1 flex-col gap-5">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
+          <CogsPageBreadcrumb />
           <h1 className={pageTitleClassName}>{t('productsCogsLoadsTitle')}</h1>
           <p className="max-w-2xl text-sm text-text-secondary">{t('productsCogsLoadsSubtitle')}</p>
         </div>
-        <Button type="button" onClick={() => void onNewLoad()} disabled={createMutation.isPending}>
+        <Button type="button" loading={createMutation.isPending} onClick={() => void onNewLoad()}>
           {t('productsCogsLoadNew')}
         </Button>
       </header>

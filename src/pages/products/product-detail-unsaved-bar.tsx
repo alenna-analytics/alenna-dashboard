@@ -1,7 +1,5 @@
 import { Info } from 'lucide-react'
 
-import { LoadingIcon } from '@/ui/app-icon'
-
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { Button } from '@/ui/button'
 import { cn } from '@/lib/utils'
@@ -48,15 +46,8 @@ export function ProductDetailUnsavedBar({
         >
           {t('productsDetailSkuDiscard')}
         </Button>
-        <Button type="button" variant="primary" size="default" onClick={onSave} disabled={savePending}>
-          {savePending ? (
-            <>
-              <LoadingIcon className="size-4" />
-              {t('productsDetailSkuSaving')}
-            </>
-          ) : (
-            t('productsDetailSheetSave')
-          )}
+        <Button type="button" variant="primary" size="default" loading={savePending} onClick={onSave}>
+          {savePending ? t('productsDetailSkuSaving') : t('productsDetailSheetSave')}
         </Button>
       </div>
     </div>

@@ -191,12 +191,9 @@ export function MercadoLibreManageBody({
             variant="accent"
             className="inline-flex w-full items-center justify-center gap-2 sm:w-auto"
             size="default"
-            disabled={meli.oauthStarting}
+            loading={meli.oauthStarting}
             onClick={() => void meli.startOAuth()}
           >
-            {meli.oauthStarting ? (
-              <LoadingIcon className="size-4 shrink-0" />
-            ) : null}
             {shellT(lang, 'integrationConnectWithMercadoLibre')}
           </Button>
           <p className="text-xs text-muted-foreground">

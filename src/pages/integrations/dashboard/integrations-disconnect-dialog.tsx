@@ -1,5 +1,3 @@
-import { LoadingIcon } from '@/ui/app-icon'
-
 import { shellT } from '@/lib/i18n/shell-strings'
 import { Button } from '@/ui/button'
 import {
@@ -46,13 +44,10 @@ export function IntegrationsDisconnectDialog({
           <Button
             type="button"
             variant="destructive"
-            disabled={disconnectPending}
+            loading={disconnectPending}
             className="gap-2"
             onClick={onConfirmDisconnect}
           >
-            {disconnectPending ? (
-              <LoadingIcon className="size-4" />
-            ) : null}
             {shellT(lang, 'integrationsDialogConfirmDisconnect')}
           </Button>
         </div>

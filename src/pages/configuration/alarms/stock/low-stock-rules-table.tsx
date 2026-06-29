@@ -2,8 +2,11 @@ import { Plus } from 'lucide-react'
 
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { StockOverrideApi } from '@/lib/types/alert-rules'
+import { lowStockRuleEffectiveEnabled } from '@/pages/configuration/alarms/stock/stock-alert-config-helpers'
 import { Button } from '@/ui/button'
+import { StatusPill } from '@/ui/status-pill'
 import { Switch } from '@/ui/switch'
+import { cn } from '@/lib/utils'
 import {
   Table,
   TableBody,
@@ -16,6 +19,7 @@ import {
 type LowStockRulesTableProps = {
   lang: string
   items: StockOverrideApi[]
+  globalLowStockEnabled: boolean
   isAdmin: boolean
   togglingId: string | null
   resolveTargetLabel: (item: StockOverrideApi) => string
@@ -33,6 +37,7 @@ function scopeTypeLabel(lang: string, scopeType: StockOverrideApi['scope_type'])
 export function LowStockRulesTable({
   lang,
   items,
+  globalLowStockEnabled,
   isAdmin,
   togglingId,
   resolveTargetLabel,
@@ -50,6 +55,11 @@ export function LowStockRulesTable({
           <p className="mt-1 text-sm text-text-secondary">
             {shellT(lang, 'alarmsCustomRulesDescription')}
           </p>
+          {!globalLowStockEnabled ? (
+            <p className="mt-2 text-sm text-[var(--status-amber-900)]">
+              {shellT(lang, 'alarmsCustomRulesGlobalDisabledHint')}
+            </p>
+          ) : null}
         </div>
         {isAdmin ? (
           <Button type="button" variant="success" size="sm" onClick={onAdd}>
@@ -74,17 +84,40 @@ export function LowStockRulesTable({
           <TableBody>
             {items.map((item) => {
               const targetLabel = resolveTargetLabel(item)
+              const effectiveEnabled = lowStockRuleEffectiveEnabled(globalLowStockEnabled, item)
+              const inactive = !effectiveEnabled
+              const toggleDisabled = togglingId === item.id || !globalLowStockEnabled
               return (
               <TableRow
                 key={item.id}
-                className={isAdmin ? 'cursor-pointer' : undefined}
+                className={cn(
+                  isAdmin && 'cursor-pointer',
+                  inactive && 'bg-muted/40',
+                )}
                 onClick={isAdmin ? () => onEdit(item) : undefined}
               >
-                <TableCell>{scopeTypeLabel(lang, item.scope_type)}</TableCell>
-                <TableCell className="max-w-[240px] truncate" title={targetLabel}>
+                <TableCell className={cn(inactive && 'text-text-tertiary')}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span>{scopeTypeLabel(lang, item.scope_type)}</span>
+                    {inactive ? (
+                      <StatusPill variant="warning">
+                        {shellT(lang, 'alarmsStatusInactive')}
+                      </StatusPill>
+                    ) : null}
+                  </div>
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    'max-w-[240px] truncate',
+                    inactive && 'text-text-tertiary',
+                  )}
+                  title={targetLabel}
+                >
                   {targetLabel}
                 </TableCell>
-                <TableCell>{Math.round(item.velocity_pct * 100)}%</TableCell>
+                <TableCell className={cn(inactive && 'text-text-tertiary')}>
+                  {Math.round(item.velocity_pct * 100)}%
+                </TableCell>
                 {isAdmin ? (
                   <TableCell>
                     <div
@@ -93,10 +126,15 @@ export function LowStockRulesTable({
                       onKeyDown={(event) => event.stopPropagation()}
                     >
                       <Switch
-                        checked={item.enabled}
-                        disabled={togglingId === item.id}
+                        checked={effectiveEnabled}
+                        disabled={toggleDisabled}
+                        title={
+                          !globalLowStockEnabled
+                            ? shellT(lang, 'alarmsLowStockRuleToggleDisabledHelp')
+                            : undefined
+                        }
                         aria-label={
-                          item.enabled
+                          effectiveEnabled
                             ? shellT(lang, 'alarmsStatusEnabled')
                             : shellT(lang, 'alarmsStatusDisabled')
                         }

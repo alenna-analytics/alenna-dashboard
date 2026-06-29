@@ -216,7 +216,7 @@ function LowStockRuleSheetForm({
     const parsed = Number(velocityPct)
     if (!Number.isFinite(parsed) || parsed <= 0 || parsed > 100) return
 
-    const enabled = editing?.enabled ?? true
+    const enabled = rule?.enabled ? (editing?.enabled ?? true) : false
 
     if (scopeType === 'channel') {
       if (!connectionId) return

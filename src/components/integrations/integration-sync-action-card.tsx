@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 
-import { LoadingIcon } from '@/ui/app-icon'
 import { Button } from '@/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -52,11 +51,11 @@ export function IntegrationSyncActionCard({
             variant="accent"
             size="sm"
             className="shrink-0 self-start"
-            disabled={actionDisabled || actionLoading}
+            loading={actionLoading}
+            disabled={actionDisabled}
             onClick={onAction}
           >
-            {actionLoading ? <LoadingIcon className="size-4 shrink-0" /> : null}
-            {actionLoading ? (actionLoadingLabel ?? actionLabel) : actionLabel}
+            {actionLoading && actionLoadingLabel ? actionLoadingLabel : actionLabel}
           </Button>
         )}
       </div>

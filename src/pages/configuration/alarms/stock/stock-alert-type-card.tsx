@@ -33,6 +33,7 @@ export function StockAlertTypeCard({
         active
           ? 'border-border-default bg-white'
           : 'border-dashed border-[color-mix(in_srgb,var(--text-secondary)_28%,transparent)] bg-muted/45',
+        !disabled && 'hover:border-border-strong hover:bg-muted/20',
         disabled && 'opacity-60',
       )}
     >

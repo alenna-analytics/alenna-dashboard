@@ -38,7 +38,7 @@ export function ProductsListPage() {
             </Button>
             <Button
               type="button"
-              disabled={createLoadMutation.isPending}
+              loading={createLoadMutation.isPending}
               onClick={() => {
                 void createLoadMutation.mutateAsync().then((load) => {
                   void navigate(`/dashboard/products/cogs/loads/${load.id}`)

@@ -357,8 +357,8 @@ function ProductCostEditorForm({
         <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
           {t('productsDetailSheetCancel')}
         </Button>
-        <Button type="button" onClick={() => void handleSave()} disabled={!formValid || saving}>
-          {saving ? <LoadingIcon className="size-4" /> : t('productsDetailSheetSave')}
+          <Button type="button" onClick={() => void handleSave()} loading={saving} disabled={!formValid}>
+          {t('productsDetailSheetSave')}
         </Button>
       </SheetFooter>
     </div>

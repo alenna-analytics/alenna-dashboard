@@ -287,14 +287,10 @@ export function ShopifyManageBody({
                   variant="accent"
                   size="sm"
                   className="my-1.5 mr-1.5 shrink-0 self-center rounded-md px-3"
-                  disabled={
-                    oauthStarting || !normalizeShopifySubdomainInput(shopInput) || !tenantId
-                  }
+                  loading={oauthStarting}
+                  disabled={!normalizeShopifySubdomainInput(shopInput) || !tenantId}
                   onClick={() => void startOAuth()}
                 >
-                  {oauthStarting ? (
-                    <LoadingIcon className="size-4 shrink-0" />
-                  ) : null}
                   {shellT(lang, 'integrationConnectWithShopify')}
                 </Button>
               </div>

@@ -23,9 +23,10 @@ import {
 } from '@/shell/providers/global-activity-provider'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
-import { PageBreadcrumb } from '@/ui/page-breadcrumb'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
+import { CogsLoadEditorLoadingSkeleton } from './cogs-load-editor-loading-skeleton'
+import { CogsPageBreadcrumb } from './cogs-page-breadcrumb'
 import { CogsLoadReviewStep } from './cogs-load-review-step'
 import { countLoadReviewStates } from './cogs-load-review-utils'
 import { CogsLoadSelectStep } from './cogs-load-select-step'
@@ -289,8 +290,9 @@ export function CogsLoadEditorPage() {
 
   if (!loadId || loadQuery.isLoading) {
     return (
-      <DashboardPage>
-        <p className="text-sm text-text-secondary">{t('bootLoadingLabel')}</p>
+      <DashboardPage className="flex h-full min-h-0 flex-col overflow-hidden">
+        <CogsPageBreadcrumb />
+        <CogsLoadEditorLoadingSkeleton />
       </DashboardPage>
     )
   }
@@ -316,13 +318,7 @@ export function CogsLoadEditorPage() {
       />
 
       <header className="shrink-0 space-y-1 pb-3 pt-1">
-        <PageBreadcrumb
-          items={[
-            { label: t('productsNavCogs'), to: '/dashboard/products/cogs' },
-            { label: t('productsCogsLoadEditorBreadcrumb') },
-          ]}
-          ariaLabel={t('ariaBreadcrumb')}
-        />
+        <CogsPageBreadcrumb className="mb-0" />
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
             <h1 className={pageTitleClassName}>{t('productsCogsLoadEditorTitle')}</h1>
@@ -334,7 +330,8 @@ export function CogsLoadEditorPage() {
                 type="button"
                 variant="accent"
                 size="sm"
-                disabled={prefillMutation.isPending || detail.items.length === 0}
+                loading={prefillMutation.isPending}
+                disabled={detail.items.length === 0}
                 onClick={() => {
                   void prefillMutation.mutateAsync().then((data) => {
                     setDraftStore((prev) =>
@@ -491,16 +488,16 @@ export function CogsLoadEditorPage() {
                 />
                 <Button
                   type="button"
+                  loading={applyMutation.isPending}
                   onClick={() => void handleApply()}
                   disabled={
-                    applyMutation.isPending ||
                     pendingSaves > 0 ||
                     debouncingSaves > 0 ||
                     !isDraft ||
                     !isCostApplyModeValid(applyMode, effectiveFromDate, rangeStart, rangeEnd)
                   }
                 >
-                  {applyMutation.isPending ? t('productsBulkCogsSaving') : t('productsBulkCogsApplySave')}
+                  {t('productsBulkCogsApplySave')}
                 </Button>
               </div>
             </footer>

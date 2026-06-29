@@ -54,8 +54,8 @@ export function BulkCogsApplyStep({
       />
       {hidePrimaryAction ? null : (
         <div className="flex justify-end">
-          <Button type="button" onClick={onSave} disabled={saving || !valid}>
-            {saving ? t('productsBulkCogsSaving') : t('productsBulkCogsApplySave')}
+          <Button type="button" onClick={onSave} loading={saving} disabled={!valid}>
+            {t('productsBulkCogsApplySave')}
           </Button>
         </div>
       )}

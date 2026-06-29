@@ -11,7 +11,6 @@ import type { AlertScopeType, StockOverrideApi, StockRuleApi } from '@/lib/types
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import { cn } from '@/lib/utils'
-import { LoadingIcon } from '@/ui/app-icon'
 import { Button } from '@/ui/button'
 import {
   Dialog,
@@ -418,8 +417,8 @@ function LowStockRuleSheetForm({
         >
           {shellT(lang, 'alarmsCancel')}
         </Button>
-        <Button type="button" onClick={handleSave} disabled={saving || deleting}>
-          {saving ? shellT(lang, 'alarmsSaving') : shellT(lang, 'alarmsSaveRule')}
+          <Button type="button" onClick={handleSave} loading={saving} disabled={deleting}>
+          {shellT(lang, 'alarmsSaveRule')}
         </Button>
       </SheetFooter>
 
@@ -441,7 +440,7 @@ function LowStockRuleSheetForm({
             <Button
               type="button"
               variant="destructive"
-              disabled={deleting}
+              loading={deleting}
               className="gap-2"
               onClick={async () => {
                 try {
@@ -452,7 +451,6 @@ function LowStockRuleSheetForm({
                 }
               }}
             >
-              {deleting ? <LoadingIcon className="size-4" /> : null}
               {shellT(lang, 'alarmsDeleteRuleConfirmAction')}
             </Button>
           </div>

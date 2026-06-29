@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 
-import { LoadingIcon } from '@/ui/app-icon'
 import { Button } from '@/ui/button'
 import { Switch } from '@/ui/switch'
 import { cn } from '@/lib/utils'
@@ -67,10 +66,9 @@ export function IntegrationEnableCard({
             variant="outline"
             size="sm"
             className="border-destructive/35 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            disabled={disconnectPending}
+            loading={disconnectPending}
             onClick={onDisconnect}
           >
-            {disconnectPending ? <LoadingIcon className="size-4 shrink-0" /> : null}
             {disconnectLabel}
           </Button>
         </div>

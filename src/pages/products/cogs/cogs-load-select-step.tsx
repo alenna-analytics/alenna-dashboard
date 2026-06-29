@@ -49,7 +49,7 @@ function ProductRowSkeleton() {
   )
 }
 
-function ProductListSkeleton({ rows = SKELETON_ROWS }: { rows?: number }) {
+export function ProductListSkeleton({ rows = SKELETON_ROWS }: { rows?: number }) {
   return (
     <ul className="divide-y divide-border-subtle">
       {Array.from({ length: rows }, (_, index) => (

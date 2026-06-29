@@ -1,6 +1,18 @@
 import type { PlatformConnection } from '@/lib/types/connectors'
 import { connectionNeedsInitialSync } from '@/lib/integrations/sync-freshness'
 
+export function listActiveConnections(
+  connections: PlatformConnection[],
+  platform: string,
+): PlatformConnection[] {
+  return connections.filter(
+    (c) =>
+      c.platform === platform &&
+      c.status === 'active' &&
+      c.connection_status === 'active',
+  )
+}
+
 export function findActiveConnection(
   connections: PlatformConnection[],
   platform: string,

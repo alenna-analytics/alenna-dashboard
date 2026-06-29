@@ -1,6 +1,7 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
 
+import { LoadingIcon } from "@/ui/app-icon"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
@@ -46,19 +47,55 @@ const buttonVariants = cva(
   }
 )
 
+type ButtonSize = NonNullable<VariantProps<typeof buttonVariants>["size"]>
+
+const loadingIconClassBySize: Record<ButtonSize, string> = {
+  default: "size-3.5 shrink-0",
+  sm: "size-3.5 shrink-0",
+  md: "size-3.5 shrink-0",
+  lg: "size-4 shrink-0",
+  xs: "size-3 shrink-0",
+  icon: "size-3.5 shrink-0",
+  "icon-xs": "size-3 shrink-0",
+  "icon-sm": "size-3.5 shrink-0",
+  "icon-lg": "size-4 shrink-0",
+}
+
+function isIconButtonSize(size: ButtonSize): boolean {
+  return size === "icon" || size === "icon-xs" || size === "icon-sm" || size === "icon-lg"
+}
+
+type ButtonProps = ButtonPrimitive.Props &
+  VariantProps<typeof buttonVariants> & {
+    loading?: boolean
+  }
+
 function Button({
   className,
   variant = "default",
   size = "default",
+  loading = false,
+  disabled,
+  children,
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonProps) {
+  const resolvedSize: ButtonSize = size ?? "default"
+  const iconOnly = isIconButtonSize(resolvedSize)
+
   return (
     <ButtonPrimitive
       data-slot="button"
+      data-loading={loading ? "" : undefined}
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       {...props}
-    />
+    >
+      {loading ? <LoadingIcon className={loadingIconClassBySize[resolvedSize]} /> : null}
+      {loading && iconOnly ? null : children}
+    </ButtonPrimitive>
   )
 }
 
 export { Button, buttonVariants }
+export type { ButtonProps }

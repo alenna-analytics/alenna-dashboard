@@ -7,8 +7,8 @@ import { BulkCogsGrid } from '@/pages/products/bulk-cogs/bulk-cogs-grid'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
-import { PageBreadcrumb } from '@/ui/page-breadcrumb'
 
+import { CogsPageBreadcrumb } from './cogs-page-breadcrumb'
 import { useCloneCogsLoadMutation, useCogsLoadQuery } from './use-cogs-load-queries'
 
 export function CogsLoadDetailPage() {
@@ -54,13 +54,7 @@ export function CogsLoadDetailPage() {
   return (
     <DashboardPage className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
       <header className="shrink-0 space-y-2">
-        <PageBreadcrumb
-          items={[
-            { label: t('productsNavCogs'), to: '/dashboard/products/cogs' },
-            { label: t('productsCogsLoadViewTitle') },
-          ]}
-          ariaLabel={t('ariaBreadcrumb')}
-        />
+        <CogsPageBreadcrumb />
         <h1 className={pageTitleClassName}>{t('productsCogsLoadViewTitle')}</h1>
         <dl className="grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <div>
@@ -84,7 +78,7 @@ export function CogsLoadDetailPage() {
           type="button"
           variant="outline"
           size="sm"
-          disabled={cloneMutation.isPending}
+          loading={cloneMutation.isPending}
           onClick={() => {
             void cloneMutation.mutateAsync(loadId).then((cloned) => {
               void navigate(`/dashboard/products/cogs/loads/${cloned.id}`)

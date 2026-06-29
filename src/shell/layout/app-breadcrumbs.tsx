@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom'
 
 import { shellT } from '@/lib/i18n/shell-strings'
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
+import { cogsBreadcrumbItems } from '@/pages/products/cogs/cogs-breadcrumb-crumbs'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useProductDetailQuery } from '@/pages/products/use-catalog-queries'
 import { PageBreadcrumb, type PageBreadcrumbItem } from '@/ui/page-breadcrumb'
@@ -66,17 +67,9 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
   if (normalized === '/dashboard/products/cogs') {
     return [{ label: shellT(lang, 'productsNavCogs') }]
   }
-  if (/^\/dashboard\/products\/cogs\/loads\/[^/]+\/view$/.test(normalized)) {
-    return [
-      { label: shellT(lang, 'productsNavCogs'), to: '/dashboard/products/cogs' },
-      { label: shellT(lang, 'productsCogsLoadViewTitle') },
-    ]
-  }
-  if (/^\/dashboard\/products\/cogs\/loads\/[^/]+$/.test(normalized)) {
-    return [
-      { label: shellT(lang, 'productsNavCogs'), to: '/dashboard/products/cogs' },
-      { label: shellT(lang, 'productsCogsLoadEditorBreadcrumb') },
-    ]
+  const cogsCrumbs = cogsBreadcrumbItems(normalized, lang)
+  if (cogsCrumbs) {
+    return cogsCrumbs
   }
   if (normalized === '/dashboard/products') {
     return [{ label: shellT(lang, 'navProducts') }]

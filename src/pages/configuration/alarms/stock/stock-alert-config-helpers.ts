@@ -41,6 +41,13 @@ export function globalAlertEnabled(kind: StockAlertConfigureKind, rule: StockRul
   return kind === 'out_of_stock' ? rule.out_of_stock_enabled : rule.enabled
 }
 
+export function lowStockRuleEffectiveEnabled(
+  globalLowStockEnabled: boolean,
+  item: StockOverrideApi,
+): boolean {
+  return globalLowStockEnabled && item.enabled
+}
+
 export function resolveStockRuleTargetLabel(
   lang: string,
   item: StockOverrideApi,

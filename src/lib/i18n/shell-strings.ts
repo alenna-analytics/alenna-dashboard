@@ -54,6 +54,10 @@ const SHELL_STRINGS = {
     alarmsCustomRulesTitle: 'Reglas personalizadas',
     alarmsCustomRulesDescription:
       'Canal, producto o variante. Solo aplica a alertas de stock bajo.',
+    alarmsCustomRulesGlobalDisabledHint:
+      'Activa la alerta global de bajo stock para poder activar reglas personalizadas.',
+    alarmsLowStockRuleToggleDisabledHelp:
+      'La alerta global de bajo stock está desactivada.',
     alarmsStatusActive: 'Activo',
     alarmsStatusInactive: 'Inactivo',
     alarmsConfigureGlobalTitle: 'Espacio de Trabajo',
@@ -1074,6 +1078,10 @@ const SHELL_STRINGS = {
     alarmsCustomRulesTitle: 'Custom rules',
     alarmsCustomRulesDescription:
       'Channel, product, or variant. Applies to low stock alerts only.',
+    alarmsCustomRulesGlobalDisabledHint:
+      'Enable workspace low stock alerts before you can activate custom rules.',
+    alarmsLowStockRuleToggleDisabledHelp:
+      'Workspace low stock alerts are disabled.',
     alarmsStatusActive: 'Active',
     alarmsStatusInactive: 'Inactive',
     alarmsConfigureGlobalTitle: 'Workspace',

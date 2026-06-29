@@ -108,6 +108,7 @@ export function StockAlarmConfigurationPage() {
   }
 
   const handleToggleEnabled = async (item: StockOverrideApi, enabled: boolean) => {
+    if (enabled && rule && !rule.enabled) return
     setTogglingId(item.id)
     try {
       await patchOverrideMutation.mutateAsync({
@@ -191,12 +192,14 @@ export function StockAlarmConfigurationPage() {
   }) => {
     if (!rule) return
 
+    const enabled = rule.enabled && payload.enabled
+
     try {
       if (editingOverride) {
         await patchOverrideMutation.mutateAsync({
           overrideId: editingOverride.id,
           body: {
-            enabled: payload.enabled,
+            enabled,
             velocity_pct: payload.velocity_pct,
           },
         })
@@ -207,7 +210,7 @@ export function StockAlarmConfigurationPage() {
           scope_type: payload.scope_type,
           scope_id: payload.scope_id,
           platform_connection_id: payload.platform_connection_id,
-          enabled: payload.enabled,
+          enabled,
           out_of_stock_enabled: rule.out_of_stock_enabled,
           velocity_pct: payload.velocity_pct,
         })
@@ -264,6 +267,7 @@ export function StockAlarmConfigurationPage() {
           <LowStockRulesTable
             lang={lang}
             items={lowStockRules}
+            globalLowStockEnabled={rule ? rule.enabled : false}
             isAdmin={isAdmin}
             togglingId={togglingId}
             resolveTargetLabel={resolveTargetLabel}

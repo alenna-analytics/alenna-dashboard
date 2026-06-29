@@ -29,28 +29,64 @@ export function StockAlertTypeCard({
   return (
     <article
       className={cn(
-        'flex w-full flex-wrap items-center gap-4 rounded-md border border-border-default bg-white p-4',
+        'flex w-full flex-wrap items-center gap-4 rounded-md border p-4 transition-colors',
+        active
+          ? 'border-border-default bg-white'
+          : 'border-dashed border-[color-mix(in_srgb,var(--text-secondary)_28%,transparent)] bg-muted/45',
         disabled && 'opacity-60',
       )}
     >
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-md border border-border-subtle bg-muted/20">
+      <div
+        className={cn(
+          'flex size-10 shrink-0 items-center justify-center rounded-md border',
+          active
+            ? 'border-border-subtle bg-muted/20'
+            : 'border-border-subtle bg-muted/30 opacity-60 grayscale',
+        )}
+      >
         <AppIcon name="decrease" className="size-5" />
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-sm font-semibold text-text-primary">{shellT(lang, titleKey)}</h2>
+          <h2
+            className={cn(
+              'text-sm font-semibold',
+              active ? 'text-text-primary' : 'text-text-secondary',
+            )}
+          >
+            {shellT(lang, titleKey)}
+          </h2>
           {active ? (
             <StatusPill variant="success">{shellT(lang, 'alarmsStatusActive')}</StatusPill>
           ) : (
-            <StatusPill variant="neutral">{shellT(lang, 'alarmsStatusInactive')}</StatusPill>
+            <StatusPill variant="warning">{shellT(lang, 'alarmsStatusInactive')}</StatusPill>
           )}
         </div>
-        <p className="mt-1 text-sm text-text-secondary">{shellT(lang, descriptionKey)}</p>
+        <p
+          className={cn(
+            'mt-1 text-sm',
+            active ? 'text-text-secondary' : 'text-text-tertiary',
+          )}
+        >
+          {shellT(lang, descriptionKey)}
+        </p>
         {currentValue && currentValueLabelKey ? (
-          <p className="mt-1.5 text-sm text-text-secondary">
+          <p
+            className={cn(
+              'mt-1.5 text-sm',
+              active ? 'text-text-secondary' : 'text-text-tertiary',
+            )}
+          >
             {shellT(lang, currentValueLabelKey)}:{' '}
-            <span className="font-semibold text-text-primary">{currentValue}</span>
+            <span
+              className={cn(
+                'font-semibold',
+                active ? 'text-text-primary' : 'text-text-secondary',
+              )}
+            >
+              {currentValue}
+            </span>
           </p>
         ) : null}
       </div>

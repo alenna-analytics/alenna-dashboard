@@ -6,6 +6,7 @@ import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness
 import { IntegrationEnableCard } from '@/components/integrations/integration-enable-card'
 import { IntegrationSyncActionCard } from '@/components/integrations/integration-sync-action-card'
 import { formatMercadoLibreSyncUserError } from '@/lib/integrations/mercadolibre-sync-user-error'
+import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
 import type { MercadoLibreIntegrationHook } from '@/pages/integrations/details/use-mercadolibre-integration'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
@@ -100,10 +101,14 @@ function MercadoLibreSyncSection({
     const to = formatYmdMedium(b.maxOrderDate, lang)
     const range = from && to ? `${from} — ${to}` : from || to || ''
 
-    const stats = [
-      `${b.recordsSynced.toLocaleString()} ${shellT(lang, 'reportsOrders')}`,
-      `${b.catalogListingsUpserted.toLocaleString()} ${shellT(lang, 'syncListingsImported')}`,
-    ].join(' · ')
+    const stats = mercadoLibreSyncSummaryLine(
+      {
+        recordsSynced: b.recordsSynced,
+        recordsTouched: b.recordsTouched,
+        catalogListingsUpserted: b.catalogListingsUpserted,
+      },
+      lang,
+    )
 
     return (
       <IntegrationSyncActionCard

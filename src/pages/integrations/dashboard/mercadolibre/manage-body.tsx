@@ -110,8 +110,10 @@ function MercadoLibreSyncSection({
         title={shellT(lang, 'integrationSyncDone')}
         description={`${stats}${range ? ` · ${range}` : ''}`}
         actionLabel={shellT(lang, 'syncRefreshBtn')}
-        onAction={() => {}}
-        hideAction
+        actionLoadingLabel={shellT(lang, 'syncRunning')}
+        onAction={() => syncMutation.mutate()}
+        actionDisabled={syncMutation.isPending}
+        actionLoading={syncMutation.isPending}
         badge={<CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />}
         footer={shellT(lang, 'shopifySyncBlockedHint')}
         className="w-full"

@@ -10,6 +10,7 @@ import { useWorkspace } from '@/shell/providers/workspace-context'
 import { apiFetch, apiPostJson } from '@/lib/api'
 import { formatShopifyLastSync } from '@/lib/integrations/shopify-format'
 import { formatMercadoLibreSyncUserError } from '@/lib/integrations/mercadolibre-sync-user-error'
+import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
 import type { PlatformConnection, SyncPlan } from '@/lib/types/connectors'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { invalidateAlertsQueries } from '@/pages/dashboard/use-alerts-queries'
@@ -27,6 +28,7 @@ type MercadoLibreSyncEnqueueResponse = {
 type MercadoLibreSyncBlockSuccess = {
   connectionId: string
   recordsSynced: number
+  recordsTouched: number | null
   catalogListingsUpserted: number
   minOrderDate: string | null
   maxOrderDate: string | null
@@ -61,6 +63,7 @@ function parseMercadoLibreSyncPanel(raw: unknown): MercadoLibreSyncPanelState | 
       blockSuccess = {
         connectionId: b.connectionId,
         recordsSynced: b.recordsSynced,
+        recordsTouched: typeof b.recordsTouched === 'number' ? b.recordsTouched : null,
         catalogListingsUpserted:
           typeof b.catalogListingsUpserted === 'number' ? b.catalogListingsUpserted : 0,
         minOrderDate: typeof b.minOrderDate === 'string' ? b.minOrderDate : null,
@@ -88,6 +91,7 @@ function blockSuccessFromSyncPlan(conn: PlatformConnection): MercadoLibreSyncBlo
   return {
     connectionId: conn.id,
     recordsSynced: plan.last_sync_records_count ?? 0,
+    recordsTouched: plan.last_sync_records_touched_count,
     catalogListingsUpserted: 0,
     minOrderDate: minRaw ? minRaw.slice(0, 10) : null,
     maxOrderDate: maxRaw ? maxRaw.slice(0, 10) : null,
@@ -198,19 +202,25 @@ export function useMercadoLibreIntegration() {
         blockSuccess: {
           connectionId: settledConn,
           recordsSynced: job.records_synced ?? 0,
+          recordsTouched: job.records_touched_count ?? job.records_synced ?? 0,
           catalogListingsUpserted: job.catalog_products_upserted ?? 0,
           minOrderDate: job.min_order_date ?? null,
           maxOrderDate: job.max_order_date ?? null,
         },
       })
+      const summaryLine = mercadoLibreSyncSummaryLine(
+        {
+          recordsSynced: job.records_synced ?? 0,
+          recordsTouched: job.records_touched_count ?? job.records_synced ?? 0,
+          catalogListingsUpserted: job.catalog_products_upserted ?? 0,
+        },
+        lang,
+      )
       upsertActivity({
         id: GLOBAL_ACTIVITY_MELI_SYNC_ID,
         phase: 'success',
         title: shellT(lang, 'meliSyncProgressTitle'),
-        subtitle:
-          (job.records_synced ?? 0) > 0
-            ? `${(job.records_synced ?? 0).toLocaleString()} ${shellT(lang, 'reportsOrders')}`
-            : shellT(lang, 'meliSyncToastSuccess'),
+        subtitle: summaryLine || shellT(lang, 'meliSyncToastSuccess'),
         href: '/dashboard/integrations/mercadolibre?tab=settings',
         minimized: false,
       })

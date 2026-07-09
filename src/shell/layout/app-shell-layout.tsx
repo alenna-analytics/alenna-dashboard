@@ -1,5 +1,5 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation, Navigate } from 'react-router-dom'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { shellT } from '@/lib/i18n/shell-strings'
@@ -31,6 +31,7 @@ import { isProductsRoute } from '@/pages/products/products-inner-nav'
 import { cn } from '@/lib/utils'
 
 const SIDEBAR_COLLAPSED_KEY = 'alenna.sidebar.collapsed'
+const CONFIGURATION_GENERAL_PATH = '/dashboard/configuration/general'
 
 function tenantIdsEqual(a: string, b: string | null | undefined): boolean {
   if (!a || !b) return false
@@ -129,7 +130,16 @@ export function AppShellLayout() {
   }
 
   if (me?.trial_expired || trialForced) {
-    return <TrialExpiredScreen />
+    if (me?.account_deletion_status !== 'pending') {
+      return <TrialExpiredScreen />
+    }
+  }
+
+  if (
+    me?.account_deletion_status === 'pending' &&
+    !isConfigurationRoute(location.pathname)
+  ) {
+    return <Navigate to={CONFIGURATION_GENERAL_PATH} replace />
   }
 
   return (

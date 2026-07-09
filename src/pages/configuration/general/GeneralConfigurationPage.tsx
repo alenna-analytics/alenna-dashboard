@@ -1,4 +1,5 @@
-import { useCallback, useMemo, type ReactNode } from 'react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { toast } from 'sonner'
 
 import { shellT } from '@/lib/i18n/shell-strings'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
@@ -6,6 +7,13 @@ import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import { cn } from '@/lib/utils'
+import { AccountDeletionPendingBanner } from '@/pages/configuration/general/account-deletion-pending-banner'
+import { DeleteAccountDangerZone } from '@/pages/configuration/general/delete-account-danger-zone'
+import { DeleteAccountDialog } from '@/pages/configuration/general/delete-account-dialog'
+import {
+  useCancelAccountDeletionMutation,
+  useDeleteAccountMutation,
+} from '@/pages/configuration/general/use-account-deletion-mutations'
 
 function SettingsSection({ children, className }: { children: ReactNode; className?: string }) {
   return (
@@ -37,19 +45,50 @@ function SettingsRow({
   )
 }
 
+function formatDeletionDate(iso: string | null | undefined, lang: string): string {
+  if (!iso) {
+    const preview = new Date()
+    preview.setUTCDate(preview.getUTCDate() + 90)
+    return preview.toLocaleDateString(lang === 'en' ? 'en-US' : 'es-MX', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC',
+    })
+  }
+  return new Date(iso).toLocaleDateString(lang === 'en' ? 'en-US' : 'es-MX', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
 export function GeneralConfigurationPage() {
   const { lang, setLang } = useLanguage()
   const t = useCallback(
-    (key: Parameters<typeof shellT>[1]) => shellT(lang, key),
+    (key: Parameters<typeof shellT>[1], vars?: Parameters<typeof shellT>[2]) =>
+      shellT(lang, key, vars),
     [lang],
   )
-  const { me } = useWorkspace()
+  const { me, refetchMe } = useWorkspace()
+  const deleteMutation = useDeleteAccountMutation()
+  const cancelMutation = useCancelAccountDeletionMutation()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [confirmName, setConfirmName] = useState('')
+  const [understood, setUnderstood] = useState(false)
 
   const companyName = useMemo(() => {
     const fromMe = me?.tenant_name?.trim()
     if (fromMe) return fromMe
     return t('shellSidebarWorkspaceFallback')
   }, [me?.tenant_name, t])
+
+  const isWorkspaceAdmin = me?.role === 'admin' || me?.role === 'owner'
+  const isPending = me?.account_deletion_status === 'pending'
+  const scheduledLabel = formatDeletionDate(me?.scheduled_purge_at, lang)
+  const previewScheduledLabel = formatDeletionDate(null, lang)
+  const memberCount = me?.member_count ?? 0
 
   const languageOptions = useMemo(
     () => [
@@ -59,8 +98,41 @@ export function GeneralConfigurationPage() {
     [t],
   )
 
+  const handleConfirmDelete = async () => {
+    try {
+      const result = await deleteMutation.mutateAsync()
+      await refetchMe()
+      setDialogOpen(false)
+      setConfirmName('')
+      setUnderstood(false)
+      const date = formatDeletionDate(result.scheduled_purge_at, lang)
+      toast.success(t('settingsDeleteAccountToastRequested', { date }))
+    } catch {
+      toast.error(t('settingsDeleteAccountToastFailed'))
+    }
+  }
+
+  const handleCancelDeletion = async () => {
+    try {
+      await cancelMutation.mutateAsync()
+      await refetchMe()
+      toast.success(t('settingsDeleteAccountToastCancelled'))
+    } catch {
+      toast.error(t('settingsDeleteAccountToastFailed'))
+    }
+  }
+
   return (
     <DashboardPage className="space-y-8">
+      {isPending ? (
+        <AccountDeletionPendingBanner
+          lang={lang}
+          scheduledDateLabel={scheduledLabel}
+          cancelPending={cancelMutation.isPending}
+          onCancel={() => void handleCancelDeletion()}
+        />
+      ) : null}
+
       <section>
         <div className="w-full">
           <h1 className="text-subtitle font-semibold tracking-[-0.02em] text-text-primary">
@@ -96,6 +168,34 @@ export function GeneralConfigurationPage() {
           />
         </SettingsRow>
       </SettingsSection>
+
+      {isWorkspaceAdmin && !isPending ? (
+        <DeleteAccountDangerZone
+          lang={lang}
+          memberCount={memberCount}
+          onRequestDelete={() => setDialogOpen(true)}
+        />
+      ) : null}
+
+      <DeleteAccountDialog
+        lang={lang}
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open)
+          if (!open) {
+            setConfirmName('')
+            setUnderstood(false)
+          }
+        }}
+        workspaceName={companyName}
+        scheduledPurgePreview={previewScheduledLabel}
+        confirmName={confirmName}
+        onConfirmNameChange={setConfirmName}
+        understood={understood}
+        onUnderstoodChange={setUnderstood}
+        pending={deleteMutation.isPending}
+        onConfirm={() => void handleConfirmDelete()}
+      />
     </DashboardPage>
   )
 }

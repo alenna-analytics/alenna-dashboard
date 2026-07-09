@@ -7,11 +7,9 @@ import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import { cn } from '@/lib/utils'
-import { AccountDeletionPendingBanner } from '@/pages/configuration/general/account-deletion-pending-banner'
 import { DeleteAccountDangerZone } from '@/pages/configuration/general/delete-account-danger-zone'
 import { DeleteAccountDialog } from '@/pages/configuration/general/delete-account-dialog'
 import {
-  useCancelAccountDeletionMutation,
   useDeleteAccountMutation,
 } from '@/pages/configuration/general/use-account-deletion-mutations'
 
@@ -73,7 +71,6 @@ export function GeneralConfigurationPage() {
   )
   const { me, refetchMe } = useWorkspace()
   const deleteMutation = useDeleteAccountMutation()
-  const cancelMutation = useCancelAccountDeletionMutation()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [confirmName, setConfirmName] = useState('')
   const [understood, setUnderstood] = useState(false)
@@ -86,7 +83,6 @@ export function GeneralConfigurationPage() {
 
   const isWorkspaceAdmin = me?.role === 'admin' || me?.role === 'owner'
   const isPending = me?.account_deletion_status === 'pending'
-  const scheduledLabel = formatDeletionDate(me?.scheduled_purge_at, lang)
   const previewScheduledLabel = formatDeletionDate(null, lang)
   const memberCount = me?.member_count ?? 0
 
@@ -112,27 +108,8 @@ export function GeneralConfigurationPage() {
     }
   }
 
-  const handleCancelDeletion = async () => {
-    try {
-      await cancelMutation.mutateAsync()
-      await refetchMe()
-      toast.success(t('settingsDeleteAccountToastCancelled'))
-    } catch {
-      toast.error(t('settingsDeleteAccountToastFailed'))
-    }
-  }
-
   return (
     <DashboardPage className="space-y-8">
-      {isPending ? (
-        <AccountDeletionPendingBanner
-          lang={lang}
-          scheduledDateLabel={scheduledLabel}
-          cancelPending={cancelMutation.isPending}
-          onCancel={() => void handleCancelDeletion()}
-        />
-      ) : null}
-
       <section>
         <div className="w-full">
           <h1 className="text-subtitle font-semibold tracking-[-0.02em] text-text-primary">

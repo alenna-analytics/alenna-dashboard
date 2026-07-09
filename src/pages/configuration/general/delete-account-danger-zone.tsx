@@ -14,10 +14,13 @@ export function DeleteAccountDangerZone({
   memberCount,
   onRequestDelete,
 }: DeleteAccountDangerZoneProps) {
+  const otherMemberCount = Math.max(0, memberCount - 1)
   const descriptionKey =
-    memberCount > 1
+    otherMemberCount > 1
       ? 'settingsDeleteAccountCardDescriptionWithMembers'
-      : 'settingsDeleteAccountCardDescription'
+      : otherMemberCount === 1
+        ? 'settingsDeleteAccountCardDescriptionWithOneMember'
+        : 'settingsDeleteAccountCardDescription'
 
   return (
     <section className="space-y-2">
@@ -45,7 +48,7 @@ export function DeleteAccountDangerZone({
                 {shellT(lang, 'settingsDeleteAccountCardTitle')}
               </p>
               <p className="text-sm leading-relaxed text-text-secondary">
-                {shellT(lang, descriptionKey, { count: memberCount })}
+                {shellT(lang, descriptionKey, { count: otherMemberCount })}
               </p>
             </div>
 

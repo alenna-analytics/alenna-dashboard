@@ -11,6 +11,7 @@ import { ShellBootstrapError } from '@/shell/layout/shell-bootstrap-error'
 import { DisplayCurrencyProvider } from '@/shell/providers/display-currency-provider'
 import { GlobalActivityProvider } from '@/shell/providers/global-activity-provider'
 import { WorkspaceProvider } from '@/shell/providers/workspace-context'
+import { AccountDeletionPendingShellBanner } from '@/shell/account-deletion-pending-shell-banner'
 import { ActiveAlertsSheetHost } from '@/shell/alerts/active-alerts-sheet-host'
 import { AlertsInvalidationHost } from '@/shell/alerts/alerts-invalidation-host'
 import { AlertsSheetProvider } from '@/shell/alerts/alerts-sheet-context'
@@ -137,7 +138,7 @@ export function AppShellLayout() {
 
   if (
     me?.account_deletion_status === 'pending' &&
-    !isConfigurationRoute(location.pathname)
+    location.pathname !== CONFIGURATION_GENERAL_PATH
   ) {
     return <Navigate to={CONFIGURATION_GENERAL_PATH} replace />
   }
@@ -155,6 +156,7 @@ export function AppShellLayout() {
                   <GlobalActivityBar />
                 </div>
                 <div className="sticky top-0 z-30 shrink-0 bg-white">
+                  <AccountDeletionPendingShellBanner />
                   <AppHeader companyName={companyName} onOpenMobileNav={openMobileNav} />
                 </div>
                 <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">

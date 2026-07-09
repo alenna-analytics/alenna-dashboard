@@ -33,6 +33,8 @@ const SHELL_STRINGS = {
       'Al confirmar, programamos el borrado de tu cuenta y workspace para dentro de 90 días. Hasta entonces no se elimina nada: puedes cancelar la solicitud y seguir usando Alenna con normalidad. Pasada esa fecha, borramos tus datos personales y comerciales y se detienen las sincronizaciones. Si necesitas adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
     settingsDeleteAccountCardDescriptionWithMembers:
       'Al confirmar, programamos el borrado de tu cuenta y workspace para dentro de 90 días. Hasta entonces no se elimina nada y puedes cancelar. Pasada esa fecha, borramos tus datos y los {count} demás miembros perderán el acceso. Para adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
+    settingsDeleteAccountCardDescriptionWithOneMember:
+      'Al confirmar, programamos el borrado de tu cuenta y workspace para dentro de 90 días. Hasta entonces no se elimina nada y puedes cancelar. Pasada esa fecha, borramos tus datos y el otro miembro perderá el acceso. Para adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
     settingsDeleteAccountRequestButton: 'Solicitar eliminación de cuenta',
     settingsDeleteAccountSectionTitle: 'Eliminar cuenta',
     settingsDeleteAccountIntro:
@@ -1161,6 +1163,8 @@ const SHELL_STRINGS = {
       'When you confirm, we schedule deletion of your account and workspace in 90 days. Nothing is removed until then—you can cancel and keep using Alenna normally. After that date, we permanently delete your personal and commercial data and stop syncs. To delete sooner, email privacidad@alenna.io (within 30 business days).',
     settingsDeleteAccountCardDescriptionWithMembers:
       'When you confirm, we schedule deletion of your account and workspace in 90 days. Nothing is removed until then and you can cancel. After that date, we delete your data and the other {count} members lose access. To delete sooner, email privacidad@alenna.io (within 30 business days).',
+    settingsDeleteAccountCardDescriptionWithOneMember:
+      'When you confirm, we schedule deletion of your account and workspace in 90 days. Nothing is removed until then and you can cancel. After that date, we delete your data and the other member loses access. To delete sooner, email privacidad@alenna.io (within 30 business days).',
     settingsDeleteAccountRequestButton: 'Request to delete account',
     settingsDeleteAccountSectionTitle: 'Delete account',
     settingsDeleteAccountIntro:

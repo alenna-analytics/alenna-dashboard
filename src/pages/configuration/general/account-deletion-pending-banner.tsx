@@ -5,7 +5,7 @@ type AccountDeletionPendingBannerProps = {
   lang: string
   scheduledDateLabel: string
   cancelPending: boolean
-  onCancel: () => void
+  onCancel?: () => void
 }
 
 export function AccountDeletionPendingBanner({
@@ -29,15 +29,17 @@ export function AccountDeletionPendingBanner({
           </p>
           <p className="text-xs text-amber-800">{shellT(lang, 'settingsDeleteAccountPendingEarly')}</p>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          className="shrink-0 border-amber-300 bg-white"
-          loading={cancelPending}
-          onClick={onCancel}
-        >
-          {shellT(lang, 'settingsDeleteAccountPendingCancel')}
-        </Button>
+        {onCancel ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="shrink-0 border-amber-300 bg-white"
+            loading={cancelPending}
+            onClick={onCancel}
+          >
+            {shellT(lang, 'settingsDeleteAccountPendingCancel')}
+          </Button>
+        ) : null}
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation, Navigate } from 'react-router-dom'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { shellT } from '@/lib/i18n/shell-strings'
@@ -11,6 +11,7 @@ import { ShellBootstrapError } from '@/shell/layout/shell-bootstrap-error'
 import { DisplayCurrencyProvider } from '@/shell/providers/display-currency-provider'
 import { GlobalActivityProvider } from '@/shell/providers/global-activity-provider'
 import { WorkspaceProvider } from '@/shell/providers/workspace-context'
+import { AccountDeletionPendingShellBanner } from '@/shell/account-deletion-pending-shell-banner'
 import { ActiveAlertsSheetHost } from '@/shell/alerts/active-alerts-sheet-host'
 import { AlertsInvalidationHost } from '@/shell/alerts/alerts-invalidation-host'
 import { AlertsSheetProvider } from '@/shell/alerts/alerts-sheet-context'
@@ -31,6 +32,7 @@ import { isProductsRoute } from '@/pages/products/products-inner-nav'
 import { cn } from '@/lib/utils'
 
 const SIDEBAR_COLLAPSED_KEY = 'alenna.sidebar.collapsed'
+const CONFIGURATION_GENERAL_PATH = '/dashboard/configuration/general'
 
 function tenantIdsEqual(a: string, b: string | null | undefined): boolean {
   if (!a || !b) return false
@@ -129,7 +131,16 @@ export function AppShellLayout() {
   }
 
   if (me?.trial_expired || trialForced) {
-    return <TrialExpiredScreen />
+    if (me?.account_deletion_status !== 'pending') {
+      return <TrialExpiredScreen />
+    }
+  }
+
+  if (
+    me?.account_deletion_status === 'pending' &&
+    location.pathname !== CONFIGURATION_GENERAL_PATH
+  ) {
+    return <Navigate to={CONFIGURATION_GENERAL_PATH} replace />
   }
 
   return (
@@ -145,6 +156,7 @@ export function AppShellLayout() {
                   <GlobalActivityBar />
                 </div>
                 <div className="sticky top-0 z-30 shrink-0 bg-white">
+                  <AccountDeletionPendingShellBanner />
                   <AppHeader companyName={companyName} onOpenMobileNav={openMobileNav} />
                 </div>
                 <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">

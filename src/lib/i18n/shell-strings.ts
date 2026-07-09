@@ -12,8 +12,9 @@ const SHELL_STRINGS = {
     navIntegrations: 'Integraciones',
     navWorkspaceConfiguration: 'Ajustes',
     navGeneral: 'General',
+    workspaceConfigHeroSubtitle: 'Administra reglas y preferencias del workspace.',
     workspaceConfigGeneralDescription: 'Nombre del workspace e idioma de la interfaz.',
-    workspaceConfigGeneralPageSubtitle: 'Preferencias generales del workspace.',
+    workspaceConfigGeneralPageSubtitle: 'Administra reglas y preferencias del workspace.',
     workspaceConfigGeneralSectionTitle: 'Configuración general',
     settingsCompanyDescription: 'Nombre del workspace activo.',
     settingsLanguageDescription: 'Idioma de la interfaz de Alenna.',
@@ -24,7 +25,54 @@ const SHELL_STRINGS = {
     settingsLanguageLabel: 'Idioma',
     settingsLanguageEs: 'Español',
     settingsLanguageEn: 'English',
-    workspaceConfigHeroSubtitle: 'Administra reglas y preferencias del workspace.',
+    settingsDangerZoneTitle: 'Zona de riesgo',
+    settingsDangerZoneSubtitle:
+      'Elimina permanentemente tu cuenta de Alenna y los datos de tu workspace.',
+    settingsDeleteAccountCardTitle: 'Solicitud de eliminación de cuenta',
+    settingsDeleteAccountCardDescription:
+      'Al confirmar, programamos el borrado de tu cuenta y workspace para dentro de 90 días. Hasta entonces no se elimina nada: puedes cancelar la solicitud y seguir usando Alenna con normalidad. Pasada esa fecha, borramos tus datos personales y comerciales y se detienen las sincronizaciones. Si necesitas adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
+    settingsDeleteAccountCardDescriptionWithMembers:
+      'Al confirmar, programamos el borrado de tu cuenta y workspace para dentro de 90 días. Hasta entonces no se elimina nada y puedes cancelar. Pasada esa fecha, borramos tus datos y los {count} demás miembros perderán el acceso. Para adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
+    settingsDeleteAccountCardDescriptionWithOneMember:
+      'Al confirmar, programamos el borrado de tu cuenta y workspace para dentro de 90 días. Hasta entonces no se elimina nada y puedes cancelar. Pasada esa fecha, borramos tus datos y el otro miembro perderá el acceso. Para adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
+    settingsDeleteAccountRequestButton: 'Solicitar eliminación de cuenta',
+    settingsDeleteAccountSectionTitle: 'Eliminar cuenta',
+    settingsDeleteAccountIntro:
+      'Al confirmar, tu workspace quedará marcado para eliminación. Hoy no se borra nada.',
+    settingsDeleteAccountBullet1:
+      '90 días de gracia: puedes cancelar y recuperar el acceso; tus datos se conservan.',
+    settingsDeleteAccountBullet2:
+      'Tras 90 días se eliminarán de forma definitiva tus datos personales y comerciales.',
+    settingsDeleteAccountBullet3:
+      'Durante la gracia se detienen las sincronizaciones y el uso normal de la app.',
+    settingsDeleteAccountBullet4:
+      'Eliminación anticipada: escribe a privacidad@alenna.io (máx. 30 días hábiles).',
+    settingsDeleteAccountBullet5:
+      'Solo un administrador del workspace puede solicitar la eliminación.',
+    settingsDeleteAccountBullet6:
+      'Otros miembros del workspace ({count}) perderán acceso al completarse la eliminación.',
+    settingsDeleteAccountButton: 'Eliminar cuenta',
+    settingsDeleteAccountDialogTitle: 'Confirmar eliminación de cuenta',
+    settingsDeleteAccountDialogLine1: 'Programaremos la eliminación de tu cuenta.',
+    settingsDeleteAccountDialogLine2: 'Tus datos no se borran de inmediato.',
+    settingsDeleteAccountDialogLine3:
+      'El borrado definitivo será el {date}, salvo que canceles antes.',
+    settingsDeleteAccountDialogCheckbox:
+      'Entiendo que la eliminación queda programada y que, si no cancelo antes, mis datos se borrarán definitivamente tras 90 días.',
+    settingsDeleteAccountConfirmPlaceholder: 'Escribe el nombre del workspace para confirmar',
+    settingsDeleteAccountConfirmButton: 'Confirmar eliminación',
+    settingsDeleteAccountCancelButton: 'Cancelar',
+    settingsDeleteAccountToastRequested:
+      'Eliminación programada. Puedes cancelar hasta el {date}.',
+    settingsDeleteAccountToastCancelled:
+      'Eliminación cancelada. Tu cuenta y datos están activos de nuevo.',
+    settingsDeleteAccountToastFailed: 'No se pudo procesar la solicitud.',
+    settingsDeleteAccountPendingTitle: 'Eliminación programada',
+    settingsDeleteAccountPendingScheduled: 'Eliminación programada para el {date}.',
+    settingsDeleteAccountPendingDataKept: 'Tus datos siguen conservados hasta esa fecha.',
+    settingsDeleteAccountPendingCancel: 'Cancelar eliminación',
+    settingsDeleteAccountPendingEarly:
+      'Si necesitas eliminar antes, contacta privacidad@alenna.io.',
     workspaceConfigAlarmsDescription: 'Umbrales de stock, alertas activas y reglas por alcance.',
     navAlarms: 'Alertas',
     alarmsListSubtitle: 'Elige un tipo de alerta para configurar sus reglas.',
@@ -1095,6 +1143,7 @@ const SHELL_STRINGS = {
     navIntegrations: 'Integrations',
     navWorkspaceConfiguration: 'Settings',
     navGeneral: 'General',
+    workspaceConfigHeroSubtitle: 'Manage workspace-wide rules and preferences.',
     workspaceConfigGeneralDescription: 'Workspace name and interface language.',
     workspaceConfigGeneralPageSubtitle: 'General workspace preferences.',
     workspaceConfigGeneralSectionTitle: 'General settings',
@@ -1107,7 +1156,52 @@ const SHELL_STRINGS = {
     settingsLanguageLabel: 'Language',
     settingsLanguageEs: 'Spanish',
     settingsLanguageEn: 'English',
-    workspaceConfigHeroSubtitle: 'Manage workspace-wide rules and preferences.',
+    settingsDangerZoneTitle: 'Danger zone',
+    settingsDangerZoneSubtitle: 'Permanently delete your Alenna account and workspace data.',
+    settingsDeleteAccountCardTitle: 'Request for account deletion',
+    settingsDeleteAccountCardDescription:
+      'When you confirm, we schedule deletion of your account and workspace in 90 days. Nothing is removed until then—you can cancel and keep using Alenna normally. After that date, we permanently delete your personal and commercial data and stop syncs. To delete sooner, email privacidad@alenna.io (within 30 business days).',
+    settingsDeleteAccountCardDescriptionWithMembers:
+      'When you confirm, we schedule deletion of your account and workspace in 90 days. Nothing is removed until then and you can cancel. After that date, we delete your data and the other {count} members lose access. To delete sooner, email privacidad@alenna.io (within 30 business days).',
+    settingsDeleteAccountCardDescriptionWithOneMember:
+      'When you confirm, we schedule deletion of your account and workspace in 90 days. Nothing is removed until then and you can cancel. After that date, we delete your data and the other member loses access. To delete sooner, email privacidad@alenna.io (within 30 business days).',
+    settingsDeleteAccountRequestButton: 'Request to delete account',
+    settingsDeleteAccountSectionTitle: 'Delete account',
+    settingsDeleteAccountIntro:
+      'When you confirm, your workspace will be marked for deletion. Nothing is deleted today.',
+    settingsDeleteAccountBullet1:
+      '90-day grace period: you can cancel and restore access; your data is kept.',
+    settingsDeleteAccountBullet2:
+      'After 90 days your personal and commercial data will be permanently deleted.',
+    settingsDeleteAccountBullet3:
+      'During the grace period syncs and normal app use are stopped.',
+    settingsDeleteAccountBullet4:
+      'Early deletion: email privacidad@alenna.io (within 30 business days).',
+    settingsDeleteAccountBullet5: 'Only a workspace admin can request deletion.',
+    settingsDeleteAccountBullet6:
+      'Other workspace members ({count}) will lose access when deletion completes.',
+    settingsDeleteAccountButton: 'Delete account',
+    settingsDeleteAccountDialogTitle: 'Confirm account deletion',
+    settingsDeleteAccountDialogLine1: 'We will schedule deletion of your account.',
+    settingsDeleteAccountDialogLine2: 'Your data is not removed immediately.',
+    settingsDeleteAccountDialogLine3:
+      'Permanent deletion will happen on {date} unless you cancel before then.',
+    settingsDeleteAccountDialogCheckbox:
+      'I understand deletion is scheduled and that my data will be permanently deleted after 90 days if I do not cancel.',
+    settingsDeleteAccountConfirmPlaceholder: 'Type the workspace name to confirm',
+    settingsDeleteAccountConfirmButton: 'Confirm deletion',
+    settingsDeleteAccountCancelButton: 'Cancel',
+    settingsDeleteAccountToastRequested:
+      'Deletion scheduled. You can cancel until {date}.',
+    settingsDeleteAccountToastCancelled:
+      'Deletion cancelled. Your account and data are active again.',
+    settingsDeleteAccountToastFailed: 'Could not process the request.',
+    settingsDeleteAccountPendingTitle: 'Deletion scheduled',
+    settingsDeleteAccountPendingScheduled: 'Deletion scheduled for {date}.',
+    settingsDeleteAccountPendingDataKept: 'Your data is kept until that date.',
+    settingsDeleteAccountPendingCancel: 'Cancel deletion',
+    settingsDeleteAccountPendingEarly:
+      'If you need deletion sooner, contact privacidad@alenna.io.',
     workspaceConfigAlarmsDescription: 'Stock thresholds, active alerts, and scoped override rules.',
     navAlarms: 'Alerts',
     alarmsListSubtitle: 'Choose an alert type to configure its rules.',

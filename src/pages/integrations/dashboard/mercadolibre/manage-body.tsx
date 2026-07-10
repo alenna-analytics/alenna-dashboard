@@ -1,4 +1,5 @@
 import { CheckCircle2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useState } from 'react'
 
 import { LoadingIcon } from '@/ui/app-icon'
@@ -10,6 +11,7 @@ import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-syn
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
 import type { MercadoLibreIntegrationHook } from '@/pages/integrations/details/use-mercadolibre-integration'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { SyncPlan } from '@/lib/types/connectors'
 import { Button } from '@/ui/button'
@@ -41,9 +43,11 @@ function MercadoLibreIntroCopy({ lang }: { lang: string }) {
 function MercadoLibreSyncSection({
   lang,
   meli,
+  isFixture,
 }: {
   lang: Language
   meli: MercadoLibreIntegrationHook
+  isFixture: boolean
 }) {
   const {
     activeConnection,
@@ -64,6 +68,10 @@ function MercadoLibreSyncSection({
   })
 
   const buttonLabel = shellT(lang, lifecycleButtonLabelKey(syncPlan))
+
+  const fixtureBlocked = () => {
+    toast.info(shellT(lang, 'fixtureActionDisabled'))
+  }
 
   if (meliSyncPhase === 'working') {
     const job = meliJobQuery.data
@@ -116,8 +124,8 @@ function MercadoLibreSyncSection({
         description={`${stats}${range ? ` · ${range}` : ''}`}
         actionLabel={shellT(lang, 'syncRefreshBtn')}
         actionLoadingLabel={shellT(lang, 'syncRunning')}
-        onAction={() => syncMutation.mutate()}
-        actionDisabled={syncMutation.isPending}
+        onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
+        actionDisabled={syncMutation.isPending || isFixture}
         actionLoading={syncMutation.isPending}
         badge={<CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />}
         footer={shellT(lang, 'shopifySyncBlockedHint')}
@@ -132,8 +140,8 @@ function MercadoLibreSyncSection({
         title={shellT(lang, 'syncSectionTitle')}
         description={formatMercadoLibreSyncUserError(syncFailedMessage, lang)}
         actionLabel={shellT(lang, 'shopifySyncRetry')}
-        onAction={() => retryMercadoLibreSync()}
-        actionDisabled={retryMercadoLibreSyncPending}
+        onAction={() => (isFixture ? fixtureBlocked() : retryMercadoLibreSync())}
+        actionDisabled={retryMercadoLibreSyncPending || isFixture}
         actionLoading={retryMercadoLibreSyncPending}
         className="w-full"
       />
@@ -146,8 +154,8 @@ function MercadoLibreSyncSection({
       description={shellT(lang, 'syncSectionCardDescription')}
       actionLabel={buttonLabel}
       actionLoadingLabel={shellT(lang, 'syncRunning')}
-      onAction={() => syncMutation.mutate()}
-      actionDisabled={syncMutation.isPending}
+      onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
+      actionDisabled={syncMutation.isPending || isFixture}
       actionLoading={syncMutation.isPending}
       badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
       footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
@@ -168,6 +176,8 @@ export function MercadoLibreManageBody({
   disconnectPending = false,
 }: MercadoLibreManageBodyProps) {
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
+  const isFixture = Boolean(me?.is_fixture)
   const [integrationEnabled, setIntegrationEnabled] = useState(true)
 
   const accountId = 'integration-meli-account'
@@ -199,7 +209,12 @@ export function MercadoLibreManageBody({
             className="inline-flex w-full items-center justify-center gap-2 sm:w-auto"
             size="default"
             loading={meli.oauthStarting}
-            onClick={() => void meli.startOAuth()}
+            disabled={isFixture}
+            onClick={() =>
+              isFixture
+                ? toast.info(shellT(lang, 'fixtureActionDisabled'))
+                : void meli.startOAuth()
+            }
           >
             {shellT(lang, 'integrationConnectWithMercadoLibre')}
           </Button>
@@ -215,8 +230,8 @@ export function MercadoLibreManageBody({
             enabled={integrationEnabled}
             onEnabledChange={setIntegrationEnabled}
             switchId="integration-meli-enabled"
-            switchDisabled={syncInProgress}
-            onDisconnect={onRequestDisconnect}
+            switchDisabled={syncInProgress || isFixture}
+            onDisconnect={isFixture ? undefined : onRequestDisconnect}
             disconnectLabel={shellT(lang, 'integrationDetailDisconnect')}
             disconnectPending={disconnectPending}
           >
@@ -231,7 +246,9 @@ export function MercadoLibreManageBody({
             </div>
           </IntegrationEnableCard>
 
-          {integrationEnabled ? <MercadoLibreSyncSection lang={lang} meli={meli} /> : null}
+          {integrationEnabled ? (
+            <MercadoLibreSyncSection lang={lang} meli={meli} isFixture={isFixture} />
+          ) : null}
         </div>
       )}
     </div>

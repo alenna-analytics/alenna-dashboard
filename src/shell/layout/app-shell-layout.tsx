@@ -12,6 +12,7 @@ import { DisplayCurrencyProvider } from '@/shell/providers/display-currency-prov
 import { GlobalActivityProvider } from '@/shell/providers/global-activity-provider'
 import { WorkspaceProvider } from '@/shell/providers/workspace-context'
 import { AccountDeletionPendingShellBanner } from '@/shell/account-deletion-pending-shell-banner'
+import { FixtureTenantBanner } from '@/shell/fixture-tenant-banner'
 import { ActiveAlertsSheetHost } from '@/shell/alerts/active-alerts-sheet-host'
 import { AlertsInvalidationHost } from '@/shell/alerts/alerts-invalidation-host'
 import { AlertsSheetProvider } from '@/shell/alerts/alerts-sheet-context'
@@ -156,6 +157,7 @@ export function AppShellLayout() {
                   <GlobalActivityBar />
                 </div>
                 <div className="sticky top-0 z-30 shrink-0 bg-white">
+                  {me?.is_fixture ? <FixtureTenantBanner /> : null}
                   <AccountDeletionPendingShellBanner />
                   <AppHeader companyName={companyName} onOpenMobileNav={openMobileNav} />
                 </div>

@@ -1,4 +1,5 @@
 import { CheckCircle2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { LoadingIcon } from '@/ui/app-icon'
 import { useMemo, useRef, useState } from 'react'
@@ -9,6 +10,7 @@ import {
   SHOPIFY_MYSHOPIFY_SUFFIX,
 } from '@/lib/integrations/shopify-format'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { SyncPlan } from '@/lib/types/connectors'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
@@ -108,7 +110,15 @@ function ShopifyDomainInlineField({
   )
 }
 
-function ShopifySyncSection({ lang, shopify }: { lang: Language; shopify: ShopifyIntegrationHook }) {
+function ShopifySyncSection({
+  lang,
+  shopify,
+  isFixture,
+}: {
+  lang: Language
+  shopify: ShopifyIntegrationHook
+  isFixture: boolean
+}) {
   const {
     activeConnection,
     lastSyncDisplay,
@@ -135,6 +145,10 @@ function ShopifySyncSection({ lang, shopify }: { lang: Language; shopify: Shopif
     if (syncPlan.cooldown_reason !== 'shopify_full_sync_cooldown') return null
     return shellT(lang, 'syncCooldownHelper', { hours: String(ceilHours(syncPlan.retry_after_seconds)) })
   }, [lang, syncPlan])
+
+  const fixtureBlocked = () => {
+    toast.info(shellT(lang, 'fixtureActionDisabled'))
+  }
 
   if (shopifySyncPhase === 'working') {
     const queued = shopifyJobQuery.data?.status === 'queued'
@@ -189,8 +203,8 @@ function ShopifySyncSection({ lang, shopify }: { lang: Language; shopify: Shopif
         title={shellT(lang, 'syncSectionTitle')}
         description={formatShopifySyncUserError(syncFailedMessage, lang)}
         actionLabel={shellT(lang, 'shopifySyncRetry')}
-        onAction={() => retryShopifySync()}
-        actionDisabled={retryShopifySyncPending}
+        onAction={() => (isFixture ? fixtureBlocked() : retryShopifySync())}
+        actionDisabled={retryShopifySyncPending || isFixture}
         actionLoading={retryShopifySyncPending}
         className="w-full"
       />
@@ -210,8 +224,8 @@ function ShopifySyncSection({ lang, shopify }: { lang: Language; shopify: Shopif
       description={shellT(lang, 'syncSectionCardDescription')}
       actionLabel={buttonLabel}
       actionLoadingLabel={shellT(lang, 'syncRunning')}
-      onAction={() => syncMutation.mutate()}
-      actionDisabled={syncMutation.isPending || Boolean(cooldownHelper)}
+      onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
+      actionDisabled={syncMutation.isPending || Boolean(cooldownHelper) || isFixture}
       actionLoading={syncMutation.isPending}
       badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
       footer={syncFooter}
@@ -232,6 +246,8 @@ export function ShopifyManageBody({
   disconnectPending = false,
 }: ShopifyManageBodyProps) {
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
+  const isFixture = Boolean(me?.is_fixture)
   const {
     tenantId,
     isAdmin,
@@ -288,8 +304,8 @@ export function ShopifyManageBody({
                   size="sm"
                   className="my-1.5 mr-1.5 shrink-0 self-center rounded-md px-3"
                   loading={oauthStarting}
-                  disabled={!normalizeShopifySubdomainInput(shopInput) || !tenantId}
-                  onClick={() => void startOAuth()}
+                  disabled={isFixture || !normalizeShopifySubdomainInput(shopInput) || !tenantId}
+                  onClick={() => (isFixture ? toast.info(shellT(lang, 'fixtureActionDisabled')) : void startOAuth())}
                 >
                   {shellT(lang, 'integrationConnectWithShopify')}
                 </Button>
@@ -312,8 +328,8 @@ export function ShopifyManageBody({
               enabled={integrationEnabled}
               onEnabledChange={setIntegrationEnabled}
               switchId="integration-shopify-enabled"
-              switchDisabled={syncInProgress}
-              onDisconnect={onRequestDisconnect}
+              switchDisabled={syncInProgress || isFixture}
+              onDisconnect={isFixture ? undefined : onRequestDisconnect}
               disconnectLabel={shellT(lang, 'integrationDetailDisconnect')}
               disconnectPending={disconnectPending}
             >
@@ -338,7 +354,7 @@ export function ShopifyManageBody({
 
             {integrationEnabled ? (
               <>
-                <ShopifySyncSection lang={lang} shopify={shopify} />
+                <ShopifySyncSection lang={lang} shopify={shopify} isFixture={isFixture} />
                 {syncMessage ? (
                   <p className="text-xs text-muted-foreground" role="status">
                     {syncMessage}

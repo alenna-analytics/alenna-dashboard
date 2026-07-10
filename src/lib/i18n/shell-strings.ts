@@ -26,6 +26,9 @@ const SHELL_STRINGS = {
     settingsLanguageEs: 'Español',
     settingsLanguageEn: 'English',
     settingsDangerZoneTitle: 'Zona de riesgo',
+    fixtureTenantBannerMessage:
+      'Cuenta de demostración preconfigurada para revisión de la app. Las conexiones, sincronizaciones y acciones destructivas están deshabilitadas.',
+    fixtureActionDisabled: 'Esta acción no está disponible en la cuenta de demostración.',
     settingsDangerZoneSubtitle:
       'Elimina permanentemente tu cuenta de Alenna y los datos de tu workspace.',
     settingsDeleteAccountCardTitle: 'Solicitud de eliminación de cuenta',
@@ -1157,6 +1160,9 @@ const SHELL_STRINGS = {
     settingsLanguageEs: 'Spanish',
     settingsLanguageEn: 'English',
     settingsDangerZoneTitle: 'Danger zone',
+    fixtureTenantBannerMessage:
+      'Preloaded demo account for app review. Connections, syncs, and destructive actions are disabled.',
+    fixtureActionDisabled: 'This action is not available on the demo account.',
     settingsDangerZoneSubtitle: 'Permanently delete your Alenna account and workspace data.',
     settingsDeleteAccountCardTitle: 'Request for account deletion',
     settingsDeleteAccountCardDescription:

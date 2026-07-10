@@ -30,6 +30,7 @@ export type MeResponse = {
   deletion_requested_at?: string | null
   scheduled_purge_at?: string | null
   member_count?: number | null
+  is_fixture?: boolean
 }
 
 export type AccountDeletionStatusResponse = {

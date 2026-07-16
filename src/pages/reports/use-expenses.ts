@@ -27,7 +27,10 @@ export function useExpenses() {
       if (!res.ok) throw new Error(await res.text())
       return (await res.json()) as Expense
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: key })
+      void queryClient.invalidateQueries({ queryKey: ['reports', 'kpis'] })
+    },
   })
 
   const updateMutation = useMutation({
@@ -36,7 +39,10 @@ export function useExpenses() {
       if (!res.ok) throw new Error(await res.text())
       return (await res.json()) as Expense
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: key })
+      void queryClient.invalidateQueries({ queryKey: ['reports', 'kpis'] })
+    },
   })
 
   const deleteMutation = useMutation({
@@ -49,7 +55,10 @@ export function useExpenses() {
       )
       if (!res.ok) throw new Error(await res.text())
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: key })
+      void queryClient.invalidateQueries({ queryKey: ['reports', 'kpis'] })
+    },
   })
 
   return { query, createMutation, updateMutation, deleteMutation }

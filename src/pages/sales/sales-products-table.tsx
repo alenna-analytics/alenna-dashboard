@@ -68,6 +68,15 @@ export function SalesProductsTable({
           <span className="font-numeric tabular-nums">{formatMoney(getValue())}</span>
         ),
       }),
+      columnHelper.accessor('net_revenue', {
+        id: 'net',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('reportsNetRevenue')} />
+        ),
+        cell: ({ getValue }) => (
+          <span className="font-numeric tabular-nums">{formatMoney(getValue() ?? 0)}</span>
+        ),
+      }),
       columnHelper.accessor('units_sold', {
         id: 'units',
         header: ({ column }) => (

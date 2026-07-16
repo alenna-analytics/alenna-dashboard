@@ -1,17 +1,25 @@
+import { useAuth } from '@clerk/react'
+import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 
+import { useCurrentTenant } from '@/auth/hooks'
+import { apiFetch } from '@/lib/api'
 import { shellT } from '@/lib/i18n/shell-strings'
-import { DashboardPage } from '@/shell/layout/dashboard-page'
-import { useLanguage, type Language } from '@/shell/providers/language-provider'
-import { useWorkspace } from '@/shell/providers/workspace-context'
-import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
+import type { IntegrationPlatformRow } from '@/lib/types/connectors'
 import { cn } from '@/lib/utils'
 import { DeleteAccountDangerZone } from '@/pages/configuration/general/delete-account-danger-zone'
 import { DeleteAccountDialog } from '@/pages/configuration/general/delete-account-dialog'
 import {
   useDeleteAccountMutation,
 } from '@/pages/configuration/general/use-account-deletion-mutations'
+import { ExpensesSheet } from '@/pages/reports/expenses-sheet'
+import { useExpenses } from '@/pages/reports/use-expenses'
+import { DashboardPage } from '@/shell/layout/dashboard-page'
+import { useLanguage, type Language } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
+import { Button } from '@/ui/button'
+import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 
 function SettingsSection({ children, className }: { children: ReactNode; className?: string }) {
   return (
@@ -74,6 +82,24 @@ export function GeneralConfigurationPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [confirmName, setConfirmName] = useState('')
   const [understood, setUnderstood] = useState(false)
+  const [expensesOpen, setExpensesOpen] = useState(false)
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const expenses = useExpenses()
+  const platformsQuery = useQuery({
+    queryKey: ['integration-platforms', tenantId],
+    enabled: Boolean(tenantId) && expensesOpen,
+    queryFn: async (): Promise<IntegrationPlatformRow[]> => {
+      const res = await apiFetch(
+        '/connectors/integration-platforms',
+        (a) => getToken(a),
+        {},
+        tenantId,
+      )
+      if (!res.ok) throw new Error(await res.text())
+      return (await res.json()) as IntegrationPlatformRow[]
+    },
+  })
 
   const companyName = useMemo(() => {
     const fromMe = me?.tenant_name?.trim()
@@ -144,7 +170,37 @@ export function GeneralConfigurationPage() {
             triggerClassName="w-full"
           />
         </SettingsRow>
+
+        <SettingsRow
+          label={t('expensesSheetTitle')}
+          description={t('expensesSheetDescription')}
+        >
+          <Button type="button" variant="secondary" onClick={() => setExpensesOpen(true)}>
+            {t('expensesAddBtn')}
+          </Button>
+        </SettingsRow>
       </SettingsSection>
+
+      <ExpensesSheet
+        open={expensesOpen}
+        onOpenChange={setExpensesOpen}
+        expenses={expenses.query.data ?? []}
+        platforms={(platformsQuery.data ?? []).map((p) => ({ slug: p.slug, name: p.name }))}
+        onCreate={async (body) => {
+          await expenses.createMutation.mutateAsync(body)
+        }}
+        onUpdate={async (id, body) => {
+          await expenses.updateMutation.mutateAsync({ id, ...body })
+        }}
+        onDelete={async (id) => {
+          await expenses.deleteMutation.mutateAsync(id)
+        }}
+        isBusy={
+          expenses.createMutation.isPending ||
+          expenses.updateMutation.isPending ||
+          expenses.deleteMutation.isPending
+        }
+      />
 
       {isWorkspaceAdmin && !isPending && !me?.is_fixture ? (
         <DeleteAccountDangerZone

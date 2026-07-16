@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   fetchMyTenants,
   useCurrentTenant,
@@ -19,6 +19,8 @@ function normalizeMeResponse(raw: MeResponse): MeResponse {
   }
 }
 
+type DefaultSwitchState = 'idle' | 'pending' | 'done'
+
 export function useAppBootstrap(): {
   tenants: TenantSummary[]
   me: MeResponse | null
@@ -27,23 +29,41 @@ export function useAppBootstrap(): {
   tenantsLoading: boolean
   meLoading: boolean
   resolvingSingleTenant: boolean
+  tenantsReady: boolean
   retry: () => void
 } {
   const { getToken, isLoaded, isSignedIn } = useAuth()
   const { tenantId, role } = useCurrentTenant()
   const { switchTenant } = useTenantSwitcher()
+  const getTokenRef = useRef(getToken)
+
+  useEffect(() => {
+    getTokenRef.current = getToken
+  }, [getToken])
+
   const [tenants, setTenants] = useState<TenantSummary[]>([])
   const [me, setMe] = useState<MeResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [tenantsLoading, setTenantsLoading] = useState(false)
+  // Start true so AppShell never treats the empty initial state as "no workspace"
+  // and bounce to /onboarding before the first /me/tenants response.
+  const [tenantsLoading, setTenantsLoading] = useState(true)
   const [meLoading, setMeLoading] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
+  const [defaultSwitchState, setDefaultSwitchState] = useState<DefaultSwitchState>('idle')
+  const [tenantsReady, setTenantsReady] = useState(false)
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn) return
+    if (!isLoaded) return
+    if (!isSignedIn) {
+      setTenants([])
+      setTenantsLoading(false)
+      setTenantsReady(true)
+      return
+    }
     let cancelled = false
     setTenantsLoading(true)
-    void fetchMyTenants((a) => getToken(a))
+    setTenantsReady(false)
+    void fetchMyTenants((a) => getTokenRef.current(a))
       .then((list) => {
         if (!cancelled) setTenants(list)
       })
@@ -52,21 +72,40 @@ export function useAppBootstrap(): {
           setError(e instanceof Error ? e.message : 'Failed to load tenants')
       })
       .finally(() => {
-        if (!cancelled) setTenantsLoading(false)
+        if (!cancelled) {
+          setTenantsLoading(false)
+          setTenantsReady(true)
+        }
       })
     return () => {
       cancelled = true
     }
-    // retryCount triggers re-fetch on manual retry
-     
-  }, [getToken, isLoaded, isSignedIn, retryCount])
+  }, [isLoaded, isSignedIn, retryCount])
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn || tenants.length !== 1 || tenantId) return
-    void switchTenant(tenants[0].tenant_id).catch((e: unknown) => {
-      setError(e instanceof Error ? e.message : 'Could not set default tenant')
-    })
-  }, [isLoaded, isSignedIn, tenants, tenantId, switchTenant])
+    if (tenantId) {
+      setDefaultSwitchState('idle')
+      return
+    }
+    if (!isLoaded || !isSignedIn || tenants.length !== 1 || defaultSwitchState !== 'idle') {
+      return
+    }
+    setDefaultSwitchState('pending')
+    void switchTenant(tenants[0].tenant_id)
+      .then(() => {
+        setDefaultSwitchState('done')
+      })
+      .catch((e: unknown) => {
+        setDefaultSwitchState('idle')
+        setError(e instanceof Error ? e.message : 'Could not set default tenant')
+      })
+  }, [isLoaded, isSignedIn, tenants, tenantId, switchTenant, defaultSwitchState])
+
+  useEffect(() => {
+    if (defaultSwitchState === 'done' && !tenantId && tenants.length === 1 && !error) {
+      setError('Could not sync workspace session. Retry.')
+    }
+  }, [defaultSwitchState, tenantId, tenants.length, error])
 
   const loadMe = useCallback(async () => {
     if (!isLoaded || !isSignedIn || !tenantId || !role) {
@@ -76,7 +115,7 @@ export function useAppBootstrap(): {
     }
     setMeLoading(true)
     try {
-      const res = await apiFetch('/me', (a) => getToken(a), {}, tenantId)
+      const res = await apiFetch('/me', (a) => getTokenRef.current(a), {}, tenantId)
       if (!res.ok) {
         const text = await res.text()
         throw new Error(text || res.statusText)
@@ -88,7 +127,7 @@ export function useAppBootstrap(): {
     } finally {
       setMeLoading(false)
     }
-  }, [getToken, isLoaded, isSignedIn, tenantId, role])
+  }, [isLoaded, isSignedIn, tenantId, role])
 
   useEffect(() => {
     void loadMe()
@@ -100,6 +139,7 @@ export function useAppBootstrap(): {
 
   const retry = useCallback(() => {
     setError(null)
+    setDefaultSwitchState('idle')
     setRetryCount((c) => c + 1)
   }, [])
 
@@ -108,7 +148,8 @@ export function useAppBootstrap(): {
     !tenantsLoading &&
     tenants.length === 1 &&
     !tenantId &&
-    !error
+    !error &&
+    defaultSwitchState === 'pending'
 
   return {
     tenants,
@@ -118,6 +159,7 @@ export function useAppBootstrap(): {
     tenantsLoading,
     meLoading,
     resolvingSingleTenant,
+    tenantsReady,
     retry,
   }
 }

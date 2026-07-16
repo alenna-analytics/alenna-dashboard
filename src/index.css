@@ -624,6 +624,69 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
+  /* Crossmint-style split auth: full-bleed white shell, brand panel only as inset card on lg+. */
+  .auth-split-shell {
+    isolation: isolate;
+    min-height: 100dvh;
+    background: #ffffff;
+    --auth-split-gutter: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .auth-split-shell {
+      --auth-split-gutter: 2rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .auth-split-shell {
+      --auth-split-gutter: 2.5rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .auth-split-shell {
+      --auth-split-gutter: 3rem;
+    }
+  }
+
+  .auth-split-gutter {
+    padding-inline: var(--auth-split-gutter);
+  }
+
+  .auth-split-brand {
+    background-color: #0b2528;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .auth-split-form {
+    box-shadow: 0 -10px 28px rgba(11, 37, 40, 0.08);
+  }
+
+  @media (min-width: 1024px) {
+    .auth-split-form {
+      box-shadow: none;
+    }
+  }
+
+  /* Soft scrim so white type stays legible over the light side of the mesh. */
+  .auth-split-brand-scrim {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(8, 28, 30, 0.28) 0%,
+        rgba(8, 28, 30, 0.12) 42%,
+        rgba(8, 28, 30, 0.55) 100%
+      ),
+      linear-gradient(
+        90deg,
+        rgba(8, 28, 30, 0.22) 0%,
+        transparent 55%
+      );
+  }
+
   .font-numeric {
     font-family: var(--font-numeric);
     font-variant-numeric: tabular-nums;
@@ -751,6 +814,43 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes onboarding-step-forward {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes onboarding-step-back {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.auth-onboarding-step-forward {
+  animation: onboarding-step-forward 0.32s ease-out both;
+}
+
+.auth-onboarding-step-back {
+  animation: onboarding-step-back 0.32s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-onboarding-step-forward,
+  .auth-onboarding-step-back {
+    animation: none;
   }
 }
 
@@ -886,15 +986,27 @@
 .auth-login-clerk-shell.cl-rootBox,
 .auth-login-clerk-shell .cl-rootBox {
   width: 100% !important;
-  overflow: hidden !important;
-  border-radius: 1.375rem !important;
-  border: 1px solid rgb(226 232 240) !important;
-  background: #ffffff !important;
-  box-shadow:
-    0 24px 56px rgba(15, 23, 42, 0.08),
-    0 4px 16px rgba(15, 23, 42, 0.04) !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+  border-radius: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+.auth-login-clerk-shell .cl-cardBox,
+.auth-login-clerk-shell .cl-main,
+.auth-login-clerk-shell .cl-scrollBox {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+}
+
+.auth-login-clerk-shell .cl-logoBox,
+.auth-login-clerk-shell .cl-header .cl-logoBox {
+  display: none !important;
 }
 
 .auth-login-clerk-shell .cl-socialButtonsBlockButton,
@@ -905,10 +1017,27 @@
 .auth-login-clerk-shell .cl-cardBox {
   background: transparent !important;
   box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 .auth-login-clerk-shell .cl-main {
   background: transparent !important;
+  padding: 0 !important;
+}
+
+.auth-login-clerk-shell .cl-scrollBox {
+  padding: 0 !important;
+}
+
+.auth-login-clerk-shell .cl-header {
+  text-align: left !important;
+  align-items: flex-start !important;
+}
+
+.auth-login-clerk-shell .cl-headerTitle,
+.auth-login-clerk-shell .cl-headerSubtitle {
+  text-align: left !important;
 }
 
 .auth-login-clerk-shell .cl-card {
@@ -918,26 +1047,28 @@
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  padding: 2rem !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
 }
 
 .auth-login-clerk-shell .cl-footer {
-  margin-top: 0 !important;
+  margin-top: 0.5rem !important;
   border-radius: 0 !important;
-  background: #ffffff !important;
-  border-top: 1px solid rgb(226 232 240) !important;
+  background: transparent !important;
+  border-top: none !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  padding: 1.25rem 2rem !important;
+  padding: 0.75rem 0 0 !important;
 }
 
 .auth-login-clerk-shell .cl-footerPages {
-  margin-top: 0 !important;
-  padding: 1rem 2rem 1.25rem !important;
+  margin-top: 0.75rem !important;
+  padding: 0.75rem 0 0 !important;
   border-radius: 0 !important;
   border-top: 1px solid rgb(226 232 240) !important;
-  background: #ffffff !important;
+  background: transparent !important;
   color: rgb(71 85 105) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -947,8 +1078,20 @@
 .auth-login-clerk-shell .cl-formButtonPrimary {
   min-height: 46px !important;
   border-radius: 14px !important;
-  box-shadow: 0 6px 18px rgba(var(--brand-rgb), 0.16) !important;
+  background-color: var(--zara-base) !important;
+  color: var(--firefly-base) !important;
+  box-shadow: none !important;
   font-weight: 600 !important;
+}
+
+.auth-login-clerk-shell .cl-formButtonPrimary:hover {
+  background-color: var(--zara-100) !important;
+  color: var(--firefly-base) !important;
+}
+
+.auth-login-clerk-shell .cl-formButtonPrimary svg {
+  color: var(--firefly-base) !important;
+  fill: currentColor !important;
 }
 
 .auth-login-clerk-shell .cl-footerPages a,

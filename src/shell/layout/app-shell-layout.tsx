@@ -89,6 +89,7 @@ export function AppShellLayout() {
     tenantsLoading,
     meLoading,
     resolvingSingleTenant,
+    tenantsReady,
     retry,
   } = useAppBootstrap()
 
@@ -114,10 +115,17 @@ export function AppShellLayout() {
   }, [location.pathname, location.search])
 
   const bootLoading =
-    tenantsLoading || resolvingSingleTenant || (Boolean(tenantId) && meLoading)
+    !tenantsReady ||
+    tenantsLoading ||
+    resolvingSingleTenant ||
+    (Boolean(tenantId) && meLoading)
 
   if (bootLoading) {
     return <AppShellBootSkeleton />
+  }
+
+  if (tenantsReady && !tenantsLoading && tenants.length === 0) {
+    return <Navigate to="/onboarding" replace />
   }
 
   if (error) {

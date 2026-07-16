@@ -3,7 +3,7 @@ import { Navigate, Outlet } from 'react-router-dom'
 
 export function AppAuthBoundary() {
   return (
-    <Show when="signed-in" fallback={<Navigate to="/" replace />}>
+    <Show when="signed-in" fallback={<Navigate to="/login" replace />}>
       <Outlet />
     </Show>
   )

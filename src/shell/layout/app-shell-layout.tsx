@@ -89,7 +89,7 @@ export function AppShellLayout() {
     tenantsLoading,
     meLoading,
     resolvingSingleTenant,
-    retry,
+    tenantsReady,
   } = useAppBootstrap()
 
   const workspaceValue = useMemo(() => ({ me, refetchMe }), [me, refetchMe])
@@ -114,21 +114,21 @@ export function AppShellLayout() {
   }, [location.pathname, location.search])
 
   const bootLoading =
-    tenantsLoading || resolvingSingleTenant || (Boolean(tenantId) && meLoading)
+    !tenantsReady ||
+    tenantsLoading ||
+    resolvingSingleTenant ||
+    (Boolean(tenantId) && meLoading)
 
   if (bootLoading) {
     return <AppShellBootSkeleton />
   }
 
+  if (tenantsReady && !tenantsLoading && tenants.length === 0) {
+    return <Navigate to="/onboarding" replace />
+  }
+
   if (error) {
-    return (
-      <ShellBootstrapError
-        lang={lang}
-        error={error}
-        isRetrying={tenantsLoading || meLoading}
-        onRetry={retry}
-      />
-    )
+    return <ShellBootstrapError lang={lang} />
   }
 
   if (me?.trial_expired || trialForced) {

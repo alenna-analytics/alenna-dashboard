@@ -1,0 +1,53 @@
+/** Shared Clerk appearance for SignIn / SignUp on the split auth layout. */
+export const clerkAuthAppearance = {
+  layout: {
+    logoPlacement: 'none' as const,
+    socialButtonsPlacement: 'top' as const,
+  },
+  variables: {
+    colorBackground: '#ffffff',
+    colorInputBackground: '#ffffff',
+    colorInputText: 'var(--text-primary)',
+    colorText: 'var(--text-primary)',
+    colorTextSecondary: 'var(--text-secondary)',
+    colorPrimary: 'var(--brand)',
+    colorDanger: 'var(--danger)',
+    colorSuccess: 'var(--success)',
+    borderRadius: '12px',
+    fontFamily: 'var(--font-sans)',
+  },
+  elements: {
+    rootBox: 'auth-login-clerk-shell clerk-signin-light w-full max-w-full !overflow-visible',
+    card: 'border-0 bg-transparent shadow-none !overflow-visible',
+    cardBox: 'shadow-none border-0 bg-transparent !overflow-visible w-full',
+    logoBox: 'hidden',
+    logoImage: 'hidden',
+    headerTitle: 'text-text-primary text-3xl font-semibold tracking-tight text-left',
+    headerSubtitle: '!text-neutral-600 text-xl leading-relaxed mt-1 text-left',
+    header: 'text-left w-full',
+    main: '!overflow-visible w-full',
+    scrollBox: '!overflow-visible !p-0',
+    form: 'w-full',
+    formFieldRow: 'w-full',
+    socialButtons: 'w-full',
+    socialButtonsBlockButtonText: 'text-text-primary text-sm font-medium',
+    socialButtonsBlockButton:
+      '!h-8 !min-h-8 !rounded-md border border-neutral-200 bg-white text-text-primary hover:bg-neutral-50',
+    socialButtonsBlockButtonArrow: 'text-text-secondary',
+    dividerLine: 'bg-neutral-200',
+    dividerText: 'text-neutral-500 text-xs',
+    formFieldLabel: 'text-text-primary text-sm font-medium mb-1.5 text-left',
+    formButtonPrimary:
+      '!h-8 !min-h-8 !rounded-md !py-0 text-sm font-medium !shadow-none !bg-[var(--zara-base)] !text-[var(--firefly-base)] transition-[filter,transform] duration-200 hover:!bg-[var(--zara-100)] hover:!-translate-y-px active:!translate-y-0',
+    formFieldInput:
+      '!h-8 !min-h-8 !rounded-md border border-neutral-200 bg-white text-sm text-text-primary placeholder:text-neutral-400',
+    formFieldInputShowPasswordButton: 'text-text-secondary hover:text-text-primary',
+    formResendCodeLink: 'text-[color:var(--brand)] hover:text-[color:var(--brand-light)]',
+    footerAction: 'w-full',
+    footerActionText: 'text-neutral-600 text-sm',
+    footerActionLink: 'text-[color:var(--brand)] hover:text-[color:var(--brand-light)] font-medium',
+    identityPreviewText: 'text-text-primary text-sm',
+    identityPreviewEditButton: 'text-[color:var(--brand)] hover:text-[color:var(--brand-light)]',
+    footer: '!pb-0',
+  },
+}

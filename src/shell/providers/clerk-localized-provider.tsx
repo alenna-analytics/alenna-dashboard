@@ -10,7 +10,6 @@ export function ClerkLocalizedProvider({ children }: { children: ReactNode }) {
 
   return (
     <ClerkProvider
-      key={lang}
       publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
       afterSignOutUrl="/login"
       ui={ui}

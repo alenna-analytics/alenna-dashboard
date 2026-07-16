@@ -6,6 +6,7 @@ import {
   createWorkspace,
   fetchMyTenants,
   useTenantSwitcher,
+  WorkspaceAlreadyExistsError,
   WorkspaceCreatedNeedsActiveTenantError,
 } from '@/auth/hooks'
 import { TRIAL_DAYS, TRIAL_PRICE_USD } from '@/lib/onboarding-constants'
@@ -84,6 +85,11 @@ function OnboardingWizard() {
     setLastName((prev) => prev || user.lastName?.trim() || '')
   }, [user])
 
+  async function activateAndEnterDashboard(tenantId: string) {
+    await switchTenant(tenantId)
+    navigate('/dashboard', { replace: true })
+  }
+
   async function finishOnboarding() {
     setError(null)
     setSubmitting(true)
@@ -93,14 +99,28 @@ function OnboardingWizard() {
         last_name: lastName.trim(),
         company_name: companyName.trim(),
       })
-      await switchTenant(result.tenant_id)
-      navigate('/dashboard', { replace: true })
+      await activateAndEnterDashboard(result.tenant_id)
     } catch (e: unknown) {
       if (e instanceof WorkspaceCreatedNeedsActiveTenantError) {
         try {
-          await switchTenant(e.tenantId)
-          navigate('/dashboard', { replace: true })
+          await activateAndEnterDashboard(e.tenantId)
           return
+        } catch (retryErr: unknown) {
+          setError(retryErr instanceof Error ? retryErr.message : t('onboardingSubmitFailed'))
+          return
+        }
+      }
+      if (e instanceof WorkspaceAlreadyExistsError) {
+        try {
+          const tenants = await fetchMyTenants((a) => getTokenRef.current(a))
+          if (tenants.length === 1) {
+            await activateAndEnterDashboard(tenants[0].tenant_id)
+            return
+          }
+          if (tenants.length > 1) {
+            navigate('/dashboard', { replace: true })
+            return
+          }
         } catch (retryErr: unknown) {
           setError(retryErr instanceof Error ? retryErr.message : t('onboardingSubmitFailed'))
           return

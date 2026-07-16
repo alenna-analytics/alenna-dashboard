@@ -94,23 +94,42 @@ export class WorkspaceCreatedNeedsActiveTenantError extends Error {
   }
 }
 
+export class WorkspaceAlreadyExistsError extends Error {
+  constructor(message = 'Workspace already exists') {
+    super(message)
+    this.name = 'WorkspaceAlreadyExistsError'
+  }
+}
+
+type WorkspaceErrorDetail = {
+  detail?: { code?: string; tenant_id?: string; message?: string } | string
+}
+
 export async function createWorkspace(
   getToken: GetTokenFn,
   body: { first_name: string; last_name: string; company_name: string },
 ): Promise<CreateWorkspaceResult> {
   const res = await apiPostJson('/me/workspaces', getToken, body)
   if (res.status === 502) {
-    try {
-      const payload = (await res.json()) as {
-        detail?: { code?: string; tenant_id?: string; message?: string }
-      }
-      const tenantId = payload.detail?.tenant_id
-      if (payload.detail?.code === 'clerk_metadata_sync_failed' && typeof tenantId === 'string') {
+    const payload = (await res.json().catch(() => null)) as WorkspaceErrorDetail | null
+    const detail = payload?.detail
+    if (detail && typeof detail === 'object') {
+      const tenantId = detail.tenant_id
+      if (detail.code === 'clerk_metadata_sync_failed' && typeof tenantId === 'string') {
         throw new WorkspaceCreatedNeedsActiveTenantError(tenantId)
       }
-    } catch (e) {
-      if (e instanceof WorkspaceCreatedNeedsActiveTenantError) throw e
+      throw new Error(detail.message || 'Workspace create failed (502)')
     }
+    throw new Error('Workspace create failed (502)')
+  }
+  if (res.status === 409) {
+    const payload = (await res.json().catch(() => null)) as WorkspaceErrorDetail | null
+    const detail = payload?.detail
+    const message =
+      detail && typeof detail === 'object' && typeof detail.message === 'string'
+        ? detail.message
+        : 'Workspace already exists'
+    throw new WorkspaceAlreadyExistsError(message)
   }
   if (!res.ok) {
     const t = await res.text()

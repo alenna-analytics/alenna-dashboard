@@ -7,8 +7,10 @@ import {
   type TenantSummary,
 } from '@/auth/hooks'
 import { apiFetch } from '@/lib/api'
+import { shellT } from '@/lib/i18n/shell-strings'
 import { parseModuleIds } from '@/lib/modules/types'
 import type { MeResponse } from '@/lib/types/me-types'
+import { useLanguage } from '@/shell/providers/language-provider'
 
 function normalizeMeResponse(raw: MeResponse): MeResponse {
   return {
@@ -35,6 +37,7 @@ export function useAppBootstrap(): {
   const { getToken, isLoaded, isSignedIn } = useAuth()
   const { tenantId, role } = useCurrentTenant()
   const { switchTenant } = useTenantSwitcher()
+  const { lang } = useLanguage()
   const getTokenRef = useRef(getToken)
 
   useEffect(() => {
@@ -103,9 +106,9 @@ export function useAppBootstrap(): {
 
   useEffect(() => {
     if (defaultSwitchState === 'done' && !tenantId && tenants.length === 1 && !error) {
-      setError('Could not sync workspace session. Retry.')
+      setError(shellT(lang, 'onboardingSessionSyncFailed'))
     }
-  }, [defaultSwitchState, tenantId, tenants.length, error])
+  }, [defaultSwitchState, tenantId, tenants.length, error, lang])
 
   const loadMe = useCallback(async () => {
     if (!isLoaded || !isSignedIn || !tenantId || !role) {

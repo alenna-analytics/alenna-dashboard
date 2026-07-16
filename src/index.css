@@ -628,8 +628,11 @@
   .auth-split-shell {
     isolation: isolate;
     min-height: 100dvh;
-    background: #ffffff;
     --auth-split-gutter: 1.5rem;
+  }
+
+  .auth-split-shell:not(.auth-login-shell) {
+    background: #ffffff;
   }
 
   @media (min-width: 640px) {

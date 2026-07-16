@@ -90,7 +90,6 @@ export function AppShellLayout() {
     meLoading,
     resolvingSingleTenant,
     tenantsReady,
-    retry,
   } = useAppBootstrap()
 
   const workspaceValue = useMemo(() => ({ me, refetchMe }), [me, refetchMe])
@@ -129,14 +128,7 @@ export function AppShellLayout() {
   }
 
   if (error) {
-    return (
-      <ShellBootstrapError
-        lang={lang}
-        error={error}
-        isRetrying={tenantsLoading || meLoading}
-        onRetry={retry}
-      />
-    )
+    return <ShellBootstrapError lang={lang} />
   }
 
   if (me?.trial_expired || trialForced) {

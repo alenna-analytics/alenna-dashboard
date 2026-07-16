@@ -156,9 +156,14 @@ function OnboardingWizard() {
   if (checking) {
     return (
       <AuthShell headlineKey="onboardingHeadline" supportingKey="onboardingSupporting">
-        <div className="flex min-h-[12rem] items-center justify-center gap-2 text-neutral-600 sm:rounded-md sm:bg-white sm:p-6">
+        <div
+          className="flex min-h-[12rem] items-center justify-center text-neutral-600"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <span className="sr-only">{t('bootLoadingLabel')}</span>
           <LoadingIcon className="size-5 animate-spin" />
-          <span className="text-sm">{t('bootLoadingLabel')}</span>
         </div>
       </AuthShell>
     )

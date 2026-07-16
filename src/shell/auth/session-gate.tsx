@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom'
 
 import { fetchMyTenants } from '@/auth/hooks'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { ServiceErrorScreen } from '@/shell/service-error-screen'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { LoadingIcon } from '@/ui/app-icon'
 
@@ -20,7 +21,7 @@ export function SessionGate() {
     getTokenRef.current = getToken
   }, [getToken])
   const [target, setTarget] = useState<'dashboard' | 'onboarding' | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     if (!isLoaded) return
@@ -28,31 +29,35 @@ export function SessionGate() {
     void fetchMyTenants((a) => getTokenRef.current(a))
       .then((tenants) => {
         if (cancelled) return
+        setError(false)
         setTarget(tenants.length === 0 ? 'onboarding' : 'dashboard')
       })
       .catch((e: unknown) => {
         if (cancelled) return
-        setError(e instanceof Error ? e.message : shellT(lang, 'authGateError'))
+        console.error('SessionGate fetchMyTenants failed', e)
+        setTarget(null)
+        setError(true)
       })
     return () => {
       cancelled = true
     }
-  }, [isLoaded, lang])
-
-  if (!isLoaded || (!target && !error)) {
-    return (
-      <div className="flex min-h-[12rem] items-center justify-center gap-2 text-white/80">
-        <LoadingIcon className="size-5 animate-spin" />
-        <span className="text-sm">{shellT(lang, 'bootLoadingLabel')}</span>
-      </div>
-    )
-  }
+  }, [isLoaded])
 
   if (error) {
+    return <ServiceErrorScreen lang={lang} />
+  }
+
+  if (!isLoaded || !target) {
     return (
-      <div className="rounded-[14px] bg-white/95 p-6 text-sm text-[color:var(--text-primary)] shadow-sm">
-        <p>{error}</p>
-      </div>
+      <main
+        className="relative flex min-h-dvh w-full flex-col items-center justify-center bg-white"
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        <span className="sr-only">{shellT(lang, 'bootLoadingLabel')}</span>
+        <LoadingIcon className="size-5 animate-spin text-[color:var(--text-primary)]" />
+      </main>
     )
   }
 

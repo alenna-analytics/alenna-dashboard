@@ -5,7 +5,7 @@ export function SsoCallbackPage() {
   const navigate = useNavigate()
 
   return (
-    <main className="auth-login-shell relative flex h-dvh w-full items-center justify-center">
+    <main className="relative flex h-dvh w-full items-center justify-center bg-white">
       <HandleSSOCallback
         navigateToApp={() => {
           void navigate('/', { replace: true })

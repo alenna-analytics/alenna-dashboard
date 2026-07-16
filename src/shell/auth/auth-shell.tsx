@@ -5,23 +5,32 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { AlennaLogo } from '@/ui/alenna-logo'
+import { cn } from '@/lib/utils'
 
 type AuthShellProps = {
   children: ReactNode
   headlineKey?: ShellStringKey
   supportingKey?: ShellStringKey
+  /** Page mesh gradient — login only. */
+  atmosphere?: boolean
 }
 
 export function AuthShell({
   children,
   headlineKey = 'authLoginHeadline',
   supportingKey = 'authLoginSupporting',
+  atmosphere = false,
 }: AuthShellProps) {
   const { lang } = useLanguage()
   const t = (key: ShellStringKey) => shellT(lang, key)
 
   return (
-    <main className="auth-split-shell relative flex min-h-dvh w-full bg-white">
+    <main
+      className={cn(
+        'auth-split-shell relative flex min-h-dvh w-full',
+        atmosphere ? 'auth-login-shell' : 'bg-white',
+      )}
+    >
       <div className="relative z-10 flex min-h-dvh w-full flex-col lg:grid lg:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)] lg:gap-6 lg:p-6 xl:gap-8 xl:p-8">
         <section
           className="auth-split-brand relative flex min-h-[220px] shrink-0 flex-col justify-between overflow-hidden sm:min-h-[260px] lg:min-h-0 lg:rounded-2xl"

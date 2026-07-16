@@ -12,6 +12,7 @@ import { DisplayCurrencyProvider } from '@/shell/providers/display-currency-prov
 import { GlobalActivityProvider } from '@/shell/providers/global-activity-provider'
 import { WorkspaceProvider } from '@/shell/providers/workspace-context'
 import { AccountDeletionPendingShellBanner } from '@/shell/account-deletion-pending-shell-banner'
+import { FixtureTenantBanner } from '@/shell/fixture-tenant-banner'
 import { ActiveAlertsSheetHost } from '@/shell/alerts/active-alerts-sheet-host'
 import { AlertsInvalidationHost } from '@/shell/alerts/alerts-invalidation-host'
 import { AlertsSheetProvider } from '@/shell/alerts/alerts-sheet-context'
@@ -88,7 +89,7 @@ export function AppShellLayout() {
     tenantsLoading,
     meLoading,
     resolvingSingleTenant,
-    retry,
+    tenantsReady,
   } = useAppBootstrap()
 
   const workspaceValue = useMemo(() => ({ me, refetchMe }), [me, refetchMe])
@@ -113,21 +114,21 @@ export function AppShellLayout() {
   }, [location.pathname, location.search])
 
   const bootLoading =
-    tenantsLoading || resolvingSingleTenant || (Boolean(tenantId) && meLoading)
+    !tenantsReady ||
+    tenantsLoading ||
+    resolvingSingleTenant ||
+    (Boolean(tenantId) && meLoading)
 
   if (bootLoading) {
     return <AppShellBootSkeleton />
   }
 
+  if (tenantsReady && !tenantsLoading && tenants.length === 0) {
+    return <Navigate to="/onboarding" replace />
+  }
+
   if (error) {
-    return (
-      <ShellBootstrapError
-        lang={lang}
-        error={error}
-        isRetrying={tenantsLoading || meLoading}
-        onRetry={retry}
-      />
-    )
+    return <ShellBootstrapError lang={lang} />
   }
 
   if (me?.trial_expired || trialForced) {
@@ -156,6 +157,7 @@ export function AppShellLayout() {
                   <GlobalActivityBar />
                 </div>
                 <div className="sticky top-0 z-30 shrink-0 bg-white">
+                  {me?.is_fixture ? <FixtureTenantBanner /> : null}
                   <AccountDeletionPendingShellBanner />
                   <AppHeader companyName={companyName} onOpenMobileNav={openMobileNav} />
                 </div>

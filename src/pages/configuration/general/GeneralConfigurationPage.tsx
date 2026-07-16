@@ -146,7 +146,7 @@ export function GeneralConfigurationPage() {
         </SettingsRow>
       </SettingsSection>
 
-      {isWorkspaceAdmin && !isPending ? (
+      {isWorkspaceAdmin && !isPending && !me?.is_fixture ? (
         <DeleteAccountDangerZone
           lang={lang}
           memberCount={memberCount}

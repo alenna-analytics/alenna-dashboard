@@ -1,10 +1,10 @@
-import { SignIn, useAuth } from '@clerk/react'
+import { SignUp, useAuth } from '@clerk/react'
 import { Navigate } from 'react-router-dom'
 
 import { AuthShell } from '@/shell/auth/auth-shell'
 import { clerkAuthAppearance } from '@/shell/auth/clerk-auth-appearance'
 
-export function AuthLoginPage() {
+export function AuthSignUpPage() {
   const { isLoaded, isSignedIn } = useAuth()
 
   if (isLoaded && isSignedIn) {
@@ -12,12 +12,12 @@ export function AuthLoginPage() {
   }
 
   return (
-    <AuthShell>
-      <SignIn
+    <AuthShell headlineKey="authSignUpHeadline" supportingKey="authSignUpSupporting">
+      <SignUp
         appearance={clerkAuthAppearance}
         routing="path"
-        path="/login"
-        signUpUrl="/sign-up"
+        path="/sign-up"
+        signInUrl="/login"
         forceRedirectUrl="/"
         fallbackRedirectUrl="/"
       />

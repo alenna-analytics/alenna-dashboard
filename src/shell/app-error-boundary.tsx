@@ -19,14 +19,7 @@ export class AppErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.error) {
-      return (
-        <ServerErrorPage
-          error={this.state.error}
-          onRetry={() => {
-            this.setState({ error: null })
-          }}
-        />
-      )
+      return <ServerErrorPage />
     }
     return this.props.children
   }

@@ -620,6 +620,7 @@ export function DashboardHomePageV2() {
               label={t(salesLabelKey(salesMetricBasis))}
               helpText={t(homeSalesHelpKey(salesMetricBasis))}
               value={formatCardAmount(salesCurrent)}
+              numericValue={salesCurrent}
               currencyCode={effectiveDisplayCurrency}
               pct={salesDelta!.pct}
               trend={salesDelta!.trend}
@@ -636,6 +637,7 @@ export function DashboardHomePageV2() {
               label={t(profitLabelKey(salesMetricBasis))}
               helpText={t(profitHelpKey(salesMetricBasis))}
               value={formatCardAmount(profitCurrent)}
+              numericValue={profitCurrent}
               currencyCode={effectiveDisplayCurrency}
               pct={profitDelta!.pct}
               trend={profitDelta!.trend}
@@ -668,6 +670,7 @@ export function DashboardHomePageV2() {
               label={t('reportsContributionMargin')}
               helpText={t('reportsKpiHelpContributionMargin')}
               value={formatCardAmount(contributionCurrent)}
+              numericValue={contributionCurrent}
               currencyCode={effectiveDisplayCurrency}
               pct={contributionDelta!.pct}
               trend={contributionDelta!.trend}
@@ -684,6 +687,7 @@ export function DashboardHomePageV2() {
               label={t('reportsEbitda')}
               helpText={t('reportsKpiHelpEbitda')}
               value={productMode ? '—' : formatCardAmount(ebitdaCurrent ?? 0)}
+              numericValue={productMode ? null : (ebitdaCurrent ?? 0)}
               currencyCode={productMode ? undefined : effectiveDisplayCurrency}
               placeholder={productMode}
               placeholderLabel="—"
@@ -702,6 +706,7 @@ export function DashboardHomePageV2() {
               label={t('reportsUnits')}
               helpText={t('reportsKpiHelpUnits')}
               value={unitsCurrent.toLocaleString()}
+              numericValue={unitsCurrent}
               pct={unitsDelta!.pct}
               trend={unitsDelta!.trend}
               comparisonUnavailable={unitsDelta!.unavailable}
@@ -732,6 +737,7 @@ export function DashboardHomePageV2() {
               label={t('reportsKpiAov')}
               helpText={t('reportsKpiHelpAov')}
               value={aov === null ? '—' : formatCardAmount(aov)}
+              numericValue={aov}
               currencyCode={aov === null ? undefined : effectiveDisplayCurrency}
               placeholder={aov === null}
               placeholderLabel="—"

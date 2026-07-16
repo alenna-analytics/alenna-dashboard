@@ -698,6 +698,7 @@ export function DashboardHomePage() {
                       label={t(salesLabelKey(salesMetricBasis))}
                       helpText={t(homeSalesHelpKey(salesMetricBasis))}
                       value={formatMoney(salesCurrent, { nativeCurrency: currency })}
+                      numericValue={salesCurrent}
                       vsPriorLabel={vsPrior}
                       priorValueDisplay={salesDelta!.priorDisplay}
                       pct={salesDelta!.pct}
@@ -732,6 +733,11 @@ export function DashboardHomePage() {
                         ? (displayProductKpi?.gross_margin_pct ?? 0)
                         : (displayKpi?.contribution_margin_pct ?? 0)
                       ).toFixed(1)}%`}
+                      numericValue={
+                        productMode
+                          ? (displayProductKpi?.gross_margin_pct ?? 0)
+                          : (displayKpi?.contribution_margin_pct ?? 0)
+                      }
                       vsPriorLabel={vsPrior}
                       priorValueDisplay={cmPct!.priorDisplay}
                       pct={cmPct!.pct}
@@ -761,6 +767,7 @@ export function DashboardHomePage() {
                       label={t(profitLabelKey(salesMetricBasis))}
                       helpText={t(profitHelpKey(salesMetricBasis))}
                       value={formatMoney(profitCurrent, { nativeCurrency: currency })}
+                      numericValue={profitCurrent}
                       vsPriorLabel={vsPrior}
                       priorValueDisplay={profitDelta!.priorDisplay}
                       pct={profitDelta!.pct}
@@ -779,6 +786,7 @@ export function DashboardHomePage() {
                           ? '—'
                           : formatMoney(displayKpi?.ebitda ?? 0, { nativeCurrency: currency })
                       }
+                      numericValue={productMode ? null : (displayKpi?.ebitda ?? 0)}
                       vsPriorLabel={vsPrior}
                       priorValueDisplay={productMode ? null : ebitda!.priorDisplay}
                       pct={productMode ? null : ebitda!.pct}
@@ -797,6 +805,11 @@ export function DashboardHomePage() {
                         ? (displayProductKpi?.units_sold ?? 0)
                         : (displayKpi?.units_sold ?? 0)
                       ).toLocaleString()}
+                      numericValue={
+                        productMode
+                          ? (displayProductKpi?.units_sold ?? 0)
+                          : (displayKpi?.units_sold ?? 0)
+                      }
                       vsPriorLabel={vsPrior}
                       priorValueDisplay={unitsSold!.priorDisplay}
                       pct={unitsSold!.pct}
@@ -828,6 +841,7 @@ export function DashboardHomePage() {
                       value={
                         aov === null ? '—' : formatMoney(aov, { nativeCurrency: currency })
                       }
+                      numericValue={aov}
                       vsPriorLabel={vsPrior}
                       priorValueDisplay={aovDelta?.priorDisplay ?? null}
                       pct={aovDelta?.pct ?? null}

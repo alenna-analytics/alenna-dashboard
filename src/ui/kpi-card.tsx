@@ -2,6 +2,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { HelpCircle } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { kpiValueToneClass } from '@/lib/kpi-value-tone'
 import { Badge } from '@/ui/badge'
 import {
   surfaceKpiClassName,
@@ -65,6 +66,8 @@ export type KpiCardProps = {
   helpText?: string
   variant?: KpiCardVariant
   value: string
+  /** Raw metric for negative-value styling (red when below zero). */
+  numericValue?: number | null
   vsPriorLabel: string
   priorValueDisplay: string | null
   pct: number | null
@@ -90,6 +93,7 @@ export function KpiCard({
   label,
   helpText,
   value,
+  numericValue,
   vsPriorLabel,
   priorValueDisplay,
   pct,
@@ -154,7 +158,7 @@ export function KpiCard({
           'font-numeric min-w-0 font-medium leading-none tracking-tight text-xl',
           placeholder
             ? 'text-text-secondary'
-            : 'text-(--color-accent-forest)',
+            : kpiValueToneClass(numericValue, 'text-(--color-accent-forest)'),
           valueClassName,
         )}
       >

@@ -3,6 +3,7 @@ import { HelpCircle } from 'lucide-react'
 import { Area, AreaChart, ResponsiveContainer } from 'recharts'
 
 import { cn } from '@/lib/utils'
+import { kpiValueToneClass } from '@/lib/kpi-value-tone'
 import { KpiDeltaPill } from '@/ui/kpi-card'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
@@ -12,6 +13,7 @@ export type HomeV2KpiSparklineCardProps = {
   label: string
   helpText?: string
   value: string
+  numericValue?: number | null
   currencyCode?: string
   pct: number | null
   trend: PctTrend
@@ -30,6 +32,7 @@ export function HomeV2KpiSparklineCard({
   label,
   helpText,
   value,
+  numericValue,
   currencyCode,
   pct,
   trend,
@@ -80,7 +83,12 @@ export function HomeV2KpiSparklineCard({
 
       <div className="mt-2 flex min-w-0 items-baseline justify-between gap-2">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-          <span className="font-numeric text-xl font-semibold leading-none tracking-tight text-text-primary">
+          <span
+            className={kpiValueToneClass(
+              numericValue,
+              'font-numeric text-xl font-semibold leading-none tracking-tight text-text-primary',
+            )}
+          >
             {placeholder ? placeholderLabel : value}
           </span>
           {!placeholder && currencyCode ? (

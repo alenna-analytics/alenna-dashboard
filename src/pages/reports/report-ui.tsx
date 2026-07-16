@@ -128,6 +128,7 @@ export function KpiCard({
       helpText={mergedHelp}
       variant={variant === 'hero' ? 'featured' : 'default'}
       value={display}
+      numericValue={value}
       vsPriorLabel={vsPriorLabel}
       priorValueDisplay={priorDisplay}
       pct={delta?.pct ?? null}

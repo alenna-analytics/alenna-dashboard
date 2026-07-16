@@ -85,6 +85,8 @@ export type ChannelKpiRow = {
   platform: string
   shop_domain: string | null
   gross_revenue: number
+  discounts: number
+  returns: number
   net_revenue: number
   cogs: number
   gross_profit: number
@@ -116,6 +118,9 @@ export type ChannelTimeSeriesRow = {
   gross_revenue: number
   net_revenue: number
   gross_profit: number
+  cogs: number
+  platform_fees_total: number
+  contribution_margin: number
 }
 
 export type ChannelTimeSeriesResponse = {

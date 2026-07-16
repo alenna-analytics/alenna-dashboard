@@ -2,11 +2,11 @@ import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 import { KpiCard as KpiCardUi } from '@/ui/kpi-card'
-import { surfaceSectionClassName } from '@/ui/surface'
 import { useMoney } from '@/hooks/use-money'
 
 import { pctVersusPrevious } from './reports-ui-helpers'
 
+/** Flat section wrapper — title + content, no card/box surface. */
 export function SectionContainer({
   children,
   className,
@@ -14,11 +14,7 @@ export function SectionContainer({
   children: ReactNode
   className?: string
 }) {
-  return (
-    <div className={cn(surfaceSectionClassName, className)}>
-      {children}
-    </div>
-  )
+  return <section className={cn('space-y-4', className)}>{children}</section>
 }
 
 export function SectionHeader({

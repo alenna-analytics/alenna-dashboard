@@ -112,16 +112,16 @@ function platformDisplayName(platform: string): string {
 
 function ReportsLoadingSkeleton() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-12">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-28 w-full rounded-md" />
         ))}
       </div>
       <Skeleton className="h-64 w-full rounded-md" />
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="flex flex-col gap-12">
         {Array.from({ length: 2 }).map((_, i) => (
-          <SectionContainer key={i} className="overflow-visible">
+          <SectionContainer key={i}>
             <div className="mb-4 space-y-2" aria-hidden>
               <Skeleton className="h-6 w-48 max-w-[80%]" />
               <Skeleton className="h-4 w-full max-w-xl" />
@@ -420,7 +420,7 @@ export function ReportsPage() {
   }
 
   return (
-    <DashboardPage className={cn('flex flex-1 flex-col', hasNoIntegrations ? 'gap-0' : 'gap-4')}>
+    <DashboardPage className={cn('flex flex-1 flex-col', hasNoIntegrations ? 'gap-0' : 'gap-8')}>
       {!hasNoIntegrations ? (
         <header className="flex flex-col gap-4">
           <div className="min-w-0">
@@ -469,7 +469,7 @@ export function ReportsPage() {
       ) : isInitialLoad ? (
         <ReportsLoadingSkeleton />
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-12">
           <ReportsHeroKpis
             mode={productMode ? 'product' : 'tenant'}
             kpi={displayKpi}
@@ -498,9 +498,9 @@ export function ReportsPage() {
             />
           ) : null}
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="flex flex-col gap-12">
             {!productMode && displayKpi ? (
-              <SectionContainer className="overflow-visible">
+              <SectionContainer>
                 <SectionHeader
                   title={t('reportsSectionRevenueBreakdown')}
                   description={t('reportsWaterfallSubtitle')}
@@ -516,7 +516,7 @@ export function ReportsPage() {
                 />
               </SectionContainer>
             ) : (
-              <SectionContainer className="overflow-visible">
+              <SectionContainer>
                 <SectionHeader
                   title={t('reportsSectionRevenueBreakdown')}
                   description={t('reportsWaterfallSubtitle')}
@@ -527,7 +527,7 @@ export function ReportsPage() {
               </SectionContainer>
             )}
 
-            <SectionContainer className="overflow-visible">
+            <SectionContainer>
               <SectionHeader
                 title={t('dashboardProfitMarginTitle')}
                 description={t('dashboardProfitMarginSubtitle')}

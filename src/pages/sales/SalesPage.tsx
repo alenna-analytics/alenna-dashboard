@@ -53,7 +53,7 @@ function platformDisplayName(platform: string): string {
 
 function SalesLoadingSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-12">
       <SectionContainer>
         <div className="mb-4 space-y-2" aria-hidden>
           <Skeleton className="h-6 w-40" />
@@ -65,7 +65,7 @@ function SalesLoadingSkeleton() {
           ))}
         </div>
       </SectionContainer>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="flex flex-col gap-12">
         {Array.from({ length: 2 }).map((_, i) => (
           <SectionContainer key={i}>
             <Skeleton className="mb-4 h-6 w-48" />
@@ -363,7 +363,7 @@ export function SalesPage() {
   const comparisonUnavailable = t('reportsComparisonUnavailable')
 
   return (
-    <DashboardPage className={cn('flex flex-1 flex-col', hasNoIntegrations ? 'gap-0' : 'gap-4')}>
+    <DashboardPage className={cn('flex flex-1 flex-col', hasNoIntegrations ? 'gap-0' : 'gap-8')}>
       {!hasNoIntegrations ? (
         <header className="flex flex-col gap-4">
           <div className="min-w-0">
@@ -419,7 +419,7 @@ export function SalesPage() {
           {t('reportsSelectConnection')}
         </p>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-12">
           {salesKpi ? (
             <SalesKpiSection
               kpi={salesKpi}
@@ -448,8 +448,8 @@ export function SalesPage() {
             />
           ) : null}
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <SectionContainer className="overflow-visible">
+          <div className="flex flex-col gap-12">
+            <SectionContainer>
               <SectionHeader
                 title={t('salesChannelNetBarsTitle')}
                 description={t('salesChannelNetBarsSubtitle')}
@@ -482,7 +482,7 @@ export function SalesPage() {
               )}
             </SectionContainer>
 
-            <SectionContainer className="overflow-visible">
+            <SectionContainer>
               <SectionHeader
                 title={t('salesYoyChartTitle')}
                 description={t('salesYoyChartSubtitle')}

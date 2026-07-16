@@ -12,7 +12,7 @@ export function AuthLoginPage() {
   }
 
   return (
-    <AuthShell atmosphere>
+    <AuthShell>
       <SignIn
         appearance={clerkAuthAppearance}
         routing="path"

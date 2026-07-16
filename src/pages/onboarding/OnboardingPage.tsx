@@ -1,4 +1,5 @@
 import { Show, useAuth, useUser } from '@clerk/react'
+import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 
@@ -19,6 +20,13 @@ import { LoadingIcon } from '@/ui/app-icon'
 
 type Step = 1 | 2 | 3
 type StepDirection = 'forward' | 'back'
+
+const TRIAL_BULLETS = [
+  'onboardingTrialBulletReports',
+  'onboardingTrialBulletCogs',
+  'onboardingTrialBulletChannels',
+  'onboardingTrialBulletAlerts',
+] as const satisfies readonly ShellStringKey[]
 
 export function OnboardingPage() {
   return (
@@ -157,7 +165,7 @@ function OnboardingWizard() {
     return (
       <AuthShell headlineKey="onboardingHeadline" supportingKey="onboardingSupporting">
         <div
-          className="flex min-h-[12rem] items-center justify-center text-neutral-600"
+          className="flex min-h-48 items-center justify-center text-neutral-600"
           role="status"
           aria-live="polite"
           aria-busy="true"
@@ -177,32 +185,32 @@ function OnboardingWizard() {
             <div
               key={n}
               className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
-                n <= step ? 'bg-[color:var(--brand)]' : 'bg-neutral-200'
+                n <= step ? 'bg-brand' : 'bg-neutral-200'
               }`}
             />
           ))}
         </div>
-        <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-neutral-500">
+        <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
           {t('onboardingStepLabel', { step, total: 3 })}
         </p>
 
         <div key={step} className={stepAnimClass}>
           {step === 1 ? (
             <form className="mt-3 flex flex-col gap-3.5" onSubmit={onProfile}>
-              <h2 className="text-[1.25rem] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">
+              <h2 className="text-xl font-semibold tracking-tight text-text-primary">
                 {t('onboardingProfileTitle')}
               </h2>
-              <p className="text-[14px] text-neutral-600">{t('onboardingProfileSubtitle')}</p>
+              <p className="text-sm text-neutral-600">{t('onboardingProfileSubtitle')}</p>
               <label className="flex flex-col gap-1.5">
-                <span className="text-[13px] font-medium">{t('onboardingFirstName')}</span>
+                <span className="text-sm font-medium">{t('onboardingFirstName')}</span>
                 <Input required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="text-[13px] font-medium">{t('onboardingLastName')}</span>
+                <span className="text-sm font-medium">{t('onboardingLastName')}</span>
                 <Input required value={lastName} onChange={(e) => setLastName(e.target.value)} />
               </label>
-              {error ? <p className="text-[13px] text-[color:var(--danger)]">{error}</p> : null}
-              <Button type="submit" variant="primary" size="lg" className="mt-1 w-full">
+              {error ? <p className="text-sm text-danger">{error}</p> : null}
+              <Button type="submit" variant="accent" className="mt-1 w-full">
                 {t('onboardingContinue')}
               </Button>
             </form>
@@ -210,30 +218,30 @@ function OnboardingWizard() {
 
           {step === 2 ? (
             <form className="mt-3 flex flex-col gap-3.5" onSubmit={onCompany}>
-              <h2 className="text-[1.25rem] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">
+              <h2 className="text-xl font-semibold tracking-tight text-text-primary">
                 {t('onboardingCompanyTitle')}
               </h2>
-              <p className="text-[14px] text-neutral-600">{t('onboardingCompanySubtitle')}</p>
+              <p className="text-sm text-neutral-600">{t('onboardingCompanySubtitle')}</p>
               <label className="flex flex-col gap-1.5">
-                <span className="text-[13px] font-medium">{t('onboardingCompanyName')}</span>
+                <span className="text-sm font-medium">{t('onboardingCompanyName')}</span>
                 <Input
                   required
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                 />
               </label>
-              {error ? <p className="text-[13px] text-[color:var(--danger)]">{error}</p> : null}
-              <div className="mt-1 flex gap-2">
+              {error ? <p className="text-sm text-danger">{error}</p> : null}
+              <div className="mt-1 flex items-center gap-2">
                 <Button
                   type="button"
-                  variant="outline"
-                  size="lg"
-                  className="flex-1"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('onboardingBack')}
                   onClick={() => goToStep(1)}
                 >
-                  {t('onboardingBack')}
+                  <ArrowLeft aria-hidden />
                 </Button>
-                <Button type="submit" variant="primary" size="lg" className="flex-1">
+                <Button type="submit" variant="accent" className="flex-1">
                   {t('onboardingContinue')}
                 </Button>
               </div>
@@ -242,54 +250,47 @@ function OnboardingWizard() {
 
           {step === 3 ? (
             <div className="mt-3 flex flex-col gap-4">
-              <h2 className="text-[1.25rem] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">
-                {t('onboardingTrialTitle')}
+              <h2 className="text-xl font-semibold tracking-tight text-text-primary">
+                {t('onboardingTrialTitle', { days: TRIAL_DAYS })}
               </h2>
-              <p className="text-[14px] text-neutral-600">
-                {t('onboardingTrialIntro', { days: TRIAL_DAYS, price: TRIAL_PRICE_USD })}
+              <p className="text-sm text-neutral-600">
+                {t('onboardingTrialIntro', { price: TRIAL_PRICE_USD })}
               </p>
-              <ul className="flex flex-col gap-2 text-[14px] text-[color:var(--text-primary)]">
-                <li className="flex gap-2">
-                  <span className="text-[color:var(--brand)]">✓</span>
-                  {t('onboardingTrialBulletReports')}
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-[color:var(--brand)]">✓</span>
-                  {t('onboardingTrialBulletCogs')}
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-[color:var(--brand)]">✓</span>
-                  {t('onboardingTrialBulletChannels')}
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-[color:var(--brand)]">✓</span>
-                  {t('onboardingTrialBulletAlerts')}
-                </li>
+              <ul className="flex flex-col gap-2 text-sm text-text-primary">
+                {TRIAL_BULLETS.map((key) => (
+                  <li key={key} className="flex items-start gap-2">
+                    <CheckCircle2
+                      className="mt-0.5 size-4 shrink-0 text-success"
+                      aria-hidden
+                      strokeWidth={2}
+                    />
+                    <span>{t(key)}</span>
+                  </li>
+                ))}
               </ul>
-              <p className="rounded-md bg-[color:var(--platinum-blonde-300)] px-3 py-2.5 text-[13px] text-neutral-700">
+              <p className="rounded-md bg-(--platinum-blonde-300) px-3 py-2.5 text-sm text-neutral-700">
                 {t('onboardingTrialNoCard', { days: TRIAL_DAYS, price: TRIAL_PRICE_USD })}
               </p>
-              {error ? <p className="text-[13px] text-[color:var(--danger)]">{error}</p> : null}
-              <div className="flex gap-2">
+              {error ? <p className="text-sm text-danger">{error}</p> : null}
+              <div className="flex items-center gap-2">
                 <Button
                   type="button"
-                  variant="outline"
-                  size="lg"
-                  className="flex-1"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('onboardingBack')}
                   disabled={submitting}
                   onClick={() => goToStep(2)}
                 >
-                  {t('onboardingBack')}
+                  <ArrowLeft aria-hidden />
                 </Button>
                 <Button
                   type="button"
-                  variant="primary"
-                  size="lg"
+                  variant="accent"
                   className="flex-1"
-                  disabled={submitting}
+                  loading={submitting}
                   onClick={() => void finishOnboarding()}
                 >
-                  {submitting ? t('authSubmitting') : t('onboardingGoDashboard')}
+                  {submitting ? t('bootLoadingLabel') : t('onboardingGoDashboard')}
                 </Button>
               </div>
             </div>

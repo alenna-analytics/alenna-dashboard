@@ -339,9 +339,8 @@ const SHELL_STRINGS = {
     onboardingCompanyTitle: 'Nombre de tu empresa',
     onboardingCompanySubtitle: 'Será el nombre de tu workspace en Alenna.',
     onboardingCompanyName: 'Empresa',
-    onboardingTrialTitle: 'Tu prueba gratis',
-    onboardingTrialIntro:
-      '{days} días sin costo para explorar Alenna. Después, USD ${price}/mes.',
+    onboardingTrialTitle: 'Prueba Alenna por {days} días sin costo',
+    onboardingTrialIntro: 'Después, USD ${price}/mes.',
     onboardingTrialBulletReports: 'Reportes y panel consolidado',
     onboardingTrialBulletCogs: 'Productos y costos (COGS)',
     onboardingTrialBulletChannels: 'Canales Shopify y Mercado Libre',
@@ -1523,9 +1522,8 @@ const SHELL_STRINGS = {
     onboardingCompanyTitle: 'Company name',
     onboardingCompanySubtitle: 'This becomes your Alenna workspace name.',
     onboardingCompanyName: 'Company',
-    onboardingTrialTitle: 'Your free trial',
-    onboardingTrialIntro:
-      '{days} days free to explore Alenna. Then USD ${price}/month.',
+    onboardingTrialTitle: 'Try Alenna free for {days} days',
+    onboardingTrialIntro: 'Then, USD ${price}/month.',
     onboardingTrialBulletReports: 'Reports and consolidated dashboard',
     onboardingTrialBulletCogs: 'Products and COGS',
     onboardingTrialBulletChannels: 'Shopify and Mercado Libre channels',

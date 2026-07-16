@@ -22,17 +22,16 @@ export function ServiceErrorScreen({
 
       <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
         <div className="flex w-full max-w-md flex-col items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[color:var(--text-primary)] sm:text-[1.75rem]">
+          <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
             {shellT(lang, titleKey)}
           </h1>
-          <p className="text-[15px] leading-relaxed text-neutral-500 sm:text-base">
+          <p className="text-sm leading-relaxed text-neutral-500">
             {shellT(lang, descriptionKey)}
           </p>
           <Button
             type="button"
             variant="accent"
-            size="default"
-            className=""
+            className="mt-4 min-w-44 rounded-lg px-6"
             onClick={() => window.location.reload()}
           >
             {shellT(lang, 'shellErrorRefresh')}

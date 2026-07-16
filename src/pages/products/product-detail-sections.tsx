@@ -126,6 +126,7 @@ export function ProductDetailSections({
       key: 'sales',
       label: t(salesLabelKey(salesMetricBasis)),
       helpText: t(productSalesHelpKey(salesMetricBasis)),
+      numericValue: salesValue,
       value: insightKpi(
         costAmountWithBaseCode(fmtBase(salesValue), baseCurrency, 'text-xs'),
       ),
@@ -135,6 +136,7 @@ export function ProductDetailSections({
       key: 'profit',
       label: t(profitLabelKey(salesMetricBasis)),
       helpText: t(productProfitHelpKey(salesMetricBasis)),
+      numericValue: profitValue,
       value: insightKpi(
         costAmountWithBaseCode(fmtBase(profitValue), baseCurrency, 'text-xs'),
       ),
@@ -142,6 +144,7 @@ export function ProductDetailSections({
     {
       key: 'units',
       label: t(unitsLabelKey(salesMetricBasis)),
+      numericValue: unitsValue,
       value: insightKpi(unitsValue.toLocaleString()),
       breakdown: platformUnitsBreakdown,
     },
@@ -149,6 +152,7 @@ export function ProductDetailSections({
       key: 'margin',
       label: t('productsDetailKpiContributionMarginPct'),
       helpText: t('productsDetailKpiContributionMarginPctHelp'),
+      numericValue: Number(detail.gross_margin_pct),
       value: insightKpi(`${Number(detail.gross_margin_pct).toFixed(1)}%`),
     },
     {
@@ -156,6 +160,7 @@ export function ProductDetailSections({
       label: t('productsDetailKpiInventoryDays'),
       helpText: t('productsDetailKpiInventoryDaysHelp'),
       footer: t('productsDetailKpiInventoryDaysWindow'),
+      numericValue: detail.inventory_days,
       value: insightKpi(formatInventoryDays(detail, t)),
     },
   ]
@@ -205,6 +210,7 @@ export function ProductDetailSections({
                 showValues={showInsightValues}
                 isFetching={insightsFetching}
                 skeleton={kpiSkeleton}
+                numericValue={kpi.numericValue}
                 value={kpi.value}
               />
             ))}

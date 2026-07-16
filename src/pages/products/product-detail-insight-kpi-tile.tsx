@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { HelpCircle } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { kpiValueToneClass } from '@/lib/kpi-value-tone'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 const NUM = 'font-numeric tabular-nums'
@@ -10,6 +11,7 @@ type ProductDetailInsightKpiTileProps = {
   label: string
   helpText?: string
   value: ReactNode
+  numericValue?: number | null
   breakdown?: ReactNode
   footer?: ReactNode
   showValues: boolean
@@ -21,6 +23,7 @@ export function ProductDetailInsightKpiTile({
   label,
   helpText,
   value,
+  numericValue,
   breakdown,
   footer,
   showValues,
@@ -51,7 +54,9 @@ export function ProductDetailInsightKpiTile({
       <p
         className={cn(
           'text-lg font-semibold sm:text-xl',
-          showValues ? 'text-text-primary' : 'text-text-tertiary',
+          showValues
+            ? kpiValueToneClass(numericValue, 'text-text-primary')
+            : 'text-text-tertiary',
           NUM,
         )}
       >

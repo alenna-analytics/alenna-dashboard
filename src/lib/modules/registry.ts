@@ -14,7 +14,7 @@ export const MODULES: readonly ModuleDefinition[] = [
     labelKey: 'navSales',
     path: '/dashboard/sales',
     icon: 'sales',
-    comingSoon: true,
+    comingSoon: false,
     section: 'analytics',
   },
   {

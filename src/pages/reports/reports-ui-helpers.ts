@@ -11,9 +11,12 @@ import {
   startOfWeek,
   subDays,
   subMonths,
+  subYears,
 } from 'date-fns'
 
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
+
+export type DateRangeYmd = { start: string; end: string }
 
 export function toYmd(d: Date): string {
   const y = d.getFullYear()
@@ -58,7 +61,7 @@ export function computePreviousPeriod(
 export function computeShiftedPreviousPeriod(
   startYmd: string,
   endYmd: string,
-): { start: string; end: string } | null {
+): DateRangeYmd | null {
   const rawStart = parseLocalYmd(startYmd)
   const rawEnd = parseLocalYmd(endYmd)
   if (Number.isNaN(rawStart.getTime()) || Number.isNaN(rawEnd.getTime()) || rawStart > rawEnd) return null
@@ -69,6 +72,47 @@ export function computeShiftedPreviousPeriod(
   const prevEnd = subDays(rawStart, 1)
   const prevStart = subDays(prevEnd, days - 1)
   return { start: toYmd(prevStart), end: toYmd(prevEnd) }
+}
+
+/**
+ * Calendar MoM windows for glossary MoM%:
+ * current = full calendar month containing `endYmd`,
+ * previous = the calendar month immediately before.
+ */
+export function computeCalendarMomPeriod(endYmd: string): {
+  current: DateRangeYmd
+  previous: DateRangeYmd
+} | null {
+  const rawEnd = parseLocalYmd(endYmd)
+  if (Number.isNaN(rawEnd.getTime())) return null
+
+  const currentStart = startOfMonth(rawEnd)
+  const currentEnd = endOfMonth(rawEnd)
+  const previousStart = startOfMonth(subMonths(currentStart, 1))
+  const previousEnd = endOfMonth(subMonths(currentStart, 1))
+
+  return {
+    current: { start: toYmd(currentStart), end: toYmd(currentEnd) },
+    previous: { start: toYmd(previousStart), end: toYmd(previousEnd) },
+  }
+}
+
+/**
+ * YoY window: same inclusive `[startYmd, endYmd]` shifted back one calendar year.
+ */
+export function computeYoyPeriod(
+  startYmd: string,
+  endYmd: string,
+): DateRangeYmd | null {
+  const rawStart = parseLocalYmd(startYmd)
+  const rawEnd = parseLocalYmd(endYmd)
+  if (Number.isNaN(rawStart.getTime()) || Number.isNaN(rawEnd.getTime()) || rawStart > rawEnd) {
+    return null
+  }
+  return {
+    start: toYmd(subYears(rawStart, 1)),
+    end: toYmd(subYears(rawEnd, 1)),
+  }
 }
 
 export type PctTrend = 'up' | 'down' | 'flat'

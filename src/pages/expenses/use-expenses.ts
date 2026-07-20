@@ -1,15 +1,23 @@
 import { useAuth } from '@clerk/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch, apiPatchJson, apiPostJson } from '@/lib/api'
+import { shellT } from '@/lib/i18n/shell-strings'
 import type { Expense, ExpenseCreate, ExpenseUpdate } from '@/lib/types/expenses'
+import { useLanguage } from '@/shell/providers/language-provider'
 
 export function useExpenses() {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const { lang } = useLanguage()
   const queryClient = useQueryClient()
   const key = ['expenses', tenantId]
+
+  const invalidateReports = () => {
+    void queryClient.invalidateQueries({ queryKey: ['reports'] })
+  }
 
   const query = useQuery({
     queryKey: key,
@@ -27,7 +35,14 @@ export function useExpenses() {
       if (!res.ok) throw new Error(await res.text())
       return (await res.json()) as Expense
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: key })
+      invalidateReports()
+      toast.success(shellT(lang, 'expensesToastCreated'))
+    },
+    onError: () => {
+      toast.error(shellT(lang, 'expensesToastFailed'))
+    },
   })
 
   const updateMutation = useMutation({
@@ -36,7 +51,14 @@ export function useExpenses() {
       if (!res.ok) throw new Error(await res.text())
       return (await res.json()) as Expense
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: key })
+      invalidateReports()
+      toast.success(shellT(lang, 'expensesToastUpdated'))
+    },
+    onError: () => {
+      toast.error(shellT(lang, 'expensesToastFailed'))
+    },
   })
 
   const deleteMutation = useMutation({
@@ -49,7 +71,14 @@ export function useExpenses() {
       )
       if (!res.ok) throw new Error(await res.text())
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: key })
+      invalidateReports()
+      toast.success(shellT(lang, 'expensesToastDeleted'))
+    },
+    onError: () => {
+      toast.error(shellT(lang, 'expensesToastFailed'))
+    },
   })
 
   return { query, createMutation, updateMutation, deleteMutation }

@@ -58,6 +58,7 @@ export type TopProductRow = {
   image_url: string | null
   internal_sku: string | null
   gross_revenue: number
+  net_revenue: number
   units_sold: number
   cogs: number
   gross_profit: number
@@ -74,7 +75,36 @@ export type ChannelBreakdownRow = {
   shop_domain: string | null
   platform: string
   gross_revenue: number
+  net_revenue: number
+  gross_profit: number
   units_sold: number
+}
+
+export type ChannelKpiRow = {
+  connection_id: string
+  platform: string
+  shop_domain: string | null
+  gross_revenue: number
+  discounts: number
+  returns: number
+  net_revenue: number
+  cogs: number
+  gross_profit: number
+  platform_fees_total: number
+  merchant_shipping_cost: number
+  contribution_margin: number
+  contribution_margin_pct: number
+  units_sold: number
+  order_count: number
+}
+
+export type ChannelKpisResponse = {
+  items: ChannelKpiRow[]
+  currency: string
+  tenant_fixed_operating_expenses: number | null
+  tenant_ads_spend: number | null
+  /** True when product_ids filter is active: fees not allocated; CM is not glossary CM. */
+  cm_incomplete?: boolean
 }
 
 export type ChannelBreakdownResponse = {
@@ -90,10 +120,15 @@ export type ChannelTimeSeriesRow = {
   gross_revenue: number
   net_revenue: number
   gross_profit: number
+  cogs: number
+  platform_fees_total: number
+  contribution_margin: number
 }
 
 export type ChannelTimeSeriesResponse = {
   granularity: RevenueSeriesGranularity
   currency: string
   rows: ChannelTimeSeriesRow[]
+  /** True when product_ids filter is active: fees not allocated; CM is not glossary CM. */
+  cm_incomplete?: boolean
 }

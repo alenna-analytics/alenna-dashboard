@@ -12,4 +12,9 @@ describe('module ids', () => {
       'products',
     ])
   })
+
+  it('recognizes expenses module', () => {
+    expect(isModuleId('expenses')).toBe(true)
+    expect(parseModuleIds(['expenses', 'channels', 'nope'])).toEqual(['expenses', 'channels'])
+  })
 })

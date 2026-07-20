@@ -11,6 +11,10 @@ export function useExpenses() {
   const queryClient = useQueryClient()
   const key = ['expenses', tenantId]
 
+  const invalidateReports = () => {
+    void queryClient.invalidateQueries({ queryKey: ['reports'] })
+  }
+
   const query = useQuery({
     queryKey: key,
     enabled: Boolean(tenantId),
@@ -29,7 +33,7 @@ export function useExpenses() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: key })
-      void queryClient.invalidateQueries({ queryKey: ['reports', 'kpis'] })
+      invalidateReports()
     },
   })
 
@@ -41,7 +45,7 @@ export function useExpenses() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: key })
-      void queryClient.invalidateQueries({ queryKey: ['reports', 'kpis'] })
+      invalidateReports()
     },
   })
 
@@ -57,7 +61,7 @@ export function useExpenses() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: key })
-      void queryClient.invalidateQueries({ queryKey: ['reports', 'kpis'] })
+      invalidateReports()
     },
   })
 

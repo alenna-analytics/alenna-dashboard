@@ -28,6 +28,7 @@ import { SalesPage } from '@/pages/sales/SalesPage'
 import { AdsPage } from '@/pages/ads/AdsPage'
 import { SimulationsPage } from '@/pages/simulations/SimulationsPage'
 import { ChannelsPage } from '@/pages/channels/ChannelsPage'
+import { ExpensesPage } from '@/pages/expenses/ExpensesPage'
 import { ConfigurationShellLayout } from '@/pages/configuration/configuration-shell-layout'
 import { ConfigurationIndexRedirect } from '@/pages/configuration/configuration-index-redirect'
 import { AlarmsConfigurationListPage } from '@/pages/configuration/alarms/AlarmsConfigurationListPage'
@@ -74,6 +75,7 @@ function App() {
           <Route path="ads" element={<AdsPage />} />
           <Route path="simulations" element={<SimulationsPage />} />
           <Route path="channels" element={<ChannelsPage />} />
+          <Route path="expenses" element={<ExpensesPage />} />
           <Route path="connections" element={<Navigate to="/dashboard/integrations" replace />} />
           <Route path="*" element={<NotFoundPage variant="embedded" />} />
         </Route>

@@ -34,6 +34,14 @@ export const MODULES: readonly ModuleDefinition[] = [
     section: 'analytics',
   },
   {
+    id: 'expenses',
+    labelKey: 'navExpenses',
+    path: '/dashboard/expenses',
+    icon: 'billing',
+    comingSoon: false,
+    section: 'analytics',
+  },
+  {
     id: 'ads',
     labelKey: 'navAds',
     path: '/dashboard/ads',

@@ -15,11 +15,23 @@ import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filt
 import { DashboardProfitMarginChart } from '@/pages/dashboard/dashboard-profit-margin-chart'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
 import { HomeProductFilter } from '@/pages/dashboard/home-product-filter'
+import { buildBenchmarkRows } from '@/pages/reports/reports-benchmarks'
+import { ReportsBenchmarksTable } from '@/pages/reports/reports-benchmarks-table'
+import { ReportsHeroKpis } from '@/pages/reports/reports-hero-kpis'
+import { buildProductPnlRows, buildTenantPnlRows } from '@/pages/reports/reports-pnl-rows'
+import { ReportsPnlTable } from '@/pages/reports/reports-pnl-table'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import {
+  computeCalendarMomPeriod,
+  computeShiftedPreviousPeriod,
+  computeYoyPeriod,
+  pctVersusPrevious,
+} from '@/pages/reports/reports-ui-helpers'
 import { buildWaterfallSegments } from '@/pages/reports/waterfall-segments'
 import { WaterfallChart } from '@/pages/reports/waterfall-chart'
-import { useReports } from '@/pages/reports/use-reports'
 import { useChannelTimeSeries } from '@/pages/reports/use-channel-time-series'
+import { useProductReports } from '@/pages/reports/use-product-reports'
+import { useReports } from '@/pages/reports/use-reports'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
@@ -100,16 +112,24 @@ function platformDisplayName(platform: string): string {
 
 function ReportsLoadingSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      {Array.from({ length: 2 }).map((_, i) => (
-        <SectionContainer key={i} className="overflow-visible">
-          <div className="mb-4 space-y-2" aria-hidden>
-            <Skeleton className="h-6 w-48 max-w-[80%]" />
-            <Skeleton className="h-4 w-full max-w-xl" />
-          </div>
-          <Skeleton className="h-80 w-full rounded-md" />
-        </SectionContainer>
-      ))}
+    <div className="flex flex-col gap-12">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-28 w-full rounded-md" />
+        ))}
+      </div>
+      <Skeleton className="h-64 w-full rounded-md" />
+      <div className="flex flex-col gap-12">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <SectionContainer key={i}>
+            <div className="mb-4 space-y-2" aria-hidden>
+              <Skeleton className="h-6 w-48 max-w-[80%]" />
+              <Skeleton className="h-4 w-full max-w-xl" />
+            </div>
+            <Skeleton className="h-80 w-full rounded-md" />
+          </SectionContainer>
+        ))}
+      </div>
     </div>
   )
 }
@@ -179,11 +199,97 @@ export function ReportsPage() {
     [connections],
   )
 
-  const { data: kpi, isLoading: kpiLoading } = useReports({
+  const queriesEnabled = activeConnectionIds.length > 0
+  const prevPeriod = useMemo(
+    () => computeShiftedPreviousPeriod(startDate, endDate),
+    [startDate, endDate],
+  )
+  const momPeriod = useMemo(() => computeCalendarMomPeriod(endDate), [endDate])
+  const yoyPeriod = useMemo(
+    () => computeYoyPeriod(startDate, endDate),
+    [startDate, endDate],
+  )
+
+  const {
+    data: kpi,
+    isLoading: kpiLoading,
+    isSuccess: kpiReady,
+  } = useReports({
     connectionIds: activeConnectionIds,
     startDate,
     endDate,
-    enabled: !productMode && activeConnectionIds.length > 0,
+    enabled: queriesEnabled && !productMode,
+  })
+
+  const { data: kpiPrev, isLoading: kpiPrevLoading } = useReports({
+    connectionIds: activeConnectionIds,
+    startDate: prevPeriod?.start ?? '',
+    endDate: prevPeriod?.end ?? '',
+    enabled: queriesEnabled && !productMode && Boolean(prevPeriod) && kpiReady,
+  })
+
+  const {
+    data: pkpi,
+    isLoading: pkpiLoading,
+    isSuccess: pkpiReady,
+  } = useProductReports({
+    connectionIds: activeConnectionIds,
+    productIds,
+    startDate,
+    endDate,
+    enabled: queriesEnabled && productMode,
+  })
+
+  const { data: pkpiPrev, isLoading: pkpiPrevLoading } = useProductReports({
+    connectionIds: activeConnectionIds,
+    productIds,
+    startDate: prevPeriod?.start ?? '',
+    endDate: prevPeriod?.end ?? '',
+    enabled: queriesEnabled && productMode && Boolean(prevPeriod) && pkpiReady,
+  })
+
+  const { data: momCurrent, isLoading: momCurrentLoading } = useReports({
+    connectionIds: activeConnectionIds,
+    startDate: momPeriod?.current.start ?? '',
+    endDate: momPeriod?.current.end ?? '',
+    enabled: queriesEnabled && !productMode && Boolean(momPeriod),
+  })
+  const { data: momPrevious, isLoading: momPreviousLoading } = useReports({
+    connectionIds: activeConnectionIds,
+    startDate: momPeriod?.previous.start ?? '',
+    endDate: momPeriod?.previous.end ?? '',
+    enabled: queriesEnabled && !productMode && Boolean(momPeriod) && Boolean(momCurrent),
+  })
+
+  const { data: momProductCurrent, isLoading: momProductCurrentLoading } = useProductReports({
+    connectionIds: activeConnectionIds,
+    productIds,
+    startDate: momPeriod?.current.start ?? '',
+    endDate: momPeriod?.current.end ?? '',
+    enabled: queriesEnabled && productMode && Boolean(momPeriod),
+  })
+  const { data: momProductPrevious, isLoading: momProductPreviousLoading } = useProductReports({
+    connectionIds: activeConnectionIds,
+    productIds,
+    startDate: momPeriod?.previous.start ?? '',
+    endDate: momPeriod?.previous.end ?? '',
+    enabled:
+      queriesEnabled && productMode && Boolean(momPeriod) && Boolean(momProductCurrent),
+  })
+
+  const { data: yoyPrevious, isLoading: yoyPreviousLoading } = useReports({
+    connectionIds: activeConnectionIds,
+    startDate: yoyPeriod?.start ?? '',
+    endDate: yoyPeriod?.end ?? '',
+    enabled: queriesEnabled && !productMode && Boolean(yoyPeriod) && kpiReady,
+  })
+
+  const { data: yoyProductPrevious, isLoading: yoyProductPreviousLoading } = useProductReports({
+    connectionIds: activeConnectionIds,
+    productIds,
+    startDate: yoyPeriod?.start ?? '',
+    endDate: yoyPeriod?.end ?? '',
+    enabled: queriesEnabled && productMode && Boolean(yoyPeriod) && pkpiReady,
   })
 
   const {
@@ -208,7 +314,8 @@ export function ReportsPage() {
     return kpi ?? zeroKpiResponse(baseCurrency)
   }, [productMode, connectorsLoading, activeConnectionIds, kpiLoading, kpi, baseCurrency])
 
-  const currency = displayKpi?.currency ?? baseCurrency
+  const currency =
+    (productMode ? pkpi?.currency : displayKpi?.currency) ?? baseCurrency
   const convertFromBase = useMemo(
     () => (n: number) => convertMoney(n, { nativeCurrency: currency }).amount,
     [convertMoney, currency],
@@ -216,6 +323,10 @@ export function ReportsPage() {
   const formatInDisplay = useMemo(
     () => (n: number) => formatMoney(n, { nativeCurrency: effectiveDisplayCurrency }),
     [formatMoney, effectiveDisplayCurrency],
+  )
+  const formatConverted = useCallback(
+    (n: number) => formatInDisplay(convertFromBase(n)),
+    [formatInDisplay, convertFromBase],
   )
 
   const waterfallSegments = useMemo(() => {
@@ -231,8 +342,69 @@ export function ReportsPage() {
     }))
   }, [displayKpi, productMode, t, convertFromBase])
 
+  const previousReady = Boolean(prevPeriod) && (productMode ? !pkpiPrevLoading : !kpiPrevLoading)
+
+  const momReady = productMode
+    ? Boolean(momPeriod) && !momProductCurrentLoading && !momProductPreviousLoading
+    : Boolean(momPeriod) && !momCurrentLoading && !momPreviousLoading
+
+  const yoyReady = productMode
+    ? Boolean(yoyPeriod) && pkpiReady && !yoyProductPreviousLoading
+    : Boolean(yoyPeriod) && kpiReady && !yoyPreviousLoading
+
+  const momPct = useMemo(() => {
+    if (!momReady) return null
+    const cur = productMode
+      ? momProductCurrent?.net_revenue
+      : momCurrent?.net_revenue
+    const prev = productMode
+      ? momProductPrevious?.net_revenue
+      : momPrevious?.net_revenue
+    if (cur === undefined || prev === undefined) return null
+    return pctVersusPrevious(cur, prev)?.pct ?? null
+  }, [
+    momReady,
+    productMode,
+    momProductCurrent,
+    momProductPrevious,
+    momCurrent,
+    momPrevious,
+  ])
+
+  const yoyPct = useMemo(() => {
+    if (!yoyReady) return null
+    const cur = productMode ? pkpi?.net_revenue : kpi?.net_revenue
+    const prev = productMode
+      ? yoyProductPrevious?.net_revenue
+      : yoyPrevious?.net_revenue
+    if (cur === undefined || prev === undefined) return null
+    return pctVersusPrevious(cur, prev)?.pct ?? null
+  }, [yoyReady, productMode, pkpi, kpi, yoyProductPrevious, yoyPrevious])
+
+  const pnlRows = useMemo(() => {
+    if (productMode) {
+      if (!pkpi) return []
+      return buildProductPnlRows(pkpi, pkpiPrev ?? null, yoyProductPrevious ?? null)
+    }
+    if (!displayKpi) return []
+    return buildTenantPnlRows(displayKpi, kpiPrev ?? null, yoyPrevious ?? null)
+  }, [productMode, pkpi, pkpiPrev, yoyProductPrevious, displayKpi, kpiPrev, yoyPrevious])
+
+  const benchmarkRows = useMemo(() => {
+    if (productMode || !displayKpi) return []
+    return buildBenchmarkRows({
+      grossMarginPct: displayKpi.gross_margin_pct,
+      contributionMarginPct: displayKpi.contribution_margin_pct,
+      adsSpend: displayKpi.ads_spend,
+      netRevenue: displayKpi.net_revenue,
+      ebitdaMarginPct: displayKpi.ebitda_margin_pct,
+    })
+  }, [productMode, displayKpi])
+
   const isInitialLoad =
-    connectorsLoading || (!productMode && activeConnectionIds.length > 0 && displayKpi === null)
+    connectorsLoading ||
+    (queriesEnabled &&
+      (productMode ? pkpiLoading && !pkpi : kpiLoading && displayKpi === null))
 
   const pickerStrings = {
     applyLabel: t('datePickerApply'),
@@ -248,7 +420,7 @@ export function ReportsPage() {
   }
 
   return (
-    <DashboardPage className={cn('flex flex-1 flex-col', hasNoIntegrations ? 'gap-0' : 'gap-4')}>
+    <DashboardPage className={cn('flex flex-1 flex-col', hasNoIntegrations ? 'gap-0' : 'gap-8')}>
       {!hasNoIntegrations ? (
         <header className="flex flex-col gap-4">
           <div className="min-w-0">
@@ -297,65 +469,99 @@ export function ReportsPage() {
       ) : isInitialLoad ? (
         <ReportsLoadingSkeleton />
       ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {!productMode && displayKpi ? (
-            <SectionContainer className="overflow-visible">
-              <SectionHeader
-                title={t('reportsSectionRevenueBreakdown')}
-                description={t('reportsWaterfallSubtitle')}
-              />
-              <WaterfallChart
-                segments={waterfallSegments}
-                currency={effectiveDisplayCurrency}
-                grossRevenue={convertFromBase(displayKpi.gross_revenue)}
-                formatPctOfGross={(pct) =>
-                  t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))
-                }
-                finalBarCaption={t('reportsWaterfallFinalHint')}
-              />
-            </SectionContainer>
-          ) : (
-            <SectionContainer className="overflow-visible">
-              <SectionHeader
-                title={t('reportsSectionRevenueBreakdown')}
-                description={t('reportsWaterfallSubtitle')}
-              />
-              <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
-                {t('reportsNoData')}
-              </p>
-            </SectionContainer>
-          )}
+        <div className="flex flex-col gap-12">
+          <ReportsHeroKpis
+            mode={productMode ? 'product' : 'tenant'}
+            kpi={displayKpi}
+            productKpi={pkpi ?? null}
+            kpiPrev={kpiPrev ?? null}
+            productKpiPrev={pkpiPrev ?? null}
+            previousReady={previousReady}
+            momPct={momPct}
+            momReady={momReady}
+            yoyPct={yoyPct}
+            yoyReady={yoyReady}
+            currency={currency}
+            t={t}
+          />
 
-          <SectionContainer className="overflow-visible">
-            <SectionHeader
-              title={t('dashboardProfitMarginTitle')}
-              description={t('dashboardProfitMarginSubtitle')}
-              aside={
-                <ChartGranularityFilter
-                  value={profitMarginGranularity}
-                  onChange={setProfitMarginGranularity}
+          {productMode ? (
+            <p className="text-sm text-text-secondary">{t('reportsProductModeHint')}</p>
+          ) : null}
+
+          {pnlRows.length > 0 ? (
+            <ReportsPnlTable
+              rows={pnlRows}
+              formatMoney={formatConverted}
+              cogsIncomplete={!productMode && Boolean(displayKpi?.cogs_incomplete)}
+              t={t}
+            />
+          ) : null}
+
+          <div className="flex flex-col gap-12">
+            {!productMode && displayKpi ? (
+              <SectionContainer>
+                <SectionHeader
+                  title={t('reportsSectionRevenueBreakdown')}
+                  description={t('reportsWaterfallSubtitle')}
+                />
+                <WaterfallChart
+                  segments={waterfallSegments}
+                  currency={effectiveDisplayCurrency}
+                  grossRevenue={convertFromBase(displayKpi.gross_revenue)}
+                  formatPctOfGross={(pct) =>
+                    t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))
+                  }
+                  finalBarCaption={t('reportsWaterfallFinalHint')}
+                />
+              </SectionContainer>
+            ) : (
+              <SectionContainer>
+                <SectionHeader
+                  title={t('reportsSectionRevenueBreakdown')}
+                  description={t('reportsWaterfallSubtitle')}
+                />
+                <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
+                  {productMode ? t('reportsProductModeHint') : t('reportsNoData')}
+                </p>
+              </SectionContainer>
+            )}
+
+            <SectionContainer>
+              <SectionHeader
+                title={t('dashboardProfitMarginTitle')}
+                description={t('dashboardProfitMarginSubtitle')}
+                aside={
+                  <ChartGranularityFilter
+                    value={profitMarginGranularity}
+                    onChange={setProfitMarginGranularity}
+                    t={t}
+                  />
+                }
+              />
+              {profitMarginTimeSeriesError ? (
+                <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
+                  {t('reportsMonthlyLoadError')}
+                </p>
+              ) : (
+                <DashboardProfitMarginChart
+                  startDate={startDate}
+                  endDate={endDate}
+                  granularity={profitMarginGranularity}
+                  rows={profitMarginTimeSeries?.rows ?? []}
+                  currency={effectiveDisplayCurrency}
+                  convertValue={convertFromBase}
+                  formatValue={formatInDisplay}
+                  dateLocale={dateLocale}
                   t={t}
                 />
-              }
-            />
-            {profitMarginTimeSeriesError ? (
-              <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
-                {t('reportsMonthlyLoadError')}
-              </p>
-            ) : (
-              <DashboardProfitMarginChart
-                startDate={startDate}
-                endDate={endDate}
-                granularity={profitMarginGranularity}
-                rows={profitMarginTimeSeries?.rows ?? []}
-                currency={effectiveDisplayCurrency}
-                convertValue={convertFromBase}
-                formatValue={formatInDisplay}
-                dateLocale={dateLocale}
-                t={t}
-              />
-            )}
-          </SectionContainer>
+              )}
+            </SectionContainer>
+          </div>
+
+          {!productMode && benchmarkRows.length > 0 ? (
+            <ReportsBenchmarksTable rows={benchmarkRows} t={t} />
+          ) : null}
         </div>
       )}
     </DashboardPage>

@@ -21,6 +21,8 @@ type DataTableProps<TData> = {
   skeletonRowCount?: number
   /** Max height so ~8 rows are visible with vertical scroll (page size may be 10). */
   scrollClassName?: string
+  /** `card` (default) keeps bordered section shell; `plain` is borderless for flat analytics layouts. */
+  variant?: 'card' | 'plain'
   /** Renders inside the card above the scroll area (e.g. toolbar with column visibility). */
   toolbar?: React.ReactNode
   search?: {
@@ -43,6 +45,7 @@ export function DataTable<TData>({
   emptyContent,
   skeletonRowCount = 10,
   scrollClassName = "max-h-[32rem] overflow-auto",
+  variant = 'card',
   toolbar,
   search,
   footer,
@@ -52,11 +55,24 @@ export function DataTable<TData>({
   const showSkeleton = isLoading && !hasEverLoaded
   const showOverlay = isFetching && hasEverLoaded
   const showEmpty = !isLoading && hasEverLoaded && rows.length === 0
+  const isPlain = variant === 'plain'
 
   return (
-    <div className="relative overflow-hidden rounded-md border border-border-subtle bg-bg-section">
+    <div
+      className={cn(
+        'relative',
+        isPlain
+          ? 'w-full overflow-x-auto'
+          : 'overflow-hidden rounded-md border border-border-subtle bg-bg-section',
+      )}
+    >
       {toolbar || search ? (
-        <div className="flex min-h-10 items-center justify-between gap-2 border-b border-border-subtle rounded-t-md bg-white px-3 py-2">
+        <div
+          className={cn(
+            'flex min-h-10 items-center justify-between gap-2 border-b border-border-subtle px-3 py-2',
+            isPlain ? 'bg-transparent' : 'rounded-t-md bg-white',
+          )}
+        >
           <div className="min-w-0 flex-1">
             {search ? (
               <div className={cn("relative w-full max-w-xs", search.className)}>
@@ -114,7 +130,8 @@ export function DataTable<TData>({
                       key={header.id}
                       colSpan={header.colSpan}
                       className={cn(
-                        "sticky top-0 z-10 border-0 bg-glass-fill-raised align-middle shadow-[0_1px_0_var(--border-subtle)] font-semibold text-text-secondary",
+                        "sticky top-0 z-10 border-0 align-middle shadow-[0_1px_0_var(--border-subtle)] font-semibold text-text-secondary",
+                        isPlain ? "bg-transparent" : "bg-glass-fill-raised",
                         meta?.headerClassName,
                       )}
                     >
@@ -132,7 +149,10 @@ export function DataTable<TData>({
               ? Array.from({ length: skeletonRowCount }).map((_, i) => (
                 <TableRow
                   key={`sk-${i}`}
-                  className="bg-white hover:bg-white data-[state=selected]:bg-white"
+                  className={cn(
+                    'hover:bg-transparent data-[state=selected]:bg-transparent',
+                    isPlain ? 'bg-transparent' : 'bg-white hover:bg-white data-[state=selected]:bg-white',
+                  )}
                 >
                   {table.getVisibleFlatColumns().map((col) => (
                     <TableCell key={col.id}>
@@ -145,7 +165,12 @@ export function DataTable<TData>({
               ))
               : null}
             {!showSkeleton && showEmpty ? (
-              <TableRow className="bg-white hover:bg-white data-[state=selected]:bg-white">
+              <TableRow
+                className={cn(
+                  'hover:bg-transparent data-[state=selected]:bg-transparent',
+                  isPlain ? 'bg-transparent' : 'bg-white hover:bg-white data-[state=selected]:bg-white',
+                )}
+              >
                 <TableCell colSpan={table.getVisibleFlatColumns().length} className="h-32 text-center">
                   {emptyContent}
                 </TableCell>
@@ -157,7 +182,10 @@ export function DataTable<TData>({
                   key={row.id}
                   data-state={row.getIsSelected() ? "selected" : undefined}
                   className={cn(
-                    "group bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]",
+                    "group",
+                    isPlain
+                      ? "bg-transparent hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
+                      : "bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]",
                     onRowClick && "cursor-pointer",
                   )}
                   onClick={onRowClick ? () => onRowClick(row.original) : undefined}

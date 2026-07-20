@@ -11,6 +11,7 @@ export type ModuleId =
   | 'workspace-config'
   | 'alarms'
   | 'channels'
+  | 'expenses'
 
 export type ModuleSection = 'analytics' | 'config'
 
@@ -37,7 +38,8 @@ export function isModuleId(value: string): value is ModuleId {
     value === 'integrations' ||
     value === 'workspace-config' ||
     value === 'alarms' ||
-    value === 'channels'
+    value === 'channels' ||
+    value === 'expenses'
   )
 }
 

@@ -27,6 +27,25 @@ const DisplayCurrencyContext = createContext<DisplayCurrencyContextValue | null>
 
 const STORAGE_KEY = 'alenna-display-currency'
 
+function normalizeLatestFx(
+  raw: MeResponse['latest_fx_for_display'] | null | undefined,
+): LatestFxForDisplay | null {
+  if (!raw) return null
+  const extended = raw as LatestFxForDisplay & {
+    from_currency?: string
+    to_currency?: string
+  }
+  const from = (extended.from ?? extended.from_currency ?? '').trim()
+  const to = (extended.to ?? extended.to_currency ?? '').trim()
+  if (!from || !to) return null
+  return {
+    rate: String(raw.rate),
+    rate_date: raw.rate_date,
+    from,
+    to,
+  }
+}
+
 function readStoredOverride(): DisplayCurrencyCode | null {
   if (typeof window === 'undefined') return null
   const raw = window.localStorage.getItem(STORAGE_KEY)
@@ -104,7 +123,7 @@ export function DisplayCurrencyProvider({
       baseCurrency,
       displayCurrency: displayCurrency.toUpperCase(),
       effectiveDisplayCurrency,
-      latestFx: me?.latest_fx_for_display ?? null,
+      latestFx: normalizeLatestFx(me?.latest_fx_for_display),
       setDisplayCurrency,
       isUpdating,
     }),

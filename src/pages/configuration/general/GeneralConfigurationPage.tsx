@@ -2,16 +2,16 @@ import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 
 import { shellT } from '@/lib/i18n/shell-strings'
-import { DashboardPage } from '@/shell/layout/dashboard-page'
-import { useLanguage, type Language } from '@/shell/providers/language-provider'
-import { useWorkspace } from '@/shell/providers/workspace-context'
-import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import { cn } from '@/lib/utils'
 import { DeleteAccountDangerZone } from '@/pages/configuration/general/delete-account-danger-zone'
 import { DeleteAccountDialog } from '@/pages/configuration/general/delete-account-dialog'
 import {
   useDeleteAccountMutation,
 } from '@/pages/configuration/general/use-account-deletion-mutations'
+import { DashboardPage } from '@/shell/layout/dashboard-page'
+import { useLanguage, type Language } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
+import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 
 function SettingsSection({ children, className }: { children: ReactNode; className?: string }) {
   return (

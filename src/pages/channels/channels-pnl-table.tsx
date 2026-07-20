@@ -1,3 +1,10 @@
+import { useMemo } from 'react'
+import {
+  createColumnHelper,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
   type ChannelPlatform,
@@ -6,6 +13,8 @@ import {
 } from '@/pages/channels/channels-platform-aggregate'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
+import { DataTable } from '@/ui/data-table/data-table'
+import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 
 type PnlLineId =
   | 'gross_revenue'
@@ -101,11 +110,17 @@ const LINES: PnlLine[] = [
   },
 ]
 
+const columnHelper = createColumnHelper<PnlLine>()
+
 type ChannelsPnlTableProps = {
   metrics: Record<string, PlatformMetrics>
   platforms: ChannelPlatform[]
   formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
+}
+
+function emphasisClass(kind: PnlLine['kind']): string {
+  return kind === 'subtotal' || kind === 'total' ? 'font-semibold' : ''
 }
 
 export function ChannelsPnlTable({
@@ -114,10 +129,85 @@ export function ChannelsPnlTable({
   formatMoney,
   t,
 }: ChannelsPnlTableProps) {
-  const cols = [
-    ...platforms,
-    { slug: 'total', label: t('channelsColTotal') },
-  ]
+  const cols = useMemo(
+    () => [...platforms, { slug: 'total', label: t('channelsColTotal') }],
+    [platforms, t],
+  )
+
+  const columns = useMemo(
+    () => [
+      columnHelper.display({
+        id: 'concept',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('reportsPnlColConcept')} />
+        ),
+        cell: ({ row }) => {
+          const line = row.original
+          return (
+            <span className={cn('text-text-primary', emphasisClass(line.kind))}>
+              {line.isDeduction
+                ? `(−) ${t(line.labelKey)}`
+                : line.kind !== 'line'
+                  ? `= ${t(line.labelKey)}`
+                  : t(line.labelKey)}
+            </span>
+          )
+        },
+      }),
+      ...cols.map((col) =>
+        columnHelper.display({
+          id: col.slug,
+          header: ({ column }) => (
+            <DataTableColumnHeader
+              column={column}
+              title={col.label}
+              className="justify-end"
+            />
+          ),
+          cell: ({ row }) => {
+            const line = row.original
+            if (line.isNoData) {
+              return (
+                <span className="w-full text-right text-text-secondary">
+                  {t('channelsNoData')}
+                </span>
+              )
+            }
+            const m = metrics[col.slug]
+            const raw = line.value(m)
+            const display = line.isDeduction ? -Math.abs(raw) : raw
+            const margin = line.marginPct?.(m)
+            return (
+              <span
+                className={cn(
+                  'w-full text-right font-numeric tabular-nums',
+                  line.isDeduction && 'text-text-secondary',
+                  (line.kind === 'subtotal' || line.kind === 'total') &&
+                    'font-semibold text-text-primary',
+                  emphasisClass(line.kind),
+                )}
+              >
+                {formatMoney(display)}
+                {margin !== null && margin !== undefined
+                  ? ` (${margin.toFixed(1)}%)`
+                  : ''}
+              </span>
+            )
+          },
+          meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
+        }),
+      ),
+    ],
+    [cols, formatMoney, metrics, t],
+  )
+
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
+  const table = useReactTable({
+    data: LINES,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    enableSorting: false,
+  })
 
   return (
     <SectionContainer>
@@ -125,76 +215,20 @@ export function ChannelsPnlTable({
         title={t('channelsPnlTitle')}
         description={t('channelsPnlSubtitle')}
       />
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[40rem] border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-border-default text-left text-text-secondary">
-              <th className="px-3 py-2 font-medium">{t('reportsPnlColConcept')}</th>
-              {cols.map((col) => (
-                <th key={col.slug} className="px-3 py-2 text-right font-medium">
-                  {col.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {LINES.map((line) => (
-              <tr
-                key={line.id}
-                className={cn(
-                  'border-b border-border-default/60',
-                  (line.kind === 'subtotal' || line.kind === 'total') && 'bg-muted/20',
-                )}
-              >
-                <td
-                  className={cn(
-                    'px-3 py-2 text-text-primary',
-                    (line.kind === 'subtotal' || line.kind === 'total') && 'font-semibold',
-                  )}
-                >
-                  {line.isDeduction
-                    ? `(−) ${t(line.labelKey)}`
-                    : line.kind !== 'line'
-                      ? `= ${t(line.labelKey)}`
-                      : t(line.labelKey)}
-                </td>
-                {cols.map((col) => {
-                  const m = metrics[col.slug]
-                  if (line.isNoData) {
-                    return (
-                      <td
-                        key={col.slug}
-                        className="px-3 py-2 text-right text-text-secondary"
-                      >
-                        {t('channelsNoData')}
-                      </td>
-                    )
-                  }
-                  const raw = line.value(m)
-                  const display = line.isDeduction ? -Math.abs(raw) : raw
-                  const margin = line.marginPct?.(m)
-                  return (
-                    <td
-                      key={col.slug}
-                      className={cn(
-                        'px-3 py-2 text-right font-numeric tabular-nums',
-                        line.isDeduction && 'text-text-secondary',
-                        (line.kind === 'subtotal' || line.kind === 'total') &&
-                          'font-semibold text-text-primary',
-                      )}
-                    >
-                      {formatMoney(display)}
-                      {margin !== null && margin !== undefined
-                        ? ` (${margin.toFixed(1)}%)`
-                        : ''}
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        table={table}
+        variant="plain"
+        isLoading={false}
+        isFetching={false}
+        hasEverLoaded={true}
+        scrollClassName=""
+        emptyContent={
+          <p className="px-4 py-8 text-center text-sm text-text-secondary">
+            {t('reportsNoData')}
+          </p>
+        }
+        skeletonRowCount={8}
+      />
     </SectionContainer>
   )
 }

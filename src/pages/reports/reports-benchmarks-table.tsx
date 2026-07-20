@@ -1,7 +1,16 @@
+import { useMemo } from 'react'
+import {
+  createColumnHelper,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { BenchmarkBand, BenchmarkMetricId, BenchmarkRow } from '@/pages/reports/reports-benchmarks'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
+import { DataTable } from '@/ui/data-table/data-table'
+import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 
 const METRIC_LABELS: Record<BenchmarkMetricId, ShellStringKey> = {
   gross_margin_pct: 'reportsKpiMargenBrutoPct',
@@ -33,57 +42,143 @@ function bandClass(band: BenchmarkBand): string {
   }
 }
 
+const columnHelper = createColumnHelper<BenchmarkRow>()
+
 type ReportsBenchmarksTableProps = {
   rows: BenchmarkRow[]
   t: (key: ShellStringKey) => string
 }
 
 export function ReportsBenchmarksTable({ rows, t }: ReportsBenchmarksTableProps) {
+  const columns = useMemo(
+    () => [
+      columnHelper.display({
+        id: 'metric',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('reportsBenchColMetric')} />
+        ),
+        cell: ({ row }) => (
+          <span className="text-text-primary">{t(METRIC_LABELS[row.original.id])}</span>
+        ),
+      }),
+      columnHelper.display({
+        id: 'value',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('reportsBenchColValue')}
+            className="justify-end"
+          />
+        ),
+        cell: ({ row }) => {
+          const r = row.original
+          return (
+            <span className="w-full text-right font-numeric tabular-nums">
+              {r.band === 'no_data' || r.value === null
+                ? t('reportsBenchStatusNoData')
+                : `${r.value.toFixed(1)}%`}
+            </span>
+          )
+        },
+        meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
+      }),
+      columnHelper.display({
+        id: 'green',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('reportsBenchColGreen')}
+            className="justify-end"
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="w-full text-right text-text-secondary">{row.original.greenLabel}</span>
+        ),
+        meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
+      }),
+      columnHelper.display({
+        id: 'yellow',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('reportsBenchColYellow')}
+            className="justify-end"
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="w-full text-right text-text-secondary">{row.original.yellowLabel}</span>
+        ),
+        meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
+      }),
+      columnHelper.display({
+        id: 'red',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('reportsBenchColRed')}
+            className="justify-end"
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="w-full text-right text-text-secondary">{row.original.redLabel}</span>
+        ),
+        meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
+      }),
+      columnHelper.display({
+        id: 'status',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('reportsBenchColStatus')}
+            className="justify-end"
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="flex w-full justify-end">
+            <span
+              className={cn(
+                'inline-flex rounded-md px-2 py-0.5 text-xs font-medium',
+                bandClass(row.original.band),
+              )}
+            >
+              {t(BAND_LABELS[row.original.band])}
+            </span>
+          </span>
+        ),
+        meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
+      }),
+    ],
+    [t],
+  )
+
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
+  const table = useReactTable({
+    data: rows,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    enableSorting: false,
+  })
+
   return (
     <SectionContainer className="overflow-hidden">
       <SectionHeader
         title={t('reportsBenchmarksTitle')}
         description={t('reportsBenchmarksSubtitle')}
       />
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[36rem] border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-border-default text-left text-text-secondary">
-              <th className="px-3 py-2 font-medium">{t('reportsBenchColMetric')}</th>
-              <th className="px-3 py-2 text-right font-medium">{t('reportsBenchColValue')}</th>
-              <th className="px-3 py-2 text-right font-medium">{t('reportsBenchColGreen')}</th>
-              <th className="px-3 py-2 text-right font-medium">{t('reportsBenchColYellow')}</th>
-              <th className="px-3 py-2 text-right font-medium">{t('reportsBenchColRed')}</th>
-              <th className="px-3 py-2 text-right font-medium">{t('reportsBenchColStatus')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className="border-b border-border-default/60">
-                <td className="px-3 py-2 text-text-primary">{t(METRIC_LABELS[r.id])}</td>
-                <td className="px-3 py-2 text-right font-numeric tabular-nums">
-                  {r.band === 'no_data' || r.value === null
-                    ? t('reportsBenchStatusNoData')
-                    : `${r.value.toFixed(1)}%`}
-                </td>
-                <td className="px-3 py-2 text-right text-text-secondary">{r.greenLabel}</td>
-                <td className="px-3 py-2 text-right text-text-secondary">{r.yellowLabel}</td>
-                <td className="px-3 py-2 text-right text-text-secondary">{r.redLabel}</td>
-                <td className="px-3 py-2 text-right">
-                  <span
-                    className={cn(
-                      'inline-flex rounded-md px-2 py-0.5 text-xs font-medium',
-                      bandClass(r.band),
-                    )}
-                  >
-                    {t(BAND_LABELS[r.band])}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        table={table}
+        variant="plain"
+        isLoading={false}
+        isFetching={false}
+        hasEverLoaded={true}
+        scrollClassName=""
+        emptyContent={
+          <p className="px-4 py-8 text-center text-sm text-text-secondary">
+            {t('reportsNoData')}
+          </p>
+        }
+        skeletonRowCount={8}
+      />
     </SectionContainer>
   )
 }

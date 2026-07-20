@@ -1,6 +1,7 @@
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { KpiResponse, ProductKpiResponse } from '@/lib/types/reports'
 import { KpiCard } from '@/pages/reports/report-ui'
+import { formatGrowthSegmentDisplay } from '@/pages/reports/reports-ui-helpers'
 
 type ReportsHeroKpisProps = {
   mode: 'tenant' | 'product'
@@ -33,6 +34,13 @@ export function ReportsHeroKpis({
 }: ReportsHeroKpisProps) {
   const vsPrior = t('reportsVsPreviousPeriod')
   const comparisonUnavailable = t('reportsComparisonUnavailable')
+  const noBaseline = t('reportsComparisonNoBaseline')
+  const growthDisplay = [
+    formatGrowthSegmentDisplay('MoM', momReady, momPct, noBaseline),
+    formatGrowthSegmentDisplay('YoY', yoyReady, yoyPct, noBaseline),
+  ].join(' · ')
+  const growthNegative =
+    (momPct !== null && momPct < 0) || (yoyPct !== null && yoyPct < 0)
 
   if (mode === 'product' && productKpi) {
     return (
@@ -85,15 +93,8 @@ export function ReportsHeroKpis({
           vsPriorLabel={vsPrior}
           comparisonUnavailable={comparisonUnavailable}
           showVsPrior={false}
-          displayValue={
-            [
-              momReady && momPct !== null ? `MoM ${momPct.toFixed(1)}%` : 'MoM —',
-              yoyReady && yoyPct !== null ? `YoY ${yoyPct.toFixed(1)}%` : 'YoY —',
-            ].join(' · ')
-          }
-          negative={
-            (momPct !== null && momPct < 0) || (yoyPct !== null && yoyPct < 0)
-          }
+          displayValue={growthDisplay}
+          negative={growthNegative}
         />
       </div>
     )
@@ -153,13 +154,8 @@ export function ReportsHeroKpis({
         vsPriorLabel={vsPrior}
         comparisonUnavailable={comparisonUnavailable}
         showVsPrior={false}
-        displayValue={
-          [
-            momReady && momPct !== null ? `MoM ${momPct.toFixed(1)}%` : 'MoM —',
-            yoyReady && yoyPct !== null ? `YoY ${yoyPct.toFixed(1)}%` : 'YoY —',
-          ].join(' · ')
-        }
-        negative={(momPct !== null && momPct < 0) || (yoyPct !== null && yoyPct < 0)}
+        displayValue={growthDisplay}
+        negative={growthNegative}
       />
     </div>
   )

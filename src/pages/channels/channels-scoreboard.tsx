@@ -1,3 +1,10 @@
+import { useMemo } from 'react'
+import {
+  createColumnHelper,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
   type ChannelPlatform,
@@ -6,6 +13,8 @@ import {
 } from '@/pages/channels/channels-platform-aggregate'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
+import { DataTable } from '@/ui/data-table/data-table'
+import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 
 const METRIC_LABELS: Record<ScoreboardMetricId, ShellStringKey> = {
   gross_revenue: 'reportsWfGrossRevenue',
@@ -17,6 +26,8 @@ const METRIC_LABELS: Record<ScoreboardMetricId, ShellStringKey> = {
   contribution_margin: 'reportsWfContributionMargin',
   contribution_margin_pct: 'channelsMetricCmPct',
 }
+
+const columnHelper = createColumnHelper<ScoreboardRow>()
 
 type ChannelsScoreboardProps = {
   rows: ScoreboardRow[]
@@ -47,10 +58,64 @@ export function ChannelsScoreboard({
   formatMoney,
   t,
 }: ChannelsScoreboardProps) {
-  const cols = [
-    ...platforms,
-    { slug: 'total', label: t('channelsColTotal') },
-  ]
+  const cols = useMemo(
+    () => [...platforms, { slug: 'total', label: t('channelsColTotal') }],
+    [platforms, t],
+  )
+
+  const columns = useMemo(
+    () => [
+      columnHelper.display({
+        id: 'concept',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('reportsPnlColConcept')} />
+        ),
+        cell: ({ row }) => (
+          <span className="text-text-primary">{t(METRIC_LABELS[row.original.id])}</span>
+        ),
+      }),
+      ...cols.map((col) =>
+        columnHelper.display({
+          id: col.slug,
+          header: ({ column }) => (
+            <DataTableColumnHeader
+              column={column}
+              title={col.label}
+              className="justify-end"
+            />
+          ),
+          cell: ({ row }) => {
+            const cell = row.original.cells[col.slug]
+            return (
+              <div className="flex w-full flex-col items-end font-numeric tabular-nums text-text-primary">
+                <div>{formatMetric(row.original.id, cell.value, formatMoney)}</div>
+                <div
+                  className={cn(
+                    'text-xs',
+                    cell.deltaPct !== null && cell.deltaPct < 0 && 'text-red-600',
+                    cell.deltaPct !== null && cell.deltaPct > 0 && 'text-emerald-700',
+                    (cell.deltaPct === null || cell.deltaPct === 0) && 'text-text-secondary',
+                  )}
+                >
+                  {fmtPctDelta(cell.deltaPct)}
+                </div>
+              </div>
+            )
+          },
+          meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
+        }),
+      ),
+    ],
+    [cols, formatMoney, t],
+  )
+
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
+  const table = useReactTable({
+    data: rows,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    enableSorting: false,
+  })
 
   return (
     <SectionContainer>
@@ -58,49 +123,20 @@ export function ChannelsScoreboard({
         title={t('channelsScoreboardTitle')}
         description={t('channelsScoreboardSubtitle')}
       />
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[40rem] border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-border-default text-left text-text-secondary">
-              <th className="px-3 py-2 font-medium">{t('reportsPnlColConcept')}</th>
-              {cols.map((col) => (
-                <th key={col.slug} className="px-3 py-2 text-right font-medium">
-                  {col.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id} className="border-b border-border-default/60">
-                <td className="px-3 py-2 text-text-primary">{t(METRIC_LABELS[row.id])}</td>
-                {cols.map((col) => {
-                  const cell = row.cells[col.slug]
-                  return (
-                    <td
-                      key={col.slug}
-                      className="px-3 py-2 text-right font-numeric tabular-nums text-text-primary"
-                    >
-                      <div>{formatMetric(row.id, cell.value, formatMoney)}</div>
-                      <div
-                        className={cn(
-                          'text-xs',
-                          cell.deltaPct !== null && cell.deltaPct < 0 && 'text-red-600',
-                          cell.deltaPct !== null && cell.deltaPct > 0 && 'text-emerald-700',
-                          (cell.deltaPct === null || cell.deltaPct === 0) &&
-                            'text-text-secondary',
-                        )}
-                      >
-                        {fmtPctDelta(cell.deltaPct)}
-                      </div>
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        table={table}
+        variant="plain"
+        isLoading={false}
+        isFetching={false}
+        hasEverLoaded={true}
+        scrollClassName=""
+        emptyContent={
+          <p className="px-4 py-8 text-center text-sm text-text-secondary">
+            {t('reportsNoData')}
+          </p>
+        }
+        skeletonRowCount={8}
+      />
     </SectionContainer>
   )
 }

@@ -2,6 +2,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 
 import { useMoney } from '@/hooks/use-money'
 import { KpiCard, SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { formatGrowthPctDisplay } from '@/pages/reports/reports-ui-helpers'
 
 import type { SalesKpiSource } from './sales-kpi-source'
 
@@ -40,6 +41,7 @@ export function SalesKpiSection({
   const units = kpi.units_sold
   const prevOrders = kpiPrev?.order_count
   const prevUnits = kpiPrev?.units_sold
+  const noBaseline = t('reportsComparisonNoBaseline')
 
   const deductionsTotal =
     showDeductions && kpi.discounts !== undefined && kpi.returns !== undefined
@@ -58,10 +60,8 @@ export function SalesKpiSection({
       ? kpiPrev.net_revenue / kpiPrev.order_count
       : undefined
 
-  const momDisplay =
-    momReady && momPct !== null ? `${momPct.toFixed(1)}%` : '—'
-  const yoyDisplay =
-    yoyReady && yoyPct !== null ? `${yoyPct.toFixed(1)}%` : '—'
+  const momDisplay = formatGrowthPctDisplay(momReady, momPct, noBaseline)
+  const yoyDisplay = formatGrowthPctDisplay(yoyReady, yoyPct, noBaseline)
 
   return (
     <SectionContainer>

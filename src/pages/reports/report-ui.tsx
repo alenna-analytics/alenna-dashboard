@@ -114,7 +114,7 @@ export function KpiCard({
   const delta = previous !== undefined && previousReady ? pctVersusPrevious(value, previous) : null
 
   const mergedHelp =
-    priorUnavailable && comparisonUnavailable.trim() !== ''
+    showVsPrior && priorUnavailable && comparisonUnavailable.trim() !== ''
       ? `${helpText}\n\n${comparisonUnavailable}`
       : helpText
 
@@ -129,7 +129,7 @@ export function KpiCard({
       priorValueDisplay={priorDisplay}
       pct={delta?.pct ?? null}
       trend={delta?.trend ?? 'flat'}
-      comparisonUnavailable={priorUnavailable}
+      comparisonUnavailable={showVsPrior && priorUnavailable}
       negativeMetric={negative}
       showComparison={showVsPrior}
       footer={footer}

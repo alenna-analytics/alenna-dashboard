@@ -4,6 +4,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { KpiResponse } from '@/lib/types/reports'
 
 import { useMoney } from '@/hooks/use-money'
+import { formatGrowthPctDisplay } from '@/pages/reports/reports-ui-helpers'
 import { KpiCard, SectionContainer, SectionHeader } from './report-ui'
 
 const PAID_STATUS_KEYS = ['PAID'] as const
@@ -75,10 +76,16 @@ export function ReportsSummaryCards({
   const breakEvenRev =
     cmDecimal > 0 ? kpi.fixed_operating_expenses / cmDecimal : null
 
-  const momDisplay =
-    momReady && momPct !== null ? `${momPct.toFixed(1)}%` : '—'
-  const yoyDisplay =
-    yoyReady && yoyPct !== null ? `${yoyPct.toFixed(1)}%` : '—'
+  const momDisplay = formatGrowthPctDisplay(
+    momReady,
+    momPct,
+    t('reportsComparisonNoBaseline'),
+  )
+  const yoyDisplay = formatGrowthPctDisplay(
+    yoyReady,
+    yoyPct,
+    t('reportsComparisonNoBaseline'),
+  )
 
   const ordersFooter: ReactNode = (
     <>

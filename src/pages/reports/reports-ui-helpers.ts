@@ -128,6 +128,40 @@ export function pctVersusPrevious(
   return { pct, trend: pct > 0 ? 'up' : 'down' }
 }
 
+export type GrowthDisplayKind = 'loading' | 'value' | 'no_baseline'
+
+export function classifyGrowthDisplay(
+  ready: boolean,
+  pct: number | null,
+): GrowthDisplayKind {
+  if (!ready) return 'loading'
+  if (pct !== null) return 'value'
+  return 'no_baseline'
+}
+
+export function formatGrowthPctDisplay(
+  ready: boolean,
+  pct: number | null,
+  noBaselineLabel: string,
+): string {
+  const kind = classifyGrowthDisplay(ready, pct)
+  if (kind === 'value' && pct !== null) return `${pct.toFixed(1)}%`
+  if (kind === 'no_baseline') return noBaselineLabel
+  return '—'
+}
+
+export function formatGrowthSegmentDisplay(
+  prefix: string,
+  ready: boolean,
+  pct: number | null,
+  noBaselineLabel: string,
+): string {
+  const kind = classifyGrowthDisplay(ready, pct)
+  if (kind === 'value' && pct !== null) return `${prefix} ${pct.toFixed(1)}%`
+  if (kind === 'no_baseline') return `${prefix} ${noBaselineLabel}`
+  return `${prefix} —`
+}
+
 export function fmtCurrency(value: number, currency: string): string {
   return new Intl.NumberFormat(undefined, {
     style: 'currency',

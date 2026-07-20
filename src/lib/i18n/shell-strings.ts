@@ -209,6 +209,14 @@ const SHELL_STRINGS = {
     channelsMetricAov: 'AOV',
     channelsMetricCmPct: 'CM %',
     channelsNoData: 'Sin datos',
+    channelsCmIncompleteNotice:
+      'Filtro de producto activo: las comisiones y el envío no se asignan a productos. La cifra mostrada es utilidad bruta aproximada, no contribución marginal del glosario.',
+    channelsCmProductScopeLabel: 'Utilidad bruta (filtro producto)',
+    channelsPnlSubtitleProductScope:
+      'Con filtro de producto, la última línea es utilidad bruta aproximada (sin fees asignados).',
+    channelsCmChartTitleProductScope: 'Utilidad bruta por canal (filtro producto)',
+    channelsCmChartSubtitleProductScope:
+      'Evolución de utilidad bruta aproximada; no incluye fees de plataforma.',
     comingSoonBadge: 'Próximamente',
     comingSoonPageTitle: 'Próximamente',
     comingSoonPageBody: 'Esta sección estará disponible pronto.',
@@ -850,6 +858,8 @@ const SHELL_STRINGS = {
     expensesSummaryMxn: 'Volumen en MXN',
     expensesSummaryUsd: 'Volumen en USD',
     expensesSummaryCombined: 'Total en {currency}',
+    expensesSummaryWindowHint:
+      'Totales prorrateados al rango de fechas seleccionado (misma lógica que el P&L). Sin fechas, se muestran montos de catálogo.',
     expensesReportsHint:
       'Los gastos se aplican en vivo al P&L (opex → EBITDA; categoría Publicidad → CM). No hay backfill como en COGS: revisa la cascada P&L / KPI EBITDA, no las gráficas de ventas.',
     expensesTableSearchPlaceholder: 'Buscar gastos…',
@@ -865,6 +875,11 @@ const SHELL_STRINGS = {
     expensesSaveBtn: 'Guardar',
     expensesCancelBtn: 'Cancelar',
     expensesDeleteBtn: 'Eliminar',
+    expensesDeleteConfirm: '¿Eliminar este gasto? Esta acción no se puede deshacer.',
+    expensesToastCreated: 'Gasto creado',
+    expensesToastUpdated: 'Gasto actualizado',
+    expensesToastDeleted: 'Gasto eliminado',
+    expensesToastFailed: 'No se pudo guardar el gasto',
     expensesRecurrenceOnce: 'Único',
     expensesRecurrenceMonthly: 'Mensual',
     expensesCatPayroll: 'Nómina',
@@ -1487,6 +1502,14 @@ const SHELL_STRINGS = {
     channelsMetricAov: 'AOV',
     channelsMetricCmPct: 'CM %',
     channelsNoData: 'No data',
+    channelsCmIncompleteNotice:
+      'Product filter active: platform fees and shipping are not allocated to products. The figure shown is approximate gross profit, not glossary contribution margin.',
+    channelsCmProductScopeLabel: 'Gross profit (product filter)',
+    channelsPnlSubtitleProductScope:
+      'With a product filter, the last line is approximate gross profit (fees not allocated).',
+    channelsCmChartTitleProductScope: 'Gross profit by channel (product filter)',
+    channelsCmChartSubtitleProductScope:
+      'Approximate gross profit over time; platform fees are excluded.',
     comingSoonBadge: 'Coming soon',
     comingSoonPageTitle: 'Coming soon',
     comingSoonPageBody: 'This section will be available soon.',
@@ -2121,6 +2144,8 @@ const SHELL_STRINGS = {
     expensesSummaryMxn: 'Volume in MXN',
     expensesSummaryUsd: 'Volume in USD',
     expensesSummaryCombined: 'Total in {currency}',
+    expensesSummaryWindowHint:
+      'Totals are prorated to the selected date range (same logic as P&L). Without dates, catalog face amounts are shown.',
     expensesReportsHint:
       'Expenses apply live to the P&L (opex → EBITDA; Ads category → CM). No COGS-style backfill: check the P&L waterfall / EBITDA KPI, not sales bar charts.',
     expensesTableSearchPlaceholder: 'Search expenses…',
@@ -2136,6 +2161,11 @@ const SHELL_STRINGS = {
     expensesSaveBtn: 'Save',
     expensesCancelBtn: 'Cancel',
     expensesDeleteBtn: 'Delete',
+    expensesDeleteConfirm: 'Delete this expense? This cannot be undone.',
+    expensesToastCreated: 'Expense created',
+    expensesToastUpdated: 'Expense updated',
+    expensesToastDeleted: 'Expense deleted',
+    expensesToastFailed: 'Could not save the expense',
     expensesRecurrenceOnce: 'One-time',
     expensesRecurrenceMonthly: 'Monthly',
     expensesCatPayroll: 'Payroll',

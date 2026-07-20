@@ -98,8 +98,7 @@ const LINES: PnlLine[] = [
     labelKey: 'reportsWfAdsSpend',
     kind: 'line',
     isDeduction: true,
-    isNoData: true,
-    value: () => 0,
+    value: (m) => m.ads_spend,
   },
   {
     id: 'contribution_margin',
@@ -117,6 +116,7 @@ type ChannelsPnlTableProps = {
   platforms: ChannelPlatform[]
   formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
+  cmIncomplete?: boolean
 }
 
 function emphasisClass(kind: PnlLine['kind']): string {
@@ -128,6 +128,7 @@ export function ChannelsPnlTable({
   platforms,
   formatMoney,
   t,
+  cmIncomplete = false,
 }: ChannelsPnlTableProps) {
   const cols = useMemo(
     () => [...platforms, { slug: 'total', label: t('channelsColTotal') }],
@@ -143,13 +144,17 @@ export function ChannelsPnlTable({
         ),
         cell: ({ row }) => {
           const line = row.original
+          const labelKey =
+            line.id === 'contribution_margin' && cmIncomplete
+              ? ('channelsCmProductScopeLabel' as ShellStringKey)
+              : line.labelKey
           return (
             <span className={cn('text-text-primary', emphasisClass(line.kind))}>
               {line.isDeduction
-                ? `(−) ${t(line.labelKey)}`
+                ? `(−) ${t(labelKey)}`
                 : line.kind !== 'line'
-                  ? `= ${t(line.labelKey)}`
-                  : t(line.labelKey)}
+                  ? `= ${t(labelKey)}`
+                  : t(labelKey)}
             </span>
           )
         },
@@ -176,7 +181,10 @@ export function ChannelsPnlTable({
             const m = metrics[col.slug]
             const raw = line.value(m)
             const display = line.isDeduction ? -Math.abs(raw) : raw
-            const margin = line.marginPct?.(m)
+            const margin =
+              cmIncomplete && line.id === 'contribution_margin'
+                ? null
+                : line.marginPct?.(m)
             return (
               <span
                 className={cn(
@@ -184,6 +192,9 @@ export function ChannelsPnlTable({
                   line.isDeduction && 'text-text-secondary',
                   (line.kind === 'subtotal' || line.kind === 'total') &&
                     'font-semibold text-text-primary',
+                  cmIncomplete &&
+                    line.id === 'contribution_margin' &&
+                    'text-text-secondary',
                   emphasisClass(line.kind),
                 )}
               >
@@ -198,7 +209,7 @@ export function ChannelsPnlTable({
         }),
       ),
     ],
-    [cols, formatMoney, metrics, t],
+    [cmIncomplete, cols, formatMoney, metrics, t],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
@@ -213,7 +224,9 @@ export function ChannelsPnlTable({
     <SectionContainer>
       <SectionHeader
         title={t('channelsPnlTitle')}
-        description={t('channelsPnlSubtitle')}
+        description={
+          cmIncomplete ? t('channelsPnlSubtitleProductScope') : t('channelsPnlSubtitle')
+        }
       />
       <DataTable
         table={table}

@@ -1,13 +1,17 @@
 import { useAuth } from '@clerk/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch, apiPatchJson, apiPostJson } from '@/lib/api'
+import { shellT } from '@/lib/i18n/shell-strings'
 import type { Expense, ExpenseCreate, ExpenseUpdate } from '@/lib/types/expenses'
+import { useLanguage } from '@/shell/providers/language-provider'
 
 export function useExpenses() {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const { lang } = useLanguage()
   const queryClient = useQueryClient()
   const key = ['expenses', tenantId]
 
@@ -34,6 +38,10 @@ export function useExpenses() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: key })
       invalidateReports()
+      toast.success(shellT(lang, 'expensesToastCreated'))
+    },
+    onError: () => {
+      toast.error(shellT(lang, 'expensesToastFailed'))
     },
   })
 
@@ -46,6 +54,10 @@ export function useExpenses() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: key })
       invalidateReports()
+      toast.success(shellT(lang, 'expensesToastUpdated'))
+    },
+    onError: () => {
+      toast.error(shellT(lang, 'expensesToastFailed'))
     },
   })
 
@@ -62,6 +74,10 @@ export function useExpenses() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: key })
       invalidateReports()
+      toast.success(shellT(lang, 'expensesToastDeleted'))
+    },
+    onError: () => {
+      toast.error(shellT(lang, 'expensesToastFailed'))
     },
   })
 

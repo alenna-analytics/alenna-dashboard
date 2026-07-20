@@ -190,21 +190,22 @@ export function ChannelsPage() {
     [formatMoney, effectiveDisplayCurrency],
   )
 
-  const currentAgg = useMemo(
-    () => aggregateChannelKpisByPlatform(kpis?.items ?? [], displayedPlatforms),
-    [kpis, displayedPlatforms],
-  )
-  const previousAgg = useMemo(
-    () =>
-      kpisPrev
-        ? aggregateChannelKpisByPlatform(kpisPrev.items, displayedPlatforms)
-        : null,
-    [kpisPrev, displayedPlatforms],
-  )
+  const currentAgg = useMemo(() => {
+    const agg = aggregateChannelKpisByPlatform(kpis?.items ?? [], displayedPlatforms)
+    agg.total.ads_spend = Number(kpis?.tenant_ads_spend ?? 0)
+    return agg
+  }, [kpis, displayedPlatforms])
+  const previousAgg = useMemo(() => {
+    if (!kpisPrev) return null
+    const agg = aggregateChannelKpisByPlatform(kpisPrev.items, displayedPlatforms)
+    agg.total.ads_spend = Number(kpisPrev.tenant_ads_spend ?? 0)
+    return agg
+  }, [kpisPrev, displayedPlatforms])
   const scoreboardRows = useMemo(
     () => buildScoreboardRows(currentAgg, previousAgg, displayedPlatforms),
     [currentAgg, previousAgg, displayedPlatforms],
   )
+  const cmIncomplete = Boolean(kpis?.cm_incomplete)
 
   const isInitialLoad =
     connectorsLoading || (queriesEnabled && kpisLoading && !kpis)
@@ -267,11 +268,20 @@ export function ChannelsPage() {
         </p>
       ) : (
         <div className="flex flex-col gap-12">
+          {cmIncomplete ? (
+            <p
+              className="rounded-md border border-border-default bg-bg-card-strong px-3 py-2 text-sm text-text-secondary"
+              role="status"
+            >
+              {t('channelsCmIncompleteNotice')}
+            </p>
+          ) : null}
           <ChannelsScoreboard
             rows={scoreboardRows}
             platforms={displayedPlatforms}
             formatMoney={formatConverted}
             t={t}
+            cmIncomplete={cmIncomplete}
           />
 
           <ChannelsPnlTable
@@ -279,12 +289,21 @@ export function ChannelsPage() {
             platforms={displayedPlatforms}
             formatMoney={formatConverted}
             t={t}
+            cmIncomplete={cmIncomplete}
           />
 
           <SectionContainer>
             <SectionHeader
-              title={t('channelsCmChartTitle')}
-              description={t('channelsCmChartSubtitle')}
+              title={
+                cmIncomplete
+                  ? t('channelsCmChartTitleProductScope')
+                  : t('channelsCmChartTitle')
+              }
+              description={
+                cmIncomplete
+                  ? t('channelsCmChartSubtitleProductScope')
+                  : t('channelsCmChartSubtitle')
+              }
               aside={
                 <ChartGranularityFilter
                   value={cmGranularity}
@@ -310,6 +329,7 @@ export function ChannelsPage() {
                 dateLocale={dateLocale}
                 platforms={displayedPlatforms}
                 t={t}
+                cmIncomplete={cmIncomplete}
               />
             )}
           </SectionContainer>

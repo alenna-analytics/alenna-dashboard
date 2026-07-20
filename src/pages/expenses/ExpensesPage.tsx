@@ -127,8 +127,9 @@ export function ExpensesPage() {
   )
 
   const filteredRows = useMemo(
-    () => filterExpenses(expenses.query.data ?? [], filters),
-    [expenses.query.data, filters],
+    () =>
+      filterExpenses(expenses.query.data ?? [], filters, latestFx, baseCurrency),
+    [expenses.query.data, filters, latestFx, baseCurrency],
   )
   const summary = useMemo(
     () =>
@@ -136,8 +137,17 @@ export function ExpensesPage() {
         displayCurrency: effectiveDisplayCurrency,
         baseCurrency,
         latestFx,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
       }),
-    [filteredRows, effectiveDisplayCurrency, baseCurrency, latestFx],
+    [
+      filteredRows,
+      effectiveDisplayCurrency,
+      baseCurrency,
+      latestFx,
+      filters.startDate,
+      filters.endDate,
+    ],
   )
 
   const isLoading = expenses.query.isLoading
@@ -316,7 +326,7 @@ export function ExpensesPage() {
         <SummaryKpi
           label={t('expensesSummaryCombined', { currency: effectiveDisplayCurrency })}
           value={combinedValue}
-          helpText={t('expensesReportsHint')}
+          helpText={t('expensesSummaryWindowHint')}
           loading={isLoading}
         />
       </section>
@@ -329,7 +339,10 @@ export function ExpensesPage() {
           isBusy={isBusy}
           formatAmount={formatAmount}
           onEdit={openEdit}
-          onDelete={(id) => void expenses.deleteMutation.mutateAsync(id)}
+          onDelete={(id) => {
+            if (!window.confirm(t('expensesDeleteConfirm'))) return
+            void expenses.deleteMutation.mutateAsync(id)
+          }}
           t={t}
         />
       </section>

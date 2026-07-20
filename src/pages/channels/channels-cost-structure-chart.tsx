@@ -104,7 +104,7 @@ function toPctParts(m: PlatformMetrics): Omit<ChartRow, 'label'> | null {
   const cogs = (m.cogs / vn) * 100
   const fees = (m.platform_fees_total / vn) * 100
   const shipping = (m.merchant_shipping_cost / vn) * 100
-  const ads = 0
+  const ads = (m.ads_spend / vn) * 100
   const cm = (m.contribution_margin / vn) * 100
   return { cogs, fees, shipping, ads, cm }
 }
@@ -121,8 +121,12 @@ export function ChannelsCostStructureChart({
       if (!parts) continue
       out.push({ label: platform.label, ...parts })
     }
+    const totalParts = toPctParts(metrics.total)
+    if (totalParts) {
+      out.push({ label: t('channelsColTotal'), ...totalParts })
+    }
     return out
-  }, [metrics, platforms])
+  }, [metrics, platforms, t])
 
   if (data.length === 0) {
     return (

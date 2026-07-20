@@ -16,6 +16,7 @@ import {
 
 import type { ChannelPlatform } from '@/pages/channels/channels-platform-aggregate'
 import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
+import { cn } from '@/lib/utils'
 
 const PLATFORM_COLORS = [
   'var(--chart-1)',
@@ -35,6 +36,7 @@ type ChannelsCmChartProps = {
   dateLocale: Locale
   platforms: ChannelPlatform[]
   t: (key: ShellStringKey) => string
+  cmIncomplete?: boolean
 }
 
 type ChartRow = {
@@ -101,6 +103,7 @@ export function ChannelsCmChart({
   dateLocale,
   platforms,
   t,
+  cmIncomplete = false,
 }: ChannelsCmChartProps) {
   const data = useMemo((): ChartRow[] => {
     const buckets = eachRevenueBucketMeta(startDate, endDate, granularity, dateLocale)
@@ -136,7 +139,7 @@ export function ChannelsCmChart({
   }
 
   return (
-    <div className="h-80 w-full">
+    <div className={cn('h-80 w-full', cmIncomplete && 'opacity-80')}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default)" />

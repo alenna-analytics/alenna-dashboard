@@ -34,6 +34,7 @@ type ChannelsScoreboardProps = {
   platforms: ChannelPlatform[]
   formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
+  cmIncomplete?: boolean
 }
 
 function fmtPctDelta(n: number | null): string {
@@ -57,10 +58,19 @@ export function ChannelsScoreboard({
   platforms,
   formatMoney,
   t,
+  cmIncomplete = false,
 }: ChannelsScoreboardProps) {
   const cols = useMemo(
     () => [...platforms, { slug: 'total', label: t('channelsColTotal') }],
     [platforms, t],
+  )
+
+  const visibleRows = useMemo(
+    () =>
+      cmIncomplete
+        ? rows.filter((row) => row.id !== 'contribution_margin_pct')
+        : rows,
+    [cmIncomplete, rows],
   )
 
   const columns = useMemo(
@@ -70,9 +80,25 @@ export function ChannelsScoreboard({
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t('reportsPnlColConcept')} />
         ),
-        cell: ({ row }) => (
-          <span className="text-text-primary">{t(METRIC_LABELS[row.original.id])}</span>
-        ),
+        cell: ({ row }) => {
+          const id = row.original.id
+          const labelKey =
+            id === 'contribution_margin' && cmIncomplete
+              ? ('channelsCmProductScopeLabel' as ShellStringKey)
+              : METRIC_LABELS[id]
+          return (
+            <span
+              className={cn(
+                'text-text-primary',
+                cmIncomplete &&
+                  id === 'contribution_margin' &&
+                  'text-text-secondary',
+              )}
+            >
+              {t(labelKey)}
+            </span>
+          )
+        },
       }),
       ...cols.map((col) =>
         columnHelper.display({
@@ -87,7 +113,14 @@ export function ChannelsScoreboard({
           cell: ({ row }) => {
             const cell = row.original.cells[col.slug]
             return (
-              <div className="flex w-full flex-col items-end font-numeric tabular-nums text-text-primary">
+              <div
+                className={cn(
+                  'flex w-full flex-col items-end font-numeric tabular-nums text-text-primary',
+                  cmIncomplete &&
+                    row.original.id === 'contribution_margin' &&
+                    'text-text-secondary',
+                )}
+              >
                 <div>{formatMetric(row.original.id, cell.value, formatMoney)}</div>
                 <div
                   className={cn(
@@ -106,12 +139,12 @@ export function ChannelsScoreboard({
         }),
       ),
     ],
-    [cols, formatMoney, t],
+    [cmIncomplete, cols, formatMoney, t],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
   const table = useReactTable({
-    data: rows,
+    data: visibleRows,
     columns,
     getCoreRowModel: getCoreRowModel(),
     enableSorting: false,

@@ -103,6 +103,8 @@ export type ChannelKpisResponse = {
   currency: string
   tenant_fixed_operating_expenses: number | null
   tenant_ads_spend: number | null
+  /** True when product_ids filter is active: fees not allocated; CM is not glossary CM. */
+  cm_incomplete?: boolean
 }
 
 export type ChannelBreakdownResponse = {
@@ -127,4 +129,6 @@ export type ChannelTimeSeriesResponse = {
   granularity: RevenueSeriesGranularity
   currency: string
   rows: ChannelTimeSeriesRow[]
+  /** True when product_ids filter is active: fees not allocated; CM is not glossary CM. */
+  cm_incomplete?: boolean
 }

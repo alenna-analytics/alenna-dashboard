@@ -301,6 +301,9 @@ const SHELL_STRINGS = {
     dashboardRevenueGranularityMonth: 'Mensual',
     dashboardRevenueGranularityWeek: 'Semanal',
     dashboardRevenueGranularityDay: 'Diario',
+    homeSalesTrendMetricPrimary: 'Métrica 1',
+    homeSalesTrendMetricSecondary: 'Métrica 2',
+    homeMetricsTrendTitle: 'Tendencia de métricas',
     dashboardRevenueBrushAria:
       'Arrastra los mangos del zoom inferior para ampliar o desplazar el rango visible en el gráfico.',
     dashboardChannelSalesTitle: 'Ventas brutas y netas por canal',
@@ -1593,6 +1596,9 @@ const SHELL_STRINGS = {
     dashboardRevenueGranularityMonth: 'Monthly',
     dashboardRevenueGranularityWeek: 'Weekly',
     dashboardRevenueGranularityDay: 'Daily',
+    homeSalesTrendMetricPrimary: 'Metric 1',
+    homeSalesTrendMetricSecondary: 'Metric 2',
+    homeMetricsTrendTitle: 'Metrics trend',
     dashboardRevenueBrushAria:
       'Drag the handles on the lower overview strip to zoom or pan the visible range on the chart.',
     dashboardChannelSalesTitle: 'Gross and net sales by channel',

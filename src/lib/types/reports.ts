@@ -6,6 +6,8 @@ export type MonthlyRevenueMonthRow = {
   net_revenue: number
   gross_profit: number
   gross_margin_pct: number
+  units_sold?: number
+  order_count?: number
 }
 
 export type MonthlyRevenueSeriesResponse = {

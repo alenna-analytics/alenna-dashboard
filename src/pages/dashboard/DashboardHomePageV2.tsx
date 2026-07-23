@@ -40,6 +40,14 @@ import {
 import { HomeV2KpiSortableGrid } from '@/pages/dashboard/home-v2-kpi-sortable-grid'
 import { HomeV2KpiSparklineCard } from '@/pages/dashboard/home-v2-kpi-sparkline-card'
 import { HomeV2SalesTrendChart } from '@/pages/dashboard/home-v2-sales-trend-chart'
+import { HomeV2SalesTrendMetricFilters } from '@/pages/dashboard/home-v2-sales-trend-metric-filters'
+import {
+  formatHomeV2TrendMetricValue,
+  homeV2TrendMetricLabel,
+  homeV2TrendMetricValue,
+  resolveHomeV2TrendMetric,
+  type HomeV2TrendMetricId,
+} from '@/pages/dashboard/home-v2-trend-metrics'
 import { mergeRevenueSeriesRows } from '@/pages/reports/monthly-revenue-chart'
 import {
   computePreviousPeriod,
@@ -294,6 +302,10 @@ export function DashboardHomePageV2() {
   const productMode = productIds.length > 0
   const [salesTrendGranularity, setSalesTrendGranularity] =
     useState<RevenueSeriesGranularity>('month')
+  const [salesTrendPrimaryMetric, setSalesTrendPrimaryMetric] =
+    useState<HomeV2TrendMetricId>('net-sales')
+  const [salesTrendSecondaryMetric, setSalesTrendSecondaryMetric] =
+    useState<HomeV2TrendMetricId>('net-profit')
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -541,37 +553,53 @@ export function DashboardHomePageV2() {
     return profit !== 0 ? cm / profit : 1
   }, [productMode, displayKpi, currency, salesMetricBasis])
 
-  const netSalesSparkline = useMemo(
-    () =>
-      mergedSparkRows.map((row) =>
-        convertFromBase(salesMetricBasis === 'net' ? row.net_revenue : row.gross_revenue),
-      ),
-    [mergedSparkRows, convertFromBase, salesMetricBasis],
-  )
-  const profitSparkline = useMemo(
-    () =>
-      mergedSparkRows.map((row) => convertFromBase(row.gross_profit * profitSparklineScale)),
-    [mergedSparkRows, convertFromBase, profitSparklineScale],
-  )
-  const contributionSparkline = useMemo(
-    () =>
-      mergedSparkRows.map((row) => {
-        if (productMode) return convertFromBase(row.gross_profit)
-        return convertFromBase(row.gross_profit * contributionSparklineScale)
-      }),
-    [mergedSparkRows, convertFromBase, productMode, contributionSparklineScale],
-  )
-
   const ebitdaSparklineScale = useMemo(() => {
     if (productMode || !displayKpi) return 1
     const gp = displayKpi.gross_profit
     return gp !== 0 ? displayKpi.ebitda / gp : 1
   }, [productMode, displayKpi])
 
-  const ebitdaSparkline = useMemo(
-    () =>
-      mergedSparkRows.map((row) => convertFromBase(row.gross_profit * ebitdaSparklineScale)),
-    [mergedSparkRows, convertFromBase, ebitdaSparklineScale],
+  const trendMetricContext = useMemo(
+    () => ({
+      salesMetricBasis,
+      productMode,
+      convertValue: convertFromBase,
+      profitSparklineScale,
+      contributionSparklineScale,
+      ebitdaSparklineScale,
+    }),
+    [
+      salesMetricBasis,
+      productMode,
+      convertFromBase,
+      profitSparklineScale,
+      contributionSparklineScale,
+      ebitdaSparklineScale,
+    ],
+  )
+
+  const effectiveSalesTrendPrimaryMetric = useMemo(
+    () => resolveHomeV2TrendMetric(salesTrendPrimaryMetric, trendMetricContext, 'net-sales'),
+    [salesTrendPrimaryMetric, trendMetricContext],
+  )
+  const effectiveSalesTrendSecondaryMetric = useMemo(
+    () => resolveHomeV2TrendMetric(salesTrendSecondaryMetric, trendMetricContext, 'net-profit'),
+    [salesTrendSecondaryMetric, trendMetricContext],
+  )
+
+  const buildSparklinePoints = useCallback(
+    (metricId: HomeV2TrendMetricId) =>
+      mergedSparkRows.map((row) => ({
+        label: row.label,
+        value: homeV2TrendMetricValue(row, metricId, trendMetricContext),
+      })),
+    [mergedSparkRows, trendMetricContext],
+  )
+
+  const formatSparklineForMetric = useCallback(
+    (metricId: HomeV2TrendMetricId) => (value: number) =>
+      formatHomeV2TrendMetricValue(metricId, value, formatInDisplay),
+    [formatInDisplay],
   )
 
   const pickerStrings = {
@@ -626,7 +654,9 @@ export function DashboardHomePageV2() {
               trend={salesDelta!.trend}
               comparisonUnavailable={salesDelta!.unavailable}
               deltaTooltip={kpiDeltaTooltip}
-              sparklineValues={netSalesSparkline}
+              sparklinePoints={buildSparklinePoints('net-sales')}
+              sparklineMetricLabel={homeV2TrendMetricLabel('net-sales', trendMetricContext, t)}
+              formatSparklineValue={formatSparklineForMetric('net-sales')}
             />
           )
         case 'net-profit':
@@ -643,7 +673,9 @@ export function DashboardHomePageV2() {
               trend={profitDelta!.trend}
               comparisonUnavailable={profitDelta!.unavailable}
               deltaTooltip={kpiDeltaTooltip}
-              sparklineValues={profitSparkline}
+              sparklinePoints={buildSparklinePoints('net-profit')}
+              sparklineMetricLabel={homeV2TrendMetricLabel('net-profit', trendMetricContext, t)}
+              formatSparklineValue={formatSparklineForMetric('net-profit')}
             />
           )
         case 'roas':
@@ -676,7 +708,9 @@ export function DashboardHomePageV2() {
               trend={contributionDelta!.trend}
               comparisonUnavailable={contributionDelta!.unavailable}
               deltaTooltip={kpiDeltaTooltip}
-              sparklineValues={contributionSparkline}
+              sparklinePoints={buildSparklinePoints('contribution')}
+              sparklineMetricLabel={homeV2TrendMetricLabel('contribution', trendMetricContext, t)}
+              formatSparklineValue={formatSparklineForMetric('contribution')}
             />
           )
         case 'ebitda':
@@ -695,7 +729,9 @@ export function DashboardHomePageV2() {
               trend={productMode ? 'flat' : ebitdaDelta!.trend}
               comparisonUnavailable={productMode ? true : ebitdaDelta!.unavailable}
               deltaTooltip={kpiDeltaTooltip}
-              sparklineValues={productMode ? [] : ebitdaSparkline}
+              sparklinePoints={productMode ? [] : buildSparklinePoints('ebitda')}
+              sparklineMetricLabel={homeV2TrendMetricLabel('ebitda', trendMetricContext, t)}
+              formatSparklineValue={formatSparklineForMetric('ebitda')}
             />
           )
         case 'units':
@@ -711,7 +747,9 @@ export function DashboardHomePageV2() {
               trend={unitsDelta!.trend}
               comparisonUnavailable={unitsDelta!.unavailable}
               deltaTooltip={kpiDeltaTooltip}
-              sparklineValues={[]}
+              sparklinePoints={buildSparklinePoints('units')}
+              sparklineMetricLabel={homeV2TrendMetricLabel('units', trendMetricContext, t)}
+              formatSparklineValue={formatSparklineForMetric('units')}
             />
           )
         case 'orders':
@@ -726,7 +764,9 @@ export function DashboardHomePageV2() {
               trend={ordersDelta!.trend}
               comparisonUnavailable={ordersDelta!.unavailable}
               deltaTooltip={kpiDeltaTooltip}
-              sparklineValues={[]}
+              sparklinePoints={buildSparklinePoints('orders')}
+              sparklineMetricLabel={homeV2TrendMetricLabel('orders', trendMetricContext, t)}
+              formatSparklineValue={formatSparklineForMetric('orders')}
             />
           )
         case 'aov':
@@ -760,17 +800,16 @@ export function DashboardHomePageV2() {
       effectiveDisplayCurrency,
       salesDelta,
       kpiDeltaTooltip,
-      netSalesSparkline,
+      buildSparklinePoints,
+      trendMetricContext,
+      formatSparklineForMetric,
       profitCurrent,
       profitDelta,
-      profitSparkline,
       contributionCurrent,
       contributionDelta,
-      contributionSparkline,
       productMode,
       ebitdaCurrent,
       ebitdaDelta,
-      ebitdaSparkline,
       unitsCurrent,
       unitsDelta,
       orders,
@@ -859,15 +898,26 @@ export function DashboardHomePageV2() {
             </div>
           ) : null}
 
-          <SectionContainer>
+          <SectionContainer className="mt-6 mb-8">
             <SectionHeader
-              title={t('dashboardRevenueTrendTitle')}
+              title={t('homeMetricsTrendTitle')}
+              className="mb-5"
               aside={
-                <ChartGranularityFilter
-                  value={salesTrendGranularity}
-                  onChange={setSalesTrendGranularity}
-                  t={t}
-                />
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <HomeV2SalesTrendMetricFilters
+                    primaryMetric={effectiveSalesTrendPrimaryMetric}
+                    secondaryMetric={effectiveSalesTrendSecondaryMetric}
+                    onPrimaryMetricChange={setSalesTrendPrimaryMetric}
+                    onSecondaryMetricChange={setSalesTrendSecondaryMetric}
+                    metricContext={trendMetricContext}
+                    t={t}
+                  />
+                  <ChartGranularityFilter
+                    value={salesTrendGranularity}
+                    onChange={setSalesTrendGranularity}
+                    t={t}
+                  />
+                </div>
               }
             />
             {salesTrendError ? (
@@ -880,8 +930,10 @@ export function DashboardHomePageV2() {
                 rows={salesTrendSeries?.months ?? []}
                 currency={effectiveDisplayCurrency}
                 formatValue={formatInDisplay}
-                convertValue={convertFromBase}
                 dateLocale={dateLocale}
+                primaryMetric={effectiveSalesTrendPrimaryMetric}
+                secondaryMetric={effectiveSalesTrendSecondaryMetric}
+                metricContext={trendMetricContext}
                 t={t}
               />
             )}

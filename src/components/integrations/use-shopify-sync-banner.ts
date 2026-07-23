@@ -17,6 +17,7 @@ import {
   GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
   useGlobalActivity,
 } from '@/shell/providers/global-activity-provider'
+import { isTerminalDismissed } from '@/shell/providers/global-activity-dismissals'
 import { useLanguage } from '@/shell/providers/language-provider'
 
 const BANNER_ERROR_SUBTITLE_MAX = 160
@@ -103,7 +104,8 @@ export function useShopifySyncBanner(
   const { lang } = useLanguage()
   const { tenantId } = useCurrentTenant()
   const queryClient = useQueryClient()
-  const { upsertActivity, removeActivity, items } = useGlobalActivity()
+  const { upsertActivity, removeActivity, clearTerminalActivityDismissal, items } =
+    useGlobalActivity()
 
   const syncingConn = useMemo(() => pickSyncingShopify(connections), [connections])
   const failedConn = useMemo(() => pickFailedShopify(connections), [connections])
@@ -154,12 +156,14 @@ export function useShopifySyncBanner(
       if (settledSigRef.current !== sig) {
         settledSigRef.current = sig
         markSettled()
+        if (isTerminalDismissed(tenantId, GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID, sig)) return
         upsertActivity({
           id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
           phase: 'error',
           title: shellT(lang, 'shopifySyncFailedTitle'),
           subtitle: shopifySyncErrorSubtitle(syncingConn ?? failedConn, job.error_message, lang),
           href: '/dashboard/integrations/shopify?tab=settings',
+          dismissKey: sig,
         })
         toast.error(shellT(lang, 'shopifySyncToastFailed'))
         void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
@@ -172,12 +176,14 @@ export function useShopifySyncBanner(
       if (settledSigRef.current !== sig) {
         settledSigRef.current = sig
         markSettled()
+        if (isTerminalDismissed(tenantId, GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID, sig)) return
         upsertActivity({
           id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
           phase: 'success',
           title: shellT(lang, 'shopifySyncProgressTitle'),
           subtitle: buildShopifySuccessSubtitle(job, lang),
           href: '/dashboard/integrations/shopify?tab=settings',
+          dismissKey: sig,
         })
         toast.success(shellT(lang, 'shopifySyncToastSuccess'))
         void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
@@ -188,6 +194,7 @@ export function useShopifySyncBanner(
 
     if (job?.status === 'queued' || job?.status === 'running') {
       settledSigRef.current = null
+      clearTerminalActivityDismissal(GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID)
     }
 
     if (
@@ -199,12 +206,14 @@ export function useShopifySyncBanner(
       if (settledSigRef.current !== sig) {
         settledSigRef.current = sig
         markSettled()
+        if (isTerminalDismissed(tenantId, GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID, sig)) return
         upsertActivity({
           id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
           phase: 'success',
           title: shellT(lang, 'shopifySyncProgressTitle'),
           subtitle: buildCompletedSyncSubtitle(completedConn, lang),
           href: '/dashboard/integrations/shopify?tab=settings',
+          dismissKey: sig,
         })
         toast.success(shellT(lang, 'shopifySyncToastSuccess'))
         invalidateAlertsQueries(queryClient, tenantId)
@@ -216,6 +225,8 @@ export function useShopifySyncBanner(
       lastLoadingSubtitleRef.current = null
       if (failedConn) {
         const subtitle = shopifySyncErrorSubtitle(failedConn, null, lang)
+        const dismissKey = `failed:${failedConn.id}:${failedConn.sync_plan?.last_sync_completed_at ?? ''}:${failedConn.last_error ?? ''}`
+        if (isTerminalDismissed(tenantId, GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID, dismissKey)) return
         if (existing?.phase === 'error' && existing.subtitle === subtitle) return
         upsertActivity({
           id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
@@ -223,6 +234,7 @@ export function useShopifySyncBanner(
           title: shellT(lang, 'shopifySyncFailedTitle'),
           subtitle,
           href: '/dashboard/integrations/shopify?tab=settings',
+          dismissKey,
         })
         return
       }
@@ -244,6 +256,7 @@ export function useShopifySyncBanner(
     }
     if (lastLoadingSubtitleRef.current === subtitle) return
     lastLoadingSubtitleRef.current = subtitle
+    clearTerminalActivityDismissal(GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID)
     upsertActivity({
       id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
       phase: 'loading',
@@ -259,6 +272,7 @@ export function useShopifySyncBanner(
     jobQuery.data,
     upsertActivity,
     removeActivity,
+    clearTerminalActivityDismissal,
     items,
     lang,
     queryClient,

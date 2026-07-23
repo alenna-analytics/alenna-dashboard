@@ -8,6 +8,12 @@ import {
   type ReactNode,
 } from 'react'
 
+import { useCurrentTenant } from '@/auth/hooks'
+import {
+  clearTerminalDismissal,
+  persistTerminalDismissal,
+} from '@/shell/providers/global-activity-dismissals'
+
 export type GlobalActivityPhase = 'loading' | 'success' | 'error'
 
 export type GlobalActivityItem = {
@@ -18,6 +24,8 @@ export type GlobalActivityItem = {
   href: string
   minimized: boolean
   jobId?: string
+  /** Stable key for persisting terminal (success/error) dismissals across reloads. */
+  dismissKey?: string
 }
 
 /** Single slot for Shopify channel order sync (one concurrent sync per workspace UX). */
@@ -68,6 +76,7 @@ function reducer(state: GlobalActivityState, action: GlobalActivityAction): Glob
         href: payload.href,
         minimized: nextMinimized,
         jobId: payload.jobId ?? state.items.find((x) => x.id === payload.id)?.jobId,
+        dismissKey: payload.dismissKey ?? state.items.find((x) => x.id === payload.id)?.dismissKey,
       }
       const idx = state.items.findIndex((x) => x.id === item.id)
       const items =
@@ -129,6 +138,8 @@ type GlobalActivityContextValue = {
   minimizeActivity: (id: string) => void
   restoreAllActivities: () => void
   removeActivity: (id: string) => void
+  dismissTerminalActivity: (id: string, dismissKey: string) => void
+  clearTerminalActivityDismissal: (id: string) => void
   registerCogsBulkBackfillJobs: (jobIds: string[]) => void
   removeCogsBulkBackfillJob: (jobId: string) => void
 }
@@ -136,6 +147,7 @@ type GlobalActivityContextValue = {
 const GlobalActivityContext = createContext<GlobalActivityContextValue | null>(null)
 
 export function GlobalActivityProvider({ children }: { children: ReactNode }) {
+  const { tenantId } = useCurrentTenant()
   const [state, dispatch] = useReducer(reducer, initialState)
 
   const upsertActivity = useCallback(
@@ -166,6 +178,21 @@ export function GlobalActivityProvider({ children }: { children: ReactNode }) {
   const removeActivity = useCallback((id: string) => {
     dispatch({ type: 'remove', id })
   }, [])
+
+  const dismissTerminalActivity = useCallback(
+    (id: string, dismissKey: string) => {
+      persistTerminalDismissal(tenantId, id, dismissKey)
+      dispatch({ type: 'remove', id })
+    },
+    [tenantId],
+  )
+
+  const clearTerminalActivityDismissal = useCallback(
+    (id: string) => {
+      clearTerminalDismissal(tenantId, id)
+    },
+    [tenantId],
+  )
 
   const registerCogsBulkBackfillJobs = useCallback((jobIds: string[]) => {
     if (jobIds.length === 0) return
@@ -205,6 +232,8 @@ export function GlobalActivityProvider({ children }: { children: ReactNode }) {
       minimizeActivity,
       restoreAllActivities,
       removeActivity,
+      dismissTerminalActivity,
+      clearTerminalActivityDismissal,
       registerCogsBulkBackfillJobs,
       removeCogsBulkBackfillJob,
     }),
@@ -219,6 +248,8 @@ export function GlobalActivityProvider({ children }: { children: ReactNode }) {
       minimizeActivity,
       restoreAllActivities,
       removeActivity,
+      dismissTerminalActivity,
+      clearTerminalActivityDismissal,
       registerCogsBulkBackfillJobs,
       removeCogsBulkBackfillJob,
     ],

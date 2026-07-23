@@ -21,6 +21,14 @@ import {
   CHART_LINE_MINI_MS,
   rechartsEnterAnimationProps,
 } from '@/pages/dashboard/use-chart-line-load-animation'
+import {
+  formatHomeV2TrendMetricValue,
+  homeV2TrendMetricLabel,
+  homeV2TrendMetricValue,
+  isHomeV2TrendMetricCount,
+  type HomeV2TrendMetricContext,
+  type HomeV2TrendMetricId,
+} from '@/pages/dashboard/home-v2-trend-metrics'
 import { mergeRevenueSeriesRows } from '@/pages/reports/monthly-revenue-chart'
 
 export type HomeV2SalesTrendChartProps = {
@@ -30,15 +38,17 @@ export type HomeV2SalesTrendChartProps = {
   rows: MonthlyRevenueMonthRow[]
   currency: string
   formatValue: (value: number) => string
-  convertValue: (value: number) => number
   dateLocale: Locale
+  primaryMetric: HomeV2TrendMetricId
+  secondaryMetric: HomeV2TrendMetricId
+  metricContext: HomeV2TrendMetricContext
   t: (key: ShellStringKey) => string
 }
 
 type TrendRow = {
   label: string
-  net: number
-  gross: number
+  primary: number
+  secondary: number
 }
 
 type TrendRowIndexed = TrendRow & { __idx: number }
@@ -54,16 +64,29 @@ function fmtMoneyCompact(value: number, currency: string): string {
   }).format(value)
 }
 
+function fmtCountCompact(value: number): string {
+  const abs = Math.abs(value)
+  if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
+  if (abs >= 1_000) return `${(value / 1_000).toFixed(0)}K`
+  return value.toLocaleString(undefined, { maximumFractionDigits: 0 })
+}
+
 function TrendTooltip({
   active,
   payload,
+  primaryLabel,
+  secondaryLabel,
+  primaryMetric,
+  secondaryMetric,
   formatValue,
-  t,
 }: {
   active?: boolean
   payload?: ReadonlyArray<{ payload?: TrendRow }>
+  primaryLabel: string
+  secondaryLabel: string
+  primaryMetric: HomeV2TrendMetricId
+  secondaryMetric: HomeV2TrendMetricId
   formatValue: (value: number) => string
-  t: (key: ShellStringKey) => string
 }) {
   if (!active || !payload?.length) return null
   const row = payload[0]?.payload as TrendRow | undefined
@@ -73,12 +96,16 @@ function TrendTooltip({
       <p className="mb-1.5 font-medium text-text-primary">{row.label}</p>
       <div className="space-y-1 leading-snug">
         <p className="tabular-nums">
-          <span className="text-text-tertiary">{t('reportsGrossRevenue')}:</span>{' '}
-          <span className="font-medium text-text-primary">{formatValue(row.gross)}</span>
+          <span className="text-text-tertiary">{primaryLabel}:</span>{' '}
+          <span className="font-medium text-text-primary">
+            {formatHomeV2TrendMetricValue(primaryMetric, row.primary, formatValue)}
+          </span>
         </p>
         <p className="tabular-nums">
-          <span className="text-text-tertiary">{t('reportsNetRevenue')}:</span>{' '}
-          <span className="font-medium text-text-primary">{formatValue(row.net)}</span>
+          <span className="text-text-tertiary">{secondaryLabel}:</span>{' '}
+          <span className="font-medium text-text-primary">
+            {formatHomeV2TrendMetricValue(secondaryMetric, row.secondary, formatValue)}
+          </span>
         </p>
       </div>
     </div>
@@ -92,17 +119,34 @@ export function HomeV2SalesTrendChart({
   rows,
   currency,
   formatValue,
-  convertValue,
   dateLocale,
+  primaryMetric,
+  secondaryMetric,
+  metricContext,
   t,
 }: HomeV2SalesTrendChartProps) {
+  const primaryLabel = homeV2TrendMetricLabel(primaryMetric, metricContext, t)
+  const secondaryLabel = homeV2TrendMetricLabel(secondaryMetric, metricContext, t)
+  const primaryIsCount = isHomeV2TrendMetricCount(primaryMetric)
+  const secondaryIsCount = isHomeV2TrendMetricCount(secondaryMetric)
+  const useDualAxis = primaryIsCount !== secondaryIsCount
+
   const data = useMemo((): TrendRow[] => {
     return mergeRevenueSeriesRows(startDate, endDate, granularity, rows, dateLocale).map((row) => ({
       label: row.label,
-      net: convertValue(row.net_revenue),
-      gross: convertValue(row.gross_revenue),
+      primary: homeV2TrendMetricValue(row, primaryMetric, metricContext),
+      secondary: homeV2TrendMetricValue(row, secondaryMetric, metricContext),
     }))
-  }, [startDate, endDate, granularity, rows, dateLocale, convertValue])
+  }, [
+    startDate,
+    endDate,
+    granularity,
+    rows,
+    dateLocale,
+    primaryMetric,
+    secondaryMetric,
+    metricContext,
+  ])
 
   const dataWithIndex: TrendRowIndexed[] = useMemo(
     () => data.map((d, i) => ({ ...d, __idx: i })),
@@ -110,9 +154,9 @@ export function HomeV2SalesTrendChart({
   )
 
   const zoomResetKey = useMemo(() => {
-    const sig = data.map((d) => `${d.label}:${d.net}:${d.gross}`).join(';')
-    return `${startDate}|${endDate}|${granularity}|${sig}`
-  }, [startDate, endDate, granularity, data])
+    const sig = data.map((d) => `${d.label}:${d.primary}:${d.secondary}`).join(';')
+    return `${startDate}|${endDate}|${granularity}|${primaryMetric}|${secondaryMetric}|${sig}`
+  }, [startDate, endDate, granularity, primaryMetric, secondaryMetric, data])
 
   const [zoomRangeKey, setZoomRangeKey] = useState(zoomResetKey)
   const [zoomStart, setZoomStart] = useState(0)
@@ -146,17 +190,20 @@ export function HomeV2SalesTrendChart({
     setHiddenKeys((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
+  const primaryAxisId = useDualAxis ? 'primary' : 'left'
+  const secondaryAxisId = useDualAxis ? 'secondary' : 'left'
+
   return (
     <div
       className={cn(
-        'w-full min-w-0 [&_.recharts-surface:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-wrapper:focus]:outline-none [&_.recharts-brush-traveller:focus]:outline-none',
+        'w-full min-w-0 py-3 [&_.recharts-surface:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-wrapper:focus]:outline-none [&_.recharts-brush-traveller:focus]:outline-none',
       )}
     >
       <ResponsiveContainer width="100%" height={180}>
         <LineChart
           key={zoomResetKey}
           data={visibleData}
-          margin={{ top: 8, right: 8, left: 4, bottom: 4 }}
+          margin={{ top: 8, right: useDualAxis ? 8 : 8, left: 4, bottom: 4 }}
         >
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
@@ -167,13 +214,39 @@ export function HomeV2SalesTrendChart({
             interval={dense ? 'preserveStartEnd' : 0}
           />
           <YAxis
-            tickFormatter={(v) => fmtMoneyCompact(Number(v), currency)}
+            yAxisId={primaryAxisId}
+            orientation="left"
+            tickFormatter={(v) =>
+              primaryIsCount ? fmtCountCompact(Number(v)) : fmtMoneyCompact(Number(v), currency)
+            }
             tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
           />
+          {useDualAxis ? (
+            <YAxis
+              yAxisId="secondary"
+              orientation="right"
+              tickFormatter={(v) =>
+                secondaryIsCount
+                  ? fmtCountCompact(Number(v))
+                  : fmtMoneyCompact(Number(v), currency)
+              }
+              tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+            />
+          ) : null}
           <Tooltip
-            content={<TrendTooltip formatValue={formatValue} t={t} />}
+            content={
+              <TrendTooltip
+                primaryLabel={primaryLabel}
+                secondaryLabel={secondaryLabel}
+                primaryMetric={primaryMetric}
+                secondaryMetric={secondaryMetric}
+                formatValue={formatValue}
+              />
+            }
             wrapperStyle={{ outline: 'none' }}
             contentStyle={{
               margin: 0,
@@ -186,23 +259,25 @@ export function HomeV2SalesTrendChart({
           />
           <Line
             type="monotone"
-            dataKey="net"
-            name={t('reportsNetRevenue')}
+            dataKey="primary"
+            name={primaryLabel}
+            yAxisId={primaryAxisId}
             stroke="var(--chart-3)"
             strokeWidth={2.5}
             dot={chartLineDot('var(--chart-3)')}
             activeDot={chartLineActiveDot('var(--chart-3)')}
-            opacity={hiddenKeys.net ? 0.18 : 1}
+            opacity={hiddenKeys.primary ? 0.18 : 1}
             {...mainAnimProps}
           />
           <Line
             type="monotone"
-            dataKey="gross"
-            name={t('reportsGrossRevenue')}
+            dataKey="secondary"
+            name={secondaryLabel}
+            yAxisId={secondaryAxisId}
             stroke="var(--chart-monthly-gross-bar)"
             strokeWidth={2}
             dot={false}
-            opacity={hiddenKeys.gross ? 0.18 : 1}
+            opacity={hiddenKeys.secondary ? 0.18 : 1}
             {...mainAnimProps}
           />
         </LineChart>
@@ -232,20 +307,20 @@ export function HomeV2SalesTrendChart({
                   ) : null}
                   <Line
                     type="monotone"
-                    dataKey="net"
+                    dataKey="primary"
                     stroke="var(--chart-3)"
                     strokeWidth={1.5}
                     dot={false}
-                    opacity={hiddenKeys.net ? 0.2 : 0.9}
+                    opacity={hiddenKeys.primary ? 0.2 : 0.9}
                     {...miniAnimProps}
                   />
                   <Line
                     type="monotone"
-                    dataKey="gross"
+                    dataKey="secondary"
                     stroke="var(--chart-monthly-gross-bar)"
                     strokeWidth={1.25}
                     dot={false}
-                    opacity={hiddenKeys.gross ? 0.2 : 0.9}
+                    opacity={hiddenKeys.secondary ? 0.2 : 0.9}
                     {...miniAnimProps}
                   />
                 </LineChart>
@@ -280,25 +355,25 @@ export function HomeV2SalesTrendChart({
       <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
         <button
           type="button"
-          onClick={() => toggleLegendKey('net')}
+          onClick={() => toggleLegendKey('primary')}
           className={cn(
             'inline-flex items-center gap-1.5 text-text-secondary outline-none transition-opacity focus:outline-none',
-            hiddenKeys.net ? 'opacity-40' : 'opacity-100',
+            hiddenKeys.primary ? 'opacity-40' : 'opacity-100',
           )}
         >
           <span className="inline-block h-0.5 w-4 rounded bg-[var(--chart-3)]" aria-hidden />
-          <span>{t('reportsNetRevenue')}</span>
+          <span>{primaryLabel}</span>
         </button>
         <button
           type="button"
-          onClick={() => toggleLegendKey('gross')}
+          onClick={() => toggleLegendKey('secondary')}
           className={cn(
             'inline-flex items-center gap-1.5 text-text-secondary outline-none transition-opacity focus:outline-none',
-            hiddenKeys.gross ? 'opacity-40' : 'opacity-100',
+            hiddenKeys.secondary ? 'opacity-40' : 'opacity-100',
           )}
         >
           <span className="inline-block h-0.5 w-4 rounded bg-[var(--chart-monthly-gross-bar)]" aria-hidden />
-          <span>{t('reportsGrossRevenue')}</span>
+          <span>{secondaryLabel}</span>
         </button>
       </div>
     </div>

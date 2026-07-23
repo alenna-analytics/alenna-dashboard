@@ -10,7 +10,9 @@ import { IntegrationsErrorState } from '@/pages/integrations/dashboard/integrati
 import { IntegrationsEmptyState } from '@/pages/integrations/dashboard/integrations-empty-state'
 import type { IntegrationsListCategory } from '@/pages/integrations/dashboard/integrations-list-category'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
+import { useIntegrationOAuthReturn } from '@/pages/integrations/hooks/use-integration-oauth-return'
 import { useMercadoLibreIntegration } from '@/pages/integrations/details/use-mercadolibre-integration'
+import { useAmazonIntegration } from '@/pages/integrations/details/use-amazon-integration'
 import { useShopifyIntegration } from '@/pages/integrations/details/use-shopify-integration'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -22,9 +24,11 @@ type IntegrationsListPageProps = {
 
 export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageProps) {
   const { lang } = useLanguage()
+  useIntegrationOAuthReturn()
 
   const shopifyIntegration = useShopifyIntegration()
   const mercadolibreIntegration = useMercadoLibreIntegration()
+  const amazonIntegration = useAmazonIntegration()
 
   const { integrations, connections, pageLoading, pageError, isFetching, refetch } =
     useIntegrationsListQueries()
@@ -91,6 +95,7 @@ export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageP
                   integration.slug,
                   shopifyIntegration.connected,
                   mercadolibreIntegration.connected,
+                  amazonIntegration.connected,
                 )}
                 needsInitialSync={integrationNeedsInitialSync(integration.slug, connections)}
               />

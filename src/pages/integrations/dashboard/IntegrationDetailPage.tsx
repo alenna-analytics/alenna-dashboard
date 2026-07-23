@@ -21,9 +21,11 @@ import {
   integrationTitle,
 } from '@/pages/integrations/dashboard/integration-display'
 import { MercadoLibreManageBody } from '@/pages/integrations/dashboard/mercadolibre/manage-body'
+import { AmazonManageBody } from '@/pages/integrations/dashboard/amazon/manage-body'
 import { ShopifyManageBody } from '@/pages/integrations/dashboard/shopify/manage-body'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
 import { useMercadoLibreIntegration } from '@/pages/integrations/details/use-mercadolibre-integration'
+import { useAmazonIntegration } from '@/pages/integrations/details/use-amazon-integration'
 import { useShopifyIntegration } from '@/pages/integrations/details/use-shopify-integration'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -50,6 +52,7 @@ export function IntegrationDetailPage() {
 
   const shopifyIntegration = useShopifyIntegration()
   const mercadolibreIntegration = useMercadoLibreIntegration()
+  const amazonIntegration = useAmazonIntegration()
   const { integrations, connections, pageLoading } = useIntegrationsListQueries()
 
   const integration = useMemo(
@@ -59,12 +62,14 @@ export function IntegrationDetailPage() {
 
   const shopifyConnection = findActiveConnection(connections, 'shopify')
   const mercadolibreConnection = findActiveConnection(connections, 'mercadolibre')
+  const amazonConnection = findActiveConnection(connections, 'amazon')
 
   const connected = slug
     ? isIntegrationConnected(
         slug,
         shopifyIntegration.connected,
         mercadolibreIntegration.connected,
+        amazonIntegration.connected,
       )
     : false
 
@@ -88,18 +93,22 @@ export function IntegrationDetailPage() {
   const description = integrationDescription(lang, integration)
   const isShopify = integration.slug === 'shopify'
   const isMercadolibre = integration.slug === 'mercadolibre'
+  const isAmazon = integration.slug === 'amazon'
   const activeConnection = isShopify
     ? shopifyConnection
     : isMercadolibre
       ? mercadolibreConnection
-      : null
+      : isAmazon
+        ? amazonConnection
+        : null
   const needsInitialSync = connectionNeedsInitialSync(activeConnection)
   const syncPill =
     connected && activeConnection
       ? resolveConnectionSyncFreshnessPillContent(activeConnection, {
           forceSyncing:
             (isShopify && shopifyIntegration.shopifySyncPhase === 'working') ||
-            (isMercadolibre && mercadolibreIntegration.meliSyncPhase === 'working'),
+            (isMercadolibre && mercadolibreIntegration.meliSyncPhase === 'working') ||
+            (isAmazon && amazonIntegration.amazonSyncPhase === 'working'),
         })
       : null
 
@@ -135,6 +144,16 @@ export function IntegrationDetailPage() {
           : undefined
       }
       disconnectPending={mercadolibreIntegration.disconnectMutation.isPending}
+    />
+  ) : isAmazon ? (
+    <AmazonManageBody
+      amazon={amazonIntegration}
+      onRequestDisconnect={
+        amazonIntegration.isAdmin && amazonIntegration.hasConnection
+          ? () => setDisconnectDataDialogOpen(true)
+          : undefined
+      }
+      disconnectPending={amazonIntegration.disconnectMutation.isPending}
     />
   ) : (
     <IntegrationPlaceholderSettings lang={lang} />
@@ -176,16 +195,19 @@ export function IntegrationDetailPage() {
         purgeData={purgeDataOnDisconnect}
         disconnectPending={
           shopifyIntegration.disconnectMutation.isPending ||
-          mercadolibreIntegration.disconnectMutation.isPending
+          mercadolibreIntegration.disconnectMutation.isPending ||
+          amazonIntegration.disconnectMutation.isPending
         }
         onBack={() => {
           setDisconnectConfirmDialogOpen(false)
           setDisconnectDataDialogOpen(true)
         }}
         onConfirmDisconnect={() => {
-          const mutation = isMercadolibre
-            ? mercadolibreIntegration.disconnectMutation
-            : shopifyIntegration.disconnectMutation
+          const mutation = isAmazon
+            ? amazonIntegration.disconnectMutation
+            : isMercadolibre
+              ? mercadolibreIntegration.disconnectMutation
+              : shopifyIntegration.disconnectMutation
           mutation.mutate(purgeDataOnDisconnect, {
             onSettled: () => {
               setDisconnectConfirmDialogOpen(false)

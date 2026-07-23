@@ -35,8 +35,20 @@ function isActiveMercadoLibreConnection(conn: PlatformConnection): boolean {
   )
 }
 
+function isActiveAmazonConnection(conn: PlatformConnection): boolean {
+  return (
+    conn.platform === 'amazon' &&
+    conn.status === 'active' &&
+    conn.connection_status === 'active'
+  )
+}
+
 function isActiveSyncableConnection(conn: PlatformConnection): boolean {
-  return isActiveShopifyConnection(conn) || isActiveMercadoLibreConnection(conn)
+  return (
+    isActiveShopifyConnection(conn) ||
+    isActiveMercadoLibreConnection(conn) ||
+    isActiveAmazonConnection(conn)
+  )
 }
 
 export function filterActiveSyncableConnections(

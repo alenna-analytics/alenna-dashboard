@@ -19,6 +19,7 @@ function baseConnection(overrides: Partial<PlatformConnection> = {}): PlatformCo
     last_error: null,
     orders_watermark_at: '2026-01-01T12:00:00.000Z',
     orders_backfill_completed_through: null,
+    fees_status: null,
     sync_plan: {
       full_history_window: { start_date: '2020-01-01', end_date: '2026-01-01' },
       last_sync_status: 'synced',

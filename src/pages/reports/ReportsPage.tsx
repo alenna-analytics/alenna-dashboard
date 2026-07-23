@@ -34,6 +34,8 @@ import { useProductReports } from '@/pages/reports/use-product-reports'
 import { useReports } from '@/pages/reports/use-reports'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { AmazonFeesUnavailableNotice } from '@/components/integrations/amazon-fees-unavailable-notice'
+import { includesAmazonWithUnavailableFees } from '@/lib/integrations/amazon-fees-notice'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { presetDateRangeYmd } from '@/ui/date-range-picker'
@@ -178,6 +180,13 @@ export function ReportsPage() {
   })
 
   const connections = useMemo(() => connectionsQuery.data ?? [], [connectionsQuery.data])
+  const activeConnections = useMemo(
+    () =>
+      connections.filter(
+        (c) => c.status === 'active' && c.connection_status === 'active',
+      ),
+    [connections],
+  )
   const connectorsLoading = Boolean(tenantId) && connectionsQuery.isLoading
   const hasNoIntegrations =
     !connectorsLoading && connectionsQuery.isSuccess && connections.length === 0
@@ -200,6 +209,10 @@ export function ReportsPage() {
   )
 
   const queriesEnabled = activeConnectionIds.length > 0
+  const showAmazonFeesNotice = includesAmazonWithUnavailableFees(
+    activeConnections,
+    activeConnectionIds,
+  )
   const prevPeriod = useMemo(
     () => computeShiftedPreviousPeriod(startDate, endDate),
     [startDate, endDate],
@@ -470,6 +483,7 @@ export function ReportsPage() {
         <ReportsLoadingSkeleton />
       ) : (
         <div className="flex flex-col gap-12">
+          {showAmazonFeesNotice ? <AmazonFeesUnavailableNotice lang={lang} /> : null}
           <ReportsHeroKpis
             mode={productMode ? 'product' : 'tenant'}
             kpi={displayKpi}

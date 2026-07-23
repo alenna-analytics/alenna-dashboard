@@ -225,8 +225,7 @@ export function useShopifyIntegration() {
 
   const syncPlan: SyncPlan | null = activeConnection?.sync_plan ?? null
 
-  const serverActiveJobId =
-    syncPlan?.last_sync_status === 'syncing' ? (syncPlan.current_job_id ?? null) : null
+  const serverActiveJobId = syncPlan?.current_job_id ?? null
 
   const localPendingMatchesActive = Boolean(
     syncPanel.pendingJobId &&
@@ -518,10 +517,10 @@ export function useShopifyIntegration() {
   ])
 
   const disconnectMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (purgeData: boolean) => {
       if (!tenantId || !activeConnectionId) throw new Error('No connection')
       const res = await apiFetch(
-        `/connectors/shopify/${activeConnectionId}`,
+        `/connectors/shopify/${activeConnectionId}?purge_data=${purgeData ? 'true' : 'false'}`,
         (a) => getToken(a),
         { method: 'DELETE' },
         tenantId,
@@ -585,5 +584,6 @@ export function useShopifyIntegration() {
     retryShopifySync,
     retryShopifySyncPending: retryCatalogJobMutation.isPending,
     syncPlan,
+    activeSyncJobId: effectiveJobId,
   }
 }

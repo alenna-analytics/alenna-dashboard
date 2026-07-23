@@ -11,7 +11,11 @@ import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sy
 import { IntegrationDetailBreadcrumb } from '@/pages/integrations/dashboard/integration-detail-breadcrumb'
 import { IntegrationDetailLayout } from '@/pages/integrations/dashboard/integration-detail-layout'
 import { IntegrationOverviewPanel } from '@/pages/integrations/dashboard/integration-overview-panel'
-import { IntegrationsDisconnectDialog } from '@/pages/integrations/dashboard/integrations-disconnect-dialog'
+import { IntegrationsDisconnectConfirmDialog } from '@/pages/integrations/dashboard/integrations-disconnect-confirm-dialog'
+import {
+  IntegrationsDisconnectDataDialog,
+  type DisconnectDataChoice,
+} from '@/pages/integrations/dashboard/integrations-disconnect-data-dialog'
 import {
   integrationDescription,
   integrationTitle,
@@ -40,7 +44,9 @@ function IntegrationPlaceholderSettings({ lang }: { lang: string }) {
 export function IntegrationDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { lang } = useLanguage()
-  const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false)
+  const [disconnectDataDialogOpen, setDisconnectDataDialogOpen] = useState(false)
+  const [disconnectConfirmDialogOpen, setDisconnectConfirmDialogOpen] = useState(false)
+  const [purgeDataOnDisconnect, setPurgeDataOnDisconnect] = useState(false)
 
   const shopifyIntegration = useShopifyIntegration()
   const mercadolibreIntegration = useMercadoLibreIntegration()
@@ -115,7 +121,7 @@ export function IntegrationDetailPage() {
       shopify={shopifyIntegration}
       onRequestDisconnect={
         shopifyIntegration.isAdmin && shopifyIntegration.connected
-          ? () => setDisconnectDialogOpen(true)
+          ? () => setDisconnectDataDialogOpen(true)
           : undefined
       }
       disconnectPending={shopifyIntegration.disconnectMutation.isPending}
@@ -125,7 +131,7 @@ export function IntegrationDetailPage() {
       meli={mercadolibreIntegration}
       onRequestDisconnect={
         mercadolibreIntegration.isAdmin && mercadolibreIntegration.connected
-          ? () => setDisconnectDialogOpen(true)
+          ? () => setDisconnectDataDialogOpen(true)
           : undefined
       }
       disconnectPending={mercadolibreIntegration.disconnectMutation.isPending}
@@ -152,20 +158,39 @@ export function IntegrationDetailPage() {
         settings={settingsBody}
       />
 
-      <IntegrationsDisconnectDialog
+      <IntegrationsDisconnectDataDialog
         lang={lang}
-        open={disconnectDialogOpen}
-        onOpenChange={setDisconnectDialogOpen}
+        open={disconnectDataDialogOpen}
+        onOpenChange={setDisconnectDataDialogOpen}
+        onContinue={(choice: DisconnectDataChoice) => {
+          setPurgeDataOnDisconnect(choice === 'purge')
+          setDisconnectDataDialogOpen(false)
+          setDisconnectConfirmDialogOpen(true)
+        }}
+      />
+
+      <IntegrationsDisconnectConfirmDialog
+        lang={lang}
+        open={disconnectConfirmDialogOpen}
+        onOpenChange={setDisconnectConfirmDialogOpen}
+        purgeData={purgeDataOnDisconnect}
         disconnectPending={
           shopifyIntegration.disconnectMutation.isPending ||
           mercadolibreIntegration.disconnectMutation.isPending
         }
+        onBack={() => {
+          setDisconnectConfirmDialogOpen(false)
+          setDisconnectDataDialogOpen(true)
+        }}
         onConfirmDisconnect={() => {
           const mutation = isMercadolibre
             ? mercadolibreIntegration.disconnectMutation
             : shopifyIntegration.disconnectMutation
-          mutation.mutate(undefined, {
-            onSettled: () => setDisconnectDialogOpen(false),
+          mutation.mutate(purgeDataOnDisconnect, {
+            onSettled: () => {
+              setDisconnectConfirmDialogOpen(false)
+              setPurgeDataOnDisconnect(false)
+            },
           })
         }}
       />

@@ -246,6 +246,7 @@ export function useMercadoLibreSyncBanner(
       title: shellT(lang, 'meliSyncProgressTitle'),
       subtitle,
       href: '/dashboard/integrations/mercadolibre?tab=settings',
+      jobId: pollJobId ?? undefined,
     })
   }, [
     syncingConn,
@@ -258,5 +259,6 @@ export function useMercadoLibreSyncBanner(
     lang,
     queryClient,
     tenantId,
+    pollJobId,
   ])
 }

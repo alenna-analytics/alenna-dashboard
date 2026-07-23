@@ -18,6 +18,7 @@ import { AlertsInvalidationHost } from '@/shell/alerts/alerts-invalidation-host'
 import { AlertsSheetProvider } from '@/shell/alerts/alerts-sheet-context'
 import { GlobalActivityBar } from '@/shell/layout/global-activity-bar'
 import { CogsBackfillActivityPollers } from '@/shell/layout/cogs-backfill-activity-pollers'
+import { PlatformSyncActivityHost } from '@/shell/layout/platform-sync-activity-host'
 import { TrialExpiredScreen } from '@/shell/trial-expired-screen'
 import { onTrialExpired } from '@/lib/trial-expired-signal'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
@@ -149,6 +150,7 @@ export function AppShellLayout() {
       <DisplayCurrencyProvider me={me} refetchMe={refetchMe}>
         <GlobalActivityProvider>
           <CogsBackfillActivityPollers />
+          <PlatformSyncActivityHost />
           <AlertsSheetProvider>
             <AlertsInvalidationHost />
             <TooltipProvider delayDuration={200}>

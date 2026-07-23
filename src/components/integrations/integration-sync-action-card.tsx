@@ -15,6 +15,10 @@ type IntegrationSyncActionCardProps = {
   badge?: ReactNode
   footer?: ReactNode
   className?: string
+  secondaryActionLabel?: string
+  onSecondaryAction?: () => void
+  secondaryActionDisabled?: boolean
+  secondaryActionLoading?: boolean
 }
 
 export function IntegrationSyncActionCard({
@@ -29,6 +33,10 @@ export function IntegrationSyncActionCard({
   badge,
   footer,
   className,
+  secondaryActionLabel,
+  onSecondaryAction,
+  secondaryActionDisabled = false,
+  secondaryActionLoading = false,
 }: IntegrationSyncActionCardProps) {
   return (
     <div
@@ -45,18 +53,33 @@ export function IntegrationSyncActionCard({
           </div>
           <p className="text-sm leading-relaxed text-text-secondary">{description}</p>
         </div>
-        {hideAction ? null : (
-          <Button
-            type="button"
-            variant="accent"
-            size="sm"
-            className="shrink-0 self-start"
-            loading={actionLoading}
-            disabled={actionDisabled}
-            onClick={onAction}
-          >
-            {actionLoading && actionLoadingLabel ? actionLoadingLabel : actionLabel}
-          </Button>
+        {hideAction && !(secondaryActionLabel && onSecondaryAction) ? null : (
+          <div className="flex shrink-0 flex-col gap-2 self-start sm:flex-row">
+            {secondaryActionLabel && onSecondaryAction ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                loading={secondaryActionLoading}
+                disabled={secondaryActionDisabled || secondaryActionLoading}
+                onClick={onSecondaryAction}
+              >
+                {secondaryActionLabel}
+              </Button>
+            ) : null}
+            {hideAction ? null : (
+              <Button
+                type="button"
+                variant="accent"
+                size="sm"
+                loading={actionLoading}
+                disabled={actionDisabled}
+                onClick={onAction}
+              >
+                {actionLoading && actionLoadingLabel ? actionLoadingLabel : actionLabel}
+              </Button>
+            )}
+          </div>
         )}
       </div>
       {footer ? (

@@ -250,6 +250,7 @@ export function useShopifySyncBanner(
       title: shellT(lang, 'shopifySyncProgressTitle'),
       subtitle,
       href: '/dashboard/integrations/shopify?tab=settings',
+      jobId: pollJobId ?? undefined,
     })
   }, [
     syncingConn,
@@ -262,5 +263,6 @@ export function useShopifySyncBanner(
     lang,
     queryClient,
     tenantId,
+    pollJobId,
   ])
 }

@@ -18,7 +18,7 @@ const buttonVariants = cva(
         outline:
           "border-[var(--african-turquoise-100)] bg-white text-[var(--firefly-base)] hover:bg-[var(--platinum-blonde-300)]",
         destructive:
-          "border-[var(--status-red-200)] bg-[var(--status-red-50)] text-[var(--text-primary)] hover:bg-[color-mix(in_srgb,var(--status-red-50)_88%,var(--status-red-200)_12%)]",
+          "border-destructive/35 bg-transparent text-destructive hover:bg-destructive/10 hover:text-destructive",
         default:
           "bg-[var(--country-green-base)] text-white hover:bg-[var(--country-green-100)]",
         secondary:

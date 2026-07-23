@@ -10,6 +10,8 @@ import { formatMercadoLibreSyncUserError } from '@/lib/integrations/mercadolibre
 import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
 import type { MercadoLibreIntegrationHook } from '@/pages/integrations/details/use-mercadolibre-integration'
+import { useCancelPlatformSyncJob } from '@/hooks/use-cancel-platform-sync-job'
+import { GLOBAL_ACTIVITY_MELI_SYNC_ID } from '@/shell/providers/global-activity-provider'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -61,7 +63,11 @@ function MercadoLibreSyncSection({
     retryMercadoLibreSync,
     retryMercadoLibreSyncPending,
     syncPlan,
+    activeSyncJobId,
+    isAdmin,
   } = meli
+
+  const cancelSyncMutation = useCancelPlatformSyncJob()
 
   const syncPill = resolveConnectionSyncFreshnessPillContent(activeConnection, {
     forceSyncing: meliSyncPhase === 'working',
@@ -97,6 +103,18 @@ function MercadoLibreSyncSection({
         actionDisabled
         actionLoading
         hideAction
+        secondaryActionLabel={isAdmin ? shellT(lang, 'platformSyncCancelBtn') : undefined}
+        onSecondaryAction={
+          isAdmin && activeSyncJobId
+            ? () =>
+                cancelSyncMutation.mutate({
+                  jobId: activeSyncJobId,
+                  activityId: GLOBAL_ACTIVITY_MELI_SYNC_ID,
+                })
+            : undefined
+        }
+        secondaryActionDisabled={!activeSyncJobId || isFixture}
+        secondaryActionLoading={cancelSyncMutation.isPending}
         badge={<SyncFreshnessPillBadge pill={{ kind: 'syncing', freshnessState: 'syncing' }} lang={lang} />}
         className="w-full"
       />

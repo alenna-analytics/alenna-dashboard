@@ -13,6 +13,7 @@ import {
   GLOBAL_ACTIVITY_MELI_SYNC_ID,
   useGlobalActivity,
 } from '@/shell/providers/global-activity-provider'
+import { isTerminalDismissed } from '@/shell/providers/global-activity-dismissals'
 import { useLanguage } from '@/shell/providers/language-provider'
 
 const BANNER_ERROR_SUBTITLE_MAX = 160
@@ -96,7 +97,8 @@ export function useMercadoLibreSyncBanner(
   const { lang } = useLanguage()
   const { tenantId } = useCurrentTenant()
   const queryClient = useQueryClient()
-  const { upsertActivity, removeActivity, items } = useGlobalActivity()
+  const { upsertActivity, removeActivity, clearTerminalActivityDismissal, items } =
+    useGlobalActivity()
 
   const syncingConn = useMemo(() => pickSyncingMercadoLibre(connections), [connections])
   const failedConn = useMemo(() => pickFailedMercadoLibre(connections), [connections])
@@ -141,12 +143,14 @@ export function useMercadoLibreSyncBanner(
       if (settledSigRef.current !== sig) {
         settledSigRef.current = sig
         markSettled()
+        if (isTerminalDismissed(tenantId, GLOBAL_ACTIVITY_MELI_SYNC_ID, sig)) return
         upsertActivity({
           id: GLOBAL_ACTIVITY_MELI_SYNC_ID,
           phase: 'error',
           title: shellT(lang, 'meliSyncFailedTitle'),
           subtitle: meliSyncErrorSubtitle(syncingConn ?? failedConn, job.error_message, lang),
           href: '/dashboard/integrations/mercadolibre?tab=settings',
+          dismissKey: sig,
         })
         toast.error(shellT(lang, 'meliSyncToastFailed'))
         void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
@@ -159,6 +163,7 @@ export function useMercadoLibreSyncBanner(
       if (settledSigRef.current !== sig) {
         settledSigRef.current = sig
         markSettled()
+        if (isTerminalDismissed(tenantId, GLOBAL_ACTIVITY_MELI_SYNC_ID, sig)) return
         const records = job.records_synced ?? 0
         const subtitle =
           records > 0
@@ -170,6 +175,7 @@ export function useMercadoLibreSyncBanner(
           title: shellT(lang, 'meliSyncProgressTitle'),
           subtitle,
           href: '/dashboard/integrations/mercadolibre?tab=settings',
+          dismissKey: sig,
         })
         toast.success(shellT(lang, 'meliSyncToastSuccess'))
         void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
@@ -180,6 +186,7 @@ export function useMercadoLibreSyncBanner(
 
     if (job?.status === 'queued' || job?.status === 'running') {
       settledSigRef.current = null
+      clearTerminalActivityDismissal(GLOBAL_ACTIVITY_MELI_SYNC_ID)
     }
 
     if (
@@ -191,12 +198,14 @@ export function useMercadoLibreSyncBanner(
       if (settledSigRef.current !== sig) {
         settledSigRef.current = sig
         markSettled()
+        if (isTerminalDismissed(tenantId, GLOBAL_ACTIVITY_MELI_SYNC_ID, sig)) return
         upsertActivity({
           id: GLOBAL_ACTIVITY_MELI_SYNC_ID,
           phase: 'success',
           title: shellT(lang, 'meliSyncProgressTitle'),
           subtitle: buildCompletedSyncSubtitle(completedConn, lang),
           href: '/dashboard/integrations/mercadolibre?tab=settings',
+          dismissKey: sig,
         })
         toast.success(shellT(lang, 'meliSyncToastSuccess'))
         invalidateAlertsQueries(queryClient, tenantId)
@@ -208,6 +217,8 @@ export function useMercadoLibreSyncBanner(
       lastLoadingSubtitleRef.current = null
       if (failedConn) {
         const subtitle = meliSyncErrorSubtitle(failedConn, null, lang)
+        const dismissKey = `failed:${failedConn.id}:${failedConn.sync_plan?.last_sync_completed_at ?? ''}:${failedConn.last_error ?? ''}`
+        if (isTerminalDismissed(tenantId, GLOBAL_ACTIVITY_MELI_SYNC_ID, dismissKey)) return
         if (existing?.phase === 'error' && existing.subtitle === subtitle) return
         upsertActivity({
           id: GLOBAL_ACTIVITY_MELI_SYNC_ID,
@@ -215,6 +226,7 @@ export function useMercadoLibreSyncBanner(
           title: shellT(lang, 'meliSyncFailedTitle'),
           subtitle,
           href: '/dashboard/integrations/mercadolibre?tab=settings',
+          dismissKey,
         })
         return
       }
@@ -240,6 +252,7 @@ export function useMercadoLibreSyncBanner(
     }
     if (lastLoadingSubtitleRef.current === subtitle) return
     lastLoadingSubtitleRef.current = subtitle
+    clearTerminalActivityDismissal(GLOBAL_ACTIVITY_MELI_SYNC_ID)
     upsertActivity({
       id: GLOBAL_ACTIVITY_MELI_SYNC_ID,
       phase: 'loading',
@@ -255,6 +268,7 @@ export function useMercadoLibreSyncBanner(
     jobQuery.data,
     upsertActivity,
     removeActivity,
+    clearTerminalActivityDismissal,
     items,
     lang,
     queryClient,

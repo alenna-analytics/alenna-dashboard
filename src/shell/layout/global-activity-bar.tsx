@@ -65,7 +65,7 @@ function PhaseGlyph({ phase }: { phase: GlobalActivityPhase }) {
 function ActivityRow({ item }: { item: GlobalActivityItem }) {
   const { lang } = useLanguage()
   const { me } = useAppBootstrap()
-  const { minimizeActivity, removeActivity } = useGlobalActivity()
+  const { minimizeActivity, dismissTerminalActivity } = useGlobalActivity()
   const cancelSyncMutation = useCancelPlatformSyncJob()
   const isAdmin = me?.role === 'admin' || me?.role === 'owner'
   const canCancelSync =
@@ -81,7 +81,11 @@ function ActivityRow({ item }: { item: GlobalActivityItem }) {
       minimizeActivity(item.id)
       return
     }
-    removeActivity(item.id)
+    if (item.dismissKey) {
+      dismissTerminalActivity(item.id, item.dismissKey)
+      return
+    }
+    dismissTerminalActivity(item.id, `${item.phase}:${item.title}:${item.subtitle ?? ''}`)
   }
 
   const label = [item.title, item.subtitle].filter(Boolean).join(' · ')

@@ -63,9 +63,8 @@ export function IntegrationEnableCard({
         <div className="flex justify-end border-t border-border-subtle px-4 py-3">
           <Button
             type="button"
-            variant="outline"
+            variant="destructive"
             size="sm"
-            className="border-destructive/35 text-destructive hover:bg-destructive/10 hover:text-destructive"
             loading={disconnectPending}
             onClick={onDisconnect}
           >

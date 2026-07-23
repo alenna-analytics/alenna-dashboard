@@ -5,6 +5,8 @@ import { LoadingIcon } from '@/ui/app-icon'
 import { useMemo, useRef, useState } from 'react'
 
 import type { ShopifyIntegrationHook } from '@/pages/integrations/details/use-shopify-integration'
+import { useCancelPlatformSyncJob } from '@/hooks/use-cancel-platform-sync-job'
+import { GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID } from '@/shell/providers/global-activity-provider'
 import {
   normalizeShopifySubdomainInput,
   SHOPIFY_MYSHOPIFY_SUFFIX,
@@ -132,7 +134,11 @@ function ShopifySyncSection({
     retryShopifySync,
     retryShopifySyncPending,
     syncPlan,
+    activeSyncJobId,
+    isAdmin,
   } = shopify
+
+  const cancelSyncMutation = useCancelPlatformSyncJob()
 
   const syncPill = resolveConnectionSyncFreshnessPillContent(activeConnection, {
     forceSyncing: shopifySyncPhase === 'working',
@@ -171,6 +177,18 @@ function ShopifySyncSection({
         actionDisabled
         actionLoading
         hideAction
+        secondaryActionLabel={isAdmin ? shellT(lang, 'platformSyncCancelBtn') : undefined}
+        onSecondaryAction={
+          isAdmin && activeSyncJobId
+            ? () =>
+                cancelSyncMutation.mutate({
+                  jobId: activeSyncJobId,
+                  activityId: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
+                })
+            : undefined
+        }
+        secondaryActionDisabled={!activeSyncJobId || isFixture}
+        secondaryActionLoading={cancelSyncMutation.isPending}
         badge={<SyncFreshnessPillBadge pill={{ kind: 'syncing', freshnessState: 'syncing' }} lang={lang} />}
         className="w-full"
       />

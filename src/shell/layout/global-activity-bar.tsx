@@ -4,8 +4,12 @@ import { AlertCircle, CheckCircle2, X } from 'lucide-react'
 import { LoadingIcon } from '@/ui/app-icon'
 import { Link } from 'react-router-dom'
 
+import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
+import { useCancelPlatformSyncJob } from '@/hooks/use-cancel-platform-sync-job'
 import { useLanguage } from '@/shell/providers/language-provider'
 import {
+  GLOBAL_ACTIVITY_MELI_SYNC_ID,
+  GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
   useGlobalActivity,
   type GlobalActivityItem,
   type GlobalActivityPhase,
@@ -60,7 +64,15 @@ function PhaseGlyph({ phase }: { phase: GlobalActivityPhase }) {
 
 function ActivityRow({ item }: { item: GlobalActivityItem }) {
   const { lang } = useLanguage()
+  const { me } = useAppBootstrap()
   const { minimizeActivity, removeActivity } = useGlobalActivity()
+  const cancelSyncMutation = useCancelPlatformSyncJob()
+  const isAdmin = me?.role === 'admin' || me?.role === 'owner'
+  const canCancelSync =
+    item.phase === 'loading' &&
+    Boolean(item.jobId) &&
+    isAdmin &&
+    (item.id === GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID || item.id === GLOBAL_ACTIVITY_MELI_SYNC_ID)
 
   const surface = ROW_SURFACE[item.phase]
 
@@ -97,6 +109,23 @@ function ActivityRow({ item }: { item: GlobalActivityItem }) {
             <span className="opacity-80"> · {item.subtitle}</span>
           ) : null}
         </Link>
+        {canCancelSync ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 shrink-0 border-current/20 bg-white/10 px-2 text-xs hover:bg-white/20"
+            loading={cancelSyncMutation.isPending}
+            disabled={cancelSyncMutation.isPending}
+            onClick={(e) => {
+              e.preventDefault()
+              if (!item.jobId) return
+              cancelSyncMutation.mutate({ jobId: item.jobId, activityId: item.id })
+            }}
+          >
+            {shellT(lang, 'platformSyncCancelBtn')}
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="ghost"

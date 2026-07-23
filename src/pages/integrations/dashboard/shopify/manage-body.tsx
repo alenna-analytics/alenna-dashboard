@@ -6,6 +6,7 @@ import { useMemo, useRef, useState } from 'react'
 
 import type { ShopifyIntegrationHook } from '@/pages/integrations/details/use-shopify-integration'
 import { useCancelPlatformSyncJob } from '@/hooks/use-cancel-platform-sync-job'
+import { GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID } from '@/shell/providers/global-activity-provider'
 import {
   normalizeShopifySubdomainInput,
   SHOPIFY_MYSHOPIFY_SUFFIX,
@@ -179,7 +180,11 @@ function ShopifySyncSection({
         secondaryActionLabel={isAdmin ? shellT(lang, 'platformSyncCancelBtn') : undefined}
         onSecondaryAction={
           isAdmin && activeSyncJobId
-            ? () => cancelSyncMutation.mutate(activeSyncJobId)
+            ? () =>
+                cancelSyncMutation.mutate({
+                  jobId: activeSyncJobId,
+                  activityId: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
+                })
             : undefined
         }
         secondaryActionDisabled={!activeSyncJobId || isFixture}

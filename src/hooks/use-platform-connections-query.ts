@@ -13,6 +13,7 @@ export function usePlatformConnectionsQuery() {
   return useQuery({
     queryKey: ['connectors', tenantId],
     enabled: Boolean(tenantId),
+    refetchOnWindowFocus: true,
     refetchInterval: (query) => connectorsQueryRefetchIntervalMs(query.state.data),
     queryFn: async (): Promise<PlatformConnection[]> => {
       const res = await apiFetch('/connectors', (a) => getToken(a), {}, tenantId)

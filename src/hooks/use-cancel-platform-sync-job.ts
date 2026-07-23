@@ -6,11 +6,21 @@ import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch } from '@/lib/api'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { useLanguage } from '@/shell/providers/language-provider'
-import {
-  GLOBAL_ACTIVITY_MELI_SYNC_ID,
-  GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
-  useGlobalActivity,
-} from '@/shell/providers/global-activity-provider'
+import { useGlobalActivity } from '@/shell/providers/global-activity-provider'
+
+export type CancelPlatformSyncJobInput = {
+  jobId: string
+  activityId: string
+}
+
+export class CancelPlatformSyncJobError extends Error {
+  readonly status: number
+
+  constructor(status: number, message: string) {
+    super(message)
+    this.status = status
+  }
+}
 
 export function useCancelPlatformSyncJob() {
   const { getToken } = useAuth()
@@ -20,7 +30,7 @@ export function useCancelPlatformSyncJob() {
   const { removeActivity } = useGlobalActivity()
 
   return useMutation({
-    mutationFn: async (jobId: string) => {
+    mutationFn: async ({ jobId }: CancelPlatformSyncJobInput) => {
       const res = await apiFetch(
         `/catalog/jobs/${jobId}/cancel`,
         (a) => getToken(a),
@@ -29,18 +39,21 @@ export function useCancelPlatformSyncJob() {
       )
       if (!res.ok) {
         const text = await res.text()
-        throw new Error(text || res.statusText)
+        throw new CancelPlatformSyncJobError(res.status, text || res.statusText)
       }
       return res.json() as Promise<unknown>
     },
-    onSuccess: (_data, jobId) => {
-      removeActivity(GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID)
-      removeActivity(GLOBAL_ACTIVITY_MELI_SYNC_ID)
+    onSuccess: (_data, { jobId, activityId }) => {
+      removeActivity(activityId)
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
       void queryClient.invalidateQueries({ queryKey: ['catalog', 'jobs', jobId, tenantId] })
       toast.success(shellT(lang, 'platformSyncCancelSuccess'))
     },
-    onError: () => {
+    onError: (error) => {
+      if (error instanceof CancelPlatformSyncJobError && error.status === 403) {
+        toast.error(shellT(lang, 'platformSyncCancelForbidden'))
+        return
+      }
       toast.error(shellT(lang, 'platformSyncCancelFailed'))
     },
   })

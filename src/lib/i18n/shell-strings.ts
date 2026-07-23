@@ -636,6 +636,7 @@ const SHELL_STRINGS = {
     platformSyncCancelBtn: 'Cancelar sync',
     platformSyncCancelSuccess: 'Sincronización cancelada.',
     platformSyncCancelFailed: 'No se pudo cancelar la sincronización.',
+    platformSyncCancelForbidden: 'Solo los administradores pueden cancelar la sincronización.',
     shopifySyncToastFailed: 'La sincronización de Shopify falló.',
     shopifySyncRetry: 'Reintentar',
     shopifySyncBlockedHint:
@@ -1943,6 +1944,7 @@ const SHELL_STRINGS = {
     platformSyncCancelBtn: 'Cancel sync',
     platformSyncCancelSuccess: 'Sync cancelled.',
     platformSyncCancelFailed: 'Could not cancel sync.',
+    platformSyncCancelForbidden: 'Only workspace admins can cancel sync.',
     shopifySyncToastFailed: 'Shopify sync failed.',
     shopifySyncRetry: 'Retry',
     shopifySyncBlockedHint:

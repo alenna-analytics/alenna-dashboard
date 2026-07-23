@@ -120,7 +120,7 @@ function ActivityRow({ item }: { item: GlobalActivityItem }) {
             onClick={(e) => {
               e.preventDefault()
               if (!item.jobId) return
-              cancelSyncMutation.mutate(item.jobId)
+              cancelSyncMutation.mutate({ jobId: item.jobId, activityId: item.id })
             }}
           >
             {shellT(lang, 'platformSyncCancelBtn')}

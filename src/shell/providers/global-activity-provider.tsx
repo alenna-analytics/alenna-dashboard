@@ -17,6 +17,7 @@ export type GlobalActivityItem = {
   subtitle?: string
   href: string
   minimized: boolean
+  jobId?: string
 }
 
 /** Single slot for Shopify channel order sync (one concurrent sync per workspace UX). */
@@ -66,6 +67,7 @@ function reducer(state: GlobalActivityState, action: GlobalActivityAction): Glob
         subtitle: payload.subtitle,
         href: payload.href,
         minimized: nextMinimized,
+        jobId: payload.jobId ?? state.items.find((x) => x.id === payload.id)?.jobId,
       }
       const idx = state.items.findIndex((x) => x.id === item.id)
       const items =

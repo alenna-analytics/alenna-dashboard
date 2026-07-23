@@ -472,6 +472,20 @@ const SHELL_STRINGS = {
     integrationsDisconnectDialogTitle: '¿Desconectar esta tienda?',
     integrationsDialogCancel: 'Cancelar',
     integrationsDialogConfirmDisconnect: 'Desconectar',
+    integrationsDisconnectDataDialogTitle: '¿Qué hacer con los datos importados?',
+    integrationsDisconnectDataDialogDescription:
+      'Elige si conservar o eliminar los pedidos, publicaciones y agregados sincronizados de esta conexión.',
+    integrationsDisconnectKeepDataTitle: 'Mantener datos históricos',
+    integrationsDisconnectKeepDataDescription:
+      'Revoca la conexión pero conserva pedidos, productos importados y reportes ya sincronizados.',
+    integrationsDisconnectPurgeDataTitle: 'Eliminar datos importados',
+    integrationsDisconnectPurgeDataDescription:
+      'Borra pedidos, publicaciones y agregados ligados a esta conexión. Esta acción no se puede deshacer.',
+    integrationsDisconnectDataContinue: 'Continuar',
+    integrationsDisconnectConfirmBack: 'Volver',
+    integrationsDisconnectConfirmPurge:
+      'Se eliminarán permanentemente los datos importados de esta conexión y se revocará el acceso. Esta acción no se puede deshacer.',
+    integrationsDialogConfirmDisconnectAndPurge: 'Desconectar y eliminar datos',
     integrationsToggleLabel: 'Integración activa',
     integrationsComingSoonBadge: 'Próximamente',
     integrationsNavAll: 'Todas',
@@ -619,6 +633,9 @@ const SHELL_STRINGS = {
     shopifySyncProgressPages: 'Página',
     shopifySyncDateRange: 'Rango de fechas de pedidos',
     shopifySyncToastSuccess: 'Sincronización de Shopify completada.',
+    platformSyncCancelBtn: 'Cancelar sync',
+    platformSyncCancelSuccess: 'Sincronización cancelada.',
+    platformSyncCancelFailed: 'No se pudo cancelar la sincronización.',
     shopifySyncToastFailed: 'La sincronización de Shopify falló.',
     shopifySyncRetry: 'Reintentar',
     shopifySyncBlockedHint:
@@ -1766,6 +1783,20 @@ const SHELL_STRINGS = {
     integrationsDisconnectDialogTitle: 'Disconnect this store?',
     integrationsDialogCancel: 'Cancel',
     integrationsDialogConfirmDisconnect: 'Disconnect',
+    integrationsDisconnectDataDialogTitle: 'What should happen to imported data?',
+    integrationsDisconnectDataDialogDescription:
+      'Choose whether to keep or delete orders, listings, and aggregates synced from this connection.',
+    integrationsDisconnectKeepDataTitle: 'Keep historical data',
+    integrationsDisconnectKeepDataDescription:
+      'Revoke the connection but keep imported orders, listings, and reporting already synced.',
+    integrationsDisconnectPurgeDataTitle: 'Delete imported data',
+    integrationsDisconnectPurgeDataDescription:
+      'Delete orders, listings, and aggregates tied to this connection. This cannot be undone.',
+    integrationsDisconnectDataContinue: 'Continue',
+    integrationsDisconnectConfirmBack: 'Back',
+    integrationsDisconnectConfirmPurge:
+      'Imported data for this connection will be permanently deleted and access will be revoked. This cannot be undone.',
+    integrationsDialogConfirmDisconnectAndPurge: 'Disconnect and delete data',
     integrationsToggleLabel: 'Integration enabled',
     integrationsComingSoonBadge: 'Coming soon',
     integrationsNavAll: 'All',
@@ -1909,6 +1940,9 @@ const SHELL_STRINGS = {
     shopifySyncProgressPages: 'Page',
     shopifySyncDateRange: 'Order date range',
     shopifySyncToastSuccess: 'Shopify sync finished.',
+    platformSyncCancelBtn: 'Cancel sync',
+    platformSyncCancelSuccess: 'Sync cancelled.',
+    platformSyncCancelFailed: 'Could not cancel sync.',
     shopifySyncToastFailed: 'Shopify sync failed.',
     shopifySyncRetry: 'Retry',
     shopifySyncBlockedHint:

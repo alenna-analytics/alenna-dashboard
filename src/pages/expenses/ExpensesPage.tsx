@@ -17,6 +17,7 @@ import {
   summarizeExpenses,
 } from '@/pages/expenses/expenses-helpers'
 import { ExpensesAmountFilter } from '@/pages/expenses/expenses-amount-filter'
+import { ExpensesDeleteDialog } from '@/pages/expenses/expenses-delete-dialog'
 import { ExpensesSheet } from '@/pages/expenses/expenses-sheet'
 import { ExpensesTable } from '@/pages/expenses/expenses-table'
 import { useExpenses } from '@/pages/expenses/use-expenses'
@@ -101,6 +102,7 @@ export function ExpensesPage() {
   const { latestFx } = useDisplayCurrency()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<Expense | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null)
   const [filters, setFilters] = useState<ExpensesFilters>(defaultFilters)
 
   const defaultCurrency: ExpenseCurrencyCode =
@@ -340,8 +342,8 @@ export function ExpensesPage() {
           formatAmount={formatAmount}
           onEdit={openEdit}
           onDelete={(id) => {
-            if (!window.confirm(t('expensesDeleteConfirm'))) return
-            void expenses.deleteMutation.mutateAsync(id)
+            const row = filteredRows.find((r) => r.id === id) ?? null
+            setDeleteTarget(row)
           }}
           t={t}
         />
@@ -364,6 +366,21 @@ export function ExpensesPage() {
           await expenses.updateMutation.mutateAsync({ id, ...body })
         }}
         isBusy={isBusy}
+      />
+
+      <ExpensesDeleteDialog
+        lang={lang}
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null)
+        }}
+        deletePending={expenses.deleteMutation.isPending}
+        onConfirmDelete={() => {
+          if (!deleteTarget) return
+          void expenses.deleteMutation
+            .mutateAsync(deleteTarget.id)
+            .then(() => setDeleteTarget(null))
+        }}
       />
     </DashboardPage>
   )

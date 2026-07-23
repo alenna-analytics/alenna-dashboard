@@ -5,6 +5,12 @@ import type { PlatformConnection, SyncPlanStatus } from '@/lib/types/connectors'
 /** After this age, incremental sync is considered stale (default 5m tick × 3). */
 export const SYNC_STALE_AFTER_MS = 15 * 60 * 1000
 
+/** Poll while a sync job is active. */
+export const CONNECTORS_SYNC_ACTIVE_REFETCH_MS = 15_000
+
+/** Baseline poll when tenant has syncable connections but no active job. */
+export const CONNECTORS_SYNC_BASELINE_REFETCH_MS = 60_000
+
 export type SyncFreshnessState = 'syncing' | 'up_to_date' | 'outdated'
 
 export type DeriveSyncFreshnessOptions = {
@@ -74,6 +80,7 @@ export function deriveConnectionSyncFreshness(
   if (!conn || !isActiveSyncableConnection(conn)) return null
 
   if (options?.forceSyncing) return 'syncing'
+  if (conn.sync_plan?.current_job_id) return 'syncing'
   if (conn.sync_plan?.last_sync_status === 'syncing' && !isStaleSyncingPlan(conn)) {
     return 'syncing'
   }
@@ -121,14 +128,16 @@ export function connectorsQueryRefetchIntervalMs(
   options?: DeriveSyncFreshnessOptions,
 ): number | false {
   if (!connections?.length) return false
+  const syncable = filterActiveSyncableConnections(connections)
+  if (syncable.length === 0) return false
   const shopifyState = aggregateShopifySyncFreshness(connections, options)
   const meliSyncing = connections.some(
     (c) =>
       isActiveMercadoLibreConnection(c) &&
       deriveConnectionSyncFreshness(c, options) === 'syncing',
   )
-  if (shopifyState === 'syncing' || meliSyncing) return 15_000
-  return false
+  if (shopifyState === 'syncing' || meliSyncing) return CONNECTORS_SYNC_ACTIVE_REFETCH_MS
+  return CONNECTORS_SYNC_BASELINE_REFETCH_MS
 }
 
 export type SyncFreshnessPillContent =

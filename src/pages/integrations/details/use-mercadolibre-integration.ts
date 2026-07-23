@@ -158,8 +158,7 @@ export function useMercadoLibreIntegration() {
     neverLabel,
   )
 
-  const serverActiveJobId =
-    syncPlan?.last_sync_status === 'syncing' ? (syncPlan.current_job_id ?? null) : null
+  const serverActiveJobId = syncPlan?.current_job_id ?? null
 
   const localPendingMatchesActive = Boolean(
     syncPanel.pendingJobId &&
@@ -319,10 +318,10 @@ export function useMercadoLibreIntegration() {
   }, [getToken, tenantId])
 
   const disconnectMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (purgeData: boolean) => {
       if (!activeConnectionId) return
       const res = await apiFetch(
-        `/connectors/mercadolibre/${activeConnectionId}`,
+        `/connectors/mercadolibre/${activeConnectionId}?purge_data=${purgeData ? 'true' : 'false'}`,
         (a) => getToken(a),
         { method: 'DELETE' },
         tenantId,
@@ -449,5 +448,6 @@ export function useMercadoLibreIntegration() {
     startOAuth,
     disconnectMutation,
     syncMutation,
+    activeSyncJobId: effectiveJobId,
   }
 }

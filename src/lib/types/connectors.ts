@@ -47,6 +47,7 @@ export type PlatformConnection = {
   last_error: string | null
   orders_watermark_at: string | null
   orders_backfill_completed_through: string | null
+  fees_status: string | null
   sync_plan: SyncPlan | null
 }
 

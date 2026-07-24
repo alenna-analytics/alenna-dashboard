@@ -421,6 +421,33 @@ const SHELL_STRINGS = {
     integrationDetailMercadoLibreHelper:
       'Serás redirigido a Mercado Libre para autorizar el acceso de forma segura.',
     integrationMercadoLibreAccountLabel: 'Cuenta conectada',
+    integrationSheetAmazonConnectIntro:
+      'Conecta Amazon para sincronizar pedidos y catálogo. Las comisiones de marketplace aún no están incluidas en el P&L.',
+    integrationConnectWithAmazon: 'Conectar con Amazon',
+    integrationConnectAmazonSandbox: 'Conectar Amazon (sandbox)',
+    integrationDetailAmazonHelper:
+      'En producción serás redirigido a Seller Central. En local/staging usamos la ficha de pruebas.',
+    integrationAmazonAccountLabel: 'Cuenta conectada',
+    integrationAmazonFeesUnavailableBanner:
+      'Comisiones Amazon pendientes — los datos de pedidos no son comparables en P&L multicanal todavía.',
+    integrationAmazonSandboxHint: 'Modo sandbox: usa la ficha del portal de Amazon SP-API.',
+    integrationAmazonSandboxConnected: 'Amazon sandbox conectado.',
+    integrationAmazonOAuthConnected: 'Amazon conectado. Ejecuta una sincronización para importar pedidos.',
+    integrationAmazonOAuthFailed: 'No se pudo completar la conexión con Amazon.',
+    integrationAmazonConnectFailed: 'No se pudo conectar Amazon. Inténtalo de nuevo.',
+    integrationAmazonDisconnectFailed: 'No se pudo desconectar Amazon. Inténtalo de nuevo.',
+    integrationAmazonLoadFailed: 'No se pudo cargar la integración de Amazon.',
+    syncSectionDescriptionAmazon:
+      'Importamos pedidos y listings desde Amazon. Ejecuta la primera sincronización para marcar la integración como activa.',
+    amazonSyncProgressTitle: 'Sincronizando Amazon',
+    amazonSyncProgressQueued: 'En cola…',
+    amazonSyncFailedTitle: 'Error al sincronizar Amazon',
+    amazonSyncFailedUserMessage:
+      'No se pudo completar la sincronización de Amazon. Puedes reintentar en unos momentos.',
+    amazonSyncFailedPermissionsMessage:
+      'Amazon no autorizó el acceso a pedidos. Desconecta y vuelve a conectar la integración.',
+    amazonSyncToastFailed: 'No se pudo completar la sincronización de Amazon.',
+    amazonSyncToastSuccess: 'Sincronización de Amazon completada.',
     syncSectionDescriptionMercadoLibre:
       'Importamos pedidos desde Mercado Libre. La sincronización inicial y las actualizaciones periódicas mantienen tus datos al día.',
     connectionsConnectButton: 'Continuar con Shopify',
@@ -637,6 +664,15 @@ const SHELL_STRINGS = {
     platformSyncCancelSuccess: 'Sincronización cancelada.',
     platformSyncCancelFailed: 'No se pudo cancelar la sincronización.',
     platformSyncCancelForbidden: 'Solo los administradores pueden cancelar la sincronización.',
+    platformSyncCancelledTitle: 'Sincronización cancelada',
+    platformSyncCancelledBannerMessage:
+      'Cancelaste la sincronización. Puedes iniciarla de nuevo cuando quieras.',
+    platformSyncWorkerDiedMessage:
+      'La sincronización se detuvo inesperadamente. Puedes reintentar en unos momentos.',
+    platformSyncProgressCatalog: 'Actualizando catálogo (imágenes e inventario)...',
+    platformSyncProgressOrders: 'Pedidos importados',
+    platformSyncRetry: 'Reintentar',
+    platformSyncBlockedHint: 'Última ejecución terminó correctamente.',
     shopifySyncToastFailed: 'La sincronización de Shopify falló.',
     shopifySyncRetry: 'Reintentar',
     shopifySyncBlockedHint:
@@ -1733,6 +1769,33 @@ const SHELL_STRINGS = {
     integrationDetailMercadoLibreHelper:
       'You will be redirected to Mercado Libre to authorize access securely.',
     integrationMercadoLibreAccountLabel: 'Connected account',
+    integrationSheetAmazonConnectIntro:
+      'Connect Amazon to sync orders and catalog. Marketplace fees are not included in P&L yet.',
+    integrationConnectWithAmazon: 'Connect with Amazon',
+    integrationConnectAmazonSandbox: 'Connect Amazon (sandbox)',
+    integrationDetailAmazonHelper:
+      'In production you will be redirected to Seller Central. Local/staging uses the sandbox refresh token.',
+    integrationAmazonAccountLabel: 'Connected account',
+    integrationAmazonFeesUnavailableBanner:
+      'Amazon fees pending — order data is not yet comparable in multichannel P&L.',
+    integrationAmazonSandboxHint: 'Sandbox mode: uses the Amazon SP-API portal refresh token.',
+    integrationAmazonSandboxConnected: 'Amazon sandbox connected.',
+    integrationAmazonOAuthConnected: 'Amazon connected. Run a sync to import orders.',
+    integrationAmazonOAuthFailed: 'Could not complete Amazon connection.',
+    integrationAmazonConnectFailed: 'Could not connect Amazon. Try again.',
+    integrationAmazonDisconnectFailed: 'Could not disconnect Amazon. Try again.',
+    integrationAmazonLoadFailed: 'Could not load Amazon integration.',
+    syncSectionDescriptionAmazon:
+      'We import orders and listings from Amazon. Run the first sync to mark the integration as active.',
+    amazonSyncProgressTitle: 'Syncing Amazon',
+    amazonSyncProgressQueued: 'Queued…',
+    amazonSyncFailedTitle: 'Amazon sync failed',
+    amazonSyncFailedUserMessage:
+      'Could not complete Amazon sync. You can try again in a few moments.',
+    amazonSyncFailedPermissionsMessage:
+      'Amazon denied access to orders. Disconnect and reconnect the integration.',
+    amazonSyncToastFailed: 'Could not complete Amazon sync.',
+    amazonSyncToastSuccess: 'Amazon sync completed.',
     syncSectionDescriptionMercadoLibre:
       'We import orders from Mercado Libre. Initial sync and periodic updates keep your data current.',
     connectionsConnectButton: 'Continue with Shopify',
@@ -1945,6 +2008,15 @@ const SHELL_STRINGS = {
     platformSyncCancelSuccess: 'Sync cancelled.',
     platformSyncCancelFailed: 'Could not cancel sync.',
     platformSyncCancelForbidden: 'Only workspace admins can cancel sync.',
+    platformSyncCancelledTitle: 'Sync cancelled',
+    platformSyncCancelledBannerMessage:
+      'You cancelled the sync. You can start it again whenever you want.',
+    platformSyncWorkerDiedMessage:
+      'The sync stopped unexpectedly. You can try again in a few moments.',
+    platformSyncProgressCatalog: 'Updating catalog (images & stock)...',
+    platformSyncProgressOrders: 'Orders imported',
+    platformSyncRetry: 'Retry',
+    platformSyncBlockedHint: 'Last run finished successfully.',
     shopifySyncToastFailed: 'Shopify sync failed.',
     shopifySyncRetry: 'Retry',
     shopifySyncBlockedHint:

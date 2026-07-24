@@ -31,6 +31,7 @@ export type GlobalActivityItem = {
 /** Single slot for Shopify channel order sync (one concurrent sync per workspace UX). */
 export const GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID = 'shopify-channel-sync'
 export const GLOBAL_ACTIVITY_MELI_SYNC_ID = 'mercadolibre-channel-sync'
+export const GLOBAL_ACTIVITY_AMAZON_SYNC_ID = 'amazon-channel-sync'
 
 /** Single slot when bulk COGS save enqueues many backfill jobs. */
 export const GLOBAL_ACTIVITY_COGS_BULK_BACKFILL_ID = 'cogs-bulk-backfill'

@@ -19,6 +19,7 @@ function baseConnection(overrides: Partial<PlatformConnection> = {}): PlatformCo
     last_error: null,
     orders_watermark_at: '2026-01-01T12:00:00.000Z',
     orders_backfill_completed_through: null,
+    fees_status: null,
     sync_plan: {
       full_history_window: { start_date: '2020-01-01', end_date: '2026-01-01' },
       last_sync_status: 'synced',
@@ -58,6 +59,21 @@ describe('connectorsQueryRefetchIntervalMs', () => {
           ...baseConnection().sync_plan!,
           last_sync_status: 'synced',
           current_job_id: 'job-123',
+        },
+      }),
+    ]
+    expect(connectorsQueryRefetchIntervalMs(connections)).toBe(CONNECTORS_SYNC_ACTIVE_REFETCH_MS)
+  })
+
+  it('returns active interval when Amazon connection is syncing', () => {
+    const connections = [
+      baseConnection({
+        platform: 'amazon',
+        shop_domain: null,
+        sync_plan: {
+          ...baseConnection().sync_plan!,
+          last_sync_status: 'synced',
+          current_job_id: 'job-amazon',
         },
       }),
     ]

@@ -11,7 +11,9 @@ import { apiFetch, apiPostJson } from '@/lib/api'
 import { isAmazonSandboxConnectMode } from '@/lib/integrations/amazon-connect-mode'
 import { connectionNeedsInitialSync } from '@/lib/integrations/sync-freshness'
 import { formatShopifyLastSync } from '@/lib/integrations/shopify-format'
+import { formatAmazonSyncUserError, amazonSyncFailedTitle } from '@/lib/integrations/amazon-sync-user-error'
 import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
+import { isPlatformSyncUserCancelled } from '@/lib/integrations/platform-sync-user-error'
 import type { PlatformConnection, SyncPlan } from '@/lib/types/connectors'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { invalidateAlertsQueries } from '@/pages/dashboard/use-alerts-queries'
@@ -107,7 +109,7 @@ export function useAmazonIntegration() {
   const { me } = useWorkspace()
   const { lang } = useLanguage()
   const queryClient = useQueryClient()
-  const { upsertActivity, removeActivity } = useGlobalActivity()
+  const { upsertActivity, removeActivity, items } = useGlobalActivity()
   const [connectStarting, setConnectStarting] = useState(false)
 
   const [syncPanel, setSyncPanel] = useTenantPersistedJson(
@@ -177,6 +179,7 @@ export function useAmazonIntegration() {
 
   const pollAmazonJob = Boolean(effectiveJobId && activeConnectionId)
   const amazonJobQuery = useCatalogJobQuery(effectiveJobId, pollAmazonJob)
+  const liveJobStatus = amazonJobQuery.data?.status ?? null
   const retryCatalogJobMutation = useRetryCatalogJobMutation()
   const settledJobSigRef = useRef<string | null>(null)
 
@@ -233,7 +236,8 @@ export function useAmazonIntegration() {
     }
 
     if (job.status === 'failed') {
-      const message = job.error_message ?? shellT(lang, 'amazonSyncToastFailed')
+      const cancelled = isPlatformSyncUserCancelled(job.error_code, job.error_message)
+      const message = formatAmazonSyncUserError(job.error_message, lang, job.error_code)
       setSyncPanel({
         pendingJobId: null,
         pendingConnectionId: null,
@@ -245,12 +249,14 @@ export function useAmazonIntegration() {
       upsertActivity({
         id: GLOBAL_ACTIVITY_AMAZON_SYNC_ID,
         phase: 'error',
-        title: shellT(lang, 'amazonSyncFailedTitle'),
+        title: amazonSyncFailedTitle(lang, job.error_code, job.error_message),
         subtitle: message,
         href: '/dashboard/integrations/amazon?tab=settings',
         minimized: false,
       })
-      toast.error(shellT(lang, 'amazonSyncToastFailed'))
+      if (!cancelled) {
+        toast.error(shellT(lang, 'amazonSyncToastFailed'))
+      }
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
     }
   }, [
@@ -278,6 +284,13 @@ export function useAmazonIntegration() {
 
   const amazonSyncPhase = useMemo((): 'idle' | 'working' | 'done_ok' | 'done_fail' => {
     if (!activeConnectionId) return 'idle'
+
+    // Live job wins over localStorage / summary — avoids "En cola" + Retry split.
+    if (effectiveJobId && liveJobStatus === 'queued') return 'working'
+    if (effectiveJobId && liveJobStatus === 'running') return 'working'
+    if (effectiveJobId && liveJobStatus === 'failed') return 'done_fail'
+    if (effectiveJobId && liveJobStatus === 'succeeded') return 'done_ok'
+
     if (
       syncPanel.failedJobId &&
       syncPanel.failedConnectionId === activeConnectionId &&
@@ -285,9 +298,13 @@ export function useAmazonIntegration() {
     ) {
       return 'done_fail'
     }
-    if (syncPanel.pendingJobId && syncPanel.pendingConnectionId === activeConnectionId) {
-      return 'working'
-    }
+
+    const pendingMatches =
+      syncPanel.pendingJobId &&
+      syncPanel.pendingConnectionId === activeConnectionId
+    if (pendingMatches && !liveJobStatus) return 'working'
+
+    if (syncPlan?.current_job_id && !liveJobStatus) return 'working'
     if (syncPlan?.last_sync_status === 'syncing') return 'working'
     if (syncPanelBlockSuccess?.connectionId === activeConnectionId) return 'done_ok'
     if (syncPlan?.last_sync_status === 'failed') return 'done_fail'
@@ -296,8 +313,19 @@ export function useAmazonIntegration() {
     activeConnectionId,
     syncPanel,
     syncPlan?.last_sync_status,
+    syncPlan?.current_job_id,
     syncPanelBlockSuccess,
+    liveJobStatus,
+    effectiveJobId,
   ])
+
+  useEffect(() => {
+    if (amazonSyncPhase !== 'done_fail' && amazonSyncPhase !== 'done_ok') return
+    const existing = items.find((x) => x.id === GLOBAL_ACTIVITY_AMAZON_SYNC_ID)
+    if (existing?.phase === 'loading') {
+      removeActivity(GLOBAL_ACTIVITY_AMAZON_SYNC_ID)
+    }
+  }, [amazonSyncPhase, items, removeActivity])
 
   const startConnect = useCallback(async () => {
     setConnectStarting(true)
@@ -391,6 +419,7 @@ export function useAmazonIntegration() {
         subtitle: shellT(lang, 'amazonSyncProgressQueued'),
         href: '/dashboard/integrations/amazon?tab=settings',
         minimized: false,
+        jobId: data.job_id,
       })
       setSyncPanel({
         pendingJobId: data.job_id,
@@ -428,6 +457,7 @@ export function useAmazonIntegration() {
           subtitle: shellT(lang, 'amazonSyncProgressQueued'),
           href: '/dashboard/integrations/amazon?tab=settings',
           minimized: false,
+          jobId: fid,
         })
         setSyncPanel({
           pendingJobId: fid,

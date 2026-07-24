@@ -2,10 +2,10 @@ import { CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useState } from 'react'
 
-import { LoadingIcon } from '@/ui/app-icon'
 import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
 import { IntegrationEnableCard } from '@/components/integrations/integration-enable-card'
 import { IntegrationSyncActionCard } from '@/components/integrations/integration-sync-action-card'
+import { IntegrationDetailSkeleton } from '@/pages/integrations/dashboard/integration-detail-skeleton'
 import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
 import type { AmazonIntegrationHook } from '@/pages/integrations/details/use-amazon-integration'
@@ -86,6 +86,7 @@ function AmazonSyncSection({
 
   const syncPill = resolveConnectionSyncFreshnessPillContent(activeConnection, {
     forceSyncing: amazonSyncPhase === 'working',
+    suppressSyncing: amazonSyncPhase === 'done_fail',
   })
 
   const buttonLabel = shellT(lang, lifecycleButtonLabelKey(syncPlan))
@@ -230,10 +231,7 @@ export function AmazonManageBody({
       {!amazon.isAdmin ? (
         <p className="text-sm text-muted-foreground">{shellT(lang, 'connectionsAdminOnly')}</p>
       ) : amazon.isLoading ? (
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <LoadingIcon className="size-4" />
-          {shellT(lang, 'connectionsLoading')}
-        </p>
+        <IntegrationDetailSkeleton />
       ) : amazon.error ? (
         <p className="text-sm text-destructive" role="alert">
           {amazon.error instanceof Error ? amazon.error.message : String(amazon.error)}

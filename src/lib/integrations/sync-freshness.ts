@@ -15,6 +15,8 @@ export type SyncFreshnessState = 'syncing' | 'up_to_date' | 'outdated'
 
 export type DeriveSyncFreshnessOptions = {
   forceSyncing?: boolean
+  /** Ignore current_job_id / syncing plan (e.g. local UI already settled failed). */
+  suppressSyncing?: boolean
   nowMs?: number
   staleAfterMs?: number
 }
@@ -92,9 +94,11 @@ export function deriveConnectionSyncFreshness(
   if (!conn || !isActiveSyncableConnection(conn)) return null
 
   if (options?.forceSyncing) return 'syncing'
-  if (conn.sync_plan?.current_job_id) return 'syncing'
-  if (conn.sync_plan?.last_sync_status === 'syncing' && !isStaleSyncingPlan(conn)) {
-    return 'syncing'
+  if (!options?.suppressSyncing) {
+    if (conn.sync_plan?.current_job_id) return 'syncing'
+    if (conn.sync_plan?.last_sync_status === 'syncing' && !isStaleSyncingPlan(conn)) {
+      return 'syncing'
+    }
   }
 
   if (!hasCompletedInitialSync(conn)) {

@@ -1,3 +1,4 @@
+import { formatPlatformSyncUserError } from '@/lib/integrations/platform-sync-user-error'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { Language } from '@/shell/providers/language-provider'
 
@@ -20,13 +21,20 @@ function looksLikeInternalSyncError(message: string): boolean {
 export function formatMercadoLibreSyncUserError(
   message: string | null | undefined,
   lang: Language,
+  errorCode?: string | null,
 ): string {
-  const fallback = shellT(lang, 'meliSyncFailedUserMessage')
-  if (!message?.trim()) return fallback
-  const trimmed = message.trim()
+  const trimmed = message?.trim() ?? ''
   if (/HTTP 403/i.test(trimmed) || /denied access to orders/i.test(trimmed)) {
     return shellT(lang, 'meliSyncFailedPermissionsMessage')
   }
-  if (looksLikeInternalSyncError(trimmed)) return fallback
+  const formatted = formatPlatformSyncUserError(
+    message,
+    lang,
+    'meliSyncFailedUserMessage',
+    errorCode,
+  )
+  if (formatted !== shellT(lang, 'meliSyncFailedUserMessage')) return formatted
+  if (!trimmed) return formatted
+  if (looksLikeInternalSyncError(trimmed)) return formatted
   return trimmed
 }

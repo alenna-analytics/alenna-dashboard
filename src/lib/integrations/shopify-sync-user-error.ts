@@ -1,3 +1,4 @@
+import { formatPlatformSyncUserError } from '@/lib/integrations/platform-sync-user-error'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { Language } from '@/shell/providers/language-provider'
 
@@ -23,9 +24,16 @@ function looksLikeInternalSyncError(message: string): boolean {
 export function formatShopifySyncUserError(
   message: string | null | undefined,
   lang: Language,
+  errorCode?: string | null,
 ): string {
-  const fallback = shellT(lang, 'shopifySyncFailedUserMessage')
-  if (!message?.trim()) return fallback
-  if (looksLikeInternalSyncError(message)) return fallback
+  const formatted = formatPlatformSyncUserError(
+    message,
+    lang,
+    'shopifySyncFailedUserMessage',
+    errorCode,
+  )
+  if (formatted !== shellT(lang, 'shopifySyncFailedUserMessage')) return formatted
+  if (!message?.trim()) return formatted
+  if (looksLikeInternalSyncError(message)) return formatted
   return message.trim()
 }

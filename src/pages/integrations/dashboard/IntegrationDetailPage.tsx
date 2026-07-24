@@ -10,6 +10,7 @@ import {
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
 import { IntegrationDetailBreadcrumb } from '@/pages/integrations/dashboard/integration-detail-breadcrumb'
 import { IntegrationDetailLayout } from '@/pages/integrations/dashboard/integration-detail-layout'
+import { IntegrationDetailSkeleton } from '@/pages/integrations/dashboard/integration-detail-skeleton'
 import { IntegrationOverviewPanel } from '@/pages/integrations/dashboard/integration-overview-panel'
 import { IntegrationsDisconnectConfirmDialog } from '@/pages/integrations/dashboard/integrations-disconnect-confirm-dialog'
 import {
@@ -83,8 +84,9 @@ export function IntegrationDetailPage() {
 
   if (!integration) {
     return (
-      <DashboardPage>
-        <p className="text-sm text-text-secondary">{shellT(lang, 'connectionsLoading')}</p>
+      <DashboardPage className="space-y-6">
+        <IntegrationDetailBreadcrumb slug={slug} />
+        <IntegrationDetailSkeleton />
       </DashboardPage>
     )
   }
@@ -109,6 +111,10 @@ export function IntegrationDetailPage() {
             (isShopify && shopifyIntegration.shopifySyncPhase === 'working') ||
             (isMercadolibre && mercadolibreIntegration.meliSyncPhase === 'working') ||
             (isAmazon && amazonIntegration.amazonSyncPhase === 'working'),
+          suppressSyncing:
+            (isAmazon && amazonIntegration.amazonSyncPhase === 'done_fail') ||
+            (isShopify && shopifyIntegration.shopifySyncPhase === 'done_fail') ||
+            (isMercadolibre && mercadolibreIntegration.meliSyncPhase === 'done_fail'),
         })
       : null
 

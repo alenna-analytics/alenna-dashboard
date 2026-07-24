@@ -438,7 +438,12 @@ const SHELL_STRINGS = {
     amazonSyncProgressTitle: 'Sincronizando Amazon',
     amazonSyncProgressQueued: 'En cola…',
     amazonSyncFailedTitle: 'Error al sincronizar Amazon',
+    amazonSyncFailedUserMessage:
+      'No se pudo completar la sincronización de Amazon. Puedes reintentar en unos momentos.',
+    amazonSyncFailedPermissionsMessage:
+      'Amazon no autorizó el acceso a pedidos. Desconecta y vuelve a conectar la integración.',
     amazonSyncToastFailed: 'No se pudo completar la sincronización de Amazon.',
+    amazonSyncToastSuccess: 'Sincronización de Amazon completada.',
     syncSectionDescriptionMercadoLibre:
       'Importamos pedidos desde Mercado Libre. La sincronización inicial y las actualizaciones periódicas mantienen tus datos al día.',
     connectionsConnectButton: 'Continuar con Shopify',
@@ -655,6 +660,11 @@ const SHELL_STRINGS = {
     platformSyncCancelSuccess: 'Sincronización cancelada.',
     platformSyncCancelFailed: 'No se pudo cancelar la sincronización.',
     platformSyncCancelForbidden: 'Solo los administradores pueden cancelar la sincronización.',
+    platformSyncCancelledTitle: 'Sincronización cancelada',
+    platformSyncCancelledBannerMessage:
+      'Cancelaste la sincronización. Puedes iniciarla de nuevo cuando quieras.',
+    platformSyncWorkerDiedMessage:
+      'La sincronización se detuvo inesperadamente. Puedes reintentar en unos momentos.',
     shopifySyncToastFailed: 'La sincronización de Shopify falló.',
     shopifySyncRetry: 'Reintentar',
     shopifySyncBlockedHint:
@@ -1768,7 +1778,12 @@ const SHELL_STRINGS = {
     amazonSyncProgressTitle: 'Syncing Amazon',
     amazonSyncProgressQueued: 'Queued…',
     amazonSyncFailedTitle: 'Amazon sync failed',
+    amazonSyncFailedUserMessage:
+      'Could not complete Amazon sync. You can try again in a few moments.',
+    amazonSyncFailedPermissionsMessage:
+      'Amazon denied access to orders. Disconnect and reconnect the integration.',
     amazonSyncToastFailed: 'Could not complete Amazon sync.',
+    amazonSyncToastSuccess: 'Amazon sync completed.',
     syncSectionDescriptionMercadoLibre:
       'We import orders from Mercado Libre. Initial sync and periodic updates keep your data current.',
     connectionsConnectButton: 'Continue with Shopify',
@@ -1981,6 +1996,11 @@ const SHELL_STRINGS = {
     platformSyncCancelSuccess: 'Sync cancelled.',
     platformSyncCancelFailed: 'Could not cancel sync.',
     platformSyncCancelForbidden: 'Only workspace admins can cancel sync.',
+    platformSyncCancelledTitle: 'Sync cancelled',
+    platformSyncCancelledBannerMessage:
+      'You cancelled the sync. You can start it again whenever you want.',
+    platformSyncWorkerDiedMessage:
+      'The sync stopped unexpectedly. You can try again in a few moments.',
     shopifySyncToastFailed: 'Shopify sync failed.',
     shopifySyncRetry: 'Retry',
     shopifySyncBlockedHint:

@@ -5,6 +5,10 @@ import { toast } from 'sonner'
 import { useCurrentTenant } from '@/auth/hooks'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { formatShopifySyncUserError } from '@/lib/integrations/shopify-sync-user-error'
+import {
+  isPlatformSyncUserCancelled,
+  platformSyncCancelledTitle,
+} from '@/lib/integrations/platform-sync-user-error'
 import { isStaleSyncingPlan } from '@/lib/integrations/sync-freshness'
 import {
   buildShopifyProgressSubtitle,
@@ -44,9 +48,9 @@ function pickSyncingShopify(
     if (!isActiveShopifyConnection(c)) continue
     const plan = c.sync_plan
     if (!plan) continue
+    if (plan.current_job_id) return c
     const status = plan.last_sync_status
     if (status === 'failed' || status === 'synced' || status === 'partial') continue
-    if (plan.current_job_id) return c
     if (status === 'syncing' && !isStaleSyncingPlan(c)) return c
   }
   return null
@@ -78,11 +82,13 @@ function pickCompletedShopify(
 function shopifySyncErrorSubtitle(
   conn: PlatformConnection | null | undefined,
   jobError: string | null | undefined,
+  jobErrorCode: string | null | undefined,
   lang: Parameters<typeof formatShopifySyncUserError>[1],
 ): string {
   const raw = formatShopifySyncUserError(
     jobError ?? conn?.last_error ?? null,
     lang,
+    jobErrorCode,
   )
   return truncateBannerError(raw)
 }
@@ -157,15 +163,25 @@ export function useShopifySyncBanner(
         settledSigRef.current = sig
         markSettled()
         if (isTerminalDismissed(tenantId, GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID, sig)) return
+        const cancelled = isPlatformSyncUserCancelled(job.error_code, job.error_message)
         upsertActivity({
           id: GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
           phase: 'error',
-          title: shellT(lang, 'shopifySyncFailedTitle'),
-          subtitle: shopifySyncErrorSubtitle(syncingConn ?? failedConn, job.error_message, lang),
+          title: cancelled
+            ? platformSyncCancelledTitle(lang)
+            : shellT(lang, 'shopifySyncFailedTitle'),
+          subtitle: shopifySyncErrorSubtitle(
+            syncingConn ?? failedConn,
+            job.error_message,
+            job.error_code,
+            lang,
+          ),
           href: '/dashboard/integrations/shopify?tab=settings',
           dismissKey: sig,
         })
-        toast.error(shellT(lang, 'shopifySyncToastFailed'))
+        if (!cancelled) {
+          toast.error(shellT(lang, 'shopifySyncToastFailed'))
+        }
         void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
       }
       return
@@ -224,7 +240,7 @@ export function useShopifySyncBanner(
     if (!syncingConn) {
       lastLoadingSubtitleRef.current = null
       if (failedConn) {
-        const subtitle = shopifySyncErrorSubtitle(failedConn, null, lang)
+        const subtitle = shopifySyncErrorSubtitle(failedConn, null, null, lang)
         const dismissKey = `failed:${failedConn.id}:${failedConn.sync_plan?.last_sync_completed_at ?? ''}:${failedConn.last_error ?? ''}`
         if (isTerminalDismissed(tenantId, GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID, dismissKey)) return
         if (existing?.phase === 'error' && existing.subtitle === subtitle) return

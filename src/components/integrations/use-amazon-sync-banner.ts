@@ -245,9 +245,9 @@ export function useAmazonSyncBanner(connections: PlatformConnection[] | undefine
       const phase = job.progress?.phase
       let subtitle: string
       if (phase === 'catalog') {
-        subtitle = shellT(lang, 'shopifySyncProgressCatalog')
+        subtitle = shellT(lang, 'platformSyncProgressCatalog')
       } else if (typeof processed === 'number' && processed > 0) {
-        subtitle = `${processed.toLocaleString()} ${shellT(lang, 'shopifySyncProgressOrders')}`
+        subtitle = `${processed.toLocaleString()} ${shellT(lang, 'platformSyncProgressOrders')}`
       } else if (job.status === 'queued') {
         subtitle = shellT(lang, 'amazonSyncProgressQueued')
       } else {

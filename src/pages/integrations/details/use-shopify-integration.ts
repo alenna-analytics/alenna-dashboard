@@ -15,7 +15,6 @@ import {
   ShopifySyncTenantBusyError,
   type PlatformConnection,
   type ShopifySyncEnqueueResponse,
-  type ShopifySyncTypedError,
   type SyncPlan,
 } from '@/lib/types/connectors'
 import { formatShopifyLastSync, normalizeShopifySubdomainInput } from '@/lib/integrations/shopify-format'
@@ -27,6 +26,12 @@ import {
 import { useCatalogJobQuery, useRetryCatalogJobMutation } from '@/pages/products/use-catalog-queries'
 import { extractShopifyJobProgressInfo, buildShopifySuccessSubtitle } from '@/lib/integrations/shopify-job-progress'
 import { formatShopifySyncUserError } from '@/lib/integrations/shopify-sync-user-error'
+import {
+  buildPlatformFullSyncTypedError,
+  readApiErrorDetail,
+  readRetryAfterSeconds,
+  secondsToCeilHours,
+} from '@/lib/integrations/platform-full-sync-error'
 
 export type ShopifyIntegrationHook = ReturnType<typeof useShopifyIntegration>
 
@@ -94,54 +99,6 @@ function parseShopifySyncPanel(raw: unknown): ShopifySyncPanelState | null {
     failedMessage: typeof o.failedMessage === 'string' ? o.failedMessage : null,
     blockSuccess,
   }
-}
-
-function readRetryAfterSeconds(res: Response): number | null {
-  const raw = res.headers.get('Retry-After')
-  if (!raw) return null
-  const parsed = Number.parseInt(raw, 10)
-  if (Number.isNaN(parsed) || parsed < 0) return null
-  return parsed
-}
-
-async function readApiErrorDetail(res: Response): Promise<string | null> {
-  const text = await res.text()
-  if (!text) return null
-  try {
-    const parsed = JSON.parse(text) as unknown
-    if (parsed && typeof parsed === 'object' && 'detail' in parsed) {
-      const detail = (parsed as { detail: unknown }).detail
-      if (typeof detail === 'string') return detail
-    }
-  } catch {
-    /* not json */
-  }
-  return text
-}
-
-function buildSyncTypedError(
-  status: number,
-  detail: string | null,
-  retryAfterSeconds: number | null,
-): ShopifySyncTypedError | null {
-  if (status === 409 && detail === 'shopify_full_sync_in_progress') {
-    return new ShopifySyncInProgressError()
-  }
-  if (status === 409 && detail === 'shopify_full_sync_tenant_busy') {
-    return new ShopifySyncTenantBusyError()
-  }
-  if (status === 429 && detail === 'shopify_full_sync_cooldown') {
-    return new ShopifySyncCooldownError(retryAfterSeconds)
-  }
-  if (status === 429 && detail === 'shopify_full_sync_failed_retry_cap') {
-    return new ShopifySyncFailedRetryCapError(retryAfterSeconds)
-  }
-  return null
-}
-
-function secondsToCeilHours(seconds: number | null): number {
-  if (seconds == null || seconds <= 0) return 0
-  return Math.max(1, Math.ceil(seconds / 3600))
 }
 
 export function useShopifyIntegration() {
@@ -425,7 +382,7 @@ export function useShopifyIntegration() {
       if (!res.ok) {
         const detail = await readApiErrorDetail(res)
         const retryAfterSeconds = readRetryAfterSeconds(res)
-        const typed = buildSyncTypedError(res.status, detail, retryAfterSeconds)
+        const typed = buildPlatformFullSyncTypedError(res.status, detail, retryAfterSeconds)
         if (typed) throw typed
         throw new Error(detail ?? res.statusText)
       }

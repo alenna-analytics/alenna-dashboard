@@ -101,9 +101,9 @@ function AmazonSyncSection({
     const queued = job?.status === 'queued'
     let subtitle: string
     if (phase === 'catalog') {
-      subtitle = shellT(lang, 'shopifySyncProgressCatalog')
+      subtitle = shellT(lang, 'platformSyncProgressCatalog')
     } else if (ordersProcessed != null && !Number.isNaN(ordersProcessed)) {
-      subtitle = `${ordersProcessed.toLocaleString()} ${shellT(lang, 'shopifySyncProgressOrders')}`
+      subtitle = `${ordersProcessed.toLocaleString()} ${shellT(lang, 'platformSyncProgressOrders')}`
     } else if (queued) {
       subtitle = shellT(lang, 'amazonSyncProgressQueued')
     } else {
@@ -162,7 +162,7 @@ function AmazonSyncSection({
         actionDisabled={syncMutation.isPending || isFixture}
         actionLoading={syncMutation.isPending}
         badge={<CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />}
-        footer={shellT(lang, 'shopifySyncBlockedHint')}
+        footer={shellT(lang, 'platformSyncBlockedHint')}
         className="w-full"
       />
     )
@@ -173,7 +173,7 @@ function AmazonSyncSection({
       <IntegrationSyncActionCard
         title={shellT(lang, 'syncSectionTitle')}
         description={syncFailedMessage ?? shellT(lang, 'amazonSyncToastFailed')}
-        actionLabel={shellT(lang, 'shopifySyncRetry')}
+        actionLabel={shellT(lang, 'platformSyncRetry')}
         onAction={() => (isFixture ? fixtureBlocked() : retryAmazonSync())}
         actionDisabled={retryAmazonSyncPending || isFixture}
         actionLoading={retryAmazonSyncPending}

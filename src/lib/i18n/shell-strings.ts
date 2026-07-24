@@ -669,6 +669,10 @@ const SHELL_STRINGS = {
       'Cancelaste la sincronización. Puedes iniciarla de nuevo cuando quieras.',
     platformSyncWorkerDiedMessage:
       'La sincronización se detuvo inesperadamente. Puedes reintentar en unos momentos.',
+    platformSyncProgressCatalog: 'Actualizando catálogo (imágenes e inventario)...',
+    platformSyncProgressOrders: 'Pedidos importados',
+    platformSyncRetry: 'Reintentar',
+    platformSyncBlockedHint: 'Última ejecución terminó correctamente.',
     shopifySyncToastFailed: 'La sincronización de Shopify falló.',
     shopifySyncRetry: 'Reintentar',
     shopifySyncBlockedHint:
@@ -2009,6 +2013,10 @@ const SHELL_STRINGS = {
       'You cancelled the sync. You can start it again whenever you want.',
     platformSyncWorkerDiedMessage:
       'The sync stopped unexpectedly. You can try again in a few moments.',
+    platformSyncProgressCatalog: 'Updating catalog (images & stock)...',
+    platformSyncProgressOrders: 'Orders imported',
+    platformSyncRetry: 'Retry',
+    platformSyncBlockedHint: 'Last run finished successfully.',
     shopifySyncToastFailed: 'Shopify sync failed.',
     shopifySyncRetry: 'Retry',
     shopifySyncBlockedHint:

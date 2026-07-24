@@ -17,8 +17,21 @@ import {
   formatAmazonConnectUserError,
   formatAmazonDisconnectUserError,
 } from '@/lib/integrations/amazon-sync-user-error'
+import {
+  buildPlatformFullSyncTypedError,
+  readApiErrorDetail,
+  readRetryAfterSeconds,
+  secondsToCeilHours,
+} from '@/lib/integrations/platform-full-sync-error'
 import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
-import type { PlatformConnection, SyncPlan } from '@/lib/types/connectors'
+import {
+  ShopifySyncCooldownError,
+  ShopifySyncFailedRetryCapError,
+  ShopifySyncInProgressError,
+  ShopifySyncTenantBusyError,
+  type PlatformConnection,
+  type SyncPlan,
+} from '@/lib/types/connectors'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { invalidateAlertsQueries } from '@/pages/dashboard/use-alerts-queries'
 import { useCatalogJobQuery, useRetryCatalogJobMutation } from '@/pages/products/use-catalog-queries'
@@ -234,6 +247,7 @@ export function useAmazonIntegration() {
         subtitle: summaryLine,
         href: '/dashboard/integrations/amazon?tab=settings',
         minimized: true,
+        dismissKey: `${job.id}:succeeded:${job.finished_at ?? ''}`,
       })
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
       invalidateAlertsQueries(queryClient, tenantId)
@@ -438,12 +452,15 @@ export function useAmazonIntegration() {
         {},
         tenantId,
       )
-      if (res.status === 409) {
-        throw new Error(shellT(lang, 'syncInProgressToast'))
-      }
       if (!res.ok) {
-        const t = await res.text()
-        throw new Error(t || res.statusText)
+        const detail = await readApiErrorDetail(res)
+        const retryAfterSeconds = readRetryAfterSeconds(res)
+        const typed = buildPlatformFullSyncTypedError(res.status, detail, retryAfterSeconds)
+        if (typed) throw typed
+        if (res.status === 409 && detail === 'platform_sync_in_progress') {
+          throw new Error(shellT(lang, 'syncInProgressToast'))
+        }
+        throw new Error(detail ?? res.statusText)
       }
       return (await res.json()) as AmazonSyncEnqueueResponse
     },
@@ -468,6 +485,25 @@ export function useAmazonIntegration() {
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
     },
     onError: (e: Error) => {
+      if (e instanceof ShopifySyncInProgressError) {
+        toast.error(shellT(lang, 'syncInProgressToast'))
+        void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
+        return
+      }
+      if (e instanceof ShopifySyncTenantBusyError) {
+        toast.error(shellT(lang, 'syncTenantBusyToast'))
+        return
+      }
+      if (e instanceof ShopifySyncCooldownError) {
+        const hours = secondsToCeilHours(e.retryAfterSeconds)
+        toast.error(shellT(lang, 'syncCooldownToast', { hours: String(hours) }))
+        return
+      }
+      if (e instanceof ShopifySyncFailedRetryCapError) {
+        const hours = secondsToCeilHours(e.retryAfterSeconds)
+        toast.error(shellT(lang, 'syncFailedRetryCapToast', { hours: String(hours) }))
+        return
+      }
       const message =
         e.message === shellT(lang, 'syncInProgressToast')
           ? e.message

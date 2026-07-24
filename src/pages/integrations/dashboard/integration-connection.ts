@@ -33,6 +33,7 @@ export function resolveIntegrationConnection(
 ): PlatformConnection | null {
   if (slug === 'shopify') return findActiveConnection(connections, 'shopify')
   if (slug === 'mercadolibre') return findActiveConnection(connections, 'mercadolibre')
+  if (slug === 'amazon') return findActiveConnection(connections, 'amazon')
   return null
 }
 
@@ -47,8 +48,10 @@ export function isIntegrationConnected(
   slug: string,
   shopifyConnected: boolean,
   mercadolibreConnected: boolean,
+  amazonConnected = false,
 ): boolean {
   if (slug === 'shopify') return shopifyConnected
   if (slug === 'mercadolibre') return mercadolibreConnected
+  if (slug === 'amazon') return amazonConnected
   return false
 }

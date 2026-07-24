@@ -20,6 +20,8 @@ import {
 } from '@/pages/channels/channels-platform-aggregate'
 import { ChannelsScoreboard } from '@/pages/channels/channels-scoreboard'
 import { useChannelsPageFilters } from '@/pages/channels/use-channels-page-filters'
+import { AmazonFeesUnavailableNotice } from '@/components/integrations/amazon-fees-unavailable-notice'
+import { includesAmazonWithUnavailableFees } from '@/lib/integrations/amazon-fees-notice'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
@@ -206,6 +208,10 @@ export function ChannelsPage() {
     [currentAgg, previousAgg, displayedPlatforms],
   )
   const cmIncomplete = Boolean(kpis?.cm_incomplete)
+  const showAmazonFeesNotice = includesAmazonWithUnavailableFees(
+    connections,
+    activeConnectionIds,
+  )
 
   const isInitialLoad =
     connectorsLoading || (queriesEnabled && kpisLoading && !kpis)
@@ -268,6 +274,7 @@ export function ChannelsPage() {
         </p>
       ) : (
         <div className="flex flex-col gap-12">
+          {showAmazonFeesNotice ? <AmazonFeesUnavailableNotice lang={lang} /> : null}
           {cmIncomplete ? (
             <p
               className="rounded-md border border-border-default bg-bg-card-strong px-3 py-2 text-sm text-text-secondary"

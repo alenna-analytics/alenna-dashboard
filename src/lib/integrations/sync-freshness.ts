@@ -15,6 +15,8 @@ export type SyncFreshnessState = 'syncing' | 'up_to_date' | 'outdated'
 
 export type DeriveSyncFreshnessOptions = {
   forceSyncing?: boolean
+  /** Ignore current_job_id / syncing plan (e.g. local UI already settled failed). */
+  suppressSyncing?: boolean
   nowMs?: number
   staleAfterMs?: number
 }
@@ -35,8 +37,20 @@ function isActiveMercadoLibreConnection(conn: PlatformConnection): boolean {
   )
 }
 
+function isActiveAmazonConnection(conn: PlatformConnection): boolean {
+  return (
+    conn.platform === 'amazon' &&
+    conn.status === 'active' &&
+    conn.connection_status === 'active'
+  )
+}
+
 function isActiveSyncableConnection(conn: PlatformConnection): boolean {
-  return isActiveShopifyConnection(conn) || isActiveMercadoLibreConnection(conn)
+  return (
+    isActiveShopifyConnection(conn) ||
+    isActiveMercadoLibreConnection(conn) ||
+    isActiveAmazonConnection(conn)
+  )
 }
 
 export function filterActiveSyncableConnections(
@@ -80,9 +94,11 @@ export function deriveConnectionSyncFreshness(
   if (!conn || !isActiveSyncableConnection(conn)) return null
 
   if (options?.forceSyncing) return 'syncing'
-  if (conn.sync_plan?.current_job_id) return 'syncing'
-  if (conn.sync_plan?.last_sync_status === 'syncing' && !isStaleSyncingPlan(conn)) {
-    return 'syncing'
+  if (!options?.suppressSyncing) {
+    if (conn.sync_plan?.current_job_id) return 'syncing'
+    if (conn.sync_plan?.last_sync_status === 'syncing' && !isStaleSyncingPlan(conn)) {
+      return 'syncing'
+    }
   }
 
   if (!hasCompletedInitialSync(conn)) {
@@ -137,6 +153,12 @@ export function connectorsQueryRefetchIntervalMs(
       deriveConnectionSyncFreshness(c, options) === 'syncing',
   )
   if (shopifyState === 'syncing' || meliSyncing) return CONNECTORS_SYNC_ACTIVE_REFETCH_MS
+  const amazonSyncing = connections.some(
+    (c) =>
+      isActiveAmazonConnection(c) &&
+      deriveConnectionSyncFreshness(c, options) === 'syncing',
+  )
+  if (amazonSyncing) return CONNECTORS_SYNC_ACTIVE_REFETCH_MS
   return CONNECTORS_SYNC_BASELINE_REFETCH_MS
 }
 

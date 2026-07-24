@@ -5,6 +5,10 @@ import { toast } from 'sonner'
 import { useCurrentTenant } from '@/auth/hooks'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { formatMercadoLibreSyncUserError } from '@/lib/integrations/mercadolibre-sync-user-error'
+import {
+  isPlatformSyncUserCancelled,
+  platformSyncCancelledTitle,
+} from '@/lib/integrations/platform-sync-user-error'
 import { isStaleSyncingPlan } from '@/lib/integrations/sync-freshness'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import { invalidateAlertsQueries } from '@/pages/dashboard/use-alerts-queries'
@@ -40,9 +44,9 @@ function pickSyncingMercadoLibre(
     if (!isActiveMercadoLibreConnection(c)) continue
     const plan = c.sync_plan
     if (!plan) continue
+    if (plan.current_job_id) return c
     const status = plan.last_sync_status
     if (status === 'failed' || status === 'synced' || status === 'partial') continue
-    if (plan.current_job_id) return c
     if (status === 'syncing' && !isStaleSyncingPlan(c)) return c
   }
   return null
@@ -74,9 +78,14 @@ function pickCompletedMercadoLibre(
 function meliSyncErrorSubtitle(
   conn: PlatformConnection | null | undefined,
   jobError: string | null | undefined,
+  jobErrorCode: string | null | undefined,
   lang: Parameters<typeof formatMercadoLibreSyncUserError>[1],
 ): string {
-  const raw = formatMercadoLibreSyncUserError(jobError ?? conn?.last_error ?? null, lang)
+  const raw = formatMercadoLibreSyncUserError(
+    jobError ?? conn?.last_error ?? null,
+    lang,
+    jobErrorCode,
+  )
   return truncateBannerError(raw)
 }
 
@@ -144,15 +153,25 @@ export function useMercadoLibreSyncBanner(
         settledSigRef.current = sig
         markSettled()
         if (isTerminalDismissed(tenantId, GLOBAL_ACTIVITY_MELI_SYNC_ID, sig)) return
+        const cancelled = isPlatformSyncUserCancelled(job.error_code, job.error_message)
         upsertActivity({
           id: GLOBAL_ACTIVITY_MELI_SYNC_ID,
           phase: 'error',
-          title: shellT(lang, 'meliSyncFailedTitle'),
-          subtitle: meliSyncErrorSubtitle(syncingConn ?? failedConn, job.error_message, lang),
+          title: cancelled
+            ? platformSyncCancelledTitle(lang)
+            : shellT(lang, 'meliSyncFailedTitle'),
+          subtitle: meliSyncErrorSubtitle(
+            syncingConn ?? failedConn,
+            job.error_message,
+            job.error_code,
+            lang,
+          ),
           href: '/dashboard/integrations/mercadolibre?tab=settings',
           dismissKey: sig,
         })
-        toast.error(shellT(lang, 'meliSyncToastFailed'))
+        if (!cancelled) {
+          toast.error(shellT(lang, 'meliSyncToastFailed'))
+        }
         void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
       }
       return
@@ -216,7 +235,7 @@ export function useMercadoLibreSyncBanner(
     if (!syncingConn) {
       lastLoadingSubtitleRef.current = null
       if (failedConn) {
-        const subtitle = meliSyncErrorSubtitle(failedConn, null, lang)
+        const subtitle = meliSyncErrorSubtitle(failedConn, null, null, lang)
         const dismissKey = `failed:${failedConn.id}:${failedConn.sync_plan?.last_sync_completed_at ?? ''}:${failedConn.last_error ?? ''}`
         if (isTerminalDismissed(tenantId, GLOBAL_ACTIVITY_MELI_SYNC_ID, dismissKey)) return
         if (existing?.phase === 'error' && existing.subtitle === subtitle) return

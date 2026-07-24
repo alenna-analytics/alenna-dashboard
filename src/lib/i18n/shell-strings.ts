@@ -433,6 +433,10 @@ const SHELL_STRINGS = {
     integrationAmazonSandboxHint: 'Modo sandbox: usa la ficha del portal de Amazon SP-API.',
     integrationAmazonSandboxConnected: 'Amazon sandbox conectado.',
     integrationAmazonOAuthConnected: 'Amazon conectado. Ejecuta una sincronización para importar pedidos.',
+    integrationAmazonOAuthFailed: 'No se pudo completar la conexión con Amazon.',
+    integrationAmazonConnectFailed: 'No se pudo conectar Amazon. Inténtalo de nuevo.',
+    integrationAmazonDisconnectFailed: 'No se pudo desconectar Amazon. Inténtalo de nuevo.',
+    integrationAmazonLoadFailed: 'No se pudo cargar la integración de Amazon.',
     syncSectionDescriptionAmazon:
       'Importamos pedidos y listings desde Amazon. Ejecuta la primera sincronización para marcar la integración como activa.',
     amazonSyncProgressTitle: 'Sincronizando Amazon',
@@ -1773,6 +1777,10 @@ const SHELL_STRINGS = {
     integrationAmazonSandboxHint: 'Sandbox mode: uses the Amazon SP-API portal refresh token.',
     integrationAmazonSandboxConnected: 'Amazon sandbox connected.',
     integrationAmazonOAuthConnected: 'Amazon connected. Run a sync to import orders.',
+    integrationAmazonOAuthFailed: 'Could not complete Amazon connection.',
+    integrationAmazonConnectFailed: 'Could not connect Amazon. Try again.',
+    integrationAmazonDisconnectFailed: 'Could not disconnect Amazon. Try again.',
+    integrationAmazonLoadFailed: 'Could not load Amazon integration.',
     syncSectionDescriptionAmazon:
       'We import orders and listings from Amazon. Run the first sync to mark the integration as active.',
     amazonSyncProgressTitle: 'Syncing Amazon',

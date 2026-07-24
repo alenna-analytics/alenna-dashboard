@@ -25,7 +25,7 @@ export function useIntegrationOAuthReturn() {
     if (connected === 'amazon') {
       toast.success(shellT(lang, 'integrationAmazonOAuthConnected'))
     } else if (amazonError) {
-      toast.error(amazonError)
+      toast.error(shellT(lang, 'integrationAmazonOAuthFailed'))
     }
   }, [searchParams, setSearchParams, lang])
 }

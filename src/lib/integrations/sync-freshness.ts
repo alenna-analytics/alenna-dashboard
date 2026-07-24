@@ -153,6 +153,12 @@ export function connectorsQueryRefetchIntervalMs(
       deriveConnectionSyncFreshness(c, options) === 'syncing',
   )
   if (shopifyState === 'syncing' || meliSyncing) return CONNECTORS_SYNC_ACTIVE_REFETCH_MS
+  const amazonSyncing = connections.some(
+    (c) =>
+      isActiveAmazonConnection(c) &&
+      deriveConnectionSyncFreshness(c, options) === 'syncing',
+  )
+  if (amazonSyncing) return CONNECTORS_SYNC_ACTIVE_REFETCH_MS
   return CONNECTORS_SYNC_BASELINE_REFETCH_MS
 }
 

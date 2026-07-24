@@ -32,3 +32,24 @@ export function amazonSyncFailedTitle(
   }
   return shellT(lang, 'amazonSyncFailedTitle')
 }
+
+export function formatAmazonConnectUserError(
+  error: unknown,
+  lang: Language,
+): string {
+  const message = error instanceof Error ? error.message : String(error ?? '')
+  if (/amazon_integrations_disabled/i.test(message)) {
+    return shellT(lang, 'integrationAmazonConnectFailed')
+  }
+  if (/403/i.test(message) || /forbidden/i.test(message)) {
+    return shellT(lang, 'integrationAmazonConnectFailed')
+  }
+  return shellT(lang, 'integrationAmazonConnectFailed')
+}
+
+export function formatAmazonDisconnectUserError(
+  _error: unknown,
+  lang: Language,
+): string {
+  return shellT(lang, 'integrationAmazonDisconnectFailed')
+}

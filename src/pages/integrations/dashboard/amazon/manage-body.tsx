@@ -234,7 +234,7 @@ export function AmazonManageBody({
         <IntegrationDetailSkeleton />
       ) : amazon.error ? (
         <p className="text-sm text-destructive" role="alert">
-          {amazon.error instanceof Error ? amazon.error.message : String(amazon.error)}
+          {shellT(lang, 'integrationAmazonLoadFailed')}
         </p>
       ) : !amazon.hasConnection ? (
         <div className="space-y-4">

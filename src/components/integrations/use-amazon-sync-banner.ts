@@ -4,9 +4,10 @@ import { toast } from 'sonner'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import {
-  amazonSyncFailedTitle,
   formatAmazonSyncUserError,
+  amazonSyncFailedTitle,
 } from '@/lib/integrations/amazon-sync-user-error'
+import { shouldShowAmazonSyncSuccessFromConnector } from '@/lib/integrations/amazon-sync-banner-logic'
 import { isPlatformSyncUserCancelled } from '@/lib/integrations/platform-sync-user-error'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { isStaleSyncingPlan } from '@/lib/integrations/sync-freshness'
@@ -166,6 +167,19 @@ export function useAmazonSyncBanner(connections: PlatformConnection[] | undefine
 
   const lastLoadingSubtitleRef = useRef<string | null>(null)
   const settledSigRef = useRef<string | null>(null)
+  const syncStartCompletedAtRef = useRef<string | null>(null)
+  const prevPollJobIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (pollJobId && !prevPollJobIdRef.current) {
+      syncStartCompletedAtRef.current =
+        completedConn?.sync_plan?.last_sync_completed_at ?? null
+    }
+    if (!pollJobId) {
+      syncStartCompletedAtRef.current = null
+    }
+    prevPollJobIdRef.current = pollJobId
+  }, [pollJobId, completedConn?.sync_plan?.last_sync_completed_at])
 
   useEffect(() => {
     const job = jobQuery.data
@@ -266,7 +280,13 @@ export function useAmazonSyncBanner(connections: PlatformConnection[] | undefine
         })
         return
       }
-      if (completedConn) {
+      if (
+        completedConn &&
+        shouldShowAmazonSyncSuccessFromConnector({
+          baselineCompletedAt: syncStartCompletedAtRef.current,
+          currentCompletedAt: completedConn.sync_plan?.last_sync_completed_at ?? null,
+        })
+      ) {
         const sig = `completed:${completedConn.id}:${completedConn.sync_plan?.last_sync_completed_at ?? ''}`
         if (settledSigRef.current !== sig) {
           settledSigRef.current = sig

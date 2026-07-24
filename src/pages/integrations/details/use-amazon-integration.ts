@@ -11,9 +11,13 @@ import { apiFetch, apiPostJson } from '@/lib/api'
 import { isAmazonSandboxConnectMode } from '@/lib/integrations/amazon-connect-mode'
 import { connectionNeedsInitialSync } from '@/lib/integrations/sync-freshness'
 import { formatShopifyLastSync } from '@/lib/integrations/shopify-format'
-import { formatAmazonSyncUserError, amazonSyncFailedTitle } from '@/lib/integrations/amazon-sync-user-error'
+import {
+  formatAmazonSyncUserError,
+  amazonSyncFailedTitle,
+  formatAmazonConnectUserError,
+  formatAmazonDisconnectUserError,
+} from '@/lib/integrations/amazon-sync-user-error'
 import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
-import { isPlatformSyncUserCancelled } from '@/lib/integrations/platform-sync-user-error'
 import type { PlatformConnection, SyncPlan } from '@/lib/types/connectors'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { invalidateAlertsQueries } from '@/pages/dashboard/use-alerts-queries'
@@ -236,7 +240,6 @@ export function useAmazonIntegration() {
     }
 
     if (job.status === 'failed') {
-      const cancelled = isPlatformSyncUserCancelled(job.error_code, job.error_message)
       const message = formatAmazonSyncUserError(job.error_message, lang, job.error_code)
       setSyncPanel({
         pendingJobId: null,
@@ -254,9 +257,6 @@ export function useAmazonIntegration() {
         href: '/dashboard/integrations/amazon?tab=settings',
         minimized: false,
       })
-      if (!cancelled) {
-        toast.error(shellT(lang, 'amazonSyncToastFailed'))
-      }
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
     }
   }, [
@@ -270,6 +270,28 @@ export function useAmazonIntegration() {
     queryClient,
     tenantId,
     lang,
+  ])
+
+  useEffect(() => {
+    if (!pollAmazonJob || !effectiveJobId) return
+    if (!amazonJobQuery.isFetched) return
+    if (amazonJobQuery.data?.id === effectiveJobId) return
+    if (amazonJobQuery.isError || !amazonJobQuery.data) {
+      if (syncPanel.pendingJobId === effectiveJobId) {
+        setSyncPanel({
+          pendingJobId: null,
+          pendingConnectionId: null,
+        })
+      }
+    }
+  }, [
+    pollAmazonJob,
+    effectiveJobId,
+    amazonJobQuery.isFetched,
+    amazonJobQuery.isError,
+    amazonJobQuery.data,
+    syncPanel.pendingJobId,
+    setSyncPanel,
   ])
 
   const syncPanelBlockSuccess = useMemo((): AmazonSyncBlockSuccess | null => {
@@ -302,9 +324,20 @@ export function useAmazonIntegration() {
     const pendingMatches =
       syncPanel.pendingJobId &&
       syncPanel.pendingConnectionId === activeConnectionId
-    if (pendingMatches && !liveJobStatus) return 'working'
+    if (pendingMatches && !liveJobStatus && !amazonJobQuery.isFetched) return 'working'
 
-    if (syncPlan?.current_job_id && !liveJobStatus) return 'working'
+    if (
+      (syncPlan?.current_job_id || pendingMatches) &&
+      !liveJobStatus &&
+      amazonJobQuery.isFetched &&
+      (amazonJobQuery.isError || !amazonJobQuery.data)
+    ) {
+      return 'idle'
+    }
+
+    if (syncPlan?.current_job_id && !liveJobStatus && !amazonJobQuery.isFetched) {
+      return 'working'
+    }
     if (syncPlan?.last_sync_status === 'syncing') return 'working'
     if (syncPanelBlockSuccess?.connectionId === activeConnectionId) return 'done_ok'
     if (syncPlan?.last_sync_status === 'failed') return 'done_fail'
@@ -317,6 +350,9 @@ export function useAmazonIntegration() {
     syncPanelBlockSuccess,
     liveJobStatus,
     effectiveJobId,
+    amazonJobQuery.isFetched,
+    amazonJobQuery.isError,
+    amazonJobQuery.data,
   ])
 
   useEffect(() => {
@@ -360,7 +396,7 @@ export function useAmazonIntegration() {
       const body = (await res.json()) as { url: string }
       window.location.href = body.url
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Connection failed')
+      toast.error(formatAmazonConnectUserError(e, lang))
       setConnectStarting(false)
     }
   }, [getToken, tenantId, sandboxConnect, queryClient, lang])
@@ -386,7 +422,7 @@ export function useAmazonIntegration() {
       toast.success(shellT(lang, 'integrationDisconnectDone'))
     },
     onError: (e: Error) => {
-      toast.error(e.message || 'Disconnect failed')
+      toast.error(formatAmazonDisconnectUserError(e, lang))
     },
   })
 
@@ -432,12 +468,16 @@ export function useAmazonIntegration() {
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
     },
     onError: (e: Error) => {
-      toast.error(e.message)
+      const message =
+        e.message === shellT(lang, 'syncInProgressToast')
+          ? e.message
+          : formatAmazonSyncUserError(e.message, lang)
+      toast.error(message)
       upsertActivity({
         id: GLOBAL_ACTIVITY_AMAZON_SYNC_ID,
         phase: 'error',
         title: shellT(lang, 'amazonSyncFailedTitle'),
-        subtitle: e.message,
+        subtitle: message,
         href: '/dashboard/integrations/amazon?tab=settings',
         minimized: false,
       })

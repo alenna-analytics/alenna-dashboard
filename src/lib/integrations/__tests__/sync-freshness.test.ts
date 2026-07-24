@@ -65,6 +65,21 @@ describe('connectorsQueryRefetchIntervalMs', () => {
     expect(connectorsQueryRefetchIntervalMs(connections)).toBe(CONNECTORS_SYNC_ACTIVE_REFETCH_MS)
   })
 
+  it('returns active interval when Amazon connection is syncing', () => {
+    const connections = [
+      baseConnection({
+        platform: 'amazon',
+        shop_domain: null,
+        sync_plan: {
+          ...baseConnection().sync_plan!,
+          last_sync_status: 'synced',
+          current_job_id: 'job-amazon',
+        },
+      }),
+    ]
+    expect(connectorsQueryRefetchIntervalMs(connections)).toBe(CONNECTORS_SYNC_ACTIVE_REFETCH_MS)
+  })
+
   it('returns baseline interval for syncable connections without active sync', () => {
     expect(connectorsQueryRefetchIntervalMs([baseConnection()])).toBe(
       CONNECTORS_SYNC_BASELINE_REFETCH_MS,

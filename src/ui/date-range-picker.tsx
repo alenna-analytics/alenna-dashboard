@@ -78,7 +78,8 @@ export function rangeForPreset(id: Exclude<PresetId, 'custom'>): { from: Date; t
 
   switch (id) {
     case 'last7':
-      return { from: subDays(6), to: today }
+      // Match Mercado Libre panel: 7-day span = today minus 7 through today (8 calendar days inclusive).
+      return { from: subDays(7), to: today }
     case 'last30':
       return { from: subDays(29), to: today }
     case 'last3m':

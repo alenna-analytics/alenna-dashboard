@@ -130,14 +130,30 @@ export function FilterComboboxMulti({
 
   const toggleSelectAll = React.useCallback(() => {
     if (selectAllClearsFilter) {
-      applyValues(allSelected ? [] : [], null)
+      if (normalizedQuery && filteredOptionValues.length > 0) {
+        const next = filteredSelected
+          ? values.filter((v) => !filteredOptionValues.includes(v))
+          : Array.from(new Set([...values, ...filteredOptionValues]))
+        applyValues(next, normalizedQuery)
+        return
+      }
+      applyValues([], null)
       return
     }
     const next = allSelected
       ? values.filter((v) => !allOptionValues.includes(v))
       : Array.from(new Set([...values, ...allOptionValues]))
     applyValues(next, null)
-  }, [allOptionValues, allSelected, applyValues, selectAllClearsFilter, values])
+  }, [
+    allOptionValues,
+    allSelected,
+    applyValues,
+    filteredOptionValues,
+    filteredSelected,
+    normalizedQuery,
+    selectAllClearsFilter,
+    values,
+  ])
 
   const toggleSelectAllContaining = React.useCallback(() => {
     const next = filteredSelected
@@ -152,6 +168,7 @@ export function FilterComboboxMulti({
       open={open}
       onOpenChange={(next) => {
         setOpen(next)
+        if (!next) setQuery('')
         onOpenChange?.(next)
       }}
     >
@@ -176,6 +193,7 @@ export function FilterComboboxMulti({
           <CommandInput
             className="bg-white"
             placeholder={searchPlaceholder}
+            value={query}
             onValueChange={(next) => {
               setQuery(next)
               onSearchChange?.(next)
@@ -198,7 +216,8 @@ export function FilterComboboxMulti({
             </CommandEmpty>
             {(showSelectAllToggle || showSelectAllContainingToggle) && !loading ? (
               <CommandGroup>
-                {showSelectAllToggle && (
+                {showSelectAllToggle &&
+                  !(selectAllClearsFilter && !normalizedQuery && values.length === 0) && (
                   <CommandItem
                     value="__toggle-all__"
                     onSelect={toggleSelectAll}

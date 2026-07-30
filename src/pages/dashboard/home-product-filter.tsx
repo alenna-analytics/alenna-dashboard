@@ -22,6 +22,7 @@ type Props = {
   deselectAllContainingLabel: string
   allContainingSummaryLabel: string
   triggerClassName?: string
+  selectAllClearsFilter?: boolean
 }
 
 const FETCH_LIMIT = 200
@@ -52,6 +53,7 @@ export function HomeProductFilter({
   deselectAllContainingLabel,
   allContainingSummaryLabel,
   triggerClassName,
+  selectAllClearsFilter,
 }: Props) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
@@ -128,6 +130,7 @@ export function HomeProductFilter({
       deselectAllContainingLabel={deselectAllContainingLabel}
       allContainingSummaryLabel={allContainingSummaryLabel}
       triggerClassName={triggerClassName}
+      selectAllClearsFilter={selectAllClearsFilter}
     />
   )
 }

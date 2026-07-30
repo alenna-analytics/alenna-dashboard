@@ -38,6 +38,8 @@ export type FilterComboboxMultiProps = {
   deselectAllContainingLabel?: string
   allContainingSummaryLabel?: string
   onOpenChange?: (open: boolean) => void
+  /** When true, "Select all" clears the filter instead of passing every option id. */
+  selectAllClearsFilter?: boolean
 }
 
 function toggle(list: string[], v: string): string[] {
@@ -70,6 +72,7 @@ export function FilterComboboxMulti({
   deselectAllContainingLabel = 'Deselect all containing: {query}',
   allContainingSummaryLabel = 'all containing {query}',
   onOpenChange,
+  selectAllClearsFilter = false,
 }: FilterComboboxMultiProps) {
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState('')
@@ -126,11 +129,15 @@ export function FilterComboboxMulti({
     filteredOptionValues.every((v) => values.includes(v))
 
   const toggleSelectAll = React.useCallback(() => {
+    if (selectAllClearsFilter) {
+      applyValues(allSelected ? [] : [], null)
+      return
+    }
     const next = allSelected
       ? values.filter((v) => !allOptionValues.includes(v))
       : Array.from(new Set([...values, ...allOptionValues]))
     applyValues(next, null)
-  }, [allOptionValues, allSelected, applyValues, values])
+  }, [allOptionValues, allSelected, applyValues, selectAllClearsFilter, values])
 
   const toggleSelectAllContaining = React.useCallback(() => {
     const next = filteredSelected

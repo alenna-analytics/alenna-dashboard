@@ -78,7 +78,7 @@ type HomeV2FiltersState = {
   v: number
 }
 
-const FILTERS_VERSION = 1
+const FILTERS_VERSION = 2
 const FILTERS_KEY = 'alenna.home-v2.filters.v1'
 
 function parseHomeV2Filters(raw: unknown): HomeV2FiltersState | null {
@@ -859,6 +859,7 @@ export function DashboardHomePageV2() {
               selectAllContainingLabel={t('homeFilterSelectAllContaining')}
               deselectAllContainingLabel={t('homeFilterDeselectAllContaining')}
               allContainingSummaryLabel={t('homeFilterAllContainingSummary')}
+              selectAllClearsFilter
             />
           </div>
         </header>

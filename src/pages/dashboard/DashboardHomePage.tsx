@@ -672,6 +672,7 @@ export function DashboardHomePage() {
               selectAllContainingLabel={t('homeFilterSelectAllContaining')}
               deselectAllContainingLabel={t('homeFilterDeselectAllContaining')}
               allContainingSummaryLabel={t('homeFilterAllContainingSummary')}
+              selectAllClearsFilter
             />
           </div>
         </header>

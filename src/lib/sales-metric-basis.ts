@@ -55,13 +55,12 @@ export function productDetailProfitValue(detail: ProductDetailApi, basis: SalesM
 }
 
 export function unitsLabelKey(basis: SalesMetricBasis): ShellStringKey {
-  return basis === 'net' ? 'productsDetailKpiNetUnitsSold' : 'productsDetailKpiGrossUnitsSold'
+  void basis
+  return 'productsDetailKpiUnitsSold'
 }
 
 export function productDetailUnitsValue(detail: ProductDetailApi, basis: SalesMetricBasis): number {
-  if (basis === 'net') {
-    return detail.period_net_units_sold ?? detail.period_units_sold
-  }
+  void basis
   return detail.period_gross_units_sold ?? detail.period_units_sold
 }
 
@@ -79,8 +78,6 @@ export function productPlatformUnitsValue(
   row: ProductPlatformPeriodApi,
   basis: SalesMetricBasis,
 ): number {
-  if (basis === 'net') {
-    return row.net_units_sold ?? row.units_sold
-  }
+  void basis
   return row.gross_units_sold ?? row.units_sold
 }

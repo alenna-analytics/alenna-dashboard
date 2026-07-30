@@ -114,7 +114,7 @@ type HomeFiltersState = {
   v: number
 }
 
-const FILTERS_VERSION = 2
+const FILTERS_VERSION = 3
 const FILTERS_KEY = 'alenna.reports.filters.v2'
 
 function parseHomeFilters(raw: unknown): HomeFiltersState | null {

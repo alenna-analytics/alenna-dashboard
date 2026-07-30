@@ -19,6 +19,7 @@ import { AlertsSheetProvider } from '@/shell/alerts/alerts-sheet-context'
 import { GlobalActivityBar } from '@/shell/layout/global-activity-bar'
 import { CogsBackfillActivityPollers } from '@/shell/layout/cogs-backfill-activity-pollers'
 import { PlatformSyncActivityHost } from '@/shell/layout/platform-sync-activity-host'
+import { PlanLimitShellBanner } from '@/shell/plan-limit-shell-banner'
 import { TrialExpiredScreen } from '@/shell/trial-expired-screen'
 import { onTrialExpired } from '@/lib/trial-expired-signal'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
@@ -160,18 +161,23 @@ export function AppShellLayout() {
                 </div>
                 <div className="sticky top-0 z-30 shrink-0 bg-white">
                   {me?.is_fixture ? <FixtureTenantBanner /> : null}
+                  <PlanLimitShellBanner />
                   <AccountDeletionPendingShellBanner />
-                  <AppHeader companyName={companyName} onOpenMobileNav={openMobileNav} />
+                  <AppHeader me={me} onOpenMobileNav={openMobileNav} />
                 </div>
                 <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
                   <AppSidebar
                     className="hidden lg:flex"
                     collapsed={sidebarCollapsed}
                     onToggle={toggleSidebar}
+                    companyName={companyName}
+                    me={me}
                   />
                   <AppSidebarDrawer
                     open={mobileNavOpen}
                     onOpenChange={setMobileNavOpen}
+                    companyName={companyName}
+                    me={me}
                   />
                   <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
                     {showConfigurationInnerSidebar ? <ConfigurationInternalSidebar /> : null}

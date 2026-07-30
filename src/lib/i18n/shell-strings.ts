@@ -319,6 +319,21 @@ const SHELL_STRINGS = {
     dashboardRevenueSeriesPrevious: 'Periodo anterior',
     shellSidebarWorkspaceFallback: 'Espacio de trabajo',
     shellSidebarPlanFree: 'Plan gratuito',
+    shellSidebarPlanNamed: 'Plan {plan}',
+    shellSidebarPlanTrialDays: 'Trial · {days} días restantes',
+    planUpgradeToGrowth: 'Mejorar a Growth',
+    planUpgradeContactUs: 'Contáctanos',
+    planLimitBannerOrders:
+      'Has alcanzado el límite de pedidos de tu plan. La sincronización está pausada hasta que amplíes tu plan.',
+    planLimitBannerSkus:
+      'Has alcanzado el límite de productos de tu plan. La sincronización está pausada hasta que amplíes tu plan.',
+    planLimitBannerGeneric:
+      'Has alcanzado un límite de tu plan. La sincronización está pausada hasta que amplíes tu plan.',
+    planLimitSyncOrders:
+      'Has alcanzado el límite mensual de pedidos. La sincronización está pausada.',
+    planLimitSyncSkus:
+      'Has alcanzado el límite de productos sincronizados. La sincronización está pausada.',
+    planLimitSyncGeneric: 'Has alcanzado un límite de tu plan. La sincronización está pausada.',
     navBilling: 'Facturación',
     navSettings: 'Ajustes',
     companyLabel: 'Empresa',
@@ -1668,6 +1683,21 @@ const SHELL_STRINGS = {
     dashboardRevenueSeriesPrevious: 'Previous period',
     shellSidebarWorkspaceFallback: 'Workspace',
     shellSidebarPlanFree: 'Free plan',
+    shellSidebarPlanNamed: 'Plan {plan}',
+    shellSidebarPlanTrialDays: 'Trial · {days} days left',
+    planUpgradeToGrowth: 'Upgrade to Growth',
+    planUpgradeContactUs: 'Contact us',
+    planLimitBannerOrders:
+      'You have reached your plan order limit. Sync is paused until you upgrade your plan.',
+    planLimitBannerSkus:
+      'You have reached your plan product limit. Sync is paused until you upgrade your plan.',
+    planLimitBannerGeneric:
+      'You have reached a plan limit. Sync is paused until you upgrade your plan.',
+    planLimitSyncOrders:
+      'You have reached your monthly order limit. Sync is paused.',
+    planLimitSyncSkus:
+      'You have reached your synced product limit. Sync is paused.',
+    planLimitSyncGeneric: 'You have reached a plan limit. Sync is paused.',
     navBilling: 'Billing',
     navSettings: 'Settings',
     companyLabel: 'Company',

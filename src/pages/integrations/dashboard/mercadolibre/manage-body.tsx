@@ -3,7 +3,9 @@ import { toast } from 'sonner'
 import { useState } from 'react'
 
 import { LoadingIcon } from '@/ui/app-icon'
+import { PlanLimitSyncAlert } from '@/components/integrations/plan-limit-sync-alert'
 import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
+import { isPlanLimitSyncPaused } from '@/lib/plan/plan-limit-ui'
 import { IntegrationEnableCard } from '@/components/integrations/integration-enable-card'
 import { IntegrationSyncActionCard } from '@/components/integrations/integration-sync-action-card'
 import { formatMercadoLibreSyncUserError } from '@/lib/integrations/mercadolibre-sync-user-error'
@@ -46,10 +48,12 @@ function MercadoLibreSyncSection({
   lang,
   meli,
   isFixture,
+  planSyncPaused,
 }: {
   lang: Language
   meli: MercadoLibreIntegrationHook
   isFixture: boolean
+  planSyncPaused: boolean
 }) {
   const {
     activeConnection,
@@ -78,6 +82,8 @@ function MercadoLibreSyncSection({
   const fixtureBlocked = () => {
     toast.info(shellT(lang, 'fixtureActionDisabled'))
   }
+
+  const planLimitAlert = planSyncPaused ? <PlanLimitSyncAlert className="mb-4" /> : null
 
   if (meliSyncPhase === 'working') {
     const job = meliJobQuery.data
@@ -143,7 +149,7 @@ function MercadoLibreSyncSection({
         actionLabel={shellT(lang, 'syncRefreshBtn')}
         actionLoadingLabel={shellT(lang, 'syncRunning')}
         onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
-        actionDisabled={syncMutation.isPending || isFixture}
+        actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
         actionLoading={syncMutation.isPending}
         badge={<CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />}
         footer={shellT(lang, 'shopifySyncBlockedHint')}
@@ -159,7 +165,7 @@ function MercadoLibreSyncSection({
         description={formatMercadoLibreSyncUserError(syncFailedMessage, lang)}
         actionLabel={shellT(lang, 'shopifySyncRetry')}
         onAction={() => (isFixture ? fixtureBlocked() : retryMercadoLibreSync())}
-        actionDisabled={retryMercadoLibreSyncPending || isFixture}
+        actionDisabled={retryMercadoLibreSyncPending || isFixture || planSyncPaused}
         actionLoading={retryMercadoLibreSyncPending}
         className="w-full"
       />
@@ -167,18 +173,21 @@ function MercadoLibreSyncSection({
   }
 
   return (
-    <IntegrationSyncActionCard
-      title={shellT(lang, 'syncSectionTitle')}
-      description={shellT(lang, 'syncSectionCardDescription')}
-      actionLabel={buttonLabel}
-      actionLoadingLabel={shellT(lang, 'syncRunning')}
-      onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
-      actionDisabled={syncMutation.isPending || isFixture}
-      actionLoading={syncMutation.isPending}
-      badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
-      footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
-      className="w-full"
-    />
+    <>
+      {planLimitAlert}
+      <IntegrationSyncActionCard
+        title={shellT(lang, 'syncSectionTitle')}
+        description={shellT(lang, 'syncSectionCardDescription')}
+        actionLabel={buttonLabel}
+        actionLoadingLabel={shellT(lang, 'syncRunning')}
+        onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
+        actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
+        actionLoading={syncMutation.isPending}
+        badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
+        footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
+        className="w-full"
+      />
+    </>
   )
 }
 
@@ -196,6 +205,7 @@ export function MercadoLibreManageBody({
   const { lang } = useLanguage()
   const { me } = useWorkspace()
   const isFixture = Boolean(me?.is_fixture)
+  const planSyncPaused = isPlanLimitSyncPaused(me)
   const [integrationEnabled, setIntegrationEnabled] = useState(true)
 
   const accountId = 'integration-meli-account'
@@ -265,7 +275,12 @@ export function MercadoLibreManageBody({
           </IntegrationEnableCard>
 
           {integrationEnabled ? (
-            <MercadoLibreSyncSection lang={lang} meli={meli} isFixture={isFixture} />
+            <MercadoLibreSyncSection
+              lang={lang}
+              meli={meli}
+              isFixture={isFixture}
+              planSyncPaused={planSyncPaused}
+            />
           ) : null}
         </div>
       )}

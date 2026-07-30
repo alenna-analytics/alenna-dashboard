@@ -1,14 +1,18 @@
 import { cn } from '@/lib/utils'
 
+import type { MeResponse } from '@/lib/types/me-types'
+
 import { AppSidebarPanel } from '@/shell/layout/app-sidebar-panel'
 
 type AppSidebarProps = {
   collapsed: boolean
   onToggle: () => void
   className?: string
+  companyName: string
+  me: MeResponse | null
 }
 
-export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) {
+export function AppSidebar({ collapsed, onToggle, className, companyName, me }: AppSidebarProps) {
   return (
     <aside
       className={cn(
@@ -24,6 +28,8 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
       <AppSidebarPanel
         collapsed={collapsed}
         onToggle={onToggle}
+        companyName={companyName}
+        me={me}
         className="h-full"
       />
     </aside>

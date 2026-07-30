@@ -40,6 +40,14 @@ export type MeResponse = {
   scheduled_purge_at?: string | null
   member_count?: number | null
   is_fixture?: boolean
+  plan_display_name?: string
+  orders_used?: number
+  orders_limit?: number | null
+  skus_used?: number
+  skus_limit?: number | null
+  sync_paused?: boolean
+  sync_paused_reason?: 'orders_limit' | 'skus_limit' | 'trial_expired' | null
+  upgrade_cta?: 'growth' | 'contact' | 'none'
 }
 
 export type AccountDeletionStatusResponse = {

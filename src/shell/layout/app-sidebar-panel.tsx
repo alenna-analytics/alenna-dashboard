@@ -8,8 +8,11 @@ import type { ModuleSection, ModuleState } from '@/lib/modules/types'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { SidebarNavSection } from '@/shell/layout/sidebar-nav-section'
+import { SidebarWorkspaceFooter } from '@/shell/layout/sidebar-workspace-footer'
 import { WorkspaceConfigNavItem } from '@/shell/layout/workspace-config-nav-group'
+import type { MeResponse } from '@/lib/types/me-types'
 import {
+  shellChromeHeaderRowClassName,
   sidebarNavIconClassName,
   sidebarNavItemCollapsedClassName,
   sidebarNavLabelClassName,
@@ -29,6 +32,8 @@ export type AppSidebarPanelProps = {
   hideCollapseToggle?: boolean
   onNavigate?: () => void
   className?: string
+  companyName?: string
+  me?: MeResponse | null
 }
 
 function linkClassNames(isActive: boolean, collapsed: boolean): string {
@@ -162,6 +167,8 @@ export function AppSidebarPanel({
   hideCollapseToggle = false,
   onNavigate,
   className,
+  companyName = '',
+  me = null,
 }: AppSidebarPanelProps) {
   const { lang } = useLanguage()
   const t = (k: Parameters<typeof shellT>[1]) => shellT(lang, k)
@@ -183,9 +190,29 @@ export function AppSidebarPanel({
         className,
       )}
     >
+      {!hideCollapseToggle && onToggle ? (
+        <div
+          className={cn(
+            shellChromeHeaderRowClassName,
+            'mb-1 w-full shrink-0 px-0',
+            collapsed ? 'justify-center' : 'justify-end',
+          )}
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onToggle}
+            aria-label={toggleAria}
+            className="size-8 shrink-0 text-text-tertiary hover:bg-[var(--sidebar-accent)] hover:text-text-primary"
+          >
+            <PanelLeft className="size-4" aria-hidden />
+          </Button>
+        </div>
+      ) : null}
       <nav
         className={cn(
-          'flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pt-2',
+          'flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto',
           collapsed && 'items-center',
         )}
         aria-label={t('navMain')}
@@ -226,25 +253,11 @@ export function AppSidebarPanel({
         ) : null}
       </nav>
 
-      {!hideCollapseToggle && onToggle ? (
-        <div
-          className={cn(
-            'mt-auto shrink-0 -mx-2',
-            sidebarInsetPaddingClassName,
-          )}
-        >
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={onToggle}
-            aria-label={toggleAria}
-            className="size-8 shrink-0 text-text-tertiary hover:bg-[var(--sidebar-accent)] hover:text-text-primary"
-          >
-            <PanelLeft className="size-4" aria-hidden />
-          </Button>
-        </div>
-      ) : null}
+      <div className={cn('mt-auto shrink-0', sidebarInsetPaddingClassName)}>
+        {companyName ? (
+          <SidebarWorkspaceFooter companyName={companyName} me={me} collapsed={collapsed} />
+        ) : null}
+      </div>
     </div>
   )
 }

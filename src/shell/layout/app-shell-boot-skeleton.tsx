@@ -31,16 +31,19 @@ function ShellHeaderSkeleton() {
 function ShellSidebarSkeleton() {
   return (
     <aside
-      className="hidden h-full w-[var(--shell-sidebar-width)] shrink-0 flex-col border-r border-[var(--shell-divider)] bg-white px-2 pb-2 pt-2 lg:flex"
+      className="hidden h-full w-[var(--shell-sidebar-width)] shrink-0 flex-col border-r border-[var(--shell-divider)] bg-white px-2 pb-2 pt-0 lg:flex"
       aria-hidden
     >
+      <div className={cn(shellChromeHeaderRowClassName, 'mb-1 w-full shrink-0 justify-end px-0')}>
+        <Skeleton className="size-8 rounded-md" />
+      </div>
       <div className="flex flex-col gap-1">
         {Array.from({ length: 8 }).map((_, i) => (
           <Skeleton key={i} className="h-8 w-full rounded-md" />
         ))}
       </div>
       <div className="mt-auto pt-2">
-        <Skeleton className="size-8 rounded-md" />
+        <Skeleton className="h-10 w-full rounded-md" />
       </div>
     </aside>
   )

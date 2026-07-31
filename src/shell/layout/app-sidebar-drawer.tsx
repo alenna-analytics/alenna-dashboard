@@ -1,22 +1,13 @@
 import { Sheet, SheetContent } from '@/ui/sheet'
 
-import type { MeResponse } from '@/lib/types/me-types'
-
 import { AppSidebarPanel } from '@/shell/layout/app-sidebar-panel'
 
 type AppSidebarDrawerProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  companyName: string
-  me: MeResponse | null
 }
 
-export function AppSidebarDrawer({
-  open,
-  onOpenChange,
-  companyName,
-  me,
-}: AppSidebarDrawerProps) {
+export function AppSidebarDrawer({ open, onOpenChange }: AppSidebarDrawerProps) {
   const close = () => onOpenChange(false)
 
   return (
@@ -27,10 +18,10 @@ export function AppSidebarDrawer({
       >
         <AppSidebarPanel
           collapsed={false}
+          controlMode="expanded"
+          onControlModeChange={() => {}}
           hideCollapseToggle
           onNavigate={close}
-          companyName={companyName}
-          me={me}
           className="h-full min-h-0 rounded-none border-0 shadow-none"
         />
       </SheetContent>

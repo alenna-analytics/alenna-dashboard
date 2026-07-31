@@ -1,15 +1,59 @@
+import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
+import type { Language } from '@/shell/providers/language-provider'
 import type { MeResponse } from '@/lib/types/me-types'
 
 export const UPGRADE_GROWTH_MAILTO =
   'mailto:support@alenna.io?subject=Upgrade%20to%20Growth'
 
-export const CONTACT_CUSTOM_MAILTO =
-  'mailto:support@alenna.io?subject=Expand%20plan%20limits'
+export const UPGRADE_ENTERPRISE_MAILTO =
+  'mailto:support@alenna.io?subject=Upgrade%20to%20Enterprise'
 
-export function upgradeMailtoForCta(upgradeCta: MeResponse['upgrade_cta']): string | null {
+export function upgradeMailtoForCta(
+  upgradeCta: MeResponse['upgrade_cta'],
+): string | null {
   if (upgradeCta === 'growth') return UPGRADE_GROWTH_MAILTO
-  if (upgradeCta === 'contact') return CONTACT_CUSTOM_MAILTO
+  if (upgradeCta === 'enterprise') return UPGRADE_ENTERPRISE_MAILTO
   return null
+}
+
+export function upgradeLabelKeyForCta(
+  upgradeCta: MeResponse['upgrade_cta'],
+): ShellStringKey | null {
+  if (upgradeCta === 'growth') return 'planUpgradeToGrowth'
+  if (upgradeCta === 'enterprise') return 'planUpgradeToEnterprise'
+  return null
+}
+
+export function upgradeLabelForCta(
+  upgradeCta: MeResponse['upgrade_cta'],
+  lang: Language,
+): string | null {
+  const key = upgradeLabelKeyForCta(upgradeCta)
+  if (!key) return null
+  return shellT(lang, key)
+}
+
+export function planPillLabel(me: MeResponse, lang: Language): string {
+  if (me.plan === 'trial') {
+    const days = trialDaysRemaining(me.trial_ends_at)
+    if (days != null) {
+      return shellT(lang, 'planPillTrialDays', { days: String(days) })
+    }
+    return shellT(lang, 'planPillTrial')
+  }
+  const name = me.plan_display_name?.trim() || me.plan
+  return name.toUpperCase()
+}
+
+export function planSummaryLabel(me: MeResponse, lang: Language): string {
+  if (me.plan === 'trial') {
+    const days = trialDaysRemaining(me.trial_ends_at)
+    if (days != null) {
+      return shellT(lang, 'shellSidebarPlanTrialDays', { days: String(days) })
+    }
+  }
+  const planName = me.plan_display_name?.trim() || me.plan
+  return shellT(lang, 'shellSidebarPlanNamed', { plan: planName })
 }
 
 export function formatUserDisplayName(me: MeResponse): string {
@@ -29,4 +73,9 @@ export function trialDaysRemaining(trialEndsAt: string | null): number | null {
 export function isPlanLimitSyncPaused(me: MeResponse | null | undefined): boolean {
   if (!me?.sync_paused) return false
   return me.sync_paused_reason === 'orders_limit' || me.sync_paused_reason === 'skus_limit'
+}
+
+export function formatPlanLimit(value: number | null | undefined, lang: Language): string {
+  if (value == null) return shellT(lang, 'billingLimitUnlimited')
+  return new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'es-MX').format(value)
 }

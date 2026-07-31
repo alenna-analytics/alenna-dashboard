@@ -25,19 +25,22 @@ export function ProductsListPage() {
   return (
     <DashboardPage className="flex flex-1 flex-col gap-5">
       <header className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0 space-y-2">
             <h1 className={pageTitleClassName}>
               {t("productsPageTitle")}
             </h1>
             <p className="max-w-2xl text-sm text-text-secondary">{t("productsPageSubtitle")}</p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={() => void navigate('/dashboard/products/cogs')}>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <Button type="button" variant="outline" size="default" onClick={() => void navigate('/dashboard/products/cogs')}>
               {t('productsGoToCogs')}
             </Button>
             <Button
               type="button"
+              variant="accent"
+              size="default"
+              className="shrink-0"
               loading={createLoadMutation.isPending}
               onClick={() => {
                 void createLoadMutation.mutateAsync().then((load) => {

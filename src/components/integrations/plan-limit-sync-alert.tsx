@@ -1,7 +1,7 @@
 import { AlertTriangle } from 'lucide-react'
 
 import { shellT } from '@/lib/i18n/shell-strings'
-import { isPlanLimitSyncPaused, upgradeMailtoForCta } from '@/lib/plan/plan-limit-ui'
+import { isPlanLimitSyncPaused, upgradeLabelForCta, upgradeMailtoForCta } from '@/lib/plan/plan-limit-ui'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
@@ -24,10 +24,7 @@ export function PlanLimitSyncAlert({ className }: { className?: string }) {
         : 'planLimitSyncGeneric'
 
   const upgradeHref = me ? upgradeMailtoForCta(me.upgrade_cta) : null
-  const ctaLabel =
-    me?.upgrade_cta === 'contact'
-      ? shellT(lang, 'planUpgradeContactUs')
-      : shellT(lang, 'planUpgradeToGrowth')
+  const ctaLabel = me ? upgradeLabelForCta(me.upgrade_cta, lang) : null
 
   return (
     <div
@@ -44,7 +41,7 @@ export function PlanLimitSyncAlert({ className }: { className?: string }) {
         />
         <p>{shellT(lang, messageKey)}</p>
       </div>
-      {upgradeHref ? (
+      {upgradeHref && ctaLabel ? (
         <a href={upgradeHref} className={cn(buttonVariants({ size: 'sm' }), 'h-8 shrink-0 self-start sm:self-auto')}>
           {ctaLabel}
         </a>

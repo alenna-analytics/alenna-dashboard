@@ -6,15 +6,16 @@ import {
   isIntegrationsNavItemActive,
 } from '@/pages/integrations/dashboard/integrations-inner-nav'
 import {
-  sidebarNavItemClassName,
-  sidebarNavLabelClassName,
+  internalSidebarAsideClassName,
+  internalSidebarNavItemClassName,
+  internalSidebarNavLabelClassName,
 } from '@/shell/layout/sidebar-layout'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'
 
 function internalNavLinkClass(isActive: boolean): string {
   return cn(
-    sidebarNavItemClassName,
+    internalSidebarNavItemClassName,
     'text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
     isActive
       ? 'bg-[var(--sidebar-active-bg)] text-text-primary'
@@ -33,7 +34,7 @@ function InternalNavItem({
 }) {
   return (
     <NavLink to={to} end className={internalNavLinkClass(isActive)}>
-      <span className={sidebarNavLabelClassName}>{label}</span>
+      <span className={internalSidebarNavLabelClassName}>{label}</span>
     </NavLink>
   )
 }
@@ -44,10 +45,7 @@ export function IntegrationsInternalSidebar() {
   const t = (key: Parameters<typeof shellT>[1]) => shellT(lang, key)
 
   return (
-    <aside
-      className="hidden h-full w-full max-w-[var(--shell-inner-sidebar-width)] shrink-0 flex-col overflow-y-auto border-r border-[var(--shell-divider)] bg-white lg:flex"
-      aria-label={t('navIntegrations')}
-    >
+    <aside className={internalSidebarAsideClassName} aria-label={t('navIntegrations')}>
       <div className="flex h-[var(--shell-inner-header-height)] shrink-0 items-center border-b border-[var(--shell-divider)] bg-white px-4">
         <p className="truncate text-subtitle font-semibold text-text-primary">
           {t('navIntegrations')}

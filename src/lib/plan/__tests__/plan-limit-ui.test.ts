@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   isPlanLimitSyncPaused,
+  upgradeLabelForCta,
   upgradeMailtoForCta,
 } from '@/lib/plan/plan-limit-ui'
 import type { MeResponse } from '@/lib/types/me-types'
@@ -38,8 +39,12 @@ describe('plan-limit-ui', () => {
     expect(upgradeMailtoForCta('growth')).toContain('Growth')
   })
 
-  it('upgradeMailtoForCta returns contact mailto', () => {
-    expect(upgradeMailtoForCta('contact')).toContain('mailto:')
+  it('upgradeMailtoForCta returns enterprise mailto', () => {
+    expect(upgradeMailtoForCta('enterprise')).toContain('Enterprise')
+  })
+
+  it('upgradeLabelForCta returns translated growth label', () => {
+    expect(upgradeLabelForCta('growth', 'en')).toContain('Growth')
   })
 
   it('isPlanLimitSyncPaused ignores trial_expired', () => {

@@ -1,7 +1,11 @@
 import { AlertTriangle } from 'lucide-react'
 
 import { shellT } from '@/lib/i18n/shell-strings'
-import { isPlanLimitSyncPaused, upgradeMailtoForCta } from '@/lib/plan/plan-limit-ui'
+import {
+  isPlanLimitSyncPaused,
+  upgradeLabelForCta,
+  upgradeMailtoForCta,
+} from '@/lib/plan/plan-limit-ui'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
@@ -24,10 +28,7 @@ export function PlanLimitShellBanner() {
         : 'planLimitBannerGeneric'
 
   const upgradeHref = me ? upgradeMailtoForCta(me.upgrade_cta) : null
-  const ctaLabel =
-    me?.upgrade_cta === 'contact'
-      ? shellT(lang, 'planUpgradeContactUs')
-      : shellT(lang, 'planUpgradeToGrowth')
+  const ctaLabel = me ? upgradeLabelForCta(me.upgrade_cta, lang) : null
 
   return (
     <div
@@ -40,7 +41,7 @@ export function PlanLimitShellBanner() {
           aria-hidden
         />
         <p className="min-w-0 flex-1">{shellT(lang, messageKey)}</p>
-        {upgradeHref ? (
+        {upgradeHref && ctaLabel ? (
           <a href={upgradeHref} className={cn(buttonVariants({ size: 'sm' }), 'h-8 shrink-0')}>
             {ctaLabel}
           </a>

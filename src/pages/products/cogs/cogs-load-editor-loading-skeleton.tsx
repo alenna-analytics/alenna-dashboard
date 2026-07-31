@@ -48,3 +48,24 @@ export function CogsLoadEditorLoadingSkeleton() {
     </div>
   )
 }
+
+export function CogsLoadDetailLoadingSkeleton() {
+  return (
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
+      <header className="shrink-0 space-y-2">
+        <Skeleton className="h-4 w-48 max-w-full" />
+        <Skeleton className="h-8 w-56 max-w-full" />
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }, (_, index) => (
+            <div key={index} className="space-y-1">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-4 w-28" />
+            </div>
+          ))}
+        </div>
+        <Skeleton className="h-8 w-32 rounded-md" />
+      </header>
+      <Skeleton className="min-h-[20rem] flex-1 rounded-md" />
+    </div>
+  )
+}

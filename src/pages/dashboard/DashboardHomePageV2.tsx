@@ -301,7 +301,7 @@ export function DashboardHomePageV2() {
   const { startDate, endDate, connectionIds, productIds } = filters
   const productMode = productIds.length > 0
   const [salesTrendGranularity, setSalesTrendGranularity] =
-    useState<RevenueSeriesGranularity>('month')
+    useState<RevenueSeriesGranularity>('week')
   const [salesTrendPrimaryMetric, setSalesTrendPrimaryMetric] =
     useState<HomeV2TrendMetricId>('net-sales')
   const [salesTrendSecondaryMetric, setSalesTrendSecondaryMetric] =

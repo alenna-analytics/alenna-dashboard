@@ -47,7 +47,7 @@ export type MeResponse = {
   skus_limit?: number | null
   sync_paused?: boolean
   sync_paused_reason?: 'orders_limit' | 'skus_limit' | 'trial_expired' | null
-  upgrade_cta?: 'growth' | 'contact' | 'none'
+  upgrade_cta?: 'growth' | 'enterprise' | 'none'
 }
 
 export type AccountDeletionStatusResponse = {

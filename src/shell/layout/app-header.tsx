@@ -3,12 +3,12 @@ import { UserButton } from '@clerk/react'
 import { Menu } from 'lucide-react'
 
 import alennaIconBlack from '@/assets/alenna/alenna-icon-black.svg'
-import { formatUserDisplayName } from '@/lib/plan/plan-limit-ui'
-import type { MeResponse } from '@/lib/types/me-types'
 import { AlertsHeaderButton } from '@/shell/alerts/alerts-header-button'
 import { CurrencyPicker } from '@/shell/layout/currency-picker'
 import { HeaderConnectionsMenu } from '@/shell/layout/header-connections-menu'
+import { HeaderWorkspaceSwitcher } from '@/shell/layout/header-workspace-switcher'
 import { shellT } from '@/lib/i18n/shell-strings'
+import type { MeResponse } from '@/lib/types/me-types'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
@@ -18,8 +18,9 @@ const shellHeaderRowPaddingClassName = 'w-full px-4 lg:px-5'
 
 type AppHeaderProps = {
   className?: string
-  me: MeResponse | null
   onOpenMobileNav?: () => void
+  companyName?: string
+  me?: MeResponse | null
 }
 
 function HeaderChromeButton({
@@ -41,9 +42,13 @@ function HeaderChromeButton({
   )
 }
 
-export function AppHeader({ className, me, onOpenMobileNav }: AppHeaderProps) {
+export function AppHeader({
+  className,
+  onOpenMobileNav,
+  companyName = '',
+  me = null,
+}: AppHeaderProps) {
   const { lang } = useLanguage()
-  const userLabel = me ? formatUserDisplayName(me) : ''
 
   return (
     <header className={cn('min-w-0 shrink-0 bg-white', className)}>
@@ -71,9 +76,9 @@ export function AppHeader({ className, me, onOpenMobileNav }: AppHeaderProps) {
             className="size-6 shrink-0 object-contain"
             draggable={false}
           />
-          <p className="hidden truncate text-subtitle font-semibold text-text-primary sm:block">
-            Alenna
-          </p>
+          {companyName ? (
+            <HeaderWorkspaceSwitcher companyName={companyName} me={me} />
+          ) : null}
         </div>
 
         <div className="flex min-w-0 shrink-0 items-center gap-1.5 overflow-visible sm:gap-2">
@@ -82,11 +87,6 @@ export function AppHeader({ className, me, onOpenMobileNav }: AppHeaderProps) {
           <HeaderChromeButton className="bg-[var(--platinum-blonde-300)]">
             <AlertsHeaderButton />
           </HeaderChromeButton>
-          {userLabel ? (
-            <p className="hidden max-w-[10rem] truncate text-sm font-medium text-text-primary md:block">
-              {userLabel}
-            </p>
-          ) : null}
           <UserButton
             appearance={{
               elements: {

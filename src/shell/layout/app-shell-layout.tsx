@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Outlet, useLocation, Navigate } from 'react-router-dom'
 
 import { useCurrentTenant } from '@/auth/hooks'
@@ -33,8 +33,13 @@ import { isIntegrationsRoute } from '@/pages/integrations/dashboard/integrations
 import { ProductsInternalSidebar } from '@/pages/products/products-internal-sidebar'
 import { isProductsRoute } from '@/pages/products/products-inner-nav'
 import { cn } from '@/lib/utils'
+import {
+  isSidebarVisuallyCollapsed,
+  readSidebarControlMode,
+  writeSidebarControlMode,
+  type SidebarControlMode,
+} from '@/lib/shell/sidebar-control-prefs'
 
-const SIDEBAR_COLLAPSED_KEY = 'alenna.sidebar.collapsed'
 const CONFIGURATION_GENERAL_PATH = '/dashboard/configuration/general'
 
 function tenantIdsEqual(a: string, b: string | null | undefined): boolean {
@@ -42,24 +47,20 @@ function tenantIdsEqual(a: string, b: string | null | undefined): boolean {
   return a.replace(/-/g, '').toLowerCase() === b.replace(/-/g, '').toLowerCase()
 }
 
-function readInitialSidebarCollapsed(): boolean {
-  if (typeof window === 'undefined') {
-    return false
-  }
-  try {
-    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1'
-  } catch {
-    return false
-  }
+function readInitialSidebarControlMode(): SidebarControlMode {
+  return readSidebarControlMode()
 }
 
 export function AppShellLayout() {
   const location = useLocation()
   const { lang } = useLanguage()
   const { tenantId } = useCurrentTenant()
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(readInitialSidebarCollapsed)
+  const [sidebarControlMode, setSidebarControlMode] = useState(readInitialSidebarControlMode)
+  const [sidebarHoverExpanded, setSidebarHoverExpanded] = useState(false)
   const [mobileNavPath, setMobileNavPath] = useState<string | null>(null)
   const [trialForced, setTrialForced] = useState(false)
+
+  const sidebarCollapsed = isSidebarVisuallyCollapsed(sidebarControlMode, sidebarHoverExpanded)
 
   const mobileNavOpen = mobileNavPath === location.pathname
   const setMobileNavOpen = useCallback((open: boolean) => {
@@ -70,19 +71,26 @@ export function AppShellLayout() {
   }, [location.pathname])
 
   useEffect(() => onTrialExpired(() => setTrialForced(true)), [])
-  const toggleSidebar = useCallback(() => {
-    startTransition(() => {
-      setSidebarCollapsed((c) => {
-        const next = !c
-        try {
-          window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0')
-        } catch {
-          /* ignore */
-        }
-        return next
-      })
-    })
+
+  const setSidebarControlModePersisted = useCallback((mode: SidebarControlMode) => {
+    writeSidebarControlMode(mode)
+    setSidebarControlMode(mode)
+    if (mode !== 'expand_on_hover') {
+      setSidebarHoverExpanded(false)
+    }
   }, [])
+
+  const onSidebarMouseEnter = useCallback(() => {
+    if (sidebarControlMode === 'expand_on_hover') {
+      setSidebarHoverExpanded(true)
+    }
+  }, [sidebarControlMode])
+
+  const onSidebarMouseLeave = useCallback(() => {
+    if (sidebarControlMode === 'expand_on_hover') {
+      setSidebarHoverExpanded(false)
+    }
+  }, [sidebarControlMode])
   const {
     tenants,
     me,
@@ -163,21 +171,24 @@ export function AppShellLayout() {
                   {me?.is_fixture ? <FixtureTenantBanner /> : null}
                   <PlanLimitShellBanner />
                   <AccountDeletionPendingShellBanner />
-                  <AppHeader me={me} onOpenMobileNav={openMobileNav} />
+                  <AppHeader
+                    onOpenMobileNav={openMobileNav}
+                    companyName={companyName}
+                    me={me}
+                  />
                 </div>
                 <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
                   <AppSidebar
                     className="hidden lg:flex"
                     collapsed={sidebarCollapsed}
-                    onToggle={toggleSidebar}
-                    companyName={companyName}
-                    me={me}
+                    controlMode={sidebarControlMode}
+                    onControlModeChange={setSidebarControlModePersisted}
+                    onMouseEnter={onSidebarMouseEnter}
+                    onMouseLeave={onSidebarMouseLeave}
                   />
                   <AppSidebarDrawer
                     open={mobileNavOpen}
                     onOpenChange={setMobileNavOpen}
-                    companyName={companyName}
-                    me={me}
                   />
                   <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
                     {showConfigurationInnerSidebar ? <ConfigurationInternalSidebar /> : null}

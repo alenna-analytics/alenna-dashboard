@@ -64,16 +64,18 @@ export function ProductDetailVariantsTable({
         <CardDescription className="text-xs">{t('productsDetailVariantsDescription')}</CardDescription>
       </CardHeader>
       <CardContent className="p-0">
-        <DataTable
-          table={table}
-          isLoading={false}
-          isFetching={false}
-          hasEverLoaded
-          emptyContent={
-            <p className="py-8 text-center text-sm text-text-tertiary">—</p>
-          }
-          scrollClassName="max-h-[28rem] overflow-auto"
-        />
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          <DataTable
+            table={table}
+            isLoading={false}
+            isFetching={false}
+            hasEverLoaded
+            emptyContent={
+              <p className="py-8 text-center text-sm text-text-tertiary">—</p>
+            }
+            scrollClassName="max-h-[28rem] min-w-[640px] overflow-auto"
+          />
+        </div>
       </CardContent>
     </Card>
   )

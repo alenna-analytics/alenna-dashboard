@@ -35,15 +35,15 @@ const SHELL_STRINGS = {
       'Elimina permanentemente tu cuenta de Alenna y los datos de tu workspace.',
     settingsDeleteAccountCardTitle: 'Solicitud de eliminación de cuenta',
     settingsDeleteAccountCardDescription:
-      'Al confirmar, programamos el borrado de tu cuenta y workspace para dentro de 90 días. Hasta entonces no se elimina nada: puedes cancelar la solicitud y seguir usando Alenna con normalidad. Pasada esa fecha, borramos tus datos personales y comerciales y se detienen las sincronizaciones. Si necesitas adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
+      'Al confirmar, programaremos el borrado de tu cuenta y espacio de trabajo para dentro de 90 días. Hasta entonces no se eliminará nada: puedes cancelar la solicitud y seguir usando Alenna con normalidad. Pasada esa fecha, borraremos tus datos personales y comerciales y se detienen las sincronizaciones. Si necesitas adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
     settingsDeleteAccountCardDescriptionWithMembers:
-      'Al confirmar, programamos el borrado de tu cuenta y workspace para dentro de 90 días. Hasta entonces no se elimina nada y puedes cancelar. Pasada esa fecha, borramos tus datos y los {count} demás miembros perderán el acceso. Para adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
+      'Al confirmar, programaremos el borrado de tu cuenta y espacio de trabajo para dentro de 90 días. Hasta entonces no se eliminará nada: puedes cancelar la solicitud y seguir usando Alenna con normalidad. Pasada esa fecha, borraremos tus datos y todos los miembros perderán acceso. Para adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
     settingsDeleteAccountCardDescriptionWithOneMember:
-      'Al confirmar, programamos el borrado de tu cuenta y workspace para dentro de 90 días. Hasta entonces no se elimina nada y puedes cancelar. Pasada esa fecha, borramos tus datos y el otro miembro perderá el acceso. Para adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
+      'Al confirmar, programaremos el borrado de tu cuenta y espacio de trabajo para dentro de 90 días. Hasta entonces no se eliminará nada: puedes cancelar la solicitud y seguir usando Alenna con normalidad. Pasada esa fecha, borraremos tus datos y todos los miembros perderán acceso. Para adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
     settingsDeleteAccountRequestButton: 'Solicitar eliminación de cuenta',
     settingsDeleteAccountSectionTitle: 'Eliminar cuenta',
     settingsDeleteAccountIntro:
-      'Al confirmar, tu workspace quedará marcado para eliminación. Hoy no se borra nada.',
+      'Al confirmar, tu espacio de trabajo quedará marcado para eliminación. Hoy no se borra nada.',
     settingsDeleteAccountBullet1:
       '90 días de gracia: puedes cancelar y recuperar el acceso; tus datos se conservan.',
     settingsDeleteAccountBullet2:
@@ -53,9 +53,9 @@ const SHELL_STRINGS = {
     settingsDeleteAccountBullet4:
       'Eliminación anticipada: escribe a privacidad@alenna.io (máx. 30 días hábiles).',
     settingsDeleteAccountBullet5:
-      'Solo un administrador del workspace puede solicitar la eliminación.',
+      'Solo un administrador del espacio de trabajo puede solicitar la eliminación.',
     settingsDeleteAccountBullet6:
-      'Otros miembros del workspace ({count}) perderán acceso al completarse la eliminación.',
+      'Otros miembros del espacio de trabajo ({count}) perderán acceso al completarse la eliminación.',
     settingsDeleteAccountButton: 'Eliminar cuenta',
     settingsDeleteAccountDialogTitle: 'Confirmar eliminación de cuenta',
     settingsDeleteAccountDialogLine1: 'Programaremos la eliminación de tu cuenta.',
@@ -1420,11 +1420,11 @@ const SHELL_STRINGS = {
     settingsDangerZoneSubtitle: 'Permanently delete your Alenna account and workspace data.',
     settingsDeleteAccountCardTitle: 'Request for account deletion',
     settingsDeleteAccountCardDescription:
-      'When you confirm, we schedule deletion of your account and workspace in 90 days. Nothing is removed until then—you can cancel and keep using Alenna normally. After that date, we permanently delete your personal and commercial data and stop syncs. To delete sooner, email privacidad@alenna.io (within 30 business days).',
+      'When you confirm, we will schedule deletion of your account and workspace in 90 days. Nothing will be removed until then—you can cancel and keep using Alenna normally. After that date, we permanently delete your personal and commercial data and stop syncs. To delete sooner, email privacidad@alenna.io (within 30 business days).',
     settingsDeleteAccountCardDescriptionWithMembers:
-      'When you confirm, we schedule deletion of your account and workspace in 90 days. Nothing is removed until then and you can cancel. After that date, we delete your data and the other {count} members lose access. To delete sooner, email privacidad@alenna.io (within 30 business days).',
+      'When you confirm, we will schedule deletion of your account and workspace in 90 days. Nothing will be removed until then and you can cancel. After that date, we will delete your data and all members will lose access. To delete sooner, email privacidad@alenna.io (within 30 business days).',
     settingsDeleteAccountCardDescriptionWithOneMember:
-      'When you confirm, we schedule deletion of your account and workspace in 90 days. Nothing is removed until then and you can cancel. After that date, we delete your data and the other member loses access. To delete sooner, email privacidad@alenna.io (within 30 business days).',
+      'When you confirm, we will schedule deletion of your account and workspace in 90 days. Nothing will be removed until then and you can cancel. After that date, we will delete your data and the other member loses access. To delete sooner, email privacidad@alenna.io (within 30 business days).',
     settingsDeleteAccountRequestButton: 'Request to delete account',
     settingsDeleteAccountSectionTitle: 'Delete account',
     settingsDeleteAccountIntro:

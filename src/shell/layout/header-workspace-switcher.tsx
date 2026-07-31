@@ -1,19 +1,17 @@
-import { ChevronsUpDown, Sparkles } from 'lucide-react'
+import { ChevronsUpDown } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import {
   planPillLabel,
   planSummaryLabel,
-  upgradeLabelForCta,
-  upgradeMailtoForCta,
 } from '@/lib/plan/plan-limit-ui'
+import { PlanUpgradeCta } from '@/components/billing/plan-upgrade-cta'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { MeResponse } from '@/lib/types/me-types'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { sidebarNavIconClassName } from '@/shell/layout/sidebar-layout'
 import { Badge } from '@/ui/badge'
-import { buttonVariants } from '@/ui/button'
 import { AppIcon } from '@/ui/app-icon'
 import {
   DropdownMenu,
@@ -39,8 +37,7 @@ const menuIconClassName = cn(sidebarNavIconClassName, 'text-text-tertiary')
 export function HeaderWorkspaceSwitcher({ companyName, me }: HeaderWorkspaceSwitcherProps) {
   const { lang } = useLanguage()
   const navigate = useNavigate()
-  const upgradeHref = me ? upgradeMailtoForCta(me.upgrade_cta) : null
-  const upgradeLabel = me ? upgradeLabelForCta(me.upgrade_cta, lang) : null
+  const showUpgrade = me && (me.upgrade_cta === 'growth' || me.upgrade_cta === 'enterprise')
   const pillLabel = me ? planPillLabel(me, lang) : null
   const planLine = me ? planSummaryLabel(me, lang) : null
 
@@ -82,19 +79,14 @@ export function HeaderWorkspaceSwitcher({ companyName, me }: HeaderWorkspaceSwit
           ) : null}
         </div>
 
-        {upgradeHref && upgradeLabel ? (
+        {showUpgrade && me ? (
           <>
             <div className="px-2 pb-1.5">
-              <a
-                href={upgradeHref}
-                className={cn(
-                  buttonVariants({ variant: 'outline', size: 'sm' }),
-                  'h-8 w-full gap-1.5 border-border-subtle bg-white font-normal text-text-primary hover:bg-[var(--sidebar-accent)]',
-                )}
-              >
-                <Sparkles className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-                {upgradeLabel}
-              </a>
+              <PlanUpgradeCta
+                me={me}
+                lang={lang}
+                className="h-8 w-full gap-1.5 border-border-subtle bg-white font-normal text-text-primary hover:bg-[var(--sidebar-accent)]"
+              />
             </div>
             <DropdownMenuSeparator className="my-1 bg-border-subtle" />
           </>

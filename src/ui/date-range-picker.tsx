@@ -4,6 +4,7 @@ import type { DateRange } from 'react-day-picker'
 import { Check, ChevronDown, Clock } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { filterPillInactiveClassName } from '@/ui/filters/filter-pill-classes'
 import { Button } from '@/ui/button'
 import { Calendar } from '@/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/popover'
@@ -287,9 +288,8 @@ export function DateRangePickerTrigger({
     <PopoverTrigger
       type="button"
       className={cn(
-        'inline-flex h-9 max-w-full min-w-0 shrink-0 items-center gap-2 rounded-md border border-border-default bg-white px-3 text-sm font-medium text-text-primary shadow-none transition-colors',
-        'hover:bg-[var(--platinum-blonde-300)]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
-        'data-[state=open]:border-border-strong',
+        filterPillInactiveClassName(),
+        'max-w-full min-w-0 gap-2 px-3',
         className,
       )}
       aria-expanded={open}

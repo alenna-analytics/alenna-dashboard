@@ -63,7 +63,7 @@ export function ProductDetailHeaderStats({
           onChange={(e) => onSkuDraftChange(e.target.value)}
           placeholder={t('productsDetailSkuPlaceholder')}
           aria-label={t('productsDetailEditSkuAria')}
-          className="h-8 max-w-[11rem] text-sm font-normal"
+          className="h-8 w-full max-w-none text-sm font-normal sm:max-w-[11rem]"
         />
       ),
     },
@@ -94,15 +94,15 @@ export function ProductDetailHeaderStats({
   ]
 
   return (
-    <div className="inline-flex max-w-full flex-wrap items-stretch">
+    <div className="grid w-full grid-cols-2 gap-x-4 gap-y-4 sm:inline-flex sm:max-w-full sm:flex-wrap sm:items-stretch">
       {columns.map((col, index) => (
         <div
           key={col.key}
           className={cn(
             'flex shrink-0',
-            index > 0 && 'border-l border-border-subtle pl-6',
-            index < columns.length - 1 && (col.key === 'sku' ? 'pr-6' : 'pr-5'),
-            col.key === 'sku' && 'min-w-[9rem]',
+            col.key === 'sku' && 'col-span-2 sm:col-span-1 sm:min-w-[9rem]',
+            index > 0 && 'sm:border-l sm:border-border-subtle sm:pl-6',
+            index < columns.length - 1 && (col.key === 'sku' ? 'sm:pr-6' : 'sm:pr-5'),
           )}
         >
           <StatColumn label={col.label} valueClassName={col.valueClassName}>

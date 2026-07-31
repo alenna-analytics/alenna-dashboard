@@ -199,7 +199,7 @@ export function ProductDetailSections({
             t={t}
             className="mb-3"
           />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
             {insightKpis.map((kpi) => (
               <ProductDetailInsightKpiTile
                 key={kpi.key}
@@ -255,7 +255,8 @@ export function ProductDetailSections({
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
-            <ProductDetailChannelsTable
+            <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+              <ProductDetailChannelsTable
               listings={detail.listings}
               isLoading={false}
               isFetching={false}
@@ -266,7 +267,8 @@ export function ProductDetailSections({
                   {t('productsDetailChannelsEmpty')}
                 </p>
               }
-            />
+              />
+            </div>
           </CardContent>
         </Card>
       )}

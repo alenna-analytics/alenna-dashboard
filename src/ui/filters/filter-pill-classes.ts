@@ -1,10 +1,14 @@
 import { cn } from '@/lib/utils'
 
+const filterPillTypographyClassName =
+  'text-xs font-medium leading-none font-[family-name:var(--font-display)]'
+
 /** Empty / default: dashed pill, compact height (inactive state). */
 export function filterPillInactiveClassName(className?: string): string {
   return cn(
     'inline-flex h-8 shrink-0 items-center rounded-md border border-dashed border-border-default/80',
-    'bg-bg-section/50 px-2.5 text-sm font-medium leading-none text-text-primary shadow-none transition-colors',
+    'bg-white px-2.5 text-text-primary shadow-none transition-colors',
+    filterPillTypographyClassName,
     'hover:border-border-strong hover:bg-muted/50',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
     'data-[state=open]:border-border-strong data-[state=open]:bg-muted/45',
@@ -12,11 +16,12 @@ export function filterPillInactiveClassName(className?: string): string {
   )
 }
 
-/** Outer wrap when a value is selected: solid white pill, img 1. */
+/** Outer wrap when a value is selected: solid white pill. */
 export function filterPillActiveShellClassName(className?: string): string {
   return cn(
     'inline-flex h-8 max-w-full shrink-0 items-stretch overflow-hidden rounded-md border border-border-default',
-    'bg-white text-sm leading-none shadow-none',
+    'bg-white leading-none shadow-none',
+    filterPillTypographyClassName,
     className,
   )
 }
@@ -34,8 +39,9 @@ export function filterPillClearButtonClassName(className?: string): string {
 /** Main segment that opens the popover when active. */
 export function filterPillActiveTriggerClassName(className?: string): string {
   return cn(
-    'inline-flex min-w-0 flex-1 items-center gap-1.5 px-2 py-0 text-sm font-medium leading-none',
-    'text-left transition-colors hover:bg-muted/50',
+    'inline-flex min-w-0 flex-1 items-center gap-1.5 px-2 py-0 text-left transition-colors',
+    filterPillTypographyClassName,
+    'hover:bg-muted/50',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
     className,
   )

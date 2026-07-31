@@ -355,6 +355,7 @@
   /** Selected value text on filter pills (sync with accent forest green). */
   --filter-pill-value-active: var(--color-accent-forest);
   --filter-pill-bg: #ffffff;
+  --filter-pill-border: var(--border-strong);
   --shell-divider: #ccd1d2;
   --shell-structure-border: var(--shell-divider);
   /** Sidebar workspace header + main AppHeader share this height so border-b lines align. */

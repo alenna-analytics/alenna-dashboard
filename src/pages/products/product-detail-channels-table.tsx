@@ -45,7 +45,7 @@ export function ProductDetailChannelsTable({
       isFetching={isFetching}
       hasEverLoaded
       emptyContent={emptyContent}
-      scrollClassName="max-h-[28rem] overflow-auto"
+      scrollClassName="max-h-[28rem] min-w-[640px] overflow-auto"
     />
   )
 }

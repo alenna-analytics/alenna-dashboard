@@ -355,7 +355,8 @@
   /** Selected value text on filter pills (sync with accent forest green). */
   --filter-pill-value-active: var(--color-accent-forest);
   --filter-pill-bg: #ffffff;
-  --filter-pill-border: var(--border-strong);
+  --filter-pill-border: rgba(78, 84, 58, 0.32);
+  --filter-pill-border-hover: rgba(78, 84, 58, 0.44);
   --shell-divider: #ccd1d2;
   --shell-structure-border: var(--shell-divider);
   /** Sidebar workspace header + main AppHeader share this height so border-b lines align. */
@@ -583,11 +584,7 @@
         rgba(8, 28, 30, 0.12) 42%,
         rgba(8, 28, 30, 0.55) 100%
       ),
-      linear-gradient(
-        90deg,
-        rgba(8, 28, 30, 0.22) 0%,
-        transparent 55%
-      );
+      linear-gradient(90deg, rgba(8, 28, 30, 0.22) 0%, transparent 55%);
   }
 
   .font-numeric {

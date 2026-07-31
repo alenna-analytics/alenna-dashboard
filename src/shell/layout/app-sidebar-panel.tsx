@@ -1,13 +1,14 @@
-import { PanelLeft } from 'lucide-react'
 import { matchPath, NavLink, useLocation } from 'react-router-dom'
 
 import type { AppIconName } from '@/lib/icons/catalog'
+import type { SidebarControlMode } from '@/lib/shell/sidebar-control-prefs'
 import { useEnabledModules } from '@/lib/modules/use-modules'
 import { useConfigSectionModules, useWorkspaceConfigModuleEnabled } from '@/lib/modules/use-workspace-config'
 import type { ModuleSection, ModuleState } from '@/lib/modules/types'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { SidebarNavSection } from '@/shell/layout/sidebar-nav-section'
+import { SidebarControlMenu } from '@/shell/layout/sidebar-control-menu'
 import { WorkspaceConfigNavItem } from '@/shell/layout/workspace-config-nav-group'
 import {
   sidebarNavIconClassName,
@@ -16,16 +17,17 @@ import {
   sidebarInsetPaddingClassName,
   sidebarNavItemClassName,
   sidebarShellPaddingClassName,
+  sidebarShellPaddingCollapsedClassName,
 } from '@/shell/layout/sidebar-layout'
 import { cn } from '@/lib/utils'
 import { AppIcon } from '@/ui/app-icon'
 import { Badge } from '@/ui/badge'
-import { Button } from '@/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 export type AppSidebarPanelProps = {
   collapsed: boolean
-  onToggle?: () => void
+  controlMode: SidebarControlMode
+  onControlModeChange: (mode: SidebarControlMode) => void
   hideCollapseToggle?: boolean
   onNavigate?: () => void
   className?: string
@@ -158,14 +160,14 @@ function modulesForSection(modules: ModuleState[], section: ModuleSection): Modu
 
 export function AppSidebarPanel({
   collapsed,
-  onToggle,
+  controlMode,
+  onControlModeChange,
   hideCollapseToggle = false,
   onNavigate,
   className,
 }: AppSidebarPanelProps) {
   const { lang } = useLanguage()
   const t = (k: Parameters<typeof shellT>[1]) => shellT(lang, k)
-  const toggleAria = collapsed ? t('ariaExpandSidebar') : t('ariaCollapseSidebar')
   const enabledModules = useEnabledModules()
   const analyticsModules = modulesForSection(enabledModules, 'analytics')
   const configModules = useConfigSectionModules()
@@ -178,15 +180,15 @@ export function AppSidebarPanel({
   return (
     <div
       className={cn(
-        'flex h-full min-h-0 flex-col bg-white shadow-none',
-        sidebarShellPaddingClassName,
+        'flex h-full min-h-0 flex-col overflow-x-hidden bg-white shadow-none',
+        collapsed ? sidebarShellPaddingCollapsedClassName : sidebarShellPaddingClassName,
         className,
       )}
     >
       <nav
         className={cn(
-          'flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pt-2',
-          collapsed && 'items-center',
+          'flex min-h-0 flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto',
+          collapsed ? 'items-center pt-2' : 'pt-2',
         )}
         aria-label={t('navMain')}
       >
@@ -226,23 +228,18 @@ export function AppSidebarPanel({
         ) : null}
       </nav>
 
-      {!hideCollapseToggle && onToggle ? (
+      {!hideCollapseToggle ? (
         <div
           className={cn(
-            'mt-auto shrink-0 -mx-2',
-            sidebarInsetPaddingClassName,
+            'mt-auto flex w-full shrink-0 overflow-x-hidden',
+            collapsed ? 'justify-center pb-2 pt-2' : cn(sidebarInsetPaddingClassName, 'justify-start'),
           )}
         >
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={onToggle}
-            aria-label={toggleAria}
-            className="size-8 shrink-0 text-text-tertiary hover:bg-[var(--sidebar-accent)] hover:text-text-primary"
-          >
-            <PanelLeft className="size-4" aria-hidden />
-          </Button>
+          <SidebarControlMenu
+            mode={controlMode}
+            onModeChange={onControlModeChange}
+            collapsed={collapsed}
+          />
         </div>
       ) : null}
     </div>

@@ -92,7 +92,7 @@ export function CogsLoadsListPage() {
           <h1 className={pageTitleClassName}>{t('productsCogsLoadsTitle')}</h1>
           <p className="max-w-2xl text-sm text-text-secondary">{t('productsCogsLoadsSubtitle')}</p>
         </div>
-        <Button type="button" loading={createMutation.isPending} onClick={() => void onNewLoad()}>
+        <Button type="button" variant="accent" size="default" className="shrink-0" loading={createMutation.isPending} onClick={() => void onNewLoad()}>
           {t('productsCogsLoadNew')}
         </Button>
       </header>

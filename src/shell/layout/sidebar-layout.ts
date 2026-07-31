@@ -19,4 +19,14 @@ export const sidebarNavItemCollapsedClassName =
 
 export const sidebarShellPaddingClassName = 'px-2 pb-2 pt-0'
 
+export const sidebarShellPaddingCollapsedClassName = 'px-0 pb-2 pt-2'
+
 export const sidebarInsetPaddingClassName = 'p-2'
+
+export const internalSidebarAsideClassName =
+  'hidden h-full w-[var(--shell-inner-sidebar-width)] min-w-[var(--shell-inner-sidebar-width)] shrink-0 flex-col overflow-x-hidden overflow-y-auto border-r border-[var(--shell-divider)] bg-white lg:flex'
+
+export const internalSidebarNavItemClassName =
+  'flex h-8 w-full min-w-0 items-center rounded-md px-2'
+
+export const internalSidebarNavLabelClassName = 'font-medium leading-4'

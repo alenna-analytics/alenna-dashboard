@@ -9,6 +9,7 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
 
 import { CogsPageBreadcrumb } from './cogs-page-breadcrumb'
+import { CogsLoadDetailLoadingSkeleton } from './cogs-load-editor-loading-skeleton'
 import { useCloneCogsLoadMutation, useCogsLoadQuery } from './use-cogs-load-queries'
 
 export function CogsLoadDetailPage() {
@@ -33,8 +34,8 @@ export function CogsLoadDetailPage() {
 
   if (!loadId || loadQuery.isLoading) {
     return (
-      <DashboardPage>
-        <p className="text-sm text-text-secondary">{t('bootLoadingLabel')}</p>
+      <DashboardPage className="flex h-full min-h-0 flex-col overflow-hidden">
+        <CogsLoadDetailLoadingSkeleton />
       </DashboardPage>
     )
   }

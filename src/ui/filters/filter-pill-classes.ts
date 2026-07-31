@@ -3,15 +3,15 @@ import { cn } from '@/lib/utils'
 const filterPillTypographyClassName =
   'text-xs font-medium leading-none font-[family-name:var(--font-display)]'
 
-/** Empty / default: dashed pill, compact height (inactive state). */
+/** Empty / default: dotted pill, compact height (inactive state). */
 export function filterPillInactiveClassName(className?: string): string {
   return cn(
-    'inline-flex h-8 shrink-0 items-center rounded-md border border-dashed border-border-default/80',
-    'bg-white px-2.5 text-text-primary shadow-none transition-colors',
+    'inline-flex h-8 shrink-0 items-center rounded-md border border-dotted border-border-strong',
+    'bg-white px-2.5 text-text-primary shadow-none transition-[background-color,box-shadow]',
     filterPillTypographyClassName,
-    'hover:border-border-strong hover:bg-muted/50',
+    'hover:bg-muted/50 hover:shadow-sm',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
-    'data-[state=open]:border-border-strong data-[state=open]:bg-muted/45',
+    'data-[state=open]:bg-muted/50 data-[state=open]:shadow-sm',
     className,
   )
 }

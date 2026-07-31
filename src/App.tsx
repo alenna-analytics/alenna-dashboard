@@ -34,6 +34,7 @@ import { ConfigurationIndexRedirect } from '@/pages/configuration/configuration-
 import { AlarmsConfigurationListPage } from '@/pages/configuration/alarms/AlarmsConfigurationListPage'
 import { StockAlarmConfigurationPage } from '@/pages/configuration/alarms/stock/StockAlarmConfigurationPage'
 import { GeneralConfigurationPage } from '@/pages/configuration/general/GeneralConfigurationPage'
+import { BillingConfigurationPage } from '@/pages/configuration/billing/BillingConfigurationPage'
 
 function App() {
   return (
@@ -68,6 +69,7 @@ function App() {
           <Route path="configuration" element={<ConfigurationShellLayout />}>
             <Route index element={<ConfigurationIndexRedirect />} />
             <Route path="general" element={<GeneralConfigurationPage />} />
+            <Route path="billing" element={<BillingConfigurationPage />} />
             <Route path="alarms" element={<AlarmsConfigurationListPage />} />
             <Route path="alarms/stock" element={<StockAlarmConfigurationPage />} />
           </Route>

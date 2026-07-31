@@ -18,6 +18,8 @@ export function AppSidebarDrawer({ open, onOpenChange }: AppSidebarDrawerProps) 
       >
         <AppSidebarPanel
           collapsed={false}
+          controlMode="expanded"
+          onControlModeChange={() => {}}
           hideCollapseToggle
           onNavigate={close}
           className="h-full min-h-0 rounded-none border-0 shadow-none"

@@ -6,7 +6,9 @@ import alennaIconBlack from '@/assets/alenna/alenna-icon-black.svg'
 import { AlertsHeaderButton } from '@/shell/alerts/alerts-header-button'
 import { CurrencyPicker } from '@/shell/layout/currency-picker'
 import { HeaderConnectionsMenu } from '@/shell/layout/header-connections-menu'
+import { HeaderWorkspaceSwitcher } from '@/shell/layout/header-workspace-switcher'
 import { shellT } from '@/lib/i18n/shell-strings'
+import type { MeResponse } from '@/lib/types/me-types'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
@@ -16,8 +18,9 @@ const shellHeaderRowPaddingClassName = 'w-full px-4 lg:px-5'
 
 type AppHeaderProps = {
   className?: string
-  companyName: string
   onOpenMobileNav?: () => void
+  companyName?: string
+  me?: MeResponse | null
 }
 
 function HeaderChromeButton({
@@ -39,7 +42,12 @@ function HeaderChromeButton({
   )
 }
 
-export function AppHeader({ className, companyName, onOpenMobileNav }: AppHeaderProps) {
+export function AppHeader({
+  className,
+  onOpenMobileNav,
+  companyName = '',
+  me = null,
+}: AppHeaderProps) {
   const { lang } = useLanguage()
 
   return (
@@ -68,10 +76,12 @@ export function AppHeader({ className, companyName, onOpenMobileNav }: AppHeader
             className="size-6 shrink-0 object-contain"
             draggable={false}
           />
-          <p className="truncate text-subtitle font-semibold text-text-primary">{companyName}</p>
+          {companyName ? (
+            <HeaderWorkspaceSwitcher companyName={companyName} me={me} />
+          ) : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5 overflow-visible sm:gap-2">
+        <div className="flex min-w-0 shrink-0 items-center gap-1.5 overflow-visible sm:gap-2">
           <HeaderConnectionsMenu />
           <CurrencyPicker className="hidden h-8 sm:inline-flex" />
           <HeaderChromeButton className="bg-[var(--platinum-blonde-300)]">

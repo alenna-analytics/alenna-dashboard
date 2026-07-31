@@ -251,7 +251,7 @@ export function CogsLoadSelectStep({ loadId, detail, t }: CogsLoadSelectStepProp
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
-                variant="success"
+                variant="accent"
                 size="sm"
                 disabled={adding || showInitialSkeleton || visibleMatchItems.length === 0}
                 onClick={() => void addCurrentPage()}
@@ -260,7 +260,7 @@ export function CogsLoadSelectStep({ loadId, detail, t }: CogsLoadSelectStepProp
               </Button>
               <Button
                 type="button"
-                variant="success"
+                variant="accent"
                 size="sm"
                 disabled={adding || showInitialSkeleton || matchTotal === 0}
                 onClick={() => void addAllMatches()}

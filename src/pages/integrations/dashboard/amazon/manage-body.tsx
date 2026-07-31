@@ -2,7 +2,9 @@ import { CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useState } from 'react'
 
+import { PlanLimitSyncAlert } from '@/components/integrations/plan-limit-sync-alert'
 import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
+import { isPlanLimitSyncPaused } from '@/lib/plan/plan-limit-ui'
 import { IntegrationEnableCard } from '@/components/integrations/integration-enable-card'
 import { IntegrationSyncActionCard } from '@/components/integrations/integration-sync-action-card'
 import { IntegrationDetailSkeleton } from '@/pages/integrations/dashboard/integration-detail-skeleton'
@@ -61,10 +63,12 @@ function AmazonSyncSection({
   lang,
   amazon,
   isFixture,
+  planSyncPaused,
 }: {
   lang: Language
   amazon: AmazonIntegrationHook
   isFixture: boolean
+  planSyncPaused: boolean
 }) {
   const {
     activeConnection,
@@ -94,6 +98,8 @@ function AmazonSyncSection({
   const fixtureBlocked = () => {
     toast.info(shellT(lang, 'fixtureActionDisabled'))
   }
+
+  const planLimitAlert = planSyncPaused ? <PlanLimitSyncAlert className="mb-4" /> : null
 
   if (amazonSyncPhase === 'working') {
     const job = amazonJobQuery.data
@@ -159,7 +165,7 @@ function AmazonSyncSection({
         actionLabel={shellT(lang, 'syncRefreshBtn')}
         actionLoadingLabel={shellT(lang, 'syncRunning')}
         onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
-        actionDisabled={syncMutation.isPending || isFixture}
+        actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
         actionLoading={syncMutation.isPending}
         badge={<CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />}
         footer={shellT(lang, 'platformSyncBlockedHint')}
@@ -175,7 +181,7 @@ function AmazonSyncSection({
         description={syncFailedMessage ?? shellT(lang, 'amazonSyncToastFailed')}
         actionLabel={shellT(lang, 'platformSyncRetry')}
         onAction={() => (isFixture ? fixtureBlocked() : retryAmazonSync())}
-        actionDisabled={retryAmazonSyncPending || isFixture}
+        actionDisabled={retryAmazonSyncPending || isFixture || planSyncPaused}
         actionLoading={retryAmazonSyncPending}
         className="w-full"
       />
@@ -183,18 +189,21 @@ function AmazonSyncSection({
   }
 
   return (
-    <IntegrationSyncActionCard
-      title={shellT(lang, 'syncSectionTitle')}
-      description={shellT(lang, 'syncSectionDescriptionAmazon')}
-      actionLabel={buttonLabel}
-      actionLoadingLabel={shellT(lang, 'syncRunning')}
-      onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
-      actionDisabled={syncMutation.isPending || isFixture}
-      actionLoading={syncMutation.isPending}
-      badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
-      footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
-      className="w-full"
-    />
+    <>
+      {planLimitAlert}
+      <IntegrationSyncActionCard
+        title={shellT(lang, 'syncSectionTitle')}
+        description={shellT(lang, 'syncSectionDescriptionAmazon')}
+        actionLabel={buttonLabel}
+        actionLoadingLabel={shellT(lang, 'syncRunning')}
+        onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
+        actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
+        actionLoading={syncMutation.isPending}
+        badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
+        footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
+        className="w-full"
+      />
+    </>
   )
 }
 
@@ -212,6 +221,7 @@ export function AmazonManageBody({
   const { lang } = useLanguage()
   const { me } = useWorkspace()
   const isFixture = Boolean(me?.is_fixture)
+  const planSyncPaused = isPlanLimitSyncPaused(me)
   const [integrationEnabled, setIntegrationEnabled] = useState(true)
 
   const accountId = 'integration-amazon-account'
@@ -283,7 +293,12 @@ export function AmazonManageBody({
           </IntegrationEnableCard>
 
           {integrationEnabled ? (
-            <AmazonSyncSection lang={lang} amazon={amazon} isFixture={isFixture} />
+            <AmazonSyncSection
+              lang={lang}
+              amazon={amazon}
+              isFixture={isFixture}
+              planSyncPaused={planSyncPaused}
+            />
           ) : null}
         </div>
       )}

@@ -17,7 +17,9 @@ import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { SyncPlan } from '@/lib/types/connectors'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
 import { formatShopifySyncUserError } from '@/lib/integrations/shopify-sync-user-error'
+import { PlanLimitSyncAlert } from '@/components/integrations/plan-limit-sync-alert'
 import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
+import { isPlanLimitSyncPaused } from '@/lib/plan/plan-limit-ui'
 import { IntegrationEnableCard } from '@/components/integrations/integration-enable-card'
 import { IntegrationSyncActionCard } from '@/components/integrations/integration-sync-action-card'
 import { Button } from '@/ui/button'
@@ -116,10 +118,12 @@ function ShopifySyncSection({
   lang,
   shopify,
   isFixture,
+  planSyncPaused,
 }: {
   lang: Language
   shopify: ShopifyIntegrationHook
   isFixture: boolean
+  planSyncPaused: boolean
 }) {
   const {
     activeConnection,
@@ -155,6 +159,8 @@ function ShopifySyncSection({
   const fixtureBlocked = () => {
     toast.info(shellT(lang, 'fixtureActionDisabled'))
   }
+
+  const planLimitAlert = planSyncPaused ? <PlanLimitSyncAlert className="mb-4" /> : null
 
   if (shopifySyncPhase === 'working') {
     const queued = shopifyJobQuery.data?.status === 'queued'
@@ -222,7 +228,7 @@ function ShopifySyncSection({
         description={formatShopifySyncUserError(syncFailedMessage, lang)}
         actionLabel={shellT(lang, 'shopifySyncRetry')}
         onAction={() => (isFixture ? fixtureBlocked() : retryShopifySync())}
-        actionDisabled={retryShopifySyncPending || isFixture}
+        actionDisabled={retryShopifySyncPending || isFixture || planSyncPaused}
         actionLoading={retryShopifySyncPending}
         className="w-full"
       />
@@ -237,18 +243,21 @@ function ShopifySyncSection({
     .join(' · ')
 
   return (
-    <IntegrationSyncActionCard
-      title={shellT(lang, 'syncSectionTitle')}
-      description={shellT(lang, 'syncSectionCardDescription')}
-      actionLabel={buttonLabel}
-      actionLoadingLabel={shellT(lang, 'syncRunning')}
-      onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
-      actionDisabled={syncMutation.isPending || Boolean(cooldownHelper) || isFixture}
-      actionLoading={syncMutation.isPending}
-      badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
-      footer={syncFooter}
-      className="w-full"
-    />
+    <>
+      {planLimitAlert}
+      <IntegrationSyncActionCard
+        title={shellT(lang, 'syncSectionTitle')}
+        description={shellT(lang, 'syncSectionCardDescription')}
+        actionLabel={buttonLabel}
+        actionLoadingLabel={shellT(lang, 'syncRunning')}
+        onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
+        actionDisabled={syncMutation.isPending || Boolean(cooldownHelper) || isFixture || planSyncPaused}
+        actionLoading={syncMutation.isPending}
+        badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
+        footer={syncFooter}
+        className="w-full"
+      />
+    </>
   )
 }
 
@@ -266,6 +275,7 @@ export function ShopifyManageBody({
   const { lang } = useLanguage()
   const { me } = useWorkspace()
   const isFixture = Boolean(me?.is_fixture)
+  const planSyncPaused = isPlanLimitSyncPaused(me)
   const {
     tenantId,
     isAdmin,
@@ -372,7 +382,12 @@ export function ShopifyManageBody({
 
             {integrationEnabled ? (
               <>
-                <ShopifySyncSection lang={lang} shopify={shopify} isFixture={isFixture} />
+                <ShopifySyncSection
+                  lang={lang}
+                  shopify={shopify}
+                  isFixture={isFixture}
+                  planSyncPaused={planSyncPaused}
+                />
                 {syncMessage ? (
                   <p className="text-xs text-muted-foreground" role="status">
                     {syncMessage}

@@ -81,7 +81,7 @@ export function ProductDetailVariantsTable({
             emptyContent={
               <p className="py-8 text-center text-sm text-text-tertiary">—</p>
             }
-            scrollClassName="max-h-[28rem] min-w-[640px] overflow-auto"
+            scrollClassName="max-h-[28rem] min-w-[640px] overflow-auto [scrollbar-gutter:stable]"
           />
         </div>
       </CardContent>

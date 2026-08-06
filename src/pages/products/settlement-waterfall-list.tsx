@@ -15,6 +15,7 @@ type SettlementWaterfallListProps = {
   byPlatform?: ProductPlatformSettlementApi[]
   fmtBase: (value: number) => string
   t: (key: ShellStringKey) => string
+  rowHover?: boolean
 }
 
 type PlatformFieldKey =
@@ -38,6 +39,9 @@ const LINE_PLATFORM_FIELD: Record<string, PlatformFieldKey> = {
   payout: 'estimated_payout',
 }
 
+const ROW_HOVER_CLASS =
+  '-mx-2 rounded-md px-2 transition-colors hover:bg-[var(--table-row-hover-bg)]'
+
 function SettlementWaterfallRow({
   line,
   byPlatform,
@@ -45,6 +49,7 @@ function SettlementWaterfallRow({
   t,
   expanded,
   onToggle,
+  rowHover,
 }: {
   line: SettlementWaterfallLine
   byPlatform: ProductPlatformSettlementApi[]
@@ -52,6 +57,7 @@ function SettlementWaterfallRow({
   t: (key: ShellStringKey) => string
   expanded: boolean
   onToggle: () => void
+  rowHover: boolean
 }) {
   const field = LINE_PLATFORM_FIELD[line.key]
   const platformRows = useMemo(() => {
@@ -108,7 +114,10 @@ function SettlementWaterfallRow({
       {expandable ? (
         <button
           type="button"
-          className="flex w-full items-center justify-between gap-3 px-0 py-3 text-sm transition-colors hover:bg-muted/20"
+          className={cn(
+            'flex w-full items-center justify-between gap-3 py-3 text-sm',
+            rowHover ? ROW_HOVER_CLASS : 'px-0 transition-colors hover:bg-muted/20',
+          )}
           aria-expanded={expanded}
           onClick={onToggle}
         >
@@ -118,6 +127,7 @@ function SettlementWaterfallRow({
         <div
           className={cn(
             'flex items-center justify-between gap-3 py-3 text-sm',
+            rowHover && ROW_HOVER_CLASS,
             isTotal && 'border-t border-border-subtle/80 pt-3 font-semibold',
           )}
         >
@@ -129,7 +139,11 @@ function SettlementWaterfallRow({
           {platformRows.map((row) => (
             <li
               key={row.platform}
-              className="flex items-center justify-between gap-3 text-xs text-text-secondary"
+              className={cn(
+                'flex items-center justify-between gap-3 text-xs text-text-secondary',
+                rowHover &&
+                  '-mx-1 rounded-md px-1 py-0.5 transition-colors hover:bg-[var(--table-row-hover-bg)]',
+              )}
             >
               <ProductPlatformLogoName
                 platformSlug={row.platform}
@@ -153,6 +167,7 @@ export function SettlementWaterfallList({
   byPlatform = [],
   fmtBase,
   t,
+  rowHover = false,
 }: SettlementWaterfallListProps) {
   const lines = useMemo(() => settlementWaterfallLines(settlement), [settlement])
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => new Set())
@@ -207,6 +222,7 @@ export function SettlementWaterfallList({
           t={t}
           expanded={expandedKeys.has(line.key)}
           onToggle={() => toggleRow(line.key)}
+          rowHover={rowHover}
         />
       ))}
     </div>

@@ -108,18 +108,15 @@ function Calendar({
           defaultClassNames.day
         ),
         range_start: cn(
-          "relative isolate z-0 rounded-l-md bg-[var(--zara-400)] after:absolute after:inset-y-0 after:right-0 after:w-4 after:bg-[var(--zara-400)]",
+          "relative isolate z-0",
           defaultClassNames.range_start
         ),
-        range_middle: cn("rounded-none bg-[var(--zara-400)]", defaultClassNames.range_middle),
+        range_middle: cn("relative isolate z-0", defaultClassNames.range_middle),
         range_end: cn(
-          "relative isolate z-0 rounded-r-md bg-[var(--zara-400)] after:absolute after:inset-y-0 after:left-0 after:w-4 after:bg-[var(--zara-400)]",
+          "relative isolate z-0",
           defaultClassNames.range_end
         ),
-        today: cn(
-          "rounded-md bg-bg-section text-foreground",
-          defaultClassNames.today
-        ),
+        today: cn(defaultClassNames.today),
         outside: cn(
           "text-muted-foreground aria-selected:text-muted-foreground",
           defaultClassNames.outside
@@ -192,29 +189,38 @@ function CalendarDayButton({
     if (modifiers.focused) ref.current?.focus()
   }, [modifiers.focused])
 
-  const rangeCapsClass = modifiers.range_middle
-    ? "rounded-none bg-[var(--zara-400)] text-foreground"
-    : modifiers.range_start || modifiers.range_end
-      ? "rounded-md bg-[var(--zara-base)] text-[var(--firefly-base)]"
-      : ""
+  const isRangeCap = modifiers.range_start || modifiers.range_end
+  const isSingleSelected =
+    modifiers.selected &&
+    !modifiers.range_start &&
+    !modifiers.range_end &&
+    !modifiers.range_middle
+  const isInRangeSelection = isRangeCap || modifiers.range_middle || isSingleSelected
+  const isTodayOnly = modifiers.today && !isInRangeSelection
+  const isCircleDay = isRangeCap || isSingleSelected || isTodayOnly
+
+  const dayAppearanceClass = modifiers.range_middle
+    ? "w-full bg-transparent text-foreground"
+    : isRangeCap || isSingleSelected
+      ? "mx-auto size-(--cell-size) rounded-full bg-[var(--zara-base)] text-[var(--firefly-base)]"
+      : isTodayOnly
+        ? "mx-auto size-(--cell-size) rounded-full bg-[var(--country-green-base)] text-white"
+        : ""
 
   return (
     <Button
       variant="ghost"
       data-day={day.date.toLocaleDateString(locale?.code)}
-      data-selected-single={
-        modifiers.selected &&
-        !modifiers.range_start &&
-        !modifiers.range_end &&
-        !modifiers.range_middle
-      }
+      data-selected-single={isSingleSelected}
       data-range-start={modifiers.range_start}
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
+      data-today={modifiers.today}
       className={cn(
-        "relative isolate z-10 h-(--cell-size) w-full min-w-0 max-w-full rounded-md border-0 p-0 text-sm leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[selected-single=true]:rounded-md data-[selected-single=true]:bg-[var(--zara-base)] data-[selected-single=true]:text-[var(--firefly-base)] [&>span]:text-xs [&>span]:opacity-70",
+        "relative isolate z-10 h-(--cell-size) min-w-0 max-w-full border-0 p-0 text-sm leading-none font-normal focus-visible:border-transparent focus-visible:ring-0 focus-visible:outline-none [&>span]:text-xs [&>span]:opacity-70",
+        isCircleDay ? "w-(--cell-size)" : "w-full",
         defaultClassNames.day,
-        rangeCapsClass,
+        dayAppearanceClass,
         className
       )}
       {...props}

@@ -1,11 +1,13 @@
+/* eslint-disable react-refresh/only-export-components -- column defs + listing cell helpers */
 import type { ColumnDef } from '@tanstack/react-table'
-import { Copy, MoreVertical, Wallet } from 'lucide-react'
+import { MoreVertical, Wallet } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductListingApi, StockAlertLevel } from '@/lib/types/catalog'
 import { cn } from '@/lib/utils'
-import { Button } from '@/ui/button'
+import { CopyTextButton } from '@/ui/copy-text-button'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +18,10 @@ import {
 import { ProductDetailColumnHeaderWithHelp } from './product-detail-column-header-with-help'
 import {
   formatListingInventoryDays,
+  formatListingPublicationDisplay,
   formatListingVelocityPerDay,
+  resolveListingVariantId,
+  truncateListingLabel,
 } from './product-detail-listing-channel-format'
 import { ProductPlatformLogoName } from './product-platform-logo-name'
 import {
@@ -33,11 +38,99 @@ const TEXT_CELL_META = {
   cellClassName: '[&>div]:justify-start',
 } as const
 
-const SKU_TRUNCATE_LEN = 12
+const LISTING_TEXT_TRUNCATE_LEN = 20
 
-function truncateSku(sku: string): string {
-  if (sku.length <= SKU_TRUNCATE_LEN) return sku
-  return `${sku.slice(0, SKU_TRUNCATE_LEN)}…`
+function truncateListingText(value: string): string {
+  if (value.length <= LISTING_TEXT_TRUNCATE_LEN) return value
+  return `${value.slice(0, LISTING_TEXT_TRUNCATE_LEN)}…`
+}
+
+function ProductListingSkuLabel({ sku }: { sku: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="min-w-0 truncate font-mono text-sm leading-normal">{truncateListingText(sku)}</span>
+      </TooltipTrigger>
+      <TooltipContent
+        side="top"
+        className="max-w-[min(20rem,calc(100vw-2rem))] break-all font-mono text-xs leading-snug"
+      >
+        {sku}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+function ProductListingPublicationCell({
+  listing,
+  t,
+}: {
+  listing: ProductListingApi
+  t: (key: ShellStringKey) => string
+}) {
+  const { variantLabel, variantTooltip, listPrice } = formatListingPublicationDisplay(listing)
+  const copyText = variantTooltip ?? variantLabel ?? listPrice
+
+  if (!variantLabel && !listPrice) {
+    return <span className="text-sm text-text-tertiary">—</span>
+  }
+
+  if (!variantLabel && listPrice) {
+    return (
+      <div className="flex min-w-0 items-center gap-1">
+        <span className="min-w-0 truncate text-sm tabular-nums text-text-secondary" title={listPrice}>
+          {listPrice}
+        </span>
+        {copyText ? (
+          <CopyTextButton
+            text={copyText}
+            copiedLabel={t('productsCopyFeedback')}
+            failedLabel={t('productsCopyFailed')}
+            copyAriaLabel={t('productsDetailListingCopyPublication')}
+          />
+        ) : null}
+      </div>
+    )
+  }
+
+  const displayVariant = variantLabel ? truncateListingLabel(variantLabel) : null
+
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5">
+      {displayVariant ? (
+        <div className="flex min-w-0 items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="min-w-0 truncate font-mono text-sm leading-normal text-text-primary">
+                {displayVariant}
+              </span>
+            </TooltipTrigger>
+            {variantTooltip ? (
+              <TooltipContent
+                side="top"
+                className="max-w-[min(20rem,calc(100vw-2rem))] break-all font-mono text-xs leading-snug"
+              >
+                {variantTooltip}
+              </TooltipContent>
+            ) : null}
+          </Tooltip>
+          {copyText ? (
+            <CopyTextButton
+              text={copyText}
+              copiedLabel={t('productsCopyFeedback')}
+              failedLabel={t('productsCopyFailed')}
+              copyAriaLabel={t('productsDetailListingCopyPublication')}
+            />
+          ) : null}
+        </div>
+      ) : null}
+      {listPrice ? (
+        <span className="truncate text-xs tabular-nums text-text-tertiary" title={listPrice}>
+          {listPrice}
+        </span>
+      ) : null}
+    </div>
+  )
 }
 
 function alertRank(level: StockAlertLevel): number {
@@ -50,7 +143,11 @@ export function sortListingsByStockAlert(listings: ProductListingApi[]): Product
   return [...listings].sort((a, b) => {
     const d = alertRank(a.stock_alert) - alertRank(b.stock_alert)
     if (d !== 0) return d
-    return a.platform.localeCompare(b.platform)
+    const platformCmp = a.platform.localeCompare(b.platform)
+    if (platformCmp !== 0) return platformCmp
+    const skuCmp = a.platform_sku.localeCompare(b.platform_sku)
+    if (skuCmp !== 0) return skuCmp
+    return (a.platform_variant_id ?? '').localeCompare(b.platform_variant_id ?? '')
   })
 }
 
@@ -58,7 +155,6 @@ export function createProductDetailChannelsColumns(
   t: (key: ShellStringKey) => string,
   fmtBase: (value: number) => string,
   options?: {
-    onCopySku: (sku: string) => void
     onViewSettlement?: (listing: ProductListingApi) => void
     preset?: 'full' | 'platform-payment'
   },
@@ -98,25 +194,29 @@ export function createProductDetailChannelsColumns(
         const sku = row.original.platform_sku
         return (
           <div className="flex min-w-0 items-center gap-1">
-            <span className="truncate font-mono text-sm leading-normal" title={sku}>
-              {truncateSku(sku)}
-            </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              className="size-7 shrink-0 text-text-tertiary hover:text-text-primary"
-              aria-label={t('productsTableCopySku')}
-              onClick={(event) => {
-                event.stopPropagation()
-                options?.onCopySku(sku)
-              }}
-            >
-              <Copy className="size-3.5" aria-hidden />
-            </Button>
+            <ProductListingSkuLabel sku={sku} />
+            <CopyTextButton
+              text={sku}
+              copiedLabel={t('productsCopyFeedback')}
+              failedLabel={t('productsCopyFailed')}
+              copyAriaLabel={t('productsTableCopySku')}
+            />
           </div>
         )
       },
+    },
+    {
+      id: 'platform_publication',
+      accessorFn: (row) => resolveListingVariantId(row) ?? row.platform_price ?? null,
+      meta: {
+        ...TEXT_CELL_META,
+        headerClassName: 'min-w-[7rem]',
+        cellClassName: 'min-w-[7rem] [&>div]:justify-start',
+      },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsDetailListingColPublication')} />
+      ),
+      cell: ({ row }) => <ProductListingPublicationCell listing={row.original} t={t} />,
     },
   ]
 
@@ -149,7 +249,7 @@ export function createProductDetailChannelsColumns(
         accessorKey: 'velocity_units_per_day_90d',
         meta: NUMERIC_CELL_META,
         header: () => (
-          <div className="flex w-full min-w-0 items-center justify-end text-sm font-semibold text-text-secondary">
+          <div className="flex w-full min-w-0 items-center justify-end text-xs font-medium text-muted-foreground">
             <ProductDetailColumnHeaderWithHelp
               title={t('productsDetailListingColVelocityPerDay')}
               helpText={t('productsDetailListingColVelocityPerDayHelp')}
@@ -197,21 +297,6 @@ export function createProductDetailChannelsColumns(
       ),
     },
     {
-      id: 'period_orders',
-      accessorKey: 'period_orders',
-      meta: NUMERIC_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          className="justify-end"
-          column={column}
-          title={t('productsDetailListingColOrders')}
-        />
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm tabular-nums">{row.original.period_orders}</span>
-      ),
-    },
-    {
       id: 'period_estimated_payout',
       accessorFn: (row) => row.period_settlement?.estimated_payout ?? null,
       meta: NUMERIC_CELL_META,
@@ -229,6 +314,21 @@ export function createProductDetailChannelsColumns(
         }
         return <span className="text-sm tabular-nums">{fmtBase(payout)}</span>
       },
+    },
+    {
+      id: 'period_orders',
+      accessorKey: 'period_orders',
+      meta: NUMERIC_CELL_META,
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          className="justify-end"
+          column={column}
+          title={t('productsDetailListingColOrders')}
+        />
+      ),
+      cell: ({ row }) => (
+        <span className="text-sm tabular-nums">{row.original.period_orders}</span>
+      ),
     },
     {
       id: 'period_units_sold',

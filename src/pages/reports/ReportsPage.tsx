@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 
+import { AlertTriangle, Package, type LucideIcon } from 'lucide-react'
+
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
 import { enUS, es as esLocale } from 'date-fns/locale'
@@ -36,11 +38,11 @@ import { useProductReports } from '@/pages/reports/use-product-reports'
 import { useReports } from '@/pages/reports/use-reports'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
-import { AmazonFeesUnavailableNotice } from '@/components/integrations/amazon-fees-unavailable-notice'
 import { includesAmazonWithUnavailableFees } from '@/lib/integrations/amazon-fees-notice'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { presetDateRangeYmd } from '@/ui/date-range-picker'
+import { ContextAlertCard, ContextAlertsGroup, type ContextAlertTone } from '@/ui/context-alert'
 import { Skeleton } from '@/ui/skeleton'
 import { cn } from '@/lib/utils'
 
@@ -330,6 +332,33 @@ export function ReportsPage() {
     return kpi ?? zeroKpiResponse(baseCurrency)
   }, [productMode, connectorsLoading, activeConnectionIds, kpiLoading, kpi, baseCurrency])
 
+  const pageAlerts = useMemo(() => {
+    type PageAlertItem = {
+      key: string
+      title: string
+      icon: LucideIcon
+      tone: ContextAlertTone
+    }
+    const items: PageAlertItem[] = []
+    if (showAmazonFeesNotice) {
+      items.push({
+        key: 'amazon-fees',
+        title: t('integrationAmazonFeesUnavailableBanner'),
+        icon: AlertTriangle,
+        tone: 'warning',
+      })
+    }
+    if (!productMode && displayKpi?.cogs_incomplete) {
+      items.push({
+        key: 'cogs-incomplete',
+        title: t('reportsCogsIncompleteWarning'),
+        icon: Package,
+        tone: 'warning',
+      })
+    }
+    return items
+  }, [showAmazonFeesNotice, productMode, displayKpi?.cogs_incomplete, t])
+
   const currency =
     (productMode ? pkpi?.currency : displayKpi?.currency) ?? baseCurrency
   const convertFromBase = useMemo(
@@ -501,7 +530,20 @@ export function ReportsPage() {
         <ReportsLoadingSkeleton />
       ) : (
         <div className="flex flex-col gap-12">
-          {showAmazonFeesNotice ? <AmazonFeesUnavailableNotice lang={lang} /> : null}
+          {pageAlerts.length > 0 ? (
+            <ContextAlertsGroup
+              title={t('contextAlertsTitle').replace('{count}', String(pageAlerts.length))}
+            >
+              {pageAlerts.map((alert) => (
+                <ContextAlertCard
+                  key={alert.key}
+                  title={alert.title}
+                  icon={alert.icon}
+                  tone={alert.tone}
+                />
+              ))}
+            </ContextAlertsGroup>
+          ) : null}
           <ReportsHeroKpis
             mode={productMode ? 'product' : 'tenant'}
             kpi={displayKpi}
@@ -525,7 +567,6 @@ export function ReportsPage() {
             <ReportsPnlTable
               rows={pnlRows}
               formatMoney={formatConverted}
-              cogsIncomplete={!productMode && Boolean(displayKpi?.cogs_incomplete)}
               t={t}
             />
           ) : null}

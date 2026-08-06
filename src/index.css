@@ -364,8 +364,8 @@
   --shell-sidebar-width: 200px;
   --shell-sidebar-collapsed-width: 47px;
   --shell-inner-sidebar-width: 210px;
-  --shell-alerts-panel-width: 400px;
-  --shell-sheet-width: 670px;
+  --shell-alerts-panel-width: 430px;
+  --shell-sheet-width: 430px;
   --shell-sheet-footer-height: 60px;
   --shell-inner-header-height: 48px;
 
@@ -1037,28 +1037,111 @@
   animation: connector-sync-indeterminate 1.25s ease-in-out infinite;
 }
 
-/* Sonner (alenna): toast width (default lib value is 356px) */
+/* Sonner (alenna): viewport-centered bottom toast */
 [data-sonner-toaster].alenna-sonner {
-  --width: min(calc(100vw - 2rem), 380px);
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
 }
 
-@media (min-width: 1024px) {
-  [data-sonner-toaster].alenna-sonner {
-    --width: min(calc(100vw - 3rem), 404px);
+[data-sonner-toaster].alenna-sonner [data-sonner-toast][data-styled='true'] {
+  display: flex !important;
+  width: fit-content !important;
+  max-width: min(calc(100vw - 2rem), 24rem) !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin-inline: auto !important;
+  padding: 0.5rem 0.75rem !important;
+  border: 0 !important;
+  border-radius: 0.75rem !important;
+  background: #1f1f1f !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%) !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+[data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-content] {
+  display: block !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+}
+
+[data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-icon] {
+  display: none !important;
+}
+
+[data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-title] {
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  line-height: 1.25rem !important;
+  color: #fff !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+[data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-description] {
+  font-size: 0.875rem !important;
+  color: rgb(255 255 255 / 80%) !important;
+  text-align: center !important;
+  overflow-wrap: break-word !important;
+}
+
+@media (max-width: 600px) {
+  [data-sonner-toaster].alenna-sonner [data-sonner-toast][data-styled='true'] {
+    width: fit-content !important;
+    max-width: calc(100vw - 2rem) !important;
+  }
+
+  [data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-title] {
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
   }
 }
 
-/* Sonner (alenna): white toasts, close control inside on the right */
-[data-sonner-toaster].alenna-sonner [data-sonner-toast][data-styled='true'] {
-  align-items: center;
-  padding-right: 2.75rem;
+/* Calendar range highlight: pill bar aligned with circular start/end caps */
+[data-slot='calendar'] .rdp-day.rdp-range_start:not(.rdp-range_end)::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(50% - var(--cell-size) / 2);
+  right: 0;
+  z-index: 0;
+  height: var(--cell-size);
+  transform: translateY(-50%);
+  border-top-left-radius: calc(var(--cell-size) / 2);
+  border-bottom-left-radius: calc(var(--cell-size) / 2);
+  background: var(--zara-400);
+  pointer-events: none;
 }
 
-[data-sonner-toaster].alenna-sonner
-  [data-sonner-toast][data-styled='true']
-  [data-close-button] {
-  left: auto;
-  right: 0.75rem;
+[data-slot='calendar'] .rdp-day.rdp-range_end:not(.rdp-range_start)::before {
+  content: '';
+  position: absolute;
   top: 50%;
+  left: 0;
+  right: calc(50% - var(--cell-size) / 2);
+  z-index: 0;
+  height: var(--cell-size);
   transform: translateY(-50%);
+  border-top-right-radius: calc(var(--cell-size) / 2);
+  border-bottom-right-radius: calc(var(--cell-size) / 2);
+  background: var(--zara-400);
+  pointer-events: none;
+}
+
+[data-slot='calendar'] .rdp-day.rdp-range_middle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  height: var(--cell-size);
+  transform: translateY(-50%);
+  background: var(--zara-400);
+  pointer-events: none;
 }

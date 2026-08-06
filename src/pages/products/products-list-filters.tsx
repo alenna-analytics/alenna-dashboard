@@ -1,12 +1,15 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@clerk/react'
+import { Search, X } from 'lucide-react'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { apiFetch } from '@/lib/api'
 import type { PlatformConnection } from '@/lib/types/connectors'
+import { Button } from '@/ui/button'
+import { Input } from '@/ui/input'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import type { FilterOption } from '@/ui/filters/types'
 
@@ -21,6 +24,8 @@ type ProductsListFiltersProps = {
   onFiltersChange: (patch: Partial<ProductsListFiltersState>) => void
   t: (key: ShellStringKey) => string
   channelsOnly?: boolean
+  searchQ?: string
+  onSearchQChange?: (value: string) => void
 }
 
 export function ProductsListFilters({
@@ -28,6 +33,8 @@ export function ProductsListFilters({
   onFiltersChange,
   t,
   channelsOnly = false,
+  searchQ,
+  onSearchQChange,
 }: ProductsListFiltersProps) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
@@ -77,7 +84,34 @@ export function ProductsListFilters({
   }, [connectionsQuery.data, t])
 
   return (
-    <div className="flex flex-wrap items-end gap-3">
+    <div className="flex min-w-max items-center gap-2">
+      {onSearchQChange != null ? (
+        <div className="relative w-72 shrink-0">
+          <Search
+            className="pointer-events-none absolute top-1/2 left-2.5 z-10 size-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
+          <Input
+            value={searchQ ?? ''}
+            onChange={(e) => onSearchQChange(e.target.value)}
+            placeholder={t('productsSearchPlaceholder')}
+            aria-label={t('productsSearchPlaceholder')}
+            className="h-[33px] border-border-default bg-white pl-8 text-xs placeholder:text-xs focus-visible:border-border-emphasis focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          {searchQ?.trim() ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              className="absolute top-1/2 right-0.5 z-10 size-7 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={t('productsSearchClearAria')}
+              onClick={() => onSearchQChange('')}
+            >
+              <X className="size-4 shrink-0" aria-hidden />
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
       {!channelsOnly ? (
         <>
           <FilterComboboxMulti

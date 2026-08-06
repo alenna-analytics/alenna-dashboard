@@ -33,7 +33,7 @@ export function ProductsListPage() {
             <p className="max-w-2xl text-sm text-text-secondary">{t("productsPageSubtitle")}</p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <Button type="button" variant="outline" size="default" onClick={() => void navigate('/dashboard/products/cogs')}>
+            <Button type="button" variant="default" size="default" onClick={() => void navigate('/dashboard/products/cogs')}>
               {t('productsGoToCogs')}
             </Button>
             <Button
@@ -52,12 +52,14 @@ export function ProductsListPage() {
             </Button>
           </div>
         </div>
-        <div className="flex w-full flex-wrap items-center gap-2">
+        <div className="w-full overflow-x-auto">
           <ProductsListFilters
             filters={filters}
             onFiltersChange={(patch: Partial<ProductsListFiltersState>) =>
               setFilters((prev) => ({ ...prev, ...patch }))
             }
+            searchQ={q}
+            onSearchQChange={setQ}
             t={t}
           />
         </div>
@@ -65,7 +67,6 @@ export function ProductsListPage() {
 
       <ProductsDataTable
         searchQ={q}
-        onSearchQChange={setQ}
         filters={filters}
         t={t}
         emptyContent={empty}

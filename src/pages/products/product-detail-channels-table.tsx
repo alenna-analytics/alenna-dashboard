@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table'
-import { toast } from 'sonner'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductListingApi } from '@/lib/types/catalog'
@@ -34,18 +33,6 @@ export function ProductDetailChannelsTable({
   const [selectedListing, setSelectedListing] = useState<ProductListingApi | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
 
-  const onCopySku = useCallback(
-    async (sku: string) => {
-      try {
-        await navigator.clipboard.writeText(sku)
-        toast.success(t('productsDetailToastSkuCopied'))
-      } catch {
-        toast.error(t('productsDetailToastSaveFailed'))
-      }
-    },
-    [t],
-  )
-
   const onViewSettlement = useCallback((listing: ProductListingApi) => {
     if (!listing.period_settlement) return
     setSelectedListing(listing)
@@ -53,8 +40,8 @@ export function ProductDetailChannelsTable({
   }, [])
 
   const columns = useMemo(
-    () => createProductDetailChannelsColumns(t, fmtBase, { onCopySku, onViewSettlement }),
-    [t, fmtBase, onCopySku, onViewSettlement],
+    () => createProductDetailChannelsColumns(t, fmtBase, { onViewSettlement }),
+    [t, fmtBase, onViewSettlement],
   )
   const sortedListings = useMemo(() => sortListingsByStockAlert(listings), [listings])
 

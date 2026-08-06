@@ -98,55 +98,87 @@ function ProductDetailHeaderThumb({ url, title }: { url: string | null; title: s
   )
 }
 
+function ProductDetailHeaderStatsSkeleton() {
+  const columns = ['sku', 'channels', 'created', 'updated', 'sync'] as const
+
+  return (
+    <div className="grid w-full grid-cols-2 gap-x-4 gap-y-4 sm:inline-flex sm:max-w-full sm:flex-wrap sm:items-stretch">
+      {columns.map((key, index) => (
+        <div
+          key={key}
+          className={cn(
+            'flex shrink-0 flex-col gap-1',
+            key === 'sku' && 'col-span-2 sm:col-span-1 sm:min-w-[9rem]',
+            index > 0 && 'sm:border-l sm:border-border-subtle sm:pl-6',
+            index < columns.length - 1 && (key === 'sku' ? 'sm:pr-6' : 'sm:pr-5'),
+          )}
+        >
+          <Skeleton className="h-3 w-14" />
+          {key === 'sku' ? (
+            <Skeleton className="h-8 w-full max-w-none rounded-md sm:max-w-[11rem]" />
+          ) : (
+            <Skeleton className="h-4 w-20" />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ProductDetailAlertCardSkeleton() {
+  return (
+    <div
+      className="flex items-center gap-3 rounded-lg border border-border-subtle bg-white px-4 py-3.5"
+      aria-hidden
+    >
+      <Skeleton className="size-9 shrink-0 rounded-md" />
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-3 w-16" />
+      </div>
+      <Skeleton className="h-7 w-[4.5rem] shrink-0 rounded-md" />
+    </div>
+  )
+}
+
 function ProductDetailSkeleton() {
   return (
-    <DashboardPage className="flex flex-1 flex-col gap-6 lg:gap-8">
+    <DashboardPage className="flex min-h-full flex-1 flex-col gap-6 lg:gap-8">
       <div className="flex flex-col gap-4 border-b border-border-subtle pb-6 sm:gap-6">
         <Skeleton className="h-5 w-16 lg:hidden" />
-        <div className="flex min-w-0 gap-4 sm:items-start sm:justify-between">
-          <div className="flex min-w-0 flex-1 gap-4 sm:block sm:space-y-3">
+
+        <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+          <div className="flex min-w-0 gap-4 sm:block sm:flex-1 sm:space-y-3">
             <Skeleton className="size-20 shrink-0 rounded-md sm:hidden" />
             <div className="min-w-0 flex-1 space-y-3">
               <Skeleton className="h-8 w-full max-w-lg sm:h-9" />
-              <div className="flex gap-2">
-                <Skeleton className="h-7 w-24 rounded-md" />
-                <Skeleton className="h-7 w-24 rounded-md" />
+              <Skeleton className="h-7 w-24 rounded-md" />
+              <div className="hidden sm:block">
+                <ProductDetailHeaderStatsSkeleton />
               </div>
-              <div className="hidden w-full gap-4 pt-1 sm:flex">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-1 flex-col gap-1.5 border-l border-border-subtle pl-5 first:border-l-0 first:pl-0"
-                  >
-                    <Skeleton className="h-3 w-14" />
-                    <Skeleton className="h-4 w-20" />
-                  </div>
-                ))}
-              </div>
-              <Skeleton className="h-9 w-full max-w-xl rounded-md" />
             </div>
           </div>
           <Skeleton className="hidden size-[150px] shrink-0 rounded-md sm:block" />
         </div>
-        <div className="grid grid-cols-2 gap-4 sm:hidden">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex flex-col gap-1.5">
-              <Skeleton className="h-3 w-14" />
-              <Skeleton className="h-4 w-20" />
-            </div>
-          ))}
-          <Skeleton className="col-span-2 h-8 w-full rounded-md" />
+
+        <div className="sm:hidden">
+          <ProductDetailHeaderStatsSkeleton />
+        </div>
+
+        <div className="flex w-full flex-col gap-2">
+          <Skeleton className="h-4 w-24" />
+          <ProductDetailAlertCardSkeleton />
         </div>
       </div>
 
       <div className="flex flex-col gap-4">
         <div className="inline-flex w-full gap-6 border-b border-border-subtle pb-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className={cn('h-5 rounded-sm', i === 0 ? 'w-20' : 'w-28')} />
+          {['w-20', 'w-14', 'w-36'].map((widthClass) => (
+            <Skeleton key={widthClass} className={cn('h-5 rounded-sm', widthClass)} />
           ))}
         </div>
 
-        <div className="flex flex-col gap-8">
+        <div className="mt-6 flex flex-col gap-8">
           <Skeleton className="h-3 w-full max-w-md" />
 
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
@@ -369,6 +401,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
 
       <ProductDetailHeader
         detail={detail}
+        productId={productId}
         t={t}
         lang={lang}
         thumb={<ProductDetailHeaderThumb url={detail.image_url} title={detail.title} />}

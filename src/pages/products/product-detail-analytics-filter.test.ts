@@ -26,6 +26,7 @@ function listing(id: string, platform: string, orders: number, units: number): P
     id,
     platform,
     platform_sku: 'SKU',
+    platform_variant_id: null,
     platform_title: null,
     platform_price: null,
     platform_fee_pct: null,

@@ -211,12 +211,13 @@ export function createProductDetailVariantsColumns(
       id: 'period_sales',
       accessorKey: 'period_sales',
       meta: NUMERIC_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          className="justify-end"
-          column={column}
-          title={t('productsDetailListingColSales')}
-        />
+      header: () => (
+        <div className="flex w-full min-w-0 items-center justify-end text-xs font-medium text-muted-foreground">
+          <ProductDetailColumnHeaderWithHelp
+            title={t('productsDetailListingColSales')}
+            helpText={t('productsDetailVariantsColSalesHelp')}
+          />
+        </div>
       ),
       cell: ({ row }) => (
         <span className="text-sm tabular-nums">{fmtBase(row.original.period_sales)}</span>
@@ -226,12 +227,13 @@ export function createProductDetailVariantsColumns(
       id: 'period_orders',
       accessorKey: 'period_orders',
       meta: NUMERIC_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          className="justify-end"
-          column={column}
-          title={t('productsDetailListingColOrders')}
-        />
+      header: () => (
+        <div className="flex w-full min-w-0 items-center justify-end text-xs font-medium text-muted-foreground">
+          <ProductDetailColumnHeaderWithHelp
+            title={t('productsDetailListingColOrders')}
+            helpText={t('productsDetailVariantsColOrdersHelp')}
+          />
+        </div>
       ),
       cell: ({ row }) => (
         <span className="text-sm tabular-nums">{row.original.period_orders}</span>
@@ -241,12 +243,13 @@ export function createProductDetailVariantsColumns(
       id: 'period_units_sold',
       accessorKey: 'period_units_sold',
       meta: NUMERIC_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          className="justify-end"
-          column={column}
-          title={t('productsDetailListingColUnits')}
-        />
+      header: () => (
+        <div className="flex w-full min-w-0 items-center justify-end text-xs font-medium text-muted-foreground">
+          <ProductDetailColumnHeaderWithHelp
+            title={t('productsDetailListingColUnits')}
+            helpText={t('productsDetailVariantsColUnitsHelp')}
+          />
+        </div>
       ),
       cell: ({ row }) => (
         <span className="text-sm tabular-nums">{row.original.period_units_sold}</span>

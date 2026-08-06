@@ -1,13 +1,16 @@
 import { Calendar, CalendarDays, ChevronDown, Clock, Gauge, Package, type LucideIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
+import { useCurrentTenant } from '@/auth/hooks'
 import type { StockRuleApi } from '@/lib/types/alert-rules'
 import type { AlertItemApi, AlertPostponeDuration } from '@/lib/types/alerts'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi, StockAlertLevel } from '@/lib/types/catalog'
 import {
+  alertsListQueryKey,
   useAlertsListQuery,
   usePostponeAlertMutation,
 } from '@/pages/dashboard/use-alerts-queries'
@@ -21,6 +24,7 @@ import {
 } from '@/ui/dropdown-menu'
 import { buttonVariants } from '@/ui/button'
 import { LoadingIcon } from '@/ui/app-icon'
+import { ContextAlertCard, ContextAlertsGroup } from '@/ui/context-alert'
 import { cn } from '@/lib/utils'
 
 import { productPlatformLabel } from './product-platform-label'
@@ -241,45 +245,34 @@ function ProductDetailStockAlertCard({
   const Icon = isOut ? Package : Gauge
 
   return (
-    <article className="flex items-center gap-3 rounded-lg border border-border-subtle bg-white px-4 py-3.5">
-      <div
-        className={cn(
-          'flex size-9 shrink-0 items-center justify-center rounded-md',
-          isOut ? 'bg-(--stock-alert-critical-bg)' : 'bg-(--stock-alert-warning-bg)',
-        )}
-      >
-        <Icon
-          className={cn(
-            'size-4',
-            isOut ? 'text-(--stock-alert-critical)' : 'text-(--stock-alert-warning)',
-          )}
-          aria-hidden
-        />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-foreground">{title}</p>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">{row.platformLabel}</p>
-      </div>
-      {isAdmin ? (
-        <ProductDetailAlertPostponeButton
-          alertIds={row.alertIds}
-          t={t}
-          postponePending={postponePending}
-          onPostpone={onPostpone}
-        />
-      ) : null}
-    </article>
+    <ContextAlertCard
+      title={title}
+      subtitle={row.platformLabel}
+      icon={Icon}
+      tone={isOut ? 'critical' : 'warning'}
+      action={
+        isAdmin ? (
+          <ProductDetailAlertPostponeButton
+            alertIds={row.alertIds}
+            t={t}
+            postponePending={postponePending}
+            onPostpone={onPostpone}
+          />
+        ) : undefined
+      }
+    />
   )
 }
 
 export function ProductDetailStockAlert({ detail, productId, t }: ProductDetailStockAlertProps) {
   const { data: rule } = useStockRuleQuery()
   const { me } = useAppBootstrap()
+  const { tenantId } = useCurrentTenant()
+  const queryClient = useQueryClient()
   const isAdmin = me?.role === 'admin' || me?.role === 'owner'
   const activeAlertsQuery = useAlertsListQuery('active', true, { limit: 100 })
   const postponeAlertMutation = usePostponeAlertMutation()
   const [pendingAlertIds, setPendingAlertIds] = useState<ReadonlySet<string>>(() => new Set())
-  const [postponedRowKeys, setPostponedRowKeys] = useState<ReadonlySet<string>>(() => new Set())
 
   const resolvedProductId = detail.id ?? productId
   const listingIds = useMemo(
@@ -297,10 +290,10 @@ export function ProductDetailStockAlert({ detail, productId, t }: ProductDetailS
     [detail.stock_alert_summary, rule, activeStockAlerts, t],
   )
 
-  const visibleRows = useMemo(
-    () => rows.filter((row) => !postponedRowKeys.has(alertRowKey(row))),
-    [rows, postponedRowKeys],
-  )
+  const visibleRows = useMemo(() => {
+    if (!activeAlertsQuery.isSuccess) return rows
+    return rows.filter((row) => row.alertIds.length > 0)
+  }, [rows, activeAlertsQuery.isSuccess])
 
   if (visibleRows.length === 0) return null
 
@@ -310,7 +303,6 @@ export function ProductDetailStockAlert({ detail, productId, t }: ProductDetailS
   )
 
   const handlePostpone = async (
-    row: ProductDetailAlertRow,
     alertIds: string[],
     duration: AlertPostponeDuration,
   ) => {
@@ -322,10 +314,8 @@ export function ProductDetailStockAlert({ detail, productId, t }: ProductDetailS
           postponeAlertMutation.mutateAsync({ alertId, duration }),
         ),
       )
-      setPostponedRowKeys((prev) => {
-        const next = new Set(prev)
-        next.add(alertRowKey(row))
-        return next
+      await queryClient.refetchQueries({
+        queryKey: alertsListQueryKey(tenantId, 'active', 100),
       })
       toast.success(t('productsDetailStockAlertPostponeToast'))
     } catch {
@@ -338,22 +328,19 @@ export function ProductDetailStockAlert({ detail, productId, t }: ProductDetailS
   const postponePending = postponeAlertMutation.isPending || pendingAlertIds.size > 0
 
   return (
-    <section className="flex w-full flex-col gap-2" aria-label={sectionTitle}>
-      <h2 className="text-sm font-semibold text-foreground">{sectionTitle}</h2>
-      <div className="flex w-full flex-col gap-2">
-        {visibleRows.map((row) => (
-          <ProductDetailStockAlertCard
-            key={alertRowKey(row)}
-            row={row}
-            t={t}
-            isAdmin={isAdmin}
-            postponePending={postponePending && row.alertIds.some((id) => pendingAlertIds.has(id))}
-            onPostpone={(alertIds, duration) => {
-              void handlePostpone(row, alertIds, duration)
-            }}
-          />
-        ))}
-      </div>
-    </section>
+    <ContextAlertsGroup title={sectionTitle}>
+      {visibleRows.map((row) => (
+        <ProductDetailStockAlertCard
+          key={alertRowKey(row)}
+          row={row}
+          t={t}
+          isAdmin={isAdmin}
+          postponePending={postponePending && row.alertIds.some((id) => pendingAlertIds.has(id))}
+          onPostpone={(alertIds, duration) => {
+            void handlePostpone(alertIds, duration)
+          }}
+        />
+      ))}
+    </ContextAlertsGroup>
   )
 }

@@ -173,7 +173,7 @@ export function DataTable<TData>({
                   {table.getVisibleFlatColumns().map((col) => (
                     <TableCell key={col.id}>
                       <div className="flex min-h-10 items-center text-sm leading-normal">
-                        <Skeleton className="h-[1.125rem] w-full max-w-48 rounded-full" />
+                        <Skeleton className="h-[1.125rem] w-full max-w-48 rounded-md" />
                       </div>
                     </TableCell>
                   ))}

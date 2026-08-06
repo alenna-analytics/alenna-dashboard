@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
+import { Search, X } from 'lucide-react'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { useMoney } from '@/hooks/use-money'
@@ -25,6 +26,7 @@ import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useDisplayCurrency } from '@/shell/providers/display-currency-provider'
 import { Button } from '@/ui/button'
+import { Input } from '@/ui/input'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import type { FilterOption } from '@/ui/filters/types'
@@ -104,6 +106,7 @@ export function ExpensesPage() {
   const [editing, setEditing] = useState<Expense | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null)
   const [filters, setFilters] = useState<ExpensesFilters>(defaultFilters)
+  const [searchQ, setSearchQ] = useState('')
 
   const defaultCurrency: ExpenseCurrencyCode =
     baseCurrency.trim().toUpperCase() === 'USD' ? 'USD' : 'MXN'
@@ -238,74 +241,101 @@ export function ExpensesPage() {
           </Button>
         </div>
 
-        <div className="flex w-full flex-wrap items-center gap-2">
-          <FilterDates
-            strings={pickerStrings}
-            startValue={filters.startDate}
-            endValue={filters.endDate}
-            onStartChange={(v) => setFilters((f) => ({ ...f, startDate: v ?? '' }))}
-            onEndChange={(v) => setFilters((f) => ({ ...f, endDate: v ?? '' }))}
-          />
-          <FilterComboboxSingle
-            label={t('expensesRecurrenceField')}
-            options={recurrenceOptions}
-            value={filters.recurrence}
-            onValueChange={(value) =>
-              setFilters((f) => ({
-                ...f,
-                recurrence: (value || '') as ExpensesFilters['recurrence'],
-              }))
-            }
-            searchPlaceholder={t('filterSearch')}
-            emptyLabel={t('filterComingSoon')}
-            clearAriaLabel={t('filterClear')}
-            popoverSide="bottom"
-          />
-          <FilterComboboxSingle
-            label={t('expensesCurrencyField')}
-            options={currencyOptions}
-            value={filters.currency}
-            onValueChange={(value) =>
-              setFilters((f) => ({
-                ...f,
-                currency: (value || '') as ExpensesFilters['currency'],
-              }))
-            }
-            searchPlaceholder={t('filterSearch')}
-            emptyLabel={t('filterComingSoon')}
-            clearAriaLabel={t('filterClear')}
-            popoverSide="bottom"
-          />
-          <FilterComboboxSingle
-            label={t('expensesCategoryField')}
-            options={categoryOptions}
-            value={filters.category}
-            onValueChange={(value) =>
-              setFilters((f) => ({
-                ...f,
-                category: (value || '') as ExpensesFilters['category'],
-              }))
-            }
-            searchPlaceholder={t('filterSearch')}
-            emptyLabel={t('filterComingSoon')}
-            clearAriaLabel={t('filterClear')}
-            popoverSide="bottom"
-          />
-          <ExpensesAmountFilter
-            label={t('expensesAmountField')}
-            filterByLabel={t('expensesAmountFilterBy')}
-            op={filters.amountOp}
-            amount={filters.amountValue}
-            opOptions={amountOpOptions}
-            opLabel={t('expensesAmountOpLabel')}
-            amountPlaceholder={t('expensesAmountField')}
-            applyLabel={t('datePickerApply')}
-            clearAriaLabel={t('filterClear')}
-            onApply={({ op, amount }) =>
-              setFilters((f) => ({ ...f, amountOp: op, amountValue: amount }))
-            }
-            onClear={() => setFilters((f) => ({ ...f, amountValue: '', amountOp: 'gte' }))}
-          />
+        <div className="w-full overflow-x-auto">
+          <div className="flex min-w-max items-center gap-2">
+            <div className="relative w-72 shrink-0">
+              <Search
+                className="pointer-events-none absolute top-1/2 left-2.5 z-10 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <Input
+                value={searchQ}
+                onChange={(e) => setSearchQ(e.target.value)}
+                placeholder={t('expensesTableSearchPlaceholder')}
+                aria-label={t('expensesTableSearchPlaceholder')}
+                className="h-[33px] border-border-default bg-white pl-8 text-xs placeholder:text-xs focus-visible:border-border-emphasis focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+              {searchQ.trim() ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  className="absolute top-1/2 right-0.5 z-10 size-7 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={t('expensesTableSearchClearAria')}
+                  onClick={() => setSearchQ('')}
+                >
+                  <X className="size-4 shrink-0" aria-hidden />
+                </Button>
+              ) : null}
+            </div>
+            <FilterDates
+              strings={pickerStrings}
+              startValue={filters.startDate}
+              endValue={filters.endDate}
+              onStartChange={(v) => setFilters((f) => ({ ...f, startDate: v ?? '' }))}
+              onEndChange={(v) => setFilters((f) => ({ ...f, endDate: v ?? '' }))}
+            />
+            <FilterComboboxSingle
+              label={t('expensesRecurrenceField')}
+              options={recurrenceOptions}
+              value={filters.recurrence}
+              onValueChange={(value) =>
+                setFilters((f) => ({
+                  ...f,
+                  recurrence: (value || '') as ExpensesFilters['recurrence'],
+                }))
+              }
+              searchPlaceholder={t('filterSearch')}
+              emptyLabel={t('filterComingSoon')}
+              clearAriaLabel={t('filterClear')}
+              popoverSide="bottom"
+            />
+            <FilterComboboxSingle
+              label={t('expensesCurrencyField')}
+              options={currencyOptions}
+              value={filters.currency}
+              onValueChange={(value) =>
+                setFilters((f) => ({
+                  ...f,
+                  currency: (value || '') as ExpensesFilters['currency'],
+                }))
+              }
+              searchPlaceholder={t('filterSearch')}
+              emptyLabel={t('filterComingSoon')}
+              clearAriaLabel={t('filterClear')}
+              popoverSide="bottom"
+            />
+            <FilterComboboxSingle
+              label={t('expensesCategoryField')}
+              options={categoryOptions}
+              value={filters.category}
+              onValueChange={(value) =>
+                setFilters((f) => ({
+                  ...f,
+                  category: (value || '') as ExpensesFilters['category'],
+                }))
+              }
+              searchPlaceholder={t('filterSearch')}
+              emptyLabel={t('filterComingSoon')}
+              clearAriaLabel={t('filterClear')}
+              popoverSide="bottom"
+            />
+            <ExpensesAmountFilter
+              label={t('expensesAmountField')}
+              filterByLabel={t('expensesAmountFilterBy')}
+              op={filters.amountOp}
+              amount={filters.amountValue}
+              opOptions={amountOpOptions}
+              opLabel={t('expensesAmountOpLabel')}
+              amountPlaceholder={t('expensesAmountField')}
+              applyLabel={t('datePickerApply')}
+              clearAriaLabel={t('filterClear')}
+              onApply={({ op, amount }) =>
+                setFilters((f) => ({ ...f, amountOp: op, amountValue: amount }))
+              }
+              onClear={() => setFilters((f) => ({ ...f, amountValue: '', amountOp: 'gte' }))}
+            />
+          </div>
         </div>
       </header>
 
@@ -336,6 +366,7 @@ export function ExpensesPage() {
       <section className="min-w-0">
         <ExpensesTable
           rows={filteredRows}
+          searchQ={searchQ}
           isLoading={isLoading}
           isFetching={isFetching}
           isBusy={isBusy}

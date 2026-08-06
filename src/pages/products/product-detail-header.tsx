@@ -19,6 +19,7 @@ type ProductDetailHeaderThumbProps = {
 
 type ProductDetailHeaderProps = {
   detail: ProductDetailApi
+  productId: string
   t: (key: ShellStringKey) => string
   lang: string
   thumb: React.ReactNode
@@ -28,6 +29,7 @@ type ProductDetailHeaderProps = {
 
 export function ProductDetailHeader({
   detail,
+  productId,
   t,
   lang,
   thumb,
@@ -73,8 +75,6 @@ export function ProductDetailHeader({
               />
             </div>
 
-            <ProductDetailStockAlert detail={detail} t={t} />
-
             {detail.brand ? <p className="text-sm text-text-secondary">{detail.brand}</p> : null}
           </div>
         </div>
@@ -90,6 +90,8 @@ export function ProductDetailHeader({
           onSkuDraftChange={onSkuDraftChange}
         />
       </div>
+
+      <ProductDetailStockAlert detail={detail} productId={productId} t={t} />
     </div>
   )
 }

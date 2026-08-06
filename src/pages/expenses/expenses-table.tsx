@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -30,6 +30,7 @@ const columnHelper = createColumnHelper<Expense>()
 
 type ExpensesTableProps = {
   rows: Expense[]
+  searchQ: string
   isLoading: boolean
   isFetching: boolean
   isBusy: boolean
@@ -41,6 +42,7 @@ type ExpensesTableProps = {
 
 export function ExpensesTable({
   rows,
+  searchQ,
   isLoading,
   isFetching,
   isBusy,
@@ -49,8 +51,6 @@ export function ExpensesTable({
   onDelete,
   t,
 }: ExpensesTableProps) {
-  const [search, setSearch] = useState('')
-
   const columns = useMemo(
     () => [
       columnHelper.accessor('label', {
@@ -178,9 +178,8 @@ export function ExpensesTable({
     data: rows,
     columns,
     state: {
-      globalFilter: search,
+      globalFilter: searchQ,
     },
-    onGlobalFilterChange: setSearch,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     globalFilterFn: (row, _columnId, filterValue) => {
@@ -208,13 +207,6 @@ export function ExpensesTable({
         <p className="px-4 py-8 text-center text-sm text-text-secondary">{t('expensesEmpty')}</p>
       }
       skeletonRowCount={8}
-      search={{
-        value: search,
-        onChange: setSearch,
-        placeholder: t('expensesTableSearchPlaceholder'),
-        ariaLabel: t('expensesTableSearchPlaceholder'),
-        clearAriaLabel: t('expensesTableSearchClearAria'),
-      }}
     />
   )
 }

@@ -30,6 +30,7 @@ function listing(
     id,
     platform,
     platform_sku: 'SKU-1',
+    platform_variant_id: null,
     platform_title: null,
     platform_price: null,
     platform_fee_pct: null,

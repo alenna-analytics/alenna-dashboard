@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 
+import { AlertTriangle, BarChart3, type LucideIcon } from 'lucide-react'
+
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
 import { enUS, es as esLocale } from 'date-fns/locale'
@@ -22,7 +24,6 @@ import {
 } from '@/pages/channels/channels-platform-aggregate'
 import { ChannelsScoreboard } from '@/pages/channels/channels-scoreboard'
 import { useChannelsPageFilters } from '@/pages/channels/use-channels-page-filters'
-import { AmazonFeesUnavailableNotice } from '@/components/integrations/amazon-fees-unavailable-notice'
 import { includesAmazonWithUnavailableFees } from '@/lib/integrations/amazon-fees-notice'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
@@ -34,6 +35,7 @@ import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
+import { ContextAlertCard, ContextAlertsGroup, type ContextAlertTone } from '@/ui/context-alert'
 import { Skeleton } from '@/ui/skeleton'
 import { cn } from '@/lib/utils'
 
@@ -219,6 +221,33 @@ export function ChannelsPage() {
     activeConnectionIds,
   )
 
+  const pageAlerts = useMemo(() => {
+    type PageAlertItem = {
+      key: string
+      title: string
+      icon: LucideIcon
+      tone: ContextAlertTone
+    }
+    const items: PageAlertItem[] = []
+    if (showAmazonFeesNotice) {
+      items.push({
+        key: 'amazon-fees',
+        title: t('integrationAmazonFeesUnavailableBanner'),
+        icon: AlertTriangle,
+        tone: 'warning',
+      })
+    }
+    if (cmIncomplete) {
+      items.push({
+        key: 'cm-incomplete',
+        title: t('channelsCmIncompleteNotice'),
+        icon: BarChart3,
+        tone: 'warning',
+      })
+    }
+    return items
+  }, [showAmazonFeesNotice, cmIncomplete, t])
+
   const isInitialLoad =
     connectorsLoading || (queriesEnabled && kpisLoading && !kpis)
 
@@ -280,14 +309,19 @@ export function ChannelsPage() {
         </p>
       ) : (
         <div className="flex flex-col gap-12">
-          {showAmazonFeesNotice ? <AmazonFeesUnavailableNotice lang={lang} /> : null}
-          {cmIncomplete ? (
-            <p
-              className="rounded-md border border-border-default bg-bg-card-strong px-3 py-2 text-sm text-text-secondary"
-              role="status"
+          {pageAlerts.length > 0 ? (
+            <ContextAlertsGroup
+              title={t('contextAlertsTitle').replace('{count}', String(pageAlerts.length))}
             >
-              {t('channelsCmIncompleteNotice')}
-            </p>
+              {pageAlerts.map((alert) => (
+                <ContextAlertCard
+                  key={alert.key}
+                  title={alert.title}
+                  icon={alert.icon}
+                  tone={alert.tone}
+                />
+              ))}
+            </ContextAlertsGroup>
           ) : null}
           <ChannelsScoreboard
             rows={scoreboardRows}

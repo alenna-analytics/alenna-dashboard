@@ -152,7 +152,7 @@ export function HeaderConnectionsMenu({ className }: { className?: string }) {
 
       {open ? (
         <div
-          className="absolute right-0 top-full z-50 mt-1.5 w-[min(20rem,calc(100vw-2rem))] rounded-md border border-border-subtle bg-popover p-1.5 shadow-[var(--glass-shadow)]"
+          className="absolute right-0 top-full z-50 mt-1.5 w-[min(20rem,calc(100vw-2rem))] rounded-md border border-border-subtle bg-white p-1.5 shadow-md"
           onMouseEnter={handleEnter}
           onMouseLeave={scheduleClose}
           role="menu"

@@ -32,7 +32,6 @@ const columnHelper = createColumnHelper<PnlRow>()
 type ReportsPnlTableProps = {
   rows: PnlRow[]
   formatMoney: (value: number) => string
-  cogsIncomplete: boolean
   t: (key: ShellStringKey) => string
 }
 
@@ -55,7 +54,6 @@ function emphasisClass(kind: PnlRow['kind']): string {
 export function ReportsPnlTable({
   rows,
   formatMoney,
-  cogsIncomplete,
   t,
 }: ReportsPnlTableProps) {
   const columns = useMemo(
@@ -224,11 +222,6 @@ export function ReportsPnlTable({
         title={t('reportsPnlTableTitle')}
         description={t('reportsPnlTableSubtitle')}
       />
-      {cogsIncomplete ? (
-        <p className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-          {t('reportsCogsIncompleteWarning')}
-        </p>
-      ) : null}
       <DataTable
         table={table}
         variant="plain"

@@ -1143,6 +1143,9 @@ const SHELL_STRINGS = {
     productsDetailTabCogs: 'COGS',
     productsDetailPlatformPaymentDescription:
       'Desglose de cobro por publicación en el periodo seleccionado.',
+    productsDetailPlatformPaymentTotalPayout: 'Pago total',
+    productsDetailPlatformPaymentTotalPayoutHelp:
+      'Cobro neto estimado de la plataforma después de comisiones, envío e impuestos.',
     productsDetailPlatformPaymentListingCount: '{count} publicaciones agrupadas',
     productsDetailPlatformPaymentEmpty: 'Sin datos de pago por plataforma en este periodo.',
     productsDetailMetricsTrendSelectHint: 'Selecciona al menos una métrica en las cards de arriba.',
@@ -2609,6 +2612,9 @@ const SHELL_STRINGS = {
     productsDetailTabCogs: 'COGS',
     productsDetailPlatformPaymentDescription:
       'Payout breakdown by listing for the selected period.',
+    productsDetailPlatformPaymentTotalPayout: 'Total payout',
+    productsDetailPlatformPaymentTotalPayoutHelp:
+      'Estimated net platform payout after fees, shipping, and tax withholdings.',
     productsDetailPlatformPaymentListingCount: '{count} listings grouped',
     productsDetailPlatformPaymentEmpty: 'No platform payout data for this period.',
     productsDetailMetricsTrendSelectHint: 'Select at least one metric card above.',

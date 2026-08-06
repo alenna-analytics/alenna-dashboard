@@ -23,6 +23,7 @@ import {
 } from '@/lib/sales-metric-basis'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { KpiResponse, ProductKpiResponse, RevenueSeriesGranularity } from '@/lib/types/reports'
+import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { HomeChannelDonutChart } from '@/pages/dashboard/home-channel-donut-chart'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
@@ -127,6 +128,7 @@ function zeroKpiResponse(currency: string): KpiResponse {
     currency,
     cogs_incomplete: false,
     order_status_counts: {},
+    settlement: zeroSettlementBreakdown(),
   }
 }
 
@@ -141,6 +143,7 @@ function zeroProductKpi(currency: string): ProductKpiResponse {
     units_sold: 0,
     order_count: 0,
     currency,
+    settlement: zeroSettlementBreakdown(),
   }
 }
 

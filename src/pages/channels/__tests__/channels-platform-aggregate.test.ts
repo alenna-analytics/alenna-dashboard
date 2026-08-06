@@ -29,6 +29,11 @@ function row(partial: Partial<ChannelKpiRow> & Pick<ChannelKpiRow, 'platform'>):
     contribution_margin_pct: partial.contribution_margin_pct ?? 0,
     units_sold: partial.units_sold ?? 0,
     order_count: partial.order_count ?? 0,
+    marketplace_fees: partial.marketplace_fees ?? 0,
+    shipping_charges: partial.shipping_charges ?? 0,
+    tax_withholdings: partial.tax_withholdings ?? 0,
+    estimated_payout: partial.estimated_payout ?? 0,
+    settlement_completeness: partial.settlement_completeness ?? 'unavailable',
   }
 }
 

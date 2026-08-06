@@ -26,6 +26,7 @@ import type { ProductCostPriceChartData } from './product-cost-chart-points'
 import { formatInventoryDays } from './product-detail-format-inventory-days'
 import { ProductDetailInsightKpiTile } from './product-detail-insight-kpi-tile'
 import { ProductDetailKpiPlatformBreakdown } from './product-detail-kpi-platform-breakdown'
+import { ProductDetailSettlementSection } from './product-detail-settlement-section'
 import { ProductDetailWeeklyNetSalesChart } from './product-detail-weekly-net-sales-chart'
 
 type ProductDetailSectionsProps = {
@@ -150,8 +151,8 @@ export function ProductDetailSections({
     },
     {
       key: 'margin',
-      label: t('productsDetailKpiContributionMarginPct'),
-      helpText: t('productsDetailKpiContributionMarginPctHelp'),
+      label: t('productsDetailKpiGrossMarginPct'),
+      helpText: t('productsDetailKpiGrossMarginPctHelp'),
       numericValue: Number(detail.gross_margin_pct),
       value: insightKpi(`${Number(detail.gross_margin_pct).toFixed(1)}%`),
     },
@@ -215,7 +216,22 @@ export function ProductDetailSections({
               />
             ))}
           </div>
-          <div className="mt-4 border-t border-border-subtle/60 pt-4">
+        </CardContent>
+      </Card>
+
+      <ProductDetailSettlementSection
+        detail={detail}
+        t={t}
+        fmtBase={fmtBase}
+        showValues={showInsightValues}
+        isFetching={insightsFetching}
+        costAmountWithBaseCode={costAmountWithBaseCode}
+        baseCurrency={baseCurrency}
+      />
+
+      <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
+        <CardContent className="p-0">
+          <div className="border-t border-border-subtle/60 pt-4">
             <p className="text-sm font-semibold text-text-primary">
               {t('productsDetailWeeklyNetSalesTitle')}
             </p>

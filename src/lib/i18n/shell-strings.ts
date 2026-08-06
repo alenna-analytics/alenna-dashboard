@@ -197,6 +197,9 @@ const SHELL_STRINGS = {
     channelsScoreboardTitle: 'Scoreboard por canal',
     channelsScoreboardSubtitle: 'Métricas clave por plataforma y variación vs periodo anterior.',
     channelsPnlTitle: 'P&L por canal',
+    channelsSettlementTitle: 'Liquidación plataforma',
+    channelsSettlementSubtitle:
+      'Cobro neto estimado por canal (comisiones, envío y retenciones de plataforma).',
     channelsPnlSubtitle: 'De ventas brutas a contribución marginal por plataforma.',
     channelsCmChartTitle: 'Contribución marginal por canal',
     channelsCmChartSubtitle: 'Evolución de la CM$ por plataforma en el tiempo.',
@@ -838,6 +841,22 @@ const SHELL_STRINGS = {
     reportsOfOrders: 'del total',
     reportsWaterfallPctOfGross: '{pct}% de ventas brutas',
     reportsWaterfallFinalHint: 'Resultado EBITDA del periodo',
+    reportsSectionSettlementTitle: 'Liquidación plataforma',
+    reportsSectionSettlementSubtitle:
+      'Cobro neto estimado de la plataforma (separado del P&L de negocio).',
+    reportsSettlementFinalHint: 'Cobro neto estimado del periodo',
+    settlementWfGross: 'Ventas brutas',
+    settlementWfDiscounts: 'Descuentos',
+    settlementWfReturns: 'Devoluciones',
+    settlementWfDiscountsReturns: 'Descuentos + Devoluciones',
+    settlementWfNetSales: 'Ventas concretadas',
+    settlementWfMarketplaceFees: 'Comisiones marketplace',
+    settlementWfShippingCharges: 'Cargos envío plataforma',
+    settlementWfTaxWithholdings: 'Retenciones impuestos',
+    settlementWfEstimatedPayout: 'Cobro neto estimado',
+    settlementCompletenessFull: 'Completo',
+    settlementCompletenessPartial: 'Parcial',
+    settlementCompletenessUnavailable: 'No disponible',
     reportsWaterfallSubtitle: 'De ventas brutas a EBITDA, paso a paso.',
     reportsWaterfallTitle: 'Cascada P&L',
     reportsWfGrossRevenue: 'Ventas brutas',
@@ -1079,6 +1098,18 @@ const SHELL_STRINGS = {
     productsDetailKpiContributionMarginPct: 'Contribución marginal %',
     productsDetailKpiContributionMarginPctHelp:
       'Margen bruto del producto: utilidad bruta ÷ ventas del rango. No incluye ads, envío ni gastos fijos.',
+    productsDetailKpiGrossMarginPct: 'Utilidad bruta %',
+    productsDetailKpiGrossMarginPctHelp:
+      'Margen bruto del producto: utilidad bruta ÷ ventas del rango. No incluye ads, envío ni gastos fijos.',
+    productsDetailSettlementTitle: 'Liquidación plataforma',
+    productsDetailSettlementDescription:
+      'Estimado de cobro neto de la plataforma en el rango (antes de depósito bancario).',
+    productsDetailSettlementByPlatform: 'Por plataforma',
+    productsDetailSettlementCallout:
+      'Cobro neto estimado — heurística pre-depósito. Mercado Libre: completo tras resync; Shopify/Amazon: parcial.',
+    productsDetailListingColEstimatedPayout: 'Cobro est.',
+    productsDetailListingSettlementExpand: 'Ver liquidación del listing',
+    productsDetailListingSettlementBreakdown: 'Liquidación del periodo',
     productsDetailKpiInventoryDays: 'Días de inventario',
     productsDetailKpiInventoryDaysHelp:
       'Stock consolidado en todos los canales ÷ velocidad de venta diaria (unidades de los últimos 90 días).',
@@ -1598,6 +1629,9 @@ const SHELL_STRINGS = {
     channelsScoreboardTitle: 'Channel scoreboard',
     channelsScoreboardSubtitle: 'Key metrics by platform and change vs the previous period.',
     channelsPnlTitle: 'P&L by channel',
+    channelsSettlementTitle: 'Platform settlement',
+    channelsSettlementSubtitle:
+      'Estimated net payout by channel (platform fees, shipping, and tax withholdings).',
     channelsPnlSubtitle: 'From gross sales to contribution margin by platform.',
     channelsCmChartTitle: 'Contribution margin by channel',
     channelsCmChartSubtitle: 'CM$ over time by platform.',
@@ -2232,6 +2266,22 @@ const SHELL_STRINGS = {
     reportsOfOrders: 'of total',
     reportsWaterfallPctOfGross: '{pct}% of gross sales',
     reportsWaterfallFinalHint: 'EBITDA result for this period',
+    reportsSectionSettlementTitle: 'Platform settlement',
+    reportsSectionSettlementSubtitle:
+      'Estimated net platform payout (separate from business P&L).',
+    reportsSettlementFinalHint: 'Estimated net payout for this period',
+    settlementWfGross: 'Gross sales',
+    settlementWfDiscounts: 'Discounts',
+    settlementWfReturns: 'Returns',
+    settlementWfDiscountsReturns: 'Discounts + Returns',
+    settlementWfNetSales: 'Completed sales',
+    settlementWfMarketplaceFees: 'Marketplace fees',
+    settlementWfShippingCharges: 'Platform shipping charges',
+    settlementWfTaxWithholdings: 'Tax withholdings',
+    settlementWfEstimatedPayout: 'Estimated net payout',
+    settlementCompletenessFull: 'Full',
+    settlementCompletenessPartial: 'Partial',
+    settlementCompletenessUnavailable: 'Unavailable',
     reportsWaterfallSubtitle: 'From gross sales to EBITDA, step by step.',
     reportsWaterfallTitle: 'P&L waterfall',
     reportsWfGrossRevenue: 'Gross Rev',
@@ -2473,6 +2523,18 @@ const SHELL_STRINGS = {
     productsDetailKpiContributionMarginPct: 'Marginal Contribution %',
     productsDetailKpiContributionMarginPctHelp:
       'Product gross margin: gross profit ÷ range sales. Excludes ads, shipping, and fixed opex.',
+    productsDetailKpiGrossMarginPct: 'Gross margin %',
+    productsDetailKpiGrossMarginPctHelp:
+      'Product gross margin: gross profit ÷ range sales. Excludes ads, shipping, and fixed opex.',
+    productsDetailSettlementTitle: 'Platform settlement',
+    productsDetailSettlementDescription:
+      'Estimated net platform payout for the range (before bank deposit).',
+    productsDetailSettlementByPlatform: 'By platform',
+    productsDetailSettlementCallout:
+      'Estimated net payout — pre-deposit heuristic. Mercado Libre: full after resync; Shopify/Amazon: partial.',
+    productsDetailListingColEstimatedPayout: 'Est. payout',
+    productsDetailListingSettlementExpand: 'Show listing settlement',
+    productsDetailListingSettlementBreakdown: 'Period settlement',
     productsDetailKpiInventoryDays: 'Days of inventory',
     productsDetailKpiInventoryDaysHelp:
       'Consolidated stock across channels ÷ daily sell-through (units from the last 90 days).',

@@ -1,7 +1,9 @@
 import type { ColumnDef } from '@tanstack/react-table'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductListingApi, StockAlertLevel } from '@/lib/types/catalog'
+import { Button } from '@/ui/button'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 
 import { ProductDetailColumnHeaderWithHelp } from './product-detail-column-header-with-help'
@@ -41,8 +43,43 @@ export function sortListingsByStockAlert(listings: ProductListingApi[]): Product
 export function createProductDetailChannelsColumns(
   t: (key: ShellStringKey) => string,
   fmtBase: (value: number) => string,
+  options?: {
+    expandedRowIds: ReadonlySet<string>
+    onToggleExpand: (listingId: string) => void
+  },
 ): ColumnDef<ProductListingApi>[] {
   return [
+    {
+      id: 'expand',
+      meta: TEXT_CELL_META,
+      header: () => null,
+      cell: ({ row }) => {
+        const listing = row.original
+        const hasSettlement = listing.period_settlement !== null
+        if (!hasSettlement) return null
+        const expanded = options?.expandedRowIds.has(listing.id) ?? false
+        return (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="size-7 shrink-0"
+            aria-expanded={expanded}
+            aria-label={t('productsDetailListingSettlementExpand')}
+            onClick={(event) => {
+              event.stopPropagation()
+              options?.onToggleExpand(listing.id)
+            }}
+          >
+            {expanded ? (
+              <ChevronDown className="size-4" aria-hidden />
+            ) : (
+              <ChevronRight className="size-4" aria-hidden />
+            )}
+          </Button>
+        )
+      },
+    },
     {
       id: 'platform',
       accessorKey: 'platform',
@@ -162,6 +199,25 @@ export function createProductDetailChannelsColumns(
       cell: ({ row }) => (
         <span className="text-sm tabular-nums">{row.original.period_orders}</span>
       ),
+    },
+    {
+      id: 'period_estimated_payout',
+      accessorFn: (row) => row.period_settlement?.estimated_payout ?? null,
+      meta: NUMERIC_CELL_META,
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          className="justify-end"
+          column={column}
+          title={t('productsDetailListingColEstimatedPayout')}
+        />
+      ),
+      cell: ({ row }) => {
+        const payout = row.original.period_settlement?.estimated_payout
+        if (payout === null || payout === undefined) {
+          return <span className="text-sm text-text-tertiary">—</span>
+        }
+        return <span className="text-sm tabular-nums">{fmtBase(payout)}</span>
+      },
     },
     {
       id: 'period_units_sold',

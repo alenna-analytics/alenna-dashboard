@@ -8,6 +8,22 @@ export type StockAlertListingSummaryApi = {
   prev_month_units_sold: number
 }
 
+export type ProductSettlementApi = {
+  gross_revenue: number
+  discounts: number
+  returns: number
+  net_revenue: number
+  marketplace_fees: number
+  shipping_charges: number
+  tax_withholdings: number
+  estimated_payout: number
+  completeness: string
+}
+
+export type ProductPlatformSettlementApi = ProductSettlementApi & {
+  platform: string
+}
+
 export type ProductListingApi = {
   id: string
   platform: string
@@ -28,6 +44,7 @@ export type ProductListingApi = {
   platform_synced_at: string | null
   prev_month_units_sold: number
   stock_alert: StockAlertLevel
+  period_settlement: ProductSettlementApi | null
 }
 
 export type ProductListingPriceSegmentApi = {
@@ -159,6 +176,8 @@ export type ProductDetailApi = {
   inventory_days: number | null
   velocity_window_days: number
   period_by_platform: ProductPlatformPeriodApi[]
+  period_settlement: ProductSettlementApi
+  period_settlement_by_platform: ProductPlatformSettlementApi[]
   weekly_net_sales: ProductWeeklyNetSalesPointApi[]
   title: string
   brand: string | null

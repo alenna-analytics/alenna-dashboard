@@ -1,13 +1,14 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import type { ComponentProps } from "react"
 import { Link } from "react-router-dom"
-import { Copy, Eye, MoreVertical } from "lucide-react"
+import { Eye, MoreVertical } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { ShellStringKey } from "@/lib/i18n/shell-strings"
 import type { ProductSummaryApi } from "@/lib/types/catalog"
 import { StatusPill } from "@/ui/status-pill"
 import { Checkbox } from "@/ui/checkbox"
+import { CopyTextButton } from "@/ui/copy-text-button"
 import { DataTableColumnHeader } from "@/ui/data-table/data-table-column-header"
 import {
   DropdownMenu,
@@ -51,7 +52,6 @@ export type ProductTableColumnLabels = {
   t: (key: ShellStringKey) => string
   /** Format an amount that is denominated in `tenant.base_currency`. */
   formatBaseMoney: (value: number) => string
-  onCopySku: (sku: string | null) => void
   onGoDetail: (productId: string) => void
   selection: ProductTableSelectionBinding
   onOpenCostEditor: (productId: string) => void
@@ -91,7 +91,6 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
   const {
     t,
     formatBaseMoney,
-    onCopySku,
     onGoDetail,
     selection,
     onOpenCostEditor,
@@ -239,14 +238,25 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
       meta: META_BRAND_SKU_COL,
       header: ({ column }) => <DataTableColumnHeader column={column} title={t("productsColSku")} />,
       cell: ({ row }) => {
-        const sku = tableTextOrEmpty(row.original.internal_sku)
+        const rawSku = row.original.internal_sku
+        const sku = tableTextOrEmpty(rawSku)
+        const hasSku = sku !== EMPTY_CELL
         return (
-          <span
-            className="block max-w-full truncate font-mono text-text-secondary"
-            title={sku === EMPTY_CELL ? undefined : sku}
-          >
-            {sku}
-          </span>
+          <div className="flex min-w-0 items-center gap-1">
+            <span
+              className="min-w-0 flex-1 truncate font-mono text-text-secondary"
+              title={hasSku ? sku : undefined}
+            >
+              {sku}
+            </span>
+            {hasSku && rawSku ? (
+              <CopyTextButton
+                text={rawSku.trim()}
+                copiedLabel={t("productsCopyFeedback")}
+                copyAriaLabel={t("productsTableCopySku")}
+              />
+            ) : null}
+          </div>
         )
       },
       enableHiding: true,
@@ -297,10 +307,6 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
                 <DropdownMenuItem onClick={() => onGoDetail(p.id)}>
                   <Eye className="size-4 shrink-0" aria-hidden />
                   {t("productsTableViewDetail")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onCopySku(p.internal_sku)}>
-                  <Copy className="size-4 shrink-0" aria-hidden />
-                  {t("productsTableCopySku")}
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>

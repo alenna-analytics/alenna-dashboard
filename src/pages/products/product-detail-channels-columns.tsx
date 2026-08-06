@@ -1,10 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { Copy, MoreVertical, Wallet } from 'lucide-react'
+import { MoreVertical, Wallet } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductListingApi, StockAlertLevel } from '@/lib/types/catalog'
 import { cn } from '@/lib/utils'
-import { Button } from '@/ui/button'
+import { CopyTextButton } from '@/ui/copy-text-button'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 import {
   DropdownMenu,
@@ -58,7 +58,6 @@ export function createProductDetailChannelsColumns(
   t: (key: ShellStringKey) => string,
   fmtBase: (value: number) => string,
   options?: {
-    onCopySku: (sku: string) => void
     onViewSettlement?: (listing: ProductListingApi) => void
     preset?: 'full' | 'platform-payment'
   },
@@ -101,19 +100,11 @@ export function createProductDetailChannelsColumns(
             <span className="truncate font-mono text-sm leading-normal" title={sku}>
               {truncateSku(sku)}
             </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              className="size-7 shrink-0 text-text-tertiary hover:text-text-primary"
-              aria-label={t('productsTableCopySku')}
-              onClick={(event) => {
-                event.stopPropagation()
-                options?.onCopySku(sku)
-              }}
-            >
-              <Copy className="size-3.5" aria-hidden />
-            </Button>
+            <CopyTextButton
+              text={sku}
+              copiedLabel={t('productsCopyFeedback')}
+              copyAriaLabel={t('productsTableCopySku')}
+            />
           </div>
         )
       },

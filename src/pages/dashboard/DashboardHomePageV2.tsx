@@ -56,6 +56,8 @@ import {
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
+import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 import { useProductReports } from '@/pages/reports/use-product-reports'
 import { useReports } from '@/pages/reports/use-reports'
@@ -452,6 +454,21 @@ export function DashboardHomePageV2() {
     (n: number) => formatKpiAmount(convertFromBase(n), effectiveDisplayCurrency, lang),
     [convertFromBase, effectiveDisplayCurrency, lang],
   )
+
+  const settlementSource = productMode ? displayProductKpi?.settlement : displayKpi?.settlement
+
+  const settlementWaterfallSegments = useMemo(() => {
+    if (!settlementSource) return []
+    const segs = buildSettlementWaterfallSegments(settlementSource, t)
+    return segs.map((s) => ({
+      ...s,
+      value: convertFromBase(s.value),
+      stackedParts: s.stackedParts?.map((p) => ({
+        ...p,
+        value: convertFromBase(p.value),
+      })),
+    }))
+  }, [settlementSource, t, convertFromBase])
 
   const salesCurrent = productMode
     ? productKpiSales(displayProductKpi ?? zeroProductKpi(currency), salesMetricBasis)
@@ -900,6 +917,24 @@ export function DashboardHomePageV2() {
                 renderCard={renderKpiCard}
               />
             </div>
+          ) : null}
+
+          {settlementWaterfallSegments.length > 0 ? (
+            <SectionContainer className="mt-6 overflow-visible">
+              <SectionHeader
+                title={t('reportsSectionSettlementTitle')}
+                description={t('reportsSectionSettlementSubtitle')}
+              />
+              <WaterfallChart
+                segments={settlementWaterfallSegments}
+                currency={effectiveDisplayCurrency}
+                grossRevenue={convertFromBase(settlementSource?.gross_revenue ?? 0)}
+                formatPctOfGross={(pct) =>
+                  t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))
+                }
+                finalBarCaption={t('reportsSettlementFinalHint')}
+              />
+            </SectionContainer>
           ) : null}
 
           <SectionContainer className="mt-6 mb-8">

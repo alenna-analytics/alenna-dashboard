@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { ChannelKpiRow } from '@/lib/types/reports'
 import {
   aggregateChannelKpisByPlatform,
+  aggregateChannelSettlementByPlatform,
   buildScoreboardRows,
   grossMarginPct,
 } from '@/pages/channels/channels-platform-aggregate'
@@ -124,5 +125,42 @@ describe('grossMarginPct', () => {
       platforms,
     )
     expect(grossMarginPct(agg.shopify)).toBe(60)
+  })
+})
+
+describe('aggregateChannelSettlementByPlatform', () => {
+  it('sums settlement fields and merges completeness', () => {
+    const agg = aggregateChannelSettlementByPlatform(
+      [
+        row({
+          platform: 'shopify',
+          gross_revenue: 1000,
+          net_revenue: 900,
+          marketplace_fees: 50,
+          shipping_charges: 10,
+          tax_withholdings: 5,
+          estimated_payout: 835,
+          settlement_completeness: 'partial',
+        }),
+        row({
+          connection_id: 'b',
+          platform: 'mercadolibre',
+          gross_revenue: 400,
+          net_revenue: 350,
+          marketplace_fees: 35,
+          shipping_charges: 20,
+          tax_withholdings: 16,
+          estimated_payout: 279,
+          settlement_completeness: 'full',
+        }),
+      ],
+      platforms,
+    )
+
+    expect(agg.shopify.marketplace_fees).toBe(50)
+    expect(agg.shopify.estimated_payout).toBe(835)
+    expect(agg.mercadolibre.estimated_payout).toBe(279)
+    expect(agg.total.estimated_payout).toBe(1114)
+    expect(agg.total.marketplace_fees).toBe(85)
   })
 })

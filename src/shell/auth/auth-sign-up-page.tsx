@@ -2,7 +2,7 @@ import { SignUp, useAuth } from '@clerk/react'
 import { useEffect } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 
-import { writeSignupIntent, type SignupIntent } from '@/lib/onboarding-constants'
+import { writeSignupIntent, clearSignupIntent, type SignupIntent } from '@/lib/onboarding-constants'
 import { AuthShell } from '@/shell/auth/auth-shell'
 import { clerkAuthAppearance } from '@/shell/auth/clerk-auth-appearance'
 
@@ -19,6 +19,8 @@ export function AuthSignUpPage() {
     const intent = parseSignupIntent(searchParams.get('intent'))
     if (intent) {
       writeSignupIntent(intent)
+    } else {
+      clearSignupIntent()
     }
   }, [searchParams])
 

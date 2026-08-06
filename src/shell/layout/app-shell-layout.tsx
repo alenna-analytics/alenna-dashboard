@@ -23,6 +23,7 @@ import { PlanLimitShellBanner } from '@/shell/plan-limit-shell-banner'
 import { PaymentPendingScreen } from '@/shell/payment-pending-screen'
 import { TrialExpiredScreen } from '@/shell/trial-expired-screen'
 import { onTrialExpired } from '@/lib/trial-expired-signal'
+import { shouldShowPaymentPending, shouldShowTrialExpired } from '@/lib/plan/shell-gates'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { TooltipProvider } from '@/ui/tooltip'
@@ -142,24 +143,20 @@ export function AppShellLayout() {
     return <ShellBootstrapError lang={lang} />
   }
 
-  if (me?.payment_required) {
-    if (me.account_deletion_status !== 'pending') {
-      return (
-        <WorkspaceProvider value={workspaceValue}>
-          <PaymentPendingScreen />
-        </WorkspaceProvider>
-      )
-    }
+  if (shouldShowPaymentPending(me)) {
+    return (
+      <WorkspaceProvider value={workspaceValue}>
+        <PaymentPendingScreen />
+      </WorkspaceProvider>
+    )
   }
 
-  if ((me?.trial_expired || trialForced) && me?.signup_intent === 'trial') {
-    if (me.account_deletion_status !== 'pending') {
-      return (
-        <WorkspaceProvider value={workspaceValue}>
-          <TrialExpiredScreen />
-        </WorkspaceProvider>
-      )
-    }
+  if (shouldShowTrialExpired(me, trialForced)) {
+    return (
+      <WorkspaceProvider value={workspaceValue}>
+        <TrialExpiredScreen />
+      </WorkspaceProvider>
+    )
   }
 
   if (

@@ -39,6 +39,7 @@ export function StripeCheckoutButton({
   const { lang } = useLanguage()
   const { me } = useWorkspace()
   const [loading, setLoading] = useState(false)
+  const [showPortalFallback, setShowPortalFallback] = useState(false)
 
   if (!me) return null
   if (ownerOnly && me.role !== 'owner') return null
@@ -55,28 +56,39 @@ export function StripeCheckoutButton({
       )
       redirectToStripe(url)
     } catch (error) {
+      if (error instanceof BillingUseCustomerPortalError) {
+        toast.error(shellT(lang, 'billingUseCustomerPortal'))
+        setShowPortalFallback(true)
+        setLoading(false)
+        return
+      }
       const message =
-        error instanceof BillingUseCustomerPortalError
-          ? shellT(lang, 'billingUseCustomerPortal')
-          : error instanceof Error
-            ? error.message
-            : 'Checkout failed'
+        error instanceof Error ? error.message : 'Checkout failed'
       toast.error(message)
       setLoading(false)
     }
   }
 
   return (
-    <Button
-      type="button"
-      variant={variant}
-      size={size}
-      className={cn(className)}
-      disabled={loading}
-      onClick={() => void handleClick()}
-    >
-      {loading ? '…' : label}
-    </Button>
+    <div className={cn('flex flex-col gap-2', className?.includes('w-full') ? 'w-full' : undefined)}>
+      <Button
+        type="button"
+        variant={variant}
+        size={size}
+        className={cn(className)}
+        disabled={loading}
+        onClick={() => void handleClick()}
+      >
+        {loading ? '…' : label}
+      </Button>
+      {showPortalFallback && me.has_stripe_subscription ? (
+        <StripePortalButton
+          label={shellT(lang, 'billingManageSubscription')}
+          variant={variant}
+          size={size}
+        />
+      ) : null}
+    </div>
   )
 }
 

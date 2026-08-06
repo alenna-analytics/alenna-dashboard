@@ -7,6 +7,7 @@ import {
   upgradeLabelForCta,
   upgradeMailtoForCta,
 } from '@/lib/plan/plan-limit-ui'
+import { shellT } from '@/lib/i18n/shell-strings'
 import type { MeResponse } from '@/lib/types/me-types'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/ui/button'
@@ -36,7 +37,7 @@ export function PlanUpgradeCta({
   if (checkoutPlan && me.has_stripe_subscription) {
     return (
       <StripePortalButton
-        label={label}
+        label={shellT(lang, 'billingManageSubscription')}
         variant={variant}
         size={size}
         className={className}

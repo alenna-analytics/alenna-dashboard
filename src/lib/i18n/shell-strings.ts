@@ -439,6 +439,13 @@ const SHELL_STRINGS = {
     onboardingTrialBulletAlerts: 'Alertas y configuración del workspace',
     onboardingTrialNoCard:
       'Sin tarjeta hoy. Tras {days} días: USD ${price}/mes para seguir.',
+    onboardingGrowthTitle: 'Plan Growth',
+    onboardingGrowthIntro:
+      'Tras crear tu espacio, completarás el pago de Growth en Stripe.',
+    onboardingGrowthPaymentNote:
+      'Necesitas una suscripción activa de Growth para usar Alenna con este registro.',
+    onboardingCheckoutFailed:
+      'No pudimos abrir el checkout. Puedes completar el pago desde la pantalla de pago pendiente.',
     onboardingContinue: 'Continuar',
     onboardingBack: 'Atrás',
     onboardingGoDashboard: 'Ir al dashboard',
@@ -1831,6 +1838,13 @@ const SHELL_STRINGS = {
     onboardingTrialBulletAlerts: 'Alerts and workspace settings',
     onboardingTrialNoCard:
       'No card today. After {days} days: USD ${price}/month to continue.',
+    onboardingGrowthTitle: 'Growth plan',
+    onboardingGrowthIntro:
+      'After creating your workspace, you will complete Growth payment in Stripe.',
+    onboardingGrowthPaymentNote:
+      'An active Growth subscription is required to use Alenna with this signup.',
+    onboardingCheckoutFailed:
+      'We could not open checkout. You can complete payment from the payment pending screen.',
     onboardingContinue: 'Continue',
     onboardingBack: 'Back',
     onboardingGoDashboard: 'Go to dashboard',

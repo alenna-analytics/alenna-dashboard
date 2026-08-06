@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom'
 
+import { useCurrentTenant } from '@/auth/hooks'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { AppShellBootSkeleton } from '@/shell/layout/app-shell-boot-skeleton'
 import { ShellBootstrapError } from '@/shell/layout/shell-bootstrap-error'
@@ -9,6 +10,7 @@ import { useLanguage } from '@/shell/providers/language-provider'
 
 export function PaymentPendingPage() {
   const { lang } = useLanguage()
+  const { tenantId } = useCurrentTenant()
   const { me, refetchMe, error, tenantsLoading, meLoading, resolvingSingleTenant, tenantsReady } =
     useAppBootstrap()
 
@@ -24,6 +26,10 @@ export function PaymentPendingPage() {
 
   if (error) {
     return <ShellBootstrapError lang={lang} />
+  }
+
+  if (!tenantId) {
+    return <Navigate to="/dashboard" replace />
   }
 
   if (!me?.payment_required) {

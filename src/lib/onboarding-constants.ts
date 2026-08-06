@@ -15,3 +15,7 @@ export function readSignupIntent(): SignupIntent {
 export function writeSignupIntent(intent: SignupIntent): void {
   sessionStorage.setItem(SIGNUP_INTENT_STORAGE_KEY, intent)
 }
+
+export function clearSignupIntent(): void {
+  sessionStorage.removeItem(SIGNUP_INTENT_STORAGE_KEY)
+}

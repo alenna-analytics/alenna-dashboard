@@ -2,6 +2,7 @@ import { Show, useAuth, useUser } from '@clerk/react'
 import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import {
   createWorkspace,
@@ -58,6 +59,7 @@ function OnboardingWizard() {
   const [companyName, setCompanyName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const signupIntent = readSignupIntent()
   const getTokenRef = useRef(getToken)
 
   useEffect(() => {
@@ -126,7 +128,12 @@ function OnboardingWizard() {
       })
       await switchTenant(result.tenant_id)
       if (result.checkout_required && result.checkout_plan) {
-        await redirectToGrowthCheckout(result.tenant_id)
+        try {
+          await redirectToGrowthCheckout(result.tenant_id)
+        } catch {
+          toast.error(t('onboardingCheckoutFailed'))
+          navigate('/payment-pending', { replace: true })
+        }
         return
       }
       navigate('/dashboard', { replace: true })
@@ -274,10 +281,14 @@ function OnboardingWizard() {
           {step === 3 ? (
             <div className="mt-3 flex flex-col gap-4">
               <h2 className="text-xl font-semibold tracking-tight text-text-primary">
-                {t('onboardingTrialTitle', { days: TRIAL_DAYS })}
+                {signupIntent === 'growth'
+                  ? t('onboardingGrowthTitle')
+                  : t('onboardingTrialTitle', { days: TRIAL_DAYS })}
               </h2>
               <p className="text-sm text-neutral-600">
-                {t('onboardingTrialIntro', { price: TRIAL_PRICE_USD })}
+                {signupIntent === 'growth'
+                  ? t('onboardingGrowthIntro')
+                  : t('onboardingTrialIntro', { price: TRIAL_PRICE_USD })}
               </p>
               <ul className="flex flex-col gap-2 text-sm text-text-primary">
                 {TRIAL_BULLETS.map((key) => (
@@ -292,7 +303,9 @@ function OnboardingWizard() {
                 ))}
               </ul>
               <p className="rounded-md bg-(--platinum-blonde-300) px-3 py-2.5 text-sm text-neutral-700">
-                {t('onboardingTrialNoCard', { days: TRIAL_DAYS, price: TRIAL_PRICE_USD })}
+                {signupIntent === 'growth'
+                  ? t('onboardingGrowthPaymentNote')
+                  : t('onboardingTrialNoCard', { days: TRIAL_DAYS, price: TRIAL_PRICE_USD })}
               </p>
               {error ? <p className="text-sm text-danger">{error}</p> : null}
               <div className="flex items-center gap-2">

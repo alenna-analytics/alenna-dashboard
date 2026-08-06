@@ -1,33 +1,15 @@
 import type { ReactNode } from 'react'
 
-import { useSalesMetricBasis } from '@/hooks/use-sales-metric-basis'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import {
-  productDetailProfitValue,
-  productDetailSalesValue,
-  productDetailUnitsValue,
-  productPlatformSalesValue,
-  productPlatformUnitsValue,
-  productProfitHelpKey,
-  productSalesHelpKey,
-  profitLabelKey,
-  salesLabelKey,
-  unitsLabelKey,
-} from '@/lib/sales-metric-basis'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
-import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
-import { SalesMetricBasisToggle } from '@/ui/sales-metric-basis-toggle'
-import { Skeleton } from '@/ui/skeleton'
+import type { DateRangePickerStrings } from '@/ui/date-range-picker'
+import { ProductDetailAnalyticsSection } from './product-detail-analytics-section'
 import { ProductDetailChannelsTable } from './product-detail-channels-table'
 import { ProductDetailVariantsTable } from './product-detail-variants-table'
 import { ProductDetailConfigSection } from './product-detail-config-section'
 import type { ProductCostPriceChartData } from './product-cost-chart-points'
-import { formatInventoryDays } from './product-detail-format-inventory-days'
-import { ProductDetailInsightKpiTile } from './product-detail-insight-kpi-tile'
-import { ProductDetailKpiPlatformBreakdown } from './product-detail-kpi-platform-breakdown'
 import { ProductDetailSettlementSection } from './product-detail-settlement-section'
-import { ProductDetailMetricsTrendSection } from './product-detail-metrics-trend-section'
 
 type ProductDetailSectionsProps = {
   productId: string
@@ -78,87 +60,7 @@ export function ProductDetailSections({
   onEditCost,
   onOpenVariantCostEditor,
 }: ProductDetailSectionsProps) {
-  const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
   const hasVariants = (detail.variants?.length ?? 0) > 0
-
-  const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
-
-  const periodByPlatform = detail.period_by_platform ?? []
-
-  const platformSalesBreakdown =
-    periodByPlatform.length > 0 ? (
-      <ProductDetailKpiPlatformBreakdown
-        rows={periodByPlatform}
-        t={t}
-        formatValue={(row) => fmtBase(productPlatformSalesValue(row, salesMetricBasis))}
-      />
-    ) : undefined
-
-  const platformUnitsBreakdown =
-    periodByPlatform.length > 0 ? (
-      <ProductDetailKpiPlatformBreakdown
-        rows={periodByPlatform}
-        t={t}
-        formatValue={(row) =>
-          productPlatformUnitsValue(row, salesMetricBasis).toLocaleString()
-        }
-      />
-    ) : undefined
-
-  const salesValue = productDetailSalesValue(detail, salesMetricBasis)
-  const profitValue = productDetailProfitValue(detail, salesMetricBasis)
-  const unitsValue = productDetailUnitsValue(detail, salesMetricBasis)
-
-  const insightKpis = [
-    {
-      key: 'sales',
-      label: t(salesLabelKey(salesMetricBasis)),
-      helpText: t(productSalesHelpKey(salesMetricBasis)),
-      numericValue: salesValue,
-      value: insightKpi(
-        costAmountWithBaseCode(fmtBase(salesValue), baseCurrency, 'text-xs'),
-      ),
-      breakdown: platformSalesBreakdown,
-    },
-    {
-      key: 'profit',
-      label: t(profitLabelKey(salesMetricBasis)),
-      helpText: t(productProfitHelpKey(salesMetricBasis)),
-      numericValue: profitValue,
-      value: insightKpi(
-        costAmountWithBaseCode(fmtBase(profitValue), baseCurrency, 'text-xs'),
-      ),
-    },
-    {
-      key: 'units',
-      label: t(unitsLabelKey(salesMetricBasis)),
-      numericValue: unitsValue,
-      value: insightKpi(unitsValue.toLocaleString()),
-      breakdown: platformUnitsBreakdown,
-    },
-    {
-      key: 'orders',
-      label: t('productsDetailKpiOrders'),
-      helpText: t('productsDetailKpiOrdersHelp'),
-      numericValue: detail.period_orders,
-      value: insightKpi(detail.period_orders.toLocaleString()),
-    },
-    {
-      key: 'margin',
-      label: t('productsDetailKpiContributionMarginPct'),
-      helpText: t('productsDetailKpiContributionMarginPctHelp'),
-      numericValue: Number(detail.gross_margin_pct),
-      value: insightKpi(`${Number(detail.gross_margin_pct).toFixed(1)}%`),
-    },
-    {
-      key: 'inventory-days',
-      label: t('productsDetailKpiInventoryDays'),
-      helpText: t('productsDetailKpiInventoryDaysHelp'),
-      footer: t('productsDetailKpiInventoryDaysWindow'),
-      numericValue: detail.inventory_days,
-      value: insightKpi(formatInventoryDays(detail, t)),
-    },
-  ]
 
   return (
     <div className="flex flex-col gap-8">
@@ -170,48 +72,23 @@ export function ProductDetailSections({
         </Card>
       ) : null}
 
-      <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
-        <CardHeader className="flex flex-col gap-4 p-0 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-xl">{t('productsDetailSectionInsightsTitle')}</CardTitle>
-            <CardDescription className="text-xs">
-              {t('productsDetailSectionInsightsDescription')}
-            </CardDescription>
-          </div>
-          <DateRangePicker
-            strings={pickerStrings}
-            startValue={insightStart}
-            endValue={insightEnd}
-            onStartChange={(v) => v && setInsightStart(v)}
-            onEndChange={(v) => v && setInsightEnd(v)}
-            className="w-full max-w-md shrink-0"
-          />
-        </CardHeader>
-        <CardContent className="p-0">
-          <SalesMetricBasisToggle
-            basis={salesMetricBasis}
-            onBasisChange={setSalesMetricBasis}
-            t={t}
-            className="mb-3"
-          />
-          <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
-            {insightKpis.map((kpi) => (
-              <ProductDetailInsightKpiTile
-                key={kpi.key}
-                label={kpi.label}
-                helpText={kpi.helpText}
-                footer={kpi.footer}
-                breakdown={kpi.breakdown}
-                showValues={showInsightValues}
-                isFetching={insightsFetching}
-                skeleton={kpiSkeleton}
-                numericValue={kpi.numericValue}
-                value={kpi.value}
-              />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <ProductDetailAnalyticsSection
+        productId={productId}
+        lang={lang}
+        detail={detail}
+        t={t}
+        baseCurrency={baseCurrency}
+        fmtBase={fmtBase}
+        costAmountWithBaseCode={costAmountWithBaseCode}
+        insightStart={insightStart}
+        insightEnd={insightEnd}
+        setInsightStart={setInsightStart}
+        setInsightEnd={setInsightEnd}
+        pickerStrings={pickerStrings}
+        showInsightValues={showInsightValues}
+        insightKpi={insightKpi}
+        insightsFetching={insightsFetching}
+      />
 
       <ProductDetailSettlementSection
         detail={detail}
@@ -221,17 +98,6 @@ export function ProductDetailSections({
         isFetching={insightsFetching}
         costAmountWithBaseCode={costAmountWithBaseCode}
         baseCurrency={baseCurrency}
-      />
-
-      <ProductDetailMetricsTrendSection
-        productId={productId}
-        insightStart={insightStart}
-        insightEnd={insightEnd}
-        salesMetricBasis={salesMetricBasis}
-        fmtBase={fmtBase}
-        baseCurrency={baseCurrency}
-        lang={lang}
-        t={t}
       />
 
       {hasVariants ? (
@@ -255,16 +121,16 @@ export function ProductDetailSections({
           <CardContent className="p-0">
             <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
               <ProductDetailChannelsTable
-              listings={detail.listings}
-              isLoading={false}
-              isFetching={insightsFetching}
-              t={t}
-              fmtBase={fmtBase}
-              emptyContent={
-                <p className="py-8 text-center text-sm text-text-tertiary">
-                  {t('productsDetailChannelsEmpty')}
-                </p>
-              }
+                listings={detail.listings}
+                isLoading={false}
+                isFetching={insightsFetching}
+                t={t}
+                fmtBase={fmtBase}
+                emptyContent={
+                  <p className="py-8 text-center text-sm text-text-tertiary">
+                    {t('productsDetailChannelsEmpty')}
+                  </p>
+                }
               />
             </div>
           </CardContent>

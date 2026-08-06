@@ -28,6 +28,7 @@ export type ProductListingApi = {
   id: string
   platform: string
   platform_sku: string
+  platform_variant_id: string | null
   platform_title: string | null
   platform_price: number | null
   platform_fee_pct: number | null

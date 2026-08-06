@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react'
-import { Check, Copy } from 'lucide-react'
+import { useCallback, type MouseEvent } from 'react'
+import { Copy } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
-
-const COPIED_RESET_MS = 2000
 
 type CopyTextButtonProps = {
   text: string
@@ -21,15 +20,6 @@ export function CopyTextButton({
   className,
   disabled = false,
 }: CopyTextButtonProps) {
-  const [copied, setCopied] = useState(false)
-  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    return () => {
-      if (resetTimerRef.current) clearTimeout(resetTimerRef.current)
-    }
-  }, [])
-
   const onClick = useCallback(
     async (event: MouseEvent<HTMLButtonElement>) => {
       event.stopPropagation()
@@ -37,31 +27,13 @@ export function CopyTextButton({
       if (!value || disabled) return
       try {
         await navigator.clipboard.writeText(value)
-        setCopied(true)
-        if (resetTimerRef.current) clearTimeout(resetTimerRef.current)
-        resetTimerRef.current = setTimeout(() => setCopied(false), COPIED_RESET_MS)
+        toast.message(copiedLabel)
       } catch {
         // Clipboard access may fail silently in unsupported contexts.
       }
     },
-    [text, disabled],
+    [text, disabled, copiedLabel],
   )
-
-  if (copied) {
-    return (
-      <Button
-        type="button"
-        variant="outline"
-        size="xs"
-        className={cn('h-7 shrink-0 gap-1 px-2 text-xs text-text-secondary', className)}
-        aria-label={copiedLabel}
-        tabIndex={-1}
-      >
-        <Check className="size-3.5" aria-hidden />
-        {copiedLabel}
-      </Button>
-    )
-  }
 
   return (
     <Button

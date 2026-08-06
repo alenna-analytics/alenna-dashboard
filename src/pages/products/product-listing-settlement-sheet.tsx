@@ -9,6 +9,7 @@ import {
 } from '@/ui/sheet'
 
 import { ProductPlatformLogoName } from './product-platform-logo-name'
+import { formatListingPublicationSubtitle } from './product-detail-listing-channel-format'
 import { SettlementWaterfallList } from './settlement-waterfall-list'
 
 type ProductListingSettlementSheetProps = {
@@ -29,6 +30,7 @@ export function ProductListingSettlementSheet({
   periodLabel,
 }: ProductListingSettlementSheetProps) {
   const settlement = listing?.period_settlement ?? null
+  const publication = listing ? formatListingPublicationSubtitle(listing) : null
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -48,6 +50,9 @@ export function ProductListingSettlementSheet({
                 <p className="text-sm text-text-secondary">{listing.platform_title}</p>
               ) : null}
               <p className="break-all font-mono text-xs text-text-tertiary">{listing.platform_sku}</p>
+              {publication ? (
+                <p className="text-xs tabular-nums text-text-tertiary">{publication}</p>
+              ) : null}
               {periodLabel ? (
                 <p className="text-xs text-text-tertiary">{periodLabel}</p>
               ) : null}

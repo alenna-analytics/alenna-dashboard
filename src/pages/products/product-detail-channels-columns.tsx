@@ -16,6 +16,7 @@ import {
 import { ProductDetailColumnHeaderWithHelp } from './product-detail-column-header-with-help'
 import {
   formatListingInventoryDays,
+  formatListingPublicationSubtitle,
   formatListingVelocityPerDay,
 } from './product-detail-listing-channel-format'
 import { ProductPlatformLogoName } from './product-platform-logo-name'
@@ -50,7 +51,11 @@ export function sortListingsByStockAlert(listings: ProductListingApi[]): Product
   return [...listings].sort((a, b) => {
     const d = alertRank(a.stock_alert) - alertRank(b.stock_alert)
     if (d !== 0) return d
-    return a.platform.localeCompare(b.platform)
+    const platformCmp = a.platform.localeCompare(b.platform)
+    if (platformCmp !== 0) return platformCmp
+    const skuCmp = a.platform_sku.localeCompare(b.platform_sku)
+    if (skuCmp !== 0) return skuCmp
+    return (a.platform_variant_id ?? '').localeCompare(b.platform_variant_id ?? '')
   })
 }
 
@@ -94,17 +99,29 @@ export function createProductDetailChannelsColumns(
         <DataTableColumnHeader column={column} title={t('productsDetailListingColSku')} />
       ),
       cell: ({ row }) => {
-        const sku = row.original.platform_sku
+        const listing = row.original
+        const sku = listing.platform_sku
+        const publication = formatListingPublicationSubtitle(listing)
         return (
-          <div className="flex min-w-0 items-center gap-1">
-            <span className="truncate font-mono text-sm leading-normal" title={sku}>
-              {truncateSku(sku)}
-            </span>
-            <CopyTextButton
-              text={sku}
-              copiedLabel={t('productsCopyFeedback')}
-              copyAriaLabel={t('productsTableCopySku')}
-            />
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <div className="flex min-w-0 items-center gap-1">
+              <span className="truncate font-mono text-sm leading-normal" title={sku}>
+                {truncateSku(sku)}
+              </span>
+              <CopyTextButton
+                text={sku}
+                copiedLabel={t('productsCopyFeedback')}
+                copyAriaLabel={t('productsTableCopySku')}
+              />
+            </div>
+            {publication ? (
+              <span
+                className="truncate text-xs tabular-nums text-text-tertiary"
+                title={listing.platform_variant_id ?? publication}
+              >
+                {publication}
+              </span>
+            ) : null}
           </div>
         )
       },

@@ -1037,28 +1037,58 @@
   animation: connector-sync-indeterminate 1.25s ease-in-out infinite;
 }
 
-/* Sonner (alenna): toast width (default lib value is 356px) */
+/* Sonner (alenna): centered bottom toast, compact width */
 [data-sonner-toaster].alenna-sonner {
-  --width: min(calc(100vw - 2rem), 380px);
+  --width: auto;
 }
 
-@media (min-width: 1024px) {
-  [data-sonner-toaster].alenna-sonner {
-    --width: min(calc(100vw - 3rem), 404px);
-  }
-}
-
-/* Sonner (alenna): white toasts, close control inside on the right */
 [data-sonner-toaster].alenna-sonner [data-sonner-toast][data-styled='true'] {
   align-items: center;
-  padding-right: 2.75rem;
+  justify-content: center;
+  padding-inline: 1rem;
+  padding-block: 0.75rem;
 }
 
-[data-sonner-toaster].alenna-sonner
-  [data-sonner-toast][data-styled='true']
-  [data-close-button] {
-  left: auto;
-  right: 0.75rem;
+/* Calendar range highlight: pill bar aligned with circular start/end caps */
+[data-slot='calendar'] .rdp-day.rdp-range_start:not(.rdp-range_end)::before {
+  content: '';
+  position: absolute;
   top: 50%;
+  left: calc(50% - var(--cell-size) / 2);
+  right: 0;
+  z-index: 0;
+  height: var(--cell-size);
   transform: translateY(-50%);
+  border-top-left-radius: calc(var(--cell-size) / 2);
+  border-bottom-left-radius: calc(var(--cell-size) / 2);
+  background: var(--zara-400);
+  pointer-events: none;
+}
+
+[data-slot='calendar'] .rdp-day.rdp-range_end:not(.rdp-range_start)::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: calc(50% - var(--cell-size) / 2);
+  z-index: 0;
+  height: var(--cell-size);
+  transform: translateY(-50%);
+  border-top-right-radius: calc(var(--cell-size) / 2);
+  border-bottom-right-radius: calc(var(--cell-size) / 2);
+  background: var(--zara-400);
+  pointer-events: none;
+}
+
+[data-slot='calendar'] .rdp-day.rdp-range_middle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  height: var(--cell-size);
+  transform: translateY(-50%);
+  background: var(--zara-400);
+  pointer-events: none;
 }

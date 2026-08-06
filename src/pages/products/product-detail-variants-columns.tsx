@@ -77,7 +77,7 @@ export function createProductDetailVariantsColumns(
             <ProductTableThumb url={row.original.image_url} alt={label} />
             <Link
               to={`/dashboard/products/${row.original.id}`}
-              className="min-w-0 truncate font-medium text-[var(--country-green-base)] hover:text-[var(--country-green-100)] hover:underline"
+              className="min-w-0 truncate font-medium text-[var(--country-green-base)] hover:text-[var(--country-green-100)]"
               title={label}
             >
               {label}

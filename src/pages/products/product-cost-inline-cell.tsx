@@ -50,24 +50,28 @@ export function ProductCostInlineCell({
     <MissingCostBadge t={t} />
   )
 
+  const editButton = !readOnly ? (
+    <button
+      type="button"
+      className={cn(
+        'inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary outline-none',
+        'invisible group-hover:visible focus-visible:visible',
+        'hover:bg-muted/70 hover:text-text-primary focus-visible:ring-2 focus-visible:ring-ring/30',
+      )}
+      aria-label={t('productsInlineCostEditAria').replace('{label}', label)}
+      title={t('productsInlineCostForwardHelp')}
+      onClick={openEditor}
+    >
+      <Pencil className="size-3.5 shrink-0" aria-hidden />
+    </button>
+  ) : (
+    <span className="inline-block size-7 shrink-0" aria-hidden />
+  )
+
   const displayRow = (
-    <div className="flex items-center justify-end gap-1.5">
-      {!readOnly ? (
-        <button
-          type="button"
-          className={cn(
-            'inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary outline-none',
-            'opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100',
-            'hover:bg-muted/70 hover:text-text-primary focus-visible:ring-2 focus-visible:ring-ring/30',
-          )}
-          aria-label={t('productsInlineCostEditAria').replace('{label}', label)}
-          title={t('productsInlineCostForwardHelp')}
-          onClick={openEditor}
-        >
-          <Pencil className="size-3.5 shrink-0" aria-hidden />
-        </button>
-      ) : null}
-      {costDisplay}
+    <div className="grid w-full grid-cols-[1.75rem_minmax(0,1fr)] items-center justify-items-end gap-1.5">
+      {editButton}
+      <div className="min-w-0 justify-self-end">{costDisplay}</div>
     </div>
   )
 

@@ -3,12 +3,16 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 
 import {
+  BillingUseCustomerPortalError,
   createCheckoutSession,
   createCustomerPortalSession,
   redirectToStripe,
   type CheckoutPlanSlug,
+  type CheckoutSessionOptions,
 } from '@/lib/billing/billing-api'
+import { shellT } from '@/lib/i18n/shell-strings'
 import { cn } from '@/lib/utils'
+import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Button, type buttonVariants } from '@/ui/button'
 
@@ -19,6 +23,7 @@ type StripeCheckoutButtonProps = {
   size?: NonNullable<Parameters<typeof buttonVariants>[0]>['size']
   className?: string
   ownerOnly?: boolean
+  checkoutOptions?: CheckoutSessionOptions
 }
 
 export function StripeCheckoutButton({
@@ -28,8 +33,10 @@ export function StripeCheckoutButton({
   size = 'sm',
   className,
   ownerOnly = true,
+  checkoutOptions,
 }: StripeCheckoutButtonProps) {
   const { getToken } = useAuth()
+  const { lang } = useLanguage()
   const { me } = useWorkspace()
   const [loading, setLoading] = useState(false)
 
@@ -40,10 +47,20 @@ export function StripeCheckoutButton({
     if (!me) return
     setLoading(true)
     try {
-      const url = await createCheckoutSession(plan, (args) => getToken(args), me.tenant_id)
+      const url = await createCheckoutSession(
+        plan,
+        (args) => getToken(args),
+        me.tenant_id,
+        checkoutOptions,
+      )
       redirectToStripe(url)
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Checkout failed'
+      const message =
+        error instanceof BillingUseCustomerPortalError
+          ? shellT(lang, 'billingUseCustomerPortal')
+          : error instanceof Error
+            ? error.message
+            : 'Checkout failed'
       toast.error(message)
       setLoading(false)
     }

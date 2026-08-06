@@ -13,6 +13,7 @@ import {
   UPGRADE_ENTERPRISE_MAILTO,
 } from '@/lib/plan/plan-limit-ui'
 import { shellT } from '@/lib/i18n/shell-strings'
+import type { MeResponse } from '@/lib/types/me-types'
 import { cn } from '@/lib/utils'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -49,13 +50,13 @@ function SettingsRow({
   )
 }
 
-function BillingActions({ plan }: { plan: string }) {
+function BillingActions({ me }: { me: MeResponse }) {
   const { lang } = useLanguage()
   const t = useCallback(
     (key: Parameters<typeof shellT>[1]) => shellT(lang, key),
     [lang],
   )
-  const normalized = plan.trim().toLowerCase()
+  const normalized = me.plan.trim().toLowerCase()
 
   if (normalized === 'trial') {
     return (
@@ -67,10 +68,16 @@ function BillingActions({ plan }: { plan: string }) {
   }
 
   if (normalized === 'basic') {
+    if (me.has_stripe_subscription) {
+      return (
+        <div className="flex flex-col gap-2 sm:items-end">
+          <StripePortalButton label={t('billingManageSubscription')} />
+        </div>
+      )
+    }
     return (
       <div className="flex flex-col gap-2 sm:items-end">
         <StripeCheckoutButton plan="growth" label={t('billingUpgradeGrowth')} variant="primary" />
-        <StripePortalButton label={t('billingManageSubscription')} />
       </div>
     )
   }
@@ -164,7 +171,7 @@ export function BillingConfigurationPage() {
 
         {isOwner && me ? (
           <SettingsRow label={t('billingActionsLabel')} description={t('billingActionsDescription')}>
-            <BillingActions plan={me.plan} />
+            <BillingActions me={me} />
           </SettingsRow>
         ) : null}
       </SettingsSection>

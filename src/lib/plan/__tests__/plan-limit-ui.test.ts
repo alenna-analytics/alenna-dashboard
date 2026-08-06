@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   checkoutPlanForCta,
   isBillingOwner,
+  isPlanLimitSyncPaused,
   upgradeLabelForCta,
   upgradeMailtoForCta,
 } from '@/lib/plan/plan-limit-ui'
@@ -33,6 +34,8 @@ const baseMe: MeResponse = {
   sync_paused: false,
   sync_paused_reason: null,
   upgrade_cta: 'growth',
+  signup_intent: 'trial',
+  payment_required: false,
 }
 
 describe('plan-limit-ui', () => {
@@ -60,5 +63,45 @@ describe('plan-limit-ui', () => {
 
   it('upgradeMailtoForCta returns null for none', () => {
     expect(upgradeMailtoForCta('none')).toBeNull()
+  })
+
+  describe('isPlanLimitSyncPaused', () => {
+    it('returns true when sync paused for orders_limit', () => {
+      expect(
+        isPlanLimitSyncPaused({
+          ...baseMe,
+          sync_paused: true,
+          sync_paused_reason: 'orders_limit',
+        }),
+      ).toBe(true)
+    })
+
+    it('returns true when sync paused for skus_limit', () => {
+      expect(
+        isPlanLimitSyncPaused({
+          ...baseMe,
+          sync_paused: true,
+          sync_paused_reason: 'skus_limit',
+        }),
+      ).toBe(true)
+    })
+
+    it('returns false when sync paused for trial_expired', () => {
+      expect(
+        isPlanLimitSyncPaused({
+          ...baseMe,
+          sync_paused: true,
+          sync_paused_reason: 'trial_expired',
+        }),
+      ).toBe(false)
+    })
+
+    it('returns false when sync is not paused', () => {
+      expect(isPlanLimitSyncPaused(baseMe)).toBe(false)
+    })
+
+    it('returns false when me is null', () => {
+      expect(isPlanLimitSyncPaused(null)).toBe(false)
+    })
   })
 })

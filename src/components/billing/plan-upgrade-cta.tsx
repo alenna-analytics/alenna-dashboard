@@ -1,4 +1,7 @@
-import { StripeCheckoutButton } from '@/components/billing/stripe-checkout-button'
+import {
+  StripeCheckoutButton,
+  StripePortalButton,
+} from '@/components/billing/stripe-checkout-button'
 import {
   checkoutPlanForCta,
   upgradeLabelForCta,
@@ -29,6 +32,17 @@ export function PlanUpgradeCta({
   const label = upgradeLabelForCta(me.upgrade_cta, lang)
 
   if (!label) return null
+
+  if (checkoutPlan && me.has_stripe_subscription) {
+    return (
+      <StripePortalButton
+        label={label}
+        variant={variant}
+        size={size}
+        className={className}
+      />
+    )
+  }
 
   if (checkoutPlan) {
     return (

@@ -20,6 +20,7 @@ import { GlobalActivityBar } from '@/shell/layout/global-activity-bar'
 import { CogsBackfillActivityPollers } from '@/shell/layout/cogs-backfill-activity-pollers'
 import { PlatformSyncActivityHost } from '@/shell/layout/platform-sync-activity-host'
 import { PlanLimitShellBanner } from '@/shell/plan-limit-shell-banner'
+import { PaymentPendingScreen } from '@/shell/payment-pending-screen'
 import { TrialExpiredScreen } from '@/shell/trial-expired-screen'
 import { onTrialExpired } from '@/lib/trial-expired-signal'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
@@ -141,9 +142,23 @@ export function AppShellLayout() {
     return <ShellBootstrapError lang={lang} />
   }
 
-  if (me?.trial_expired || trialForced) {
-    if (me?.account_deletion_status !== 'pending') {
-      return <TrialExpiredScreen />
+  if (me?.payment_required) {
+    if (me.account_deletion_status !== 'pending') {
+      return (
+        <WorkspaceProvider value={workspaceValue}>
+          <PaymentPendingScreen />
+        </WorkspaceProvider>
+      )
+    }
+  }
+
+  if ((me?.trial_expired || trialForced) && me?.signup_intent === 'trial') {
+    if (me.account_deletion_status !== 'pending') {
+      return (
+        <WorkspaceProvider value={workspaceValue}>
+          <TrialExpiredScreen />
+        </WorkspaceProvider>
+      )
     }
   }
 

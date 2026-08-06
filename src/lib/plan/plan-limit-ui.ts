@@ -3,9 +3,6 @@ import type { Language } from '@/shell/providers/language-provider'
 import type { MeResponse } from '@/lib/types/me-types'
 import type { CheckoutPlanSlug } from '@/lib/billing/billing-api'
 
-export const UPGRADE_GROWTH_MAILTO =
-  'mailto:support@alenna.io?subject=Upgrade%20to%20Growth'
-
 export const UPGRADE_ENTERPRISE_MAILTO =
   'mailto:support@alenna.io?subject=Upgrade%20to%20Enterprise'
 

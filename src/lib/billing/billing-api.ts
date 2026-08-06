@@ -7,13 +7,28 @@ type BillingSessionResponse = {
   url: string
 }
 
+type BillingErrorDetail = {
+  detail?: string | { message?: string; code?: string }
+}
+
+export class BillingUseCustomerPortalError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'BillingUseCustomerPortalError'
+  }
+}
+
+export type CheckoutSessionOptions = {
+  successUrl?: string
+  cancelUrl?: string
+}
+
 async function parseBillingUrl(res: Response): Promise<string> {
   if (!res.ok) {
     let message = 'Unable to start Stripe checkout.'
+    let code: string | undefined
     try {
-      const body = (await res.json()) as {
-        detail?: string | { message?: string; code?: string }
-      }
+      const body = (await res.json()) as BillingErrorDetail
       const detail = body.detail
       if (typeof detail === 'string' && detail.trim()) {
         message = detail
@@ -24,9 +39,13 @@ async function parseBillingUrl(res: Response): Promise<string> {
         detail.message.trim()
       ) {
         message = detail.message
+        code = typeof detail.code === 'string' ? detail.code : undefined
       }
     } catch {
       /* ignore */
+    }
+    if (code === 'use_customer_portal') {
+      throw new BillingUseCustomerPortalError(message)
     }
     throw new Error(message)
   }
@@ -41,8 +60,16 @@ export async function createCheckoutSession(
   plan: CheckoutPlanSlug,
   getToken: GetTokenFn,
   tenantId: string,
+  options?: CheckoutSessionOptions,
 ): Promise<string> {
-  const res = await apiPostJson('/billing/checkout-session', getToken, { plan }, {}, tenantId)
+  const body: Record<string, string> = { plan }
+  if (options?.successUrl?.trim()) {
+    body.success_url = options.successUrl.trim()
+  }
+  if (options?.cancelUrl?.trim()) {
+    body.cancel_url = options.cancelUrl.trim()
+  }
+  const res = await apiPostJson('/billing/checkout-session', getToken, body, {}, tenantId)
   return parseBillingUrl(res)
 }
 
@@ -56,4 +83,8 @@ export async function createCustomerPortalSession(
 
 export function redirectToStripe(url: string): void {
   window.location.assign(url)
+}
+
+export function paymentPendingCancelUrl(): string {
+  return `${window.location.origin}/payment-pending`
 }

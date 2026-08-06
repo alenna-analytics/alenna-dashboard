@@ -10,7 +10,12 @@ import {
   WorkspaceAlreadyExistsError,
   WorkspaceCreatedNeedsActiveTenantError,
 } from '@/auth/hooks'
-import { TRIAL_DAYS, TRIAL_PRICE_USD } from '@/lib/onboarding-constants'
+import {
+  createCheckoutSession,
+  paymentPendingCancelUrl,
+  redirectToStripe,
+} from '@/lib/billing/billing-api'
+import { TRIAL_DAYS, TRIAL_PRICE_USD, readSignupIntent } from '@/lib/onboarding-constants'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import { AuthShell } from '@/shell/auth/auth-shell'
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -98,20 +103,38 @@ function OnboardingWizard() {
     navigate('/dashboard', { replace: true })
   }
 
+  async function redirectToGrowthCheckout(tenantId: string) {
+    const url = await createCheckoutSession(
+      'growth',
+      (a) => getTokenRef.current(a),
+      tenantId,
+      { cancelUrl: paymentPendingCancelUrl() },
+    )
+    redirectToStripe(url)
+  }
+
   async function finishOnboarding() {
     setError(null)
     setSubmitting(true)
     try {
+      const signupIntent = readSignupIntent()
       const result = await createWorkspace((a) => getTokenRef.current(a), {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         company_name: companyName.trim(),
+        signup_intent: signupIntent,
       })
-      await activateAndEnterDashboard(result.tenant_id)
+      await switchTenant(result.tenant_id)
+      if (result.checkout_required && result.checkout_plan) {
+        await redirectToGrowthCheckout(result.tenant_id)
+        return
+      }
+      navigate('/dashboard', { replace: true })
     } catch (e: unknown) {
       if (e instanceof WorkspaceCreatedNeedsActiveTenantError) {
         try {
-          await activateAndEnterDashboard(e.tenantId)
+          await switchTenant(e.tenantId)
+          navigate('/dashboard', { replace: true })
           return
         } catch (retryErr: unknown) {
           setError(retryErr instanceof Error ? retryErr.message : t('onboardingSubmitFailed'))

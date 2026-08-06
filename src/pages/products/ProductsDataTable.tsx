@@ -8,7 +8,7 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table"
-import { Columns3, X } from "lucide-react"
+import { Columns3 } from "lucide-react"
 
 import type { ShellStringKey } from "@/lib/i18n/shell-strings"
 import type { ProductSummaryApi } from "@/lib/types/catalog"
@@ -52,7 +52,6 @@ const EMPTY_ITEMS: ProductSummaryApi[] = []
 
 type ProductsDataTableProps = {
   searchQ: string
-  onSearchQChange: (value: string) => void
   filters: ProductsListFiltersState
   t: (key: ShellStringKey) => string
   emptyContent: React.ReactNode
@@ -61,7 +60,6 @@ type ProductsDataTableProps = {
 
 export function ProductsDataTable({
   searchQ,
-  onSearchQChange,
   filters,
   t,
   emptyContent,
@@ -303,6 +301,8 @@ export function ProductsDataTable({
   const showSelectAllMatching =
     effectiveSelectedCount > 0 && !bulkAllMatching && total > effectiveSelectedCount && total > 0
 
+  const hasSelection = effectiveSelectedCount > 0
+
   const getColumnLabel = useCallback(
     (columnId: string) => {
       const key = COLUMN_LABEL_KEY_BY_ID[columnId as keyof typeof COLUMN_LABEL_KEY_BY_ID]
@@ -330,34 +330,33 @@ export function ProductsDataTable({
         hasEverLoaded={listQuery.data !== undefined}
         emptyContent={emptyContent}
         skeletonRowCount={PAGE_SIZE}
-        toolbar={
-          <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
-            {effectiveSelectedCount > 0 ? (
-              <div className="flex h-8 max-w-full shrink-0 items-center gap-2 rounded-md border border-border-subtle bg-glass-fill-muted px-2.5 text-xs font-medium text-text-primary sm:gap-3 sm:px-3">
-                <span className="whitespace-nowrap tabular-nums">
-                  {effectiveSelectedCount} {t("productsTableSelected")}
-                </span>
-                {showSelectAllMatching ? (
+        selectionBanner={
+          hasSelection ? (
+            <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+              <span className="text-sm font-medium whitespace-nowrap text-foreground tabular-nums">
+                {effectiveSelectedCount} {t("productsTableSelected")}
+              </span>
+              {showSelectAllMatching ? (
+                <>
+                  <span className="h-4 w-px shrink-0 bg-border-default" aria-hidden />
                   <button
                     type="button"
-                    className="shrink-0 text-left text-xs font-semibold text-primary underline underline-offset-2 hover:text-primary/85"
+                    className="text-sm font-medium text-foreground underline-offset-2 hover:underline"
                     onClick={activateSelectAllMatching}
                   >
                     {t("productsTableSelectAllWithCount").replace("{count}", String(total))}
                   </button>
-                ) : null}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  className="size-7 shrink-0 rounded-md text-text-secondary hover:text-text-primary"
-                  aria-label={t("productsTableClearSelection")}
-                  onClick={clearSelection}
-                >
-                  <X className="size-3.5 shrink-0" aria-hidden />
-                </Button>
-              </div>
-            ) : null}
+                </>
+              ) : null}
+            </div>
+          ) : null
+        }
+        toolbar={
+          hasSelection ? (
+            <Button type="button" variant="outline" size="sm" onClick={clearSelection}>
+              {t("productsTableCancelSelection")}
+            </Button>
+          ) : (
             <DropdownMenu>
               <DropdownMenuTrigger
                 type="button"
@@ -388,15 +387,8 @@ export function ProductsDataTable({
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
+          )
         }
-        search={{
-          value: searchQ,
-          onChange: onSearchQChange,
-          placeholder: t("productsSearchPlaceholder"),
-          ariaLabel: t("productsSearchPlaceholder"),
-          clearAriaLabel: t("productsSearchClearAria"),
-        }}
         footer={
           <DataTablePagination
             table={table}

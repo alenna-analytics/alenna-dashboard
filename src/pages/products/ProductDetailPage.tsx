@@ -369,6 +369,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
 
       <ProductDetailHeader
         detail={detail}
+        productId={productId}
         t={t}
         lang={lang}
         thumb={<ProductDetailHeaderThumb url={detail.image_url} title={detail.title} />}

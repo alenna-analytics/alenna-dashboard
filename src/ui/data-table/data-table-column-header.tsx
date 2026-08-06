@@ -20,7 +20,7 @@ export function DataTableColumnHeader<TData, TValue>({
     return (
       <div
         className={cn(
-          "flex w-full min-w-0 items-center text-sm font-medium text-muted-foreground",
+          "flex w-full min-w-0 items-center text-xs font-medium text-muted-foreground",
           className,
         )}
       >
@@ -35,7 +35,7 @@ export function DataTableColumnHeader<TData, TValue>({
     <div className={cn("flex w-full min-w-0 items-center gap-1", className)}>
       <button
         type="button"
-        className="-ml-1.5 inline-flex h-8 shrink-0 items-center gap-1 rounded-sm px-2 text-sm font-medium whitespace-nowrap text-muted-foreground outline-none transition-colors hover:bg-muted/45 hover:text-foreground focus-visible:border focus-visible:border-border-default focus-visible:ring-2 focus-visible:ring-ring/30"
+        className="-ml-1.5 inline-flex h-8 shrink-0 items-center gap-1 rounded-sm px-2 text-xs font-medium whitespace-nowrap text-muted-foreground outline-none transition-colors hover:bg-muted/45 hover:text-foreground focus-visible:border focus-visible:border-border-default focus-visible:ring-2 focus-visible:ring-ring/30"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         <span>{title}</span>

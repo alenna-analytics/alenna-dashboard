@@ -1,72 +1,359 @@
-import { Info } from 'lucide-react'
-import { useMemo } from 'react'
+import { Calendar, CalendarDays, ChevronDown, Clock, Gauge, Package, type LucideIcon } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
+import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
+import type { StockRuleApi } from '@/lib/types/alert-rules'
+import type { AlertItemApi, AlertPostponeDuration } from '@/lib/types/alerts'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { ProductDetailApi } from '@/lib/types/catalog'
+import type { ProductDetailApi, StockAlertLevel } from '@/lib/types/catalog'
+import {
+  useAlertsListQuery,
+  usePostponeAlertMutation,
+} from '@/pages/dashboard/use-alerts-queries'
 import { effectiveStockAlertLevel } from '@/pages/configuration/alarms/stock/use-stock-alert-display'
 import { useStockRuleQuery } from '@/pages/configuration/alarms/stock/use-alert-rules-queries'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/ui/dropdown-menu'
+import { buttonVariants } from '@/ui/button'
+import { LoadingIcon } from '@/ui/app-icon'
 import { cn } from '@/lib/utils'
 
 import { productPlatformLabel } from './product-platform-label'
-
-const MAX_ALERT_CHANNELS = 3
+import { displayStockQuantity } from './product-stock-alert-ui'
 
 type ProductDetailStockAlertProps = {
   detail: ProductDetailApi
+  productId: string
   t: (key: ShellStringKey) => string
 }
 
-function uniqueAlertPlatformLabels(
-  alerts: ProductDetailApi['stock_alert_summary'],
-  t: (key: ShellStringKey) => string,
-): string[] {
-  const seen = new Set<string>()
-  const labels: string[] = []
-  for (const alert of alerts) {
-    const slug = alert.platform.trim().toLowerCase()
-    if (seen.has(slug)) continue
-    seen.add(slug)
-    labels.push(productPlatformLabel(alert.platform, t))
-  }
-  return labels
+type ProductDetailAlertRow = {
+  platformSlug: string
+  platformLabel: string
+  level: Extract<StockAlertLevel, 'low' | 'out'>
+  stockQuantity: number | null
+  listingIds: string[]
+  alertIds: string[]
 }
 
-export function ProductDetailStockAlert({ detail, t }: ProductDetailStockAlertProps) {
-  const { data: rule } = useStockRuleQuery()
+const POSTPONE_DURATIONS = ['1h', '1d', '1w'] as const satisfies readonly AlertPostponeDuration[]
 
-  const alerts = useMemo(() => {
-    return detail.stock_alert_summary.filter((alert) => {
-      const level = effectiveStockAlertLevel(alert.stock_alert, rule)
-      return level === 'low' || level === 'out'
-    })
-  }, [detail.stock_alert_summary, rule])
+const postponeLabelKey: Record<AlertPostponeDuration, ShellStringKey> = {
+  '1h': 'homeAlertsDialogPostpone1h',
+  '1d': 'homeAlertsDialogPostpone1d',
+  '1w': 'homeAlertsDialogPostpone1w',
+}
 
-  if (alerts.length === 0) return null
+function alertLevelRank(level: StockAlertLevel): number {
+  if (level === 'out') return 2
+  if (level === 'low') return 1
+  return 0
+}
 
-  const alertPlatformLabels = uniqueAlertPlatformLabels(alerts, t)
-  const shown = alertPlatformLabels.slice(0, MAX_ALERT_CHANNELS)
-  const moreAlerts = alertPlatformLabels.length - shown.length
-  const platformsText =
-    moreAlerts > 0
-      ? `${shown.join(', ')} ${t('productsDetailStockAlertMore').replace('{count}', String(moreAlerts))}`
-      : shown.join(', ')
+function normalizeId(value: string | null | undefined): string | null {
+  const trimmed = value?.trim().toLowerCase()
+  return trimmed ? trimmed : null
+}
 
-  const isOut = alerts.some((a) => effectiveStockAlertLevel(a.stock_alert, rule) === 'out')
-  const message = (
-    isOut ? t('productsDetailStockAlertBannerOut') : t('productsDetailStockAlertBannerLow')
-  ).replace('{platforms}', platformsText)
+function activeStockAlertsForProduct(
+  alerts: AlertItemApi[] | undefined,
+  productId: string | undefined,
+  listingIds: string[],
+): AlertItemApi[] {
+  const normalizedProductId = normalizeId(productId)
+  const listingIdSet = new Set(
+    listingIds.map((id) => normalizeId(id)).filter((id): id is string => id != null),
+  )
+
+  return (alerts ?? []).filter((alert) => {
+    if (alert.alert_type !== 'stock') return false
+    const alertProductId = normalizeId(alert.product_id)
+    if (normalizedProductId && alertProductId === normalizedProductId) return true
+    const entityId = normalizeId(alert.entity_id)
+    return entityId != null && listingIdSet.has(entityId)
+  })
+}
+
+function resolveAlertIdsForRow(
+  activeAlerts: AlertItemApi[],
+  platformSlug: string,
+  listingIds: string[],
+): string[] {
+  const listingIdSet = new Set(
+    listingIds.map((id) => normalizeId(id)).filter((id): id is string => id != null),
+  )
+  const matched = new Set<string>()
+
+  for (const alert of activeAlerts) {
+    const entityId = normalizeId(alert.entity_id)
+    const alertPlatform = normalizeId(alert.platform)
+    const matchesListing = entityId != null && listingIdSet.has(entityId)
+    const matchesPlatform = alertPlatform === platformSlug
+    if (matchesListing || matchesPlatform) {
+      matched.add(alert.id)
+    }
+  }
+
+  return Array.from(matched)
+}
+
+function buildAlertRows(
+  summary: ProductDetailApi['stock_alert_summary'],
+  rule: StockRuleApi | undefined,
+  activeAlerts: AlertItemApi[],
+  t: (key: ShellStringKey) => string,
+): ProductDetailAlertRow[] {
+  const byPlatform = new Map<string, ProductDetailAlertRow>()
+
+  for (const alert of summary ?? []) {
+    const level = effectiveStockAlertLevel(alert.stock_alert, rule)
+    if (level !== 'low' && level !== 'out') continue
+
+    const platformSlug = alert.platform?.trim().toLowerCase()
+    if (!platformSlug) continue
+
+    const stockQuantity = displayStockQuantity(alert.stock_quantity)
+    const existing = byPlatform.get(platformSlug)
+
+    if (!existing || alertLevelRank(level) > alertLevelRank(existing.level)) {
+      const listingIds = alert.listing_id ? [alert.listing_id] : []
+      byPlatform.set(platformSlug, {
+        platformSlug,
+        platformLabel: productPlatformLabel(alert.platform, t),
+        level,
+        stockQuantity,
+        listingIds,
+        alertIds: resolveAlertIdsForRow(activeAlerts, platformSlug, listingIds),
+      })
+      continue
+    }
+
+    if (alert.listing_id && !existing.listingIds.includes(alert.listing_id)) {
+      existing.listingIds.push(alert.listing_id)
+    }
+
+    if (
+      existing.level === level
+      && stockQuantity != null
+      && (existing.stockQuantity == null || stockQuantity < existing.stockQuantity)
+    ) {
+      existing.stockQuantity = stockQuantity
+    }
+
+    existing.alertIds = resolveAlertIdsForRow(activeAlerts, platformSlug, existing.listingIds)
+  }
+
+  return Array.from(byPlatform.values()).sort((a, b) => {
+    const levelDiff = alertLevelRank(b.level) - alertLevelRank(a.level)
+    if (levelDiff !== 0) return levelDiff
+    return a.platformLabel.localeCompare(b.platformLabel)
+  })
+}
+
+const postponeDurationIcon: Record<AlertPostponeDuration, LucideIcon> = {
+  '1h': Clock,
+  '1d': Calendar,
+  '1w': CalendarDays,
+}
+
+function alertRowKey(row: ProductDetailAlertRow): string {
+  return `${row.level}-${row.platformSlug}`
+}
+
+function ProductDetailAlertPostponeButton({
+  alertIds,
+  t,
+  postponePending,
+  onPostpone,
+}: {
+  alertIds: string[]
+  t: (key: ShellStringKey) => string
+  postponePending: boolean
+  onPostpone: (alertIds: string[], duration: AlertPostponeDuration) => void
+}) {
+  const canPostpone = alertIds.length > 0
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <div
-      className={cn(
-        'flex items-center gap-2 rounded-md border px-3 py-4 text-sm',
-        'border-[color-mix(in_srgb,var(--status-amber-600)_22%,transparent)]',
-        'bg-[var(--status-amber-50)] text-[var(--status-amber-900)]',
-      )}
-      role="status"
-    >
-      <Info className="size-4 shrink-0 opacity-80" aria-hidden />
-      <span className="min-w-0 leading-snug">{message}</span>
-    </div>
+    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+      <DropdownMenuTrigger
+        type="button"
+        disabled={postponePending || !canPostpone}
+        className={cn(buttonVariants({ variant: 'inverse', size: 'xs' }), 'gap-1 px-2.5')}
+        aria-busy={postponePending || undefined}
+        aria-label={t('productsDetailStockAlertPostponeAria')}
+      >
+        {postponePending ? (
+          <>
+            <LoadingIcon className="size-3.5 shrink-0 text-white" />
+            <span>{t('productsDetailStockAlertPostponeLoading')}</span>
+          </>
+        ) : (
+          <>
+            <span>{t('productsDetailStockAlertPostpone')}</span>
+            <ChevronDown className="size-3.5 shrink-0 text-white/80" aria-hidden />
+          </>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-40">
+        {POSTPONE_DURATIONS.map((duration) => {
+          const Icon = postponeDurationIcon[duration]
+          return (
+            <DropdownMenuItem
+              key={duration}
+              disabled={postponePending}
+              className="gap-2"
+              onClick={() => {
+                setMenuOpen(false)
+                onPostpone(alertIds, duration)
+              }}
+            >
+              <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+              {t(postponeLabelKey[duration])}
+            </DropdownMenuItem>
+          )
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function ProductDetailStockAlertCard({
+  row,
+  t,
+  isAdmin,
+  postponePending,
+  onPostpone,
+}: {
+  row: ProductDetailAlertRow
+  t: (key: ShellStringKey) => string
+  isAdmin: boolean
+  postponePending: boolean
+  onPostpone: (alertIds: string[], duration: AlertPostponeDuration) => void
+}) {
+  const isOut = row.level === 'out'
+  const title = isOut ? t('productsDetailStockAlertOut') : t('productsDetailStockAlertLow')
+  const Icon = isOut ? Package : Gauge
+
+  return (
+    <article className="flex items-center gap-3 rounded-lg border border-border-subtle bg-white px-4 py-3.5">
+      <div
+        className={cn(
+          'flex size-9 shrink-0 items-center justify-center rounded-md',
+          isOut ? 'bg-(--stock-alert-critical-bg)' : 'bg-(--stock-alert-warning-bg)',
+        )}
+      >
+        <Icon
+          className={cn(
+            'size-4',
+            isOut ? 'text-(--stock-alert-critical)' : 'text-(--stock-alert-warning)',
+          )}
+          aria-hidden
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-foreground">{title}</p>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">{row.platformLabel}</p>
+      </div>
+      {isAdmin ? (
+        <ProductDetailAlertPostponeButton
+          alertIds={row.alertIds}
+          t={t}
+          postponePending={postponePending}
+          onPostpone={onPostpone}
+        />
+      ) : null}
+    </article>
+  )
+}
+
+export function ProductDetailStockAlert({ detail, productId, t }: ProductDetailStockAlertProps) {
+  const { data: rule } = useStockRuleQuery()
+  const { me } = useAppBootstrap()
+  const isAdmin = me?.role === 'admin' || me?.role === 'owner'
+  const activeAlertsQuery = useAlertsListQuery('active', true, { limit: 100 })
+  const postponeAlertMutation = usePostponeAlertMutation()
+  const [pendingAlertIds, setPendingAlertIds] = useState<ReadonlySet<string>>(() => new Set())
+  const [postponedRowKeys, setPostponedRowKeys] = useState<ReadonlySet<string>>(() => new Set())
+
+  const resolvedProductId = detail.id ?? productId
+  const listingIds = useMemo(
+    () => (detail.stock_alert_summary ?? []).map((entry) => entry.listing_id).filter(Boolean),
+    [detail.stock_alert_summary],
+  )
+
+  const activeStockAlerts = useMemo(
+    () => activeStockAlertsForProduct(activeAlertsQuery.data?.items, resolvedProductId, listingIds),
+    [activeAlertsQuery.data?.items, resolvedProductId, listingIds],
+  )
+
+  const rows = useMemo(
+    () => buildAlertRows(detail.stock_alert_summary ?? [], rule, activeStockAlerts, t),
+    [detail.stock_alert_summary, rule, activeStockAlerts, t],
+  )
+
+  const visibleRows = useMemo(
+    () => rows.filter((row) => !postponedRowKeys.has(alertRowKey(row))),
+    [rows, postponedRowKeys],
+  )
+
+  if (visibleRows.length === 0) return null
+
+  const sectionTitle = t('productsDetailStockAlertsTitle').replace(
+    '{count}',
+    String(visibleRows.length),
+  )
+
+  const handlePostpone = async (
+    row: ProductDetailAlertRow,
+    alertIds: string[],
+    duration: AlertPostponeDuration,
+  ) => {
+    if (alertIds.length === 0) return
+    setPendingAlertIds(new Set(alertIds))
+    try {
+      await Promise.all(
+        alertIds.map((alertId) =>
+          postponeAlertMutation.mutateAsync({ alertId, duration }),
+        ),
+      )
+      setPostponedRowKeys((prev) => {
+        const next = new Set(prev)
+        next.add(alertRowKey(row))
+        return next
+      })
+      toast.success(t('productsDetailStockAlertPostponeToast'))
+    } catch {
+      toast.error(t('productsDetailStockAlertPostponeFailed'))
+    } finally {
+      setPendingAlertIds(new Set())
+    }
+  }
+
+  const postponePending = postponeAlertMutation.isPending || pendingAlertIds.size > 0
+
+  return (
+    <section className="flex w-full flex-col gap-2" aria-label={sectionTitle}>
+      <h2 className="text-sm font-semibold text-foreground">{sectionTitle}</h2>
+      <div className="flex w-full flex-col gap-2">
+        {visibleRows.map((row) => (
+          <ProductDetailStockAlertCard
+            key={alertRowKey(row)}
+            row={row}
+            t={t}
+            isAdmin={isAdmin}
+            postponePending={postponePending && row.alertIds.some((id) => pendingAlertIds.has(id))}
+            onPostpone={(alertIds, duration) => {
+              void handlePostpone(row, alertIds, duration)
+            }}
+          />
+        ))}
+      </div>
+    </section>
   )
 }

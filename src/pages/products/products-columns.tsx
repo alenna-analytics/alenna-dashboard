@@ -105,6 +105,8 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
           checked={selection.headerIndeterminate ? false : selection.headerChecked}
           indeterminate={selection.headerIndeterminate}
           onCheckedChange={selection.onHeaderToggle}
+          size="md"
+          variant="accent"
         />
       ),
       cell: ({ row }) => (
@@ -112,6 +114,8 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
           aria-label={t("productsTableSelectRow")}
           checked={selection.isRowSelected(row.original.id)}
           onCheckedChange={(value) => selection.onRowToggle(row.original.id, !!value)}
+          size="md"
+          variant="accent"
         />
       ),
       enableSorting: false,

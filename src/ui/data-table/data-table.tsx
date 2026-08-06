@@ -26,6 +26,8 @@ type DataTableProps<TData> = {
   variant?: 'card' | 'plain'
   /** Renders inside the card above the scroll area (e.g. toolbar with column visibility). */
   toolbar?: React.ReactNode
+  /** Renders in the toolbar row on the left (e.g. bulk selection summary). */
+  selectionBanner?: React.ReactNode
   search?: {
     value: string
     onChange: (value: string) => void
@@ -50,6 +52,7 @@ export function DataTable<TData>({
   scrollClassName = "max-h-[32rem] overflow-auto",
   variant = 'card',
   toolbar,
+  selectionBanner,
   search,
   footer,
   onRowClick,
@@ -71,14 +74,22 @@ export function DataTable<TData>({
           : 'overflow-hidden rounded-md border border-border-subtle bg-bg-section',
       )}
     >
-      {toolbar || search ? (
+      {toolbar || search || selectionBanner ? (
         <div
           className={cn(
-            'flex min-h-10 items-center justify-between gap-2 border-b border-border-subtle px-3 py-2',
-            isPlain ? 'bg-transparent' : 'rounded-t-md bg-white',
+            'flex h-10 items-center justify-between gap-2 border-b border-border-subtle px-3',
+            isPlain
+              ? 'bg-transparent'
+              : cn(
+                  'rounded-t-md',
+                  selectionBanner
+                    ? 'bg-[color-mix(in_srgb,var(--zara-base)_22%,white)]'
+                    : 'bg-white',
+                ),
           )}
         >
-          <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            {selectionBanner}
             {search ? (
               <div className={cn("relative w-full max-w-xs", search.className)}>
                 <Search
@@ -110,7 +121,7 @@ export function DataTable<TData>({
               </div>
             ) : null}
           </div>
-          <div className="shrink-0">{toolbar}</div>
+          {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
         </div>
       ) : null}
 
@@ -140,7 +151,7 @@ export function DataTable<TData>({
                         meta?.headerClassName,
                       )}
                     >
-                      <div className="flex min-h-10 w-full items-center text-sm font-medium leading-none text-muted-foreground">
+                      <div className="flex min-h-10 w-full items-center text-xs font-medium leading-none text-muted-foreground">
                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                       </div>
                     </TableHead>

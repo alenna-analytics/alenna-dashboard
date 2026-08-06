@@ -18,8 +18,9 @@ export function alertsSummaryQueryKey(tenantId: string | null) {
 export function alertsListQueryKey(
   tenantId: string | null,
   section: AlertSection,
+  limit?: number,
 ) {
-  return ['alerts', 'list', tenantId, section] as const
+  return ['alerts', 'list', tenantId, section, limit ?? 50] as const
 }
 
 export function useAlertsSummaryQuery() {
@@ -39,17 +40,26 @@ export function useAlertsSummaryQuery() {
   })
 }
 
-export function useAlertsListQuery(section: AlertSection, enabled: boolean) {
+export function useAlertsListQuery(
+  section: AlertSection,
+  enabled: boolean,
+  options?: { limit?: number },
+) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const limit = options?.limit ?? 50
 
   return useQuery({
-    queryKey: alertsListQueryKey(tenantId, section),
+    queryKey: alertsListQueryKey(tenantId, section, limit),
     enabled: Boolean(tenantId) && enabled,
     staleTime: 30_000,
     refetchOnMount: 'always',
     queryFn: async (): Promise<AlertsListApi> => {
-      const params = new URLSearchParams({ section, limit: '50', offset: '0' })
+      const params = new URLSearchParams({
+        section,
+        limit: String(limit),
+        offset: '0',
+      })
       const res = await apiFetch(
         `/alerts?${params.toString()}`,
         (a) => getToken(a),

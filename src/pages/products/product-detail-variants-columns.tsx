@@ -177,7 +177,7 @@ export function createProductDetailVariantsColumns(
       accessorKey: 'velocity_units_per_day_90d',
       meta: NUMERIC_CELL_META,
       header: () => (
-        <div className="flex w-full min-w-0 items-center justify-end text-sm font-medium text-muted-foreground">
+        <div className="flex w-full min-w-0 items-center justify-end text-xs font-medium text-muted-foreground">
           <ProductDetailColumnHeaderWithHelp
             title={t('productsDetailListingColVelocityPerDay')}
             helpText={t('productsDetailListingColVelocityPerDayHelp')}

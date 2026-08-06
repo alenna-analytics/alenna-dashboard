@@ -1,34 +1,45 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Gauge, Package } from 'lucide-react'
+import {
+  Calendar,
+  CalendarDays,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Gauge,
+  Package,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { AlertItemApi, AlertPostponeDuration, AlertSection, AlertSeverity } from '@/lib/types/alerts'
+import type { AlertItemApi, AlertPostponeDuration } from '@/lib/types/alerts'
 import { cn } from '@/lib/utils'
 import { StatusPill } from '@/ui/status-pill'
-import { Button } from '@/ui/button'
-import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
+import { Button, buttonVariants } from '@/ui/button'
+import { LoadingIcon } from '@/ui/app-icon'
 import { EmbeddedShellPanel } from '@/ui/embedded-shell-panel'
 import { Skeleton } from '@/ui/skeleton'
 import { SheetRowButton, sheetRowButtonClassName } from '@/ui/sheet-row'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/ui/dropdown-menu'
 
 import {
   alertChannelName,
   alertProductChannelLine,
   alertTypeName,
 } from './alert-display'
-
-type SeverityTabConfig = {
-  id: AlertSeverity
-  labelKey: ShellStringKey
-  activeBorderColor: string
-}
-
-const SEVERITY_TABS: SeverityTabConfig[] = [
-  { id: 'critical', labelKey: 'homeAlertsSheetFilterCritical', activeBorderColor: 'var(--stock-alert-critical)' },
-  { id: 'low', labelKey: 'homeAlertsSheetFilterLow', activeBorderColor: 'var(--stock-alert-warning)' },
-  { id: 'informational', labelKey: 'homeAlertsSheetFilterInfo', activeBorderColor: 'var(--info)' },
-]
+import {
+  DEFAULT_ALERTS_LIST_FILTERS,
+  filterAlertsByListFilters,
+  type AlertsListFilters,
+} from './alerts-filter'
+import { AlertsFiltersToolbar } from './alerts-filter-menu'
 
 type ActiveAlertsSheetProps = {
   open: boolean
@@ -71,25 +82,6 @@ function severityStatusPillVariant(
   return 'neutral'
 }
 
-function filterItemsBySeverity(items: AlertItemApi[], severity: AlertSeverity): AlertItemApi[] {
-  return items.filter((item) => item.severity === severity)
-}
-
-function AlertPanelHeader({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  return (
-    <div className="shrink-0 border-b border-border-subtle px-6 py-4 pr-14">
-      <h2 className="font-heading text-base font-semibold text-text-primary">{title}</h2>
-      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-    </div>
-  )
-}
-
 function AlertListSkeleton() {
   return (
     <div className="flex flex-col">
@@ -107,64 +99,19 @@ function AlertListSkeleton() {
   )
 }
 
-function AlertTabsToolbar({
-  severityTab,
-  onSeverityTabChange,
-  statusFilter,
-  onStatusFilterChange,
+function AlertListToolbar({
+  filters,
+  onFiltersChange,
   t,
 }: {
-  severityTab: AlertSeverity
-  onSeverityTabChange: (value: AlertSeverity) => void
-  statusFilter: AlertSection
-  onStatusFilterChange: (value: AlertSection) => void
+  filters: AlertsListFilters
+  onFiltersChange: (patch: Partial<AlertsListFilters>) => void
   t: (key: ShellStringKey) => string
 }) {
   return (
-    <div className="flex min-h-12 shrink-0 items-stretch justify-between gap-4 border-b border-border-subtle px-6">
-      <div
-        className="flex min-w-0 flex-1 gap-6 self-stretch"
-        role="tablist"
-        aria-label={t('homeAlertsSheetSeverityTabsAria')}
-      >
-        {SEVERITY_TABS.map(({ id, labelKey, activeBorderColor }) => {
-          const selected = severityTab === id
-          return (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              className={cn(
-                '-mb-px flex items-center border-b-2 px-0 text-sm font-medium transition-colors',
-                selected ? 'text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground',
-              )}
-              style={selected ? { borderBottomColor: activeBorderColor } : undefined}
-              onClick={() => onSeverityTabChange(id)}
-            >
-              {t(labelKey)}
-            </button>
-          )
-        })}
-      </div>
-
-      <div className="flex shrink-0 items-center">
-        <FilterComboboxSingle
-          label={t('homeAlertsSheetStatusLabel')}
-          options={[
-            { value: 'active', label: t('homeAlertsDialogActiveSection') },
-            { value: 'postponed', label: t('homeAlertsDialogPostponedSection') },
-          ]}
-          value={statusFilter}
-          onValueChange={(next) => {
-            if (next === 'active' || next === 'postponed') onStatusFilterChange(next)
-          }}
-          selectionMode="single"
-          searchPlaceholder={t('filterSearch')}
-          emptyLabel={t('filterComingSoon')}
-          allowClear={false}
-          popoverSide="bottom"
-        />
+    <div className="min-h-12 shrink-0 overflow-x-auto border-b border-border-subtle px-6 py-3 pr-14">
+      <div className="flex min-w-max items-center">
+        <AlertsFiltersToolbar filters={filters} onFiltersChange={onFiltersChange} t={t} />
       </div>
     </div>
   )
@@ -223,6 +170,75 @@ function AlertDetailSection({
   )
 }
 
+const ALERT_POSTPONE_DURATIONS = ['1h', '1d', '1w'] as const satisfies readonly AlertPostponeDuration[]
+
+const alertPostponeLabelKey: Record<AlertPostponeDuration, ShellStringKey> = {
+  '1h': 'homeAlertsDialogPostpone1h',
+  '1d': 'homeAlertsDialogPostpone1d',
+  '1w': 'homeAlertsDialogPostpone1w',
+}
+
+const alertPostponeDurationIcon: Record<AlertPostponeDuration, LucideIcon> = {
+  '1h': Clock,
+  '1d': Calendar,
+  '1w': CalendarDays,
+}
+
+function AlertPostponeButton({
+  postponePending,
+  onPostpone,
+  t,
+}: {
+  postponePending: boolean
+  onPostpone: (duration: AlertPostponeDuration) => void
+  t: (key: ShellStringKey) => string
+}) {
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  return (
+    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+      <DropdownMenuTrigger
+        type="button"
+        disabled={postponePending}
+        className={cn(buttonVariants({ variant: 'inverse', size: 'sm' }), 'gap-1')}
+        aria-busy={postponePending || undefined}
+        aria-label={t('productsDetailStockAlertPostponeAria')}
+      >
+        {postponePending ? (
+          <>
+            <LoadingIcon className="size-3.5 shrink-0 text-white" />
+            <span>{t('productsDetailStockAlertPostponeLoading')}</span>
+          </>
+        ) : (
+          <>
+            <span>{t('productsDetailStockAlertPostpone')}</span>
+            <ChevronDown className="size-3.5 shrink-0 text-white/80" aria-hidden />
+          </>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="min-w-40">
+        {ALERT_POSTPONE_DURATIONS.map((duration) => {
+          const Icon = alertPostponeDurationIcon[duration]
+          return (
+            <DropdownMenuItem
+              key={duration}
+              disabled={postponePending}
+              className="gap-2"
+              onClick={() => {
+                setMenuOpen(false)
+                onPostpone(duration)
+              }}
+            >
+              <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+              {t(alertPostponeLabelKey[duration])}
+            </DropdownMenuItem>
+          )
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 function AlertDetailView({
   item,
   connectionPlatformById,
@@ -230,6 +246,7 @@ function AlertDetailView({
   postponePending,
   isPostponedSection,
   onBack,
+  onClosePanel,
   onPostpone,
   t,
 }: {
@@ -239,6 +256,7 @@ function AlertDetailView({
   postponePending: boolean
   isPostponedSection: boolean
   onBack: () => void
+  onClosePanel: () => void
   onPostpone: (alertId: string, duration: AlertPostponeDuration) => void
   t: (key: ShellStringKey) => string
 }) {
@@ -260,31 +278,37 @@ function AlertDetailView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-start gap-2 border-b border-border-subtle px-5 py-4 pr-14">
+      <div className="flex items-center gap-2 border-b border-border-subtle px-5 py-4">
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="mt-0.5 shrink-0"
+          className="shrink-0 self-center"
           onClick={onBack}
           aria-label={t('homeAlertsSheetBackToList')}
         >
           <ChevronLeft className="size-4" />
         </Button>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-start gap-2">
-            <h2 className="min-w-0 flex-1 text-base font-semibold leading-snug text-foreground">
-              {headline}
-            </h2>
-            <StatusPill
-              variant={severityStatusPillVariant(item.severity)}
-              className="h-5 shrink-0 rounded-md px-1.5 text-[10px] font-semibold tracking-wide uppercase"
-            >
-              {severityBadgeLabel(t, item.severity)}
-            </StatusPill>
-          </div>
-          <p className="mt-1 truncate text-xs text-muted-foreground">{productChannelLine}</p>
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <h2 className="truncate text-base font-semibold leading-snug text-foreground">{headline}</h2>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{productChannelLine}</p>
         </div>
+        <StatusPill
+          variant={severityStatusPillVariant(item.severity)}
+          className="h-5 shrink-0 self-center rounded-md px-1.5 text-[10px] font-semibold tracking-wide uppercase"
+        >
+          {severityBadgeLabel(t, item.severity)}
+        </StatusPill>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className="shrink-0 self-center"
+          onClick={onClosePanel}
+          aria-label={t('productsDetailSheetCancel')}
+        >
+          <X className="size-4" aria-hidden />
+        </Button>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 py-5">
@@ -308,31 +332,16 @@ function AlertDetailView({
         ) : null}
 
         <AlertDetailSection title={t('homeAlertsSheetResolve')}>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             {isAdmin && !isPostponedSection ? (
-              <div className="flex flex-wrap gap-2">
-                {(['1h', '1d', '1w'] as const).map((duration) => (
-                  <Button
-                    key={duration}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={postponePending}
-                    onClick={() => onPostpone(item.id, duration)}
-                  >
-                    {t(
-                      duration === '1h'
-                        ? 'homeAlertsDialogPostpone1h'
-                        : duration === '1d'
-                          ? 'homeAlertsDialogPostpone1d'
-                          : 'homeAlertsDialogPostpone1w',
-                    )}
-                  </Button>
-                ))}
-              </div>
+              <AlertPostponeButton
+                postponePending={postponePending}
+                onPostpone={(duration) => onPostpone(item.id, duration)}
+                t={t}
+              />
             ) : null}
             {productHref ? (
-              <Button variant="outline" size="sm" className="w-fit" render={<Link to={productHref} />}>
+              <Button variant="accent" size="sm" render={<Link to={productHref} />}>
                 {t('homeAlertsDialogViewProduct')}
               </Button>
             ) : null}
@@ -344,10 +353,8 @@ function AlertDetailView({
 }
 
 function AlertListView({
-  statusFilter,
-  onStatusFilterChange,
-  severityTab,
-  onSeverityTabChange,
+  filters,
+  onFiltersChange,
   items,
   loading,
   emptyLabel,
@@ -356,10 +363,8 @@ function AlertListView({
   onSelect,
   t,
 }: {
-  statusFilter: AlertSection
-  onStatusFilterChange: (value: AlertSection) => void
-  severityTab: AlertSeverity
-  onSeverityTabChange: (value: AlertSeverity) => void
+  filters: AlertsListFilters
+  onFiltersChange: (patch: Partial<AlertsListFilters>) => void
   items: AlertItemApi[]
   loading: boolean
   emptyLabel: string
@@ -369,8 +374,8 @@ function AlertListView({
   t: (key: ShellStringKey) => string
 }) {
   const filteredItems = useMemo(
-    () => filterItemsBySeverity(items, severityTab),
-    [items, severityTab],
+    () => filterAlertsByListFilters(items, filters),
+    [items, filters],
   )
 
   const listEmptyLabel =
@@ -378,18 +383,7 @@ function AlertListView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <AlertPanelHeader
-        title={t('homeAlertsDialogTitle')}
-        description={t('homeAlertsDialogDescription')}
-      />
-
-      <AlertTabsToolbar
-        severityTab={severityTab}
-        onSeverityTabChange={onSeverityTabChange}
-        statusFilter={statusFilter}
-        onStatusFilterChange={onStatusFilterChange}
-        t={t}
-      />
+      <AlertListToolbar filters={filters} onFiltersChange={onFiltersChange} t={t} />
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {loading ? (
@@ -425,23 +419,27 @@ export function ActiveAlertsSheet({
   onPostpone,
   t,
 }: ActiveAlertsSheetProps) {
-  const [statusFilter, setStatusFilter] = useState<AlertSection>('active')
-  const [severityTab, setSeverityTab] = useState<AlertSeverity>('critical')
+  const [filters, setFilters] = useState<AlertsListFilters>(DEFAULT_ALERTS_LIST_FILTERS)
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       setSelectedId(null)
-      setStatusFilter('active')
-      setSeverityTab('critical')
+      setFilters(DEFAULT_ALERTS_LIST_FILTERS)
     }
     onOpenChange(nextOpen)
   }
 
-  const items = statusFilter === 'active' ? activeItems : postponedItems
-  const loading = statusFilter === 'active' ? activeLoading : postponedLoading
+  const handleFiltersChange = (patch: Partial<AlertsListFilters>) => {
+    setFilters((prev) => ({ ...prev, ...patch }))
+  }
+
+  const items = filters.lifecycle === 'active' ? activeItems : postponedItems
+  const loading = filters.lifecycle === 'active' ? activeLoading : postponedLoading
   const emptyLabel =
-    statusFilter === 'active' ? t('homeAlertsDialogActiveEmpty') : t('homeAlertsDialogPostponedEmpty')
+    filters.lifecycle === 'active'
+      ? t('homeAlertsDialogActiveEmpty')
+      : t('homeAlertsDialogPostponedEmpty')
   const filterEmptyLabel = t('homeAlertsSheetFilterEmpty')
 
   const selectedItem = useMemo(() => {
@@ -452,7 +450,7 @@ export function ActiveAlertsSheet({
   const handlePostpone = (alertId: string, duration: AlertPostponeDuration) => {
     onPostpone(alertId, duration)
     setSelectedId(null)
-    setStatusFilter('postponed')
+    setFilters((prev) => ({ ...prev, lifecycle: 'postponed' }))
   }
 
   const showDetail = selectedItem !== null
@@ -462,6 +460,7 @@ export function ActiveAlertsSheet({
       open={open}
       onOpenChange={handleOpenChange}
       closeAriaLabel={t('productsDetailSheetCancel')}
+      hideCloseButton={showDetail}
     >
       <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
         <div
@@ -471,10 +470,8 @@ export function ActiveAlertsSheet({
           )}
         >
           <AlertListView
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            severityTab={severityTab}
-            onSeverityTabChange={setSeverityTab}
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
             items={items}
             loading={loading}
             emptyLabel={emptyLabel}
@@ -497,8 +494,9 @@ export function ActiveAlertsSheet({
               connectionPlatformById={connectionPlatformById}
               isAdmin={isAdmin}
               postponePending={postponePending}
-              isPostponedSection={statusFilter === 'postponed'}
+              isPostponedSection={filters.lifecycle === 'postponed'}
               onBack={() => setSelectedId(null)}
+              onClosePanel={() => handleOpenChange(false)}
               onPostpone={handlePostpone}
               t={t}
             />

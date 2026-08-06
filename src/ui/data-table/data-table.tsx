@@ -135,12 +135,12 @@ export function DataTable<TData>({
                       key={header.id}
                       colSpan={header.colSpan}
                       className={cn(
-                        "sticky top-0 z-10 border-0 align-middle shadow-[0_1px_0_var(--border-subtle)] font-semibold text-text-secondary",
-                        isPlain ? "bg-transparent" : "bg-glass-fill-raised",
+                        "sticky top-0 z-10 border-0 align-middle shadow-[0_1px_0_var(--border-subtle)] font-medium text-muted-foreground",
+                        isPlain ? "bg-transparent" : "bg-[var(--table-row-hover-bg)]",
                         meta?.headerClassName,
                       )}
                     >
-                      <div className="flex min-h-10 w-full items-center text-sm font-semibold leading-none text-text-secondary">
+                      <div className="flex min-h-10 w-full items-center text-sm font-medium leading-none text-muted-foreground">
                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                       </div>
                     </TableHead>

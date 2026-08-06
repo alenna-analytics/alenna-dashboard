@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- column defs + listing cell helpers */
 import type { ColumnDef } from '@tanstack/react-table'
 import { MoreVertical, Wallet } from 'lucide-react'
 
@@ -6,6 +7,7 @@ import type { ProductListingApi, StockAlertLevel } from '@/lib/types/catalog'
 import { cn } from '@/lib/utils'
 import { CopyTextButton } from '@/ui/copy-text-button'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,8 +18,10 @@ import {
 import { ProductDetailColumnHeaderWithHelp } from './product-detail-column-header-with-help'
 import {
   formatListingInventoryDays,
-  formatListingPublicationSubtitle,
+  formatListingPublicationDisplay,
   formatListingVelocityPerDay,
+  resolveListingVariantId,
+  truncateListingLabel,
 } from './product-detail-listing-channel-format'
 import { ProductPlatformLogoName } from './product-platform-logo-name'
 import {
@@ -34,11 +38,97 @@ const TEXT_CELL_META = {
   cellClassName: '[&>div]:justify-start',
 } as const
 
-const SKU_TRUNCATE_LEN = 12
+const LISTING_TEXT_TRUNCATE_LEN = 20
 
-function truncateSku(sku: string): string {
-  if (sku.length <= SKU_TRUNCATE_LEN) return sku
-  return `${sku.slice(0, SKU_TRUNCATE_LEN)}…`
+function truncateListingText(value: string): string {
+  if (value.length <= LISTING_TEXT_TRUNCATE_LEN) return value
+  return `${value.slice(0, LISTING_TEXT_TRUNCATE_LEN)}…`
+}
+
+function ProductListingSkuLabel({ sku }: { sku: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="min-w-0 truncate font-mono text-sm leading-normal">{truncateListingText(sku)}</span>
+      </TooltipTrigger>
+      <TooltipContent
+        side="top"
+        className="max-w-[min(20rem,calc(100vw-2rem))] break-all font-mono text-xs leading-snug"
+      >
+        {sku}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+function ProductListingPublicationCell({
+  listing,
+  t,
+}: {
+  listing: ProductListingApi
+  t: (key: ShellStringKey) => string
+}) {
+  const { variantLabel, variantTooltip, listPrice } = formatListingPublicationDisplay(listing)
+  const copyText = variantTooltip ?? variantLabel ?? listPrice
+
+  if (!variantLabel && !listPrice) {
+    return <span className="text-sm text-text-tertiary">—</span>
+  }
+
+  if (!variantLabel && listPrice) {
+    return (
+      <div className="flex min-w-0 items-center gap-1">
+        <span className="min-w-0 truncate text-sm tabular-nums text-text-secondary" title={listPrice}>
+          {listPrice}
+        </span>
+        {copyText ? (
+          <CopyTextButton
+            text={copyText}
+            copiedLabel={t('productsCopyFeedback')}
+            copyAriaLabel={t('productsDetailListingCopyPublication')}
+          />
+        ) : null}
+      </div>
+    )
+  }
+
+  const displayVariant = variantLabel ? truncateListingLabel(variantLabel) : null
+
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5">
+      {displayVariant ? (
+        <div className="flex min-w-0 items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="min-w-0 truncate font-mono text-sm leading-normal text-text-primary">
+                {displayVariant}
+              </span>
+            </TooltipTrigger>
+            {variantTooltip ? (
+              <TooltipContent
+                side="top"
+                className="max-w-[min(20rem,calc(100vw-2rem))] break-all font-mono text-xs leading-snug"
+              >
+                {variantTooltip}
+              </TooltipContent>
+            ) : null}
+          </Tooltip>
+          {copyText ? (
+            <CopyTextButton
+              text={copyText}
+              copiedLabel={t('productsCopyFeedback')}
+              copyAriaLabel={t('productsDetailListingCopyPublication')}
+            />
+          ) : null}
+        </div>
+      ) : null}
+      {listPrice ? (
+        <span className="truncate text-xs tabular-nums text-text-tertiary" title={listPrice}>
+          {listPrice}
+        </span>
+      ) : null}
+    </div>
+  )
 }
 
 function alertRank(level: StockAlertLevel): number {
@@ -99,32 +189,31 @@ export function createProductDetailChannelsColumns(
         <DataTableColumnHeader column={column} title={t('productsDetailListingColSku')} />
       ),
       cell: ({ row }) => {
-        const listing = row.original
-        const sku = listing.platform_sku
-        const publication = formatListingPublicationSubtitle(listing)
+        const sku = row.original.platform_sku
         return (
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <div className="flex min-w-0 items-center gap-1">
-              <span className="truncate font-mono text-sm leading-normal" title={sku}>
-                {truncateSku(sku)}
-              </span>
-              <CopyTextButton
-                text={sku}
-                copiedLabel={t('productsCopyFeedback')}
-                copyAriaLabel={t('productsTableCopySku')}
-              />
-            </div>
-            {publication ? (
-              <span
-                className="truncate text-xs tabular-nums text-text-tertiary"
-                title={listing.platform_variant_id ?? publication}
-              >
-                {publication}
-              </span>
-            ) : null}
+          <div className="flex min-w-0 items-center gap-1">
+            <ProductListingSkuLabel sku={sku} />
+            <CopyTextButton
+              text={sku}
+              copiedLabel={t('productsCopyFeedback')}
+              copyAriaLabel={t('productsTableCopySku')}
+            />
           </div>
         )
       },
+    },
+    {
+      id: 'platform_publication',
+      accessorFn: (row) => resolveListingVariantId(row) ?? row.platform_price ?? null,
+      meta: {
+        ...TEXT_CELL_META,
+        headerClassName: 'min-w-[7rem]',
+        cellClassName: 'min-w-[7rem] [&>div]:justify-start',
+      },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsDetailListingColPublication')} />
+      ),
+      cell: ({ row }) => <ProductListingPublicationCell listing={row.original} t={t} />,
     },
   ]
 
@@ -157,7 +246,7 @@ export function createProductDetailChannelsColumns(
         accessorKey: 'velocity_units_per_day_90d',
         meta: NUMERIC_CELL_META,
         header: () => (
-          <div className="flex w-full min-w-0 items-center justify-end text-sm font-semibold text-text-secondary">
+          <div className="flex w-full min-w-0 items-center justify-end text-sm font-medium text-muted-foreground">
             <ProductDetailColumnHeaderWithHelp
               title={t('productsDetailListingColVelocityPerDay')}
               helpText={t('productsDetailListingColVelocityPerDayHelp')}
@@ -205,21 +294,6 @@ export function createProductDetailChannelsColumns(
       ),
     },
     {
-      id: 'period_orders',
-      accessorKey: 'period_orders',
-      meta: NUMERIC_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          className="justify-end"
-          column={column}
-          title={t('productsDetailListingColOrders')}
-        />
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm tabular-nums">{row.original.period_orders}</span>
-      ),
-    },
-    {
       id: 'period_estimated_payout',
       accessorFn: (row) => row.period_settlement?.estimated_payout ?? null,
       meta: NUMERIC_CELL_META,
@@ -237,6 +311,21 @@ export function createProductDetailChannelsColumns(
         }
         return <span className="text-sm tabular-nums">{fmtBase(payout)}</span>
       },
+    },
+    {
+      id: 'period_orders',
+      accessorKey: 'period_orders',
+      meta: NUMERIC_CELL_META,
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          className="justify-end"
+          column={column}
+          title={t('productsDetailListingColOrders')}
+        />
+      ),
+      cell: ({ row }) => (
+        <span className="text-sm tabular-nums">{row.original.period_orders}</span>
+      ),
     },
     {
       id: 'period_units_sold',

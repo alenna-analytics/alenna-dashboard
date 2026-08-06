@@ -4,6 +4,8 @@ import type { SettlementBreakdown } from '@/lib/types/reports'
 import { settlementWaterfallLines } from '@/lib/settlement-utils'
 import { cn } from '@/lib/utils'
 
+import { settlementLineDisplayValue, settlementLineLabel } from './settlement-line-label'
+
 type SettlementMiniWaterfallProps = {
   settlement: SettlementBreakdown | ProductSettlementApi
   fmtBase: (value: number) => string
@@ -22,8 +24,7 @@ export function SettlementMiniWaterfall({
   return (
     <ul className={cn('space-y-1', compact ? 'text-[11px]' : 'text-xs')}>
       {lines.map((line) => {
-        const raw = line.value
-        const display = line.isDeduction ? -Math.abs(raw) : raw
+        const display = settlementLineDisplayValue(line)
         return (
           <li
             key={line.key}
@@ -34,13 +35,7 @@ export function SettlementMiniWaterfall({
               line.isDeduction && 'text-text-secondary',
             )}
           >
-            <span>
-              {line.isDeduction
-                ? `(−) ${t(line.labelKey as ShellStringKey)}`
-                : line.kind !== 'line'
-                  ? `= ${t(line.labelKey as ShellStringKey)}`
-                  : t(line.labelKey as ShellStringKey)}
-            </span>
+            <span>{settlementLineLabel(line, t)}</span>
             <span className="shrink-0 tabular-nums">{fmtBase(display)}</span>
           </li>
         )

@@ -849,7 +849,7 @@ const SHELL_STRINGS = {
     settlementWfDiscounts: 'Descuentos',
     settlementWfReturns: 'Devoluciones',
     settlementWfDiscountsReturns: 'Descuentos + Devoluciones',
-    settlementWfNetSales: 'Ventas concretadas',
+    settlementWfNetSales: 'Ventas netas',
     settlementWfMarketplaceFees: 'Comisiones marketplace',
     settlementWfShippingCharges: 'Cargos envío plataforma',
     settlementWfTaxWithholdings: 'Retenciones impuestos',
@@ -1119,6 +1119,7 @@ const SHELL_STRINGS = {
     productsDetailListingColEstimatedPayout: 'Cobro est.',
     productsDetailListingSettlementExpand: 'Ver liquidación del listing',
     productsDetailListingSettlementBreakdown: 'Liquidación del periodo',
+    productsDetailListingSettlementEmpty: 'Sin datos de liquidación para este listing.',
     productsDetailKpiInventoryDays: 'Días de inventario',
     productsDetailKpiInventoryDaysHelp:
       'Stock consolidado en todos los canales ÷ velocidad de venta diaria (unidades de los últimos 90 días).',
@@ -2285,7 +2286,7 @@ const SHELL_STRINGS = {
     settlementWfDiscounts: 'Discounts',
     settlementWfReturns: 'Returns',
     settlementWfDiscountsReturns: 'Discounts + Returns',
-    settlementWfNetSales: 'Completed sales',
+    settlementWfNetSales: 'Net sales',
     settlementWfMarketplaceFees: 'Marketplace fees',
     settlementWfShippingCharges: 'Platform shipping charges',
     settlementWfTaxWithholdings: 'Tax withholdings',
@@ -2555,6 +2556,7 @@ const SHELL_STRINGS = {
     productsDetailListingColEstimatedPayout: 'Est. payout',
     productsDetailListingSettlementExpand: 'Show listing settlement',
     productsDetailListingSettlementBreakdown: 'Period settlement',
+    productsDetailListingSettlementEmpty: 'No settlement data for this listing.',
     productsDetailKpiInventoryDays: 'Days of inventory',
     productsDetailKpiInventoryDaysHelp:
       'Consolidated stock across channels ÷ daily sell-through (units from the last 90 days).',

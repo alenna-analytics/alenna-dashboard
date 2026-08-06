@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { Copy } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductListingApi, StockAlertLevel } from '@/lib/types/catalog'
@@ -26,6 +26,13 @@ const TEXT_CELL_META = {
   cellClassName: '[&>div]:justify-start',
 } as const
 
+const SKU_TRUNCATE_LEN = 12
+
+function truncateSku(sku: string): string {
+  if (sku.length <= SKU_TRUNCATE_LEN) return sku
+  return `${sku.slice(0, SKU_TRUNCATE_LEN)}…`
+}
+
 function alertRank(level: StockAlertLevel): number {
   if (level === 'out') return 0
   if (level === 'low') return 1
@@ -44,42 +51,10 @@ export function createProductDetailChannelsColumns(
   t: (key: ShellStringKey) => string,
   fmtBase: (value: number) => string,
   options?: {
-    expandedRowIds: ReadonlySet<string>
-    onToggleExpand: (listingId: string) => void
+    onCopySku: (sku: string) => void
   },
 ): ColumnDef<ProductListingApi>[] {
   return [
-    {
-      id: 'expand',
-      meta: TEXT_CELL_META,
-      header: () => null,
-      cell: ({ row }) => {
-        const listing = row.original
-        const hasSettlement = listing.period_settlement !== null
-        if (!hasSettlement) return null
-        const expanded = options?.expandedRowIds.has(listing.id) ?? false
-        return (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="size-7 shrink-0"
-            aria-expanded={expanded}
-            aria-label={t('productsDetailListingSettlementExpand')}
-            onClick={(event) => {
-              event.stopPropagation()
-              options?.onToggleExpand(listing.id)
-            }}
-          >
-            {expanded ? (
-              <ChevronDown className="size-4" aria-hidden />
-            ) : (
-              <ChevronRight className="size-4" aria-hidden />
-            )}
-          </Button>
-        )
-      },
-    },
     {
       id: 'platform',
       accessorKey: 'platform',
@@ -100,20 +75,35 @@ export function createProductDetailChannelsColumns(
       accessorKey: 'platform_sku',
       meta: {
         ...TEXT_CELL_META,
-        headerClassName: 'min-w-[14rem]',
-        cellClassName: 'min-w-[14rem] [&>div]:justify-start',
+        headerClassName: 'min-w-[10rem]',
+        cellClassName: 'min-w-[10rem] [&>div]:justify-start',
       },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsDetailListingColSku')} />
       ),
-      cell: ({ row }) => (
-        <span
-          className="block min-w-0 max-w-[18rem] truncate font-mono text-sm leading-normal"
-          title={row.original.platform_sku}
-        >
-          {row.original.platform_sku}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const sku = row.original.platform_sku
+        return (
+          <div className="flex min-w-0 items-center gap-1">
+            <span className="truncate font-mono text-sm leading-normal" title={sku}>
+              {truncateSku(sku)}
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="size-7 shrink-0 text-text-tertiary hover:text-text-primary"
+              aria-label={t('productsTableCopySku')}
+              onClick={(event) => {
+                event.stopPropagation()
+                options?.onCopySku(sku)
+              }}
+            >
+              <Copy className="size-3.5" aria-hidden />
+            </Button>
+          </div>
+        )
+      },
     },
     {
       id: 'stock_quantity',

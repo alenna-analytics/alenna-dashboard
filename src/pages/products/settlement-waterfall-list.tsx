@@ -4,20 +4,17 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductPlatformSettlementApi, ProductSettlementApi } from '@/lib/types/catalog'
 import type { SettlementBreakdown } from '@/lib/types/reports'
-import {
-  settlementWaterfallLines,
-  type SettlementWaterfallLine,
-} from '@/lib/settlement-utils'
+import { settlementWaterfallLines, type SettlementWaterfallLine } from '@/lib/settlement-utils'
 import { cn } from '@/lib/utils'
 
 import { ProductPlatformLogoName } from './product-platform-logo-name'
+import { settlementLineDisplayValue, settlementLineLabel } from './settlement-line-label'
 
-type SettlementExpandableWaterfallProps = {
+type SettlementWaterfallListProps = {
   settlement: SettlementBreakdown | ProductSettlementApi
   byPlatform?: ProductPlatformSettlementApi[]
   fmtBase: (value: number) => string
   t: (key: ShellStringKey) => string
-  periodLabel?: string | null
 }
 
 type PlatformFieldKey =
@@ -41,19 +38,7 @@ const LINE_PLATFORM_FIELD: Record<string, PlatformFieldKey> = {
   payout: 'estimated_payout',
 }
 
-function lineLabel(line: SettlementWaterfallLine, t: (key: ShellStringKey) => string): string {
-  if (line.isDeduction) return `(−) ${t(line.labelKey as ShellStringKey)}`
-  if (line.kind === 'subtotal' || line.kind === 'total') {
-    return `= ${t(line.labelKey as ShellStringKey)}`
-  }
-  return t(line.labelKey as ShellStringKey)
-}
-
-function lineDisplayValue(line: SettlementWaterfallLine): number {
-  return line.isDeduction ? -Math.abs(line.value) : line.value
-}
-
-function SettlementExpandableRow({
+function SettlementWaterfallRow({
   line,
   byPlatform,
   fmtBase,
@@ -79,9 +64,8 @@ function SettlementExpandableRow({
       .filter((row) => row.value !== 0)
   }, [byPlatform, field])
 
-  const expandable =
-    line.kind !== 'total' && platformRows.length > 0
-  const display = lineDisplayValue(line)
+  const expandable = line.kind !== 'total' && platformRows.length > 0
+  const display = settlementLineDisplayValue(line)
   const isTotal = line.kind === 'total'
 
   const rowBody = (
@@ -94,7 +78,7 @@ function SettlementExpandableRow({
           line.isDeduction && 'text-text-secondary',
         )}
       >
-        {isTotal ? t('settlementWfTotal') : lineLabel(line, t)}
+        {settlementLineLabel(line, t)}
       </span>
       <span className="flex shrink-0 items-center gap-2">
         <span
@@ -124,7 +108,7 @@ function SettlementExpandableRow({
       {expandable ? (
         <button
           type="button"
-          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-muted/25"
+          className="flex w-full items-center justify-between gap-3 px-0 py-3 text-sm transition-colors hover:bg-muted/20"
           aria-expanded={expanded}
           onClick={onToggle}
         >
@@ -133,15 +117,15 @@ function SettlementExpandableRow({
       ) : (
         <div
           className={cn(
-            'flex items-center justify-between gap-3 px-4 py-3 text-sm',
-            isTotal && 'bg-muted/15',
+            'flex items-center justify-between gap-3 py-3 text-sm',
+            isTotal && 'border-t border-border-subtle/80 pt-3 font-semibold',
           )}
         >
           {rowBody}
         </div>
       )}
       {expandable && expanded ? (
-        <ul className="space-y-2 border-t border-border-subtle/60 bg-muted/10 px-4 py-3">
+        <ul className="mb-2 space-y-2 rounded-md bg-muted/10 px-3 py-2">
           {platformRows.map((row) => (
             <li
               key={row.platform}
@@ -164,36 +148,14 @@ function SettlementExpandableRow({
   )
 }
 
-export function SettlementExpandableWaterfall({
+export function SettlementWaterfallList({
   settlement,
   byPlatform = [],
   fmtBase,
   t,
-  periodLabel,
-}: SettlementExpandableWaterfallProps) {
+}: SettlementWaterfallListProps) {
   const lines = useMemo(() => settlementWaterfallLines(settlement), [settlement])
-  const detailLines = lines.filter((line) => line.kind !== 'total')
-  const totalLine = lines.find((line) => line.kind === 'total')
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => new Set())
-
-  const allExpandableKeys = useMemo(
-    () =>
-      detailLines
-        .filter((line) => {
-          const field = LINE_PLATFORM_FIELD[line.key]
-          if (!field || line.kind === 'total') return false
-          return byPlatform.some((row) => row[field] !== 0)
-        })
-        .map((line) => line.key),
-    [detailLines, byPlatform],
-  )
-
-  const allExpanded =
-    allExpandableKeys.length > 0 && allExpandableKeys.every((key) => expandedKeys.has(key))
-
-  const toggleExpandAll = useCallback(() => {
-    setExpandedKeys(() => (allExpanded ? new Set() : new Set(allExpandableKeys)))
-  }, [allExpandableKeys, allExpanded])
 
   const toggleRow = useCallback((key: string) => {
     setExpandedKeys((prev) => {
@@ -204,29 +166,40 @@ export function SettlementExpandableWaterfall({
     })
   }, [])
 
+  const allExpandableKeys = useMemo(
+    () =>
+      lines
+        .filter((line) => {
+          const field = LINE_PLATFORM_FIELD[line.key]
+          if (!field || line.kind === 'total') return false
+          return byPlatform.some((row) => row[field] !== 0)
+        })
+        .map((line) => line.key),
+    [lines, byPlatform],
+  )
+
+  const allExpanded =
+    allExpandableKeys.length > 0 && allExpandableKeys.every((key) => expandedKeys.has(key))
+
+  const toggleExpandAll = useCallback(() => {
+    setExpandedKeys(() => (allExpanded ? new Set() : new Set(allExpandableKeys)))
+  }, [allExpandableKeys, allExpanded])
+
   return (
-    <div className="overflow-hidden rounded-md border border-border-subtle bg-white">
-      <div className="flex items-start justify-between gap-3 border-b border-border-subtle/80 px-4 py-3">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-text-primary">
-            {t('settlementWfEstimatedPayout')}
-          </p>
-          {periodLabel ? (
-            <p className="mt-0.5 text-xs text-text-secondary">{periodLabel}</p>
-          ) : null}
-        </div>
-        {allExpandableKeys.length > 0 ? (
+    <div>
+      {allExpandableKeys.length > 0 ? (
+        <div className="mb-2 flex justify-end">
           <button
             type="button"
-            className="shrink-0 text-xs font-medium text-[var(--country-green-base)] hover:underline"
+            className="text-xs font-medium text-[var(--country-green-base)] hover:underline"
             onClick={toggleExpandAll}
           >
             {allExpanded ? t('settlementCollapseAll') : t('settlementExpandAll')}
           </button>
-        ) : null}
-      </div>
-      {detailLines.map((line) => (
-        <SettlementExpandableRow
+        </div>
+      ) : null}
+      {lines.map((line) => (
+        <SettlementWaterfallRow
           key={line.key}
           line={line}
           byPlatform={byPlatform}
@@ -236,16 +209,6 @@ export function SettlementExpandableWaterfall({
           onToggle={() => toggleRow(line.key)}
         />
       ))}
-      {totalLine ? (
-        <SettlementExpandableRow
-          line={totalLine}
-          byPlatform={byPlatform}
-          fmtBase={fmtBase}
-          t={t}
-          expanded={false}
-          onToggle={() => undefined}
-        />
-      ) : null}
     </div>
   )
 }

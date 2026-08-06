@@ -9,7 +9,6 @@ import { ProductDetailChannelsTable } from './product-detail-channels-table'
 import { ProductDetailVariantsTable } from './product-detail-variants-table'
 import { ProductDetailConfigSection } from './product-detail-config-section'
 import type { ProductCostPriceChartData } from './product-cost-chart-points'
-import { ProductDetailSettlementSection } from './product-detail-settlement-section'
 
 type ProductDetailSectionsProps = {
   productId: string
@@ -90,19 +89,6 @@ export function ProductDetailSections({
         insightsFetching={insightsFetching}
       />
 
-      <ProductDetailSettlementSection
-        detail={detail}
-        t={t}
-        fmtBase={fmtBase}
-        showValues={showInsightValues}
-        isFetching={insightsFetching}
-        periodLabel={
-          detail.period_start && detail.period_end
-            ? `${detail.period_start} — ${detail.period_end}`
-            : null
-        }
-      />
-
       {hasVariants ? (
         <ProductDetailVariantsTable
           variants={detail.variants}
@@ -129,6 +115,11 @@ export function ProductDetailSections({
                 isFetching={insightsFetching}
                 t={t}
                 fmtBase={fmtBase}
+                periodLabel={
+                  detail.period_start && detail.period_end
+                    ? `${detail.period_start} — ${detail.period_end}`
+                    : null
+                }
                 emptyContent={
                   <p className="py-8 text-center text-sm text-text-tertiary">
                     {t('productsDetailChannelsEmpty')}

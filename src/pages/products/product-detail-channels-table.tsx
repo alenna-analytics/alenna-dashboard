@@ -9,7 +9,7 @@ import {
   createProductDetailChannelsColumns,
   sortListingsByStockAlert,
 } from './product-detail-channels-columns'
-import { SettlementMiniWaterfall } from './settlement-mini-waterfall'
+import { ProductListingSettlementSheet } from './product-listing-settlement-sheet'
 
 type ProductDetailChannelsTableProps = {
   listings: ProductListingApi[]
@@ -17,6 +17,7 @@ type ProductDetailChannelsTableProps = {
   isFetching: boolean
   t: (key: ShellStringKey) => string
   fmtBase: (value: number) => string
+  periodLabel: string | null
   emptyContent: React.ReactNode
 }
 
@@ -26,29 +27,26 @@ export function ProductDetailChannelsTable({
   isFetching,
   t,
   fmtBase,
+  periodLabel,
   emptyContent,
 }: ProductDetailChannelsTableProps) {
-  const [expandedRowIds, setExpandedRowIds] = useState<Set<string>>(() => new Set())
+  const [selectedListing, setSelectedListing] = useState<ProductListingApi | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
-  const onToggleExpand = useCallback((listingId: string) => {
-    setExpandedRowIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(listingId)) {
-        next.delete(listingId)
-      } else {
-        next.add(listingId)
+  const onCopySku = useCallback(
+    async (sku: string) => {
+      try {
+        await navigator.clipboard.writeText(sku)
+      } catch {
+        /* clipboard unavailable */
       }
-      return next
-    })
-  }, [])
+    },
+    [],
+  )
 
   const columns = useMemo(
-    () =>
-      createProductDetailChannelsColumns(t, fmtBase, {
-        expandedRowIds,
-        onToggleExpand,
-      }),
-    [t, fmtBase, expandedRowIds, onToggleExpand],
+    () => createProductDetailChannelsColumns(t, fmtBase, { onCopySku }),
+    [t, fmtBase, onCopySku],
   )
   const sortedListings = useMemo(() => sortListingsByStockAlert(listings), [listings])
 
@@ -60,36 +58,31 @@ export function ProductDetailChannelsTable({
     getRowId: (row) => row.id,
   })
 
-  const renderExpandedContent = useCallback(
-    (listing: ProductListingApi) => {
-      if (!listing.period_settlement) return null
-      return (
-        <div className="max-w-md px-2">
-          <p className="mb-2 text-xs font-medium text-text-secondary">
-            {t('productsDetailListingSettlementBreakdown')}
-          </p>
-          <SettlementMiniWaterfall
-            settlement={listing.period_settlement}
-            fmtBase={fmtBase}
-            t={t}
-            compact
-          />
-        </div>
-      )
-    },
-    [fmtBase, t],
-  )
+  const onRowClick = useCallback((listing: ProductListingApi) => {
+    if (!listing.period_settlement) return
+    setSelectedListing(listing)
+    setSheetOpen(true)
+  }, [])
 
   return (
-    <DataTable
-      table={table}
-      isLoading={isLoading}
-      isFetching={isFetching}
-      hasEverLoaded
-      emptyContent={emptyContent}
-      scrollClassName="max-h-[28rem] min-w-[640px] overflow-auto"
-      expandedRowIds={expandedRowIds}
-      renderExpandedContent={renderExpandedContent}
-    />
+    <>
+      <DataTable
+        table={table}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        hasEverLoaded
+        emptyContent={emptyContent}
+        scrollClassName="max-h-[28rem] min-w-[640px] overflow-auto"
+        onRowClick={onRowClick}
+      />
+      <ProductListingSettlementSheet
+        listing={selectedListing}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        fmtBase={fmtBase}
+        t={t}
+        periodLabel={periodLabel}
+      />
+    </>
   )
 }

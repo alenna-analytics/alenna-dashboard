@@ -87,6 +87,8 @@ export function productDetailTrendMetricHelp(
       return t('productsDetailKpiNetProfitHelp')
     case 'orders':
       return t('productsDetailKpiOrdersHelp')
+    case 'units':
+      return t('productsDetailKpiUnitsSoldHelp')
     case 'contribution-margin-pct':
       return t('productsDetailKpiContributionMarginPctHelp')
     case 'inventory-days':

@@ -242,7 +242,7 @@ export function ProductDetailAnalyticsSection({
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 p-0 pt-4">
-        <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 items-stretch gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
           {metricCards.map((kpi) => (
             <ProductDetailInsightKpiTile
               key={kpi.id}

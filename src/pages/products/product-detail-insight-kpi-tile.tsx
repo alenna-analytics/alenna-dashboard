@@ -72,12 +72,20 @@ export function ProductDetailInsightKpiTile({
         {isFetching ? skeleton : value}
       </p>
       {!isFetching && breakdown ? breakdown : null}
-      {footer ? <p className="mt-1 text-[0.65rem] leading-tight text-text-tertiary">{footer}</p> : null}
+      <p
+        className={cn(
+          'mt-auto min-h-4 pt-1 text-[0.65rem] leading-tight text-text-tertiary',
+          !footer && 'invisible',
+        )}
+        aria-hidden={!footer}
+      >
+        {footer ?? '\u00a0'}
+      </p>
     </>
   )
 
   const className = cn(
-    'rounded-md border bg-muted/20 px-3 py-2.5 text-left transition-colors',
+    'flex h-full flex-col rounded-md border bg-muted/20 px-3 py-2.5 text-left transition-colors',
     selected ? 'border-border-subtle bg-muted/30' : 'border-border-subtle',
     selectable ? 'cursor-pointer hover:bg-muted/35' : '',
   )

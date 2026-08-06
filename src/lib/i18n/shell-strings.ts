@@ -288,8 +288,12 @@ const SHELL_STRINGS = {
     trialExpiredTitle: 'Tu periodo de prueba terminó',
     trialExpiredBody:
       'Para seguir usando Alenna, elige un plan que se adapte a tu operación.',
-    trialExpiredCta: 'Comprar un plan',
     trialExpiredSignOut: 'Cerrar sesión',
+    paymentPendingTitle: 'Completa tu suscripción',
+    paymentPendingBody:
+      'Tu espacio de trabajo está listo. Finaliza el pago de Growth para empezar a usar Alenna.',
+    paymentPendingCta: 'Completar pago de Growth',
+    paymentPendingSignOut: 'Cerrar sesión',
     navComponents: 'Componentes',
     shellHomeChartRegion: 'Área de gráficos',
     dashboardRevenueTrendTitle: 'Tendencia de ventas',
@@ -335,7 +339,15 @@ const SHELL_STRINGS = {
     billingSkusLimitLabel: 'Productos activos',
     billingSkusLimitDescription: 'SKUs activos en tu catálogo de productos.',
     billingLimitUnlimited: 'Ilimitado',
-    billingStripeComingSoon: 'Pronto podrás cambiar de plan y pagar en línea con Stripe.',
+    billingSubscribeBasic: 'Suscribirse a Basic',
+    billingUpgradeGrowth: 'Mejorar a Growth',
+    billingManageSubscription: 'Administrar suscripción',
+    billingUseCustomerPortal: 'Ya tienes una suscripción activa. Usa el portal para cambiar de plan.',
+    billingActionsLabel: 'Plan y pago',
+    billingActionsDescription: 'Suscríbete o cambia de plan con checkout seguro en Stripe.',
+    billingCheckoutSuccess: 'Pago recibido. Tu plan se actualizará en unos segundos.',
+    billingCheckoutCancel: 'Checkout cancelado. No se realizó ningún cargo.',
+    billingOwnerOnly: 'Solo el propietario del espacio de trabajo puede gestionar la facturación.',
     workspaceConfigBillingDescription: 'Plan, límites de uso y facturación.',
     planLimitBannerOrders:
       'Has alcanzado el límite de pedidos de tu plan. La sincronización está pausada hasta que amplíes tu plan.',
@@ -427,6 +439,13 @@ const SHELL_STRINGS = {
     onboardingTrialBulletAlerts: 'Alertas y configuración del workspace',
     onboardingTrialNoCard:
       'Sin tarjeta hoy. Tras {days} días: USD ${price}/mes para seguir.',
+    onboardingGrowthTitle: 'Plan Growth',
+    onboardingGrowthIntro:
+      'Tras crear tu espacio, completarás el pago de Growth en Stripe.',
+    onboardingGrowthPaymentNote:
+      'Necesitas una suscripción activa de Growth para usar Alenna con este registro.',
+    onboardingCheckoutFailed:
+      'No pudimos abrir el checkout. Puedes completar el pago desde la pantalla de pago pendiente.',
     onboardingContinue: 'Continuar',
     onboardingBack: 'Atrás',
     onboardingGoDashboard: 'Ir al dashboard',
@@ -1669,8 +1688,12 @@ const SHELL_STRINGS = {
     homeTrendsSectionTitle: 'Trends',
     trialExpiredTitle: 'Your trial has ended',
     trialExpiredBody: 'To keep using Alenna, choose a plan that fits your operation.',
-    trialExpiredCta: 'Purchase a plan',
     trialExpiredSignOut: 'Sign out',
+    paymentPendingTitle: 'Complete your subscription',
+    paymentPendingBody:
+      'Your workspace is ready. Finish paying for Growth to start using Alenna.',
+    paymentPendingCta: 'Complete Growth payment',
+    paymentPendingSignOut: 'Sign out',
     navComponents: 'Components',
     shellHomeChartRegion: 'Chart area',
     dashboardRevenueTrendTitle: 'Revenue trend',
@@ -1716,7 +1739,15 @@ const SHELL_STRINGS = {
     billingSkusLimitLabel: 'Active products',
     billingSkusLimitDescription: 'Active SKUs in your product catalog.',
     billingLimitUnlimited: 'Unlimited',
-    billingStripeComingSoon: 'Online checkout and plan changes via Stripe are coming soon.',
+    billingSubscribeBasic: 'Subscribe to Basic',
+    billingUpgradeGrowth: 'Upgrade to Growth',
+    billingManageSubscription: 'Manage subscription',
+    billingUseCustomerPortal: 'You already have an active subscription. Use the portal to change plans.',
+    billingActionsLabel: 'Plan & billing',
+    billingActionsDescription: 'Subscribe or change plans via secure Stripe checkout.',
+    billingCheckoutSuccess: 'Payment received. Your plan will update in a few seconds.',
+    billingCheckoutCancel: 'Checkout canceled. No charge was made.',
+    billingOwnerOnly: 'Only the workspace owner can manage billing.',
     workspaceConfigBillingDescription: 'Plan, usage limits, and billing.',
     planLimitBannerOrders:
       'You have reached your plan order limit. Sync is paused until you upgrade your plan.',
@@ -1807,6 +1838,13 @@ const SHELL_STRINGS = {
     onboardingTrialBulletAlerts: 'Alerts and workspace settings',
     onboardingTrialNoCard:
       'No card today. After {days} days: USD ${price}/month to continue.',
+    onboardingGrowthTitle: 'Growth plan',
+    onboardingGrowthIntro:
+      'After creating your workspace, you will complete Growth payment in Stripe.',
+    onboardingGrowthPaymentNote:
+      'An active Growth subscription is required to use Alenna with this signup.',
+    onboardingCheckoutFailed:
+      'We could not open checkout. You can complete payment from the payment pending screen.',
     onboardingContinue: 'Continue',
     onboardingBack: 'Back',
     onboardingGoDashboard: 'Go to dashboard',

@@ -2,6 +2,7 @@ import { Show, useAuth, useUser } from '@clerk/react'
 import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import {
   createWorkspace,
@@ -10,7 +11,12 @@ import {
   WorkspaceAlreadyExistsError,
   WorkspaceCreatedNeedsActiveTenantError,
 } from '@/auth/hooks'
-import { TRIAL_DAYS, TRIAL_PRICE_USD } from '@/lib/onboarding-constants'
+import {
+  createCheckoutSession,
+  paymentPendingCancelUrl,
+  redirectToStripe,
+} from '@/lib/billing/billing-api'
+import { TRIAL_DAYS, TRIAL_PRICE_USD, readSignupIntent } from '@/lib/onboarding-constants'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import { AuthShell } from '@/shell/auth/auth-shell'
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -53,6 +59,7 @@ function OnboardingWizard() {
   const [companyName, setCompanyName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const signupIntent = readSignupIntent()
   const getTokenRef = useRef(getToken)
 
   useEffect(() => {
@@ -98,20 +105,43 @@ function OnboardingWizard() {
     navigate('/dashboard', { replace: true })
   }
 
+  async function redirectToGrowthCheckout(tenantId: string) {
+    const url = await createCheckoutSession(
+      'growth',
+      (a) => getTokenRef.current(a),
+      tenantId,
+      { cancelUrl: paymentPendingCancelUrl() },
+    )
+    redirectToStripe(url)
+  }
+
   async function finishOnboarding() {
     setError(null)
     setSubmitting(true)
     try {
+      const signupIntent = readSignupIntent()
       const result = await createWorkspace((a) => getTokenRef.current(a), {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         company_name: companyName.trim(),
+        signup_intent: signupIntent,
       })
-      await activateAndEnterDashboard(result.tenant_id)
+      await switchTenant(result.tenant_id)
+      if (result.checkout_required && result.checkout_plan) {
+        try {
+          await redirectToGrowthCheckout(result.tenant_id)
+        } catch {
+          toast.error(t('onboardingCheckoutFailed'))
+          navigate('/payment-pending', { replace: true })
+        }
+        return
+      }
+      navigate('/dashboard', { replace: true })
     } catch (e: unknown) {
       if (e instanceof WorkspaceCreatedNeedsActiveTenantError) {
         try {
-          await activateAndEnterDashboard(e.tenantId)
+          await switchTenant(e.tenantId)
+          navigate('/dashboard', { replace: true })
           return
         } catch (retryErr: unknown) {
           setError(retryErr instanceof Error ? retryErr.message : t('onboardingSubmitFailed'))
@@ -251,10 +281,14 @@ function OnboardingWizard() {
           {step === 3 ? (
             <div className="mt-3 flex flex-col gap-4">
               <h2 className="text-xl font-semibold tracking-tight text-text-primary">
-                {t('onboardingTrialTitle', { days: TRIAL_DAYS })}
+                {signupIntent === 'growth'
+                  ? t('onboardingGrowthTitle')
+                  : t('onboardingTrialTitle', { days: TRIAL_DAYS })}
               </h2>
               <p className="text-sm text-neutral-600">
-                {t('onboardingTrialIntro', { price: TRIAL_PRICE_USD })}
+                {signupIntent === 'growth'
+                  ? t('onboardingGrowthIntro')
+                  : t('onboardingTrialIntro', { price: TRIAL_PRICE_USD })}
               </p>
               <ul className="flex flex-col gap-2 text-sm text-text-primary">
                 {TRIAL_BULLETS.map((key) => (
@@ -269,7 +303,9 @@ function OnboardingWizard() {
                 ))}
               </ul>
               <p className="rounded-md bg-(--platinum-blonde-300) px-3 py-2.5 text-sm text-neutral-700">
-                {t('onboardingTrialNoCard', { days: TRIAL_DAYS, price: TRIAL_PRICE_USD })}
+                {signupIntent === 'growth'
+                  ? t('onboardingGrowthPaymentNote')
+                  : t('onboardingTrialNoCard', { days: TRIAL_DAYS, price: TRIAL_PRICE_USD })}
               </p>
               {error ? <p className="text-sm text-danger">{error}</p> : null}
               <div className="flex items-center gap-2">

@@ -1,10 +1,17 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { Copy } from 'lucide-react'
+import { Copy, MoreVertical } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductListingApi, StockAlertLevel } from '@/lib/types/catalog'
+import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/ui/dropdown-menu'
 
 import { ProductDetailColumnHeaderWithHelp } from './product-detail-column-header-with-help'
 import {
@@ -52,6 +59,7 @@ export function createProductDetailChannelsColumns(
   fmtBase: (value: number) => string,
   options?: {
     onCopySku: (sku: string) => void
+    onViewSettlement: (listing: ProductListingApi) => void
   },
 ): ColumnDef<ProductListingApi>[] {
   return [
@@ -223,6 +231,38 @@ export function createProductDetailChannelsColumns(
       cell: ({ row }) => (
         <span className="text-sm tabular-nums">{row.original.period_units_sold}</span>
       ),
+    },
+    {
+      id: 'actions',
+      meta: {
+        headerClassName: '[&>div]:justify-end',
+        cellClassName: '[&>div]:justify-end',
+      },
+      header: () => null,
+      cell: ({ row }) => {
+        const listing = row.original
+        const hasSettlement = listing.period_settlement !== null
+        if (!hasSettlement) return null
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={cn(
+                'inline-flex size-8 items-center justify-center rounded-full border border-transparent text-foreground outline-none',
+                'hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30',
+              )}
+              aria-label={t('productsDetailListingActionsAria')}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <MoreVertical className="size-4 shrink-0" aria-hidden />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem onClick={() => options?.onViewSettlement(listing)}>
+                {t('productsDetailListingViewSettlement')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
     },
   ]
 }

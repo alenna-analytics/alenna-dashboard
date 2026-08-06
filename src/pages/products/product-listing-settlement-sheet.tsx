@@ -4,7 +4,6 @@ import {
   Sheet,
   SheetBody,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from '@/ui/sheet'
@@ -36,23 +35,24 @@ export function ProductListingSettlementSheet({
       <SheetContent side="right">
         <SheetHeader>
           <SheetTitle>{t('productsDetailListingSettlementBreakdown')}</SheetTitle>
-          {listing ? (
-            <SheetDescription className="space-y-1">
-              <span className="block">
-                <ProductPlatformLogoName
-                  platformSlug={listing.platform}
-                  t={t}
-                  className="text-sm text-text-secondary"
-                />
-              </span>
-              <span className="block font-mono text-xs text-text-tertiary">{listing.platform_sku}</span>
-              {periodLabel ? (
-                <span className="block text-xs text-text-tertiary">{periodLabel}</span>
-              ) : null}
-            </SheetDescription>
-          ) : null}
         </SheetHeader>
-        <SheetBody>
+        <SheetBody className="space-y-6">
+          {listing ? (
+            <div className="space-y-3 rounded-md border border-border-subtle bg-muted/15 px-4 py-3">
+              <ProductPlatformLogoName
+                platformSlug={listing.platform}
+                t={t}
+                className="text-sm font-medium text-text-primary"
+              />
+              {listing.platform_title ? (
+                <p className="text-sm text-text-secondary">{listing.platform_title}</p>
+              ) : null}
+              <p className="break-all font-mono text-xs text-text-tertiary">{listing.platform_sku}</p>
+              {periodLabel ? (
+                <p className="text-xs text-text-tertiary">{periodLabel}</p>
+              ) : null}
+            </div>
+          ) : null}
           {settlement ? (
             <SettlementWaterfallList settlement={settlement} fmtBase={fmtBase} t={t} />
           ) : (

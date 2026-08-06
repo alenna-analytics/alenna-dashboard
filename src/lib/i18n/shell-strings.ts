@@ -1077,6 +1077,7 @@ const SHELL_STRINGS = {
     productsDetailSkuSaving: 'Guardando',
     productsDetailSkuCloseEditAria: 'Cancelar edición del SKU',
     productsDetailToastSkuSaved: 'SKU actualizado',
+    productsDetailToastSkuCopied: 'SKU copiado',
     productsDetailKpiPeriodHint: 'Totales en agregados históricos',
     productsDetailLastUpdatedDays: 'Actualizado hace {days} días',
     productsDetailLastUpdatedToday: 'Actualizado hoy',
@@ -1120,6 +1121,8 @@ const SHELL_STRINGS = {
     productsDetailListingSettlementExpand: 'Ver liquidación del listing',
     productsDetailListingSettlementBreakdown: 'Liquidación del periodo',
     productsDetailListingSettlementEmpty: 'Sin datos de liquidación para este listing.',
+    productsDetailListingViewSettlement: 'Ver desglose pago plataforma',
+    productsDetailListingActionsAria: 'Acciones del listing',
     productsDetailKpiInventoryDays: 'Días de inventario',
     productsDetailKpiInventoryDaysHelp:
       'Stock consolidado en todos los canales ÷ velocidad de venta diaria (unidades de los últimos 90 días).',
@@ -2514,6 +2517,7 @@ const SHELL_STRINGS = {
     productsDetailSkuSaving: 'Saving',
     productsDetailSkuCloseEditAria: 'Cancel SKU editing',
     productsDetailToastSkuSaved: 'SKU updated',
+    productsDetailToastSkuCopied: 'SKU copied',
     productsDetailKpiPeriodHint: 'Totals from historical aggregates',
     productsDetailLastUpdatedDays: 'Updated {days} days ago',
     productsDetailLastUpdatedToday: 'Updated today',
@@ -2557,6 +2561,8 @@ const SHELL_STRINGS = {
     productsDetailListingSettlementExpand: 'Show listing settlement',
     productsDetailListingSettlementBreakdown: 'Period settlement',
     productsDetailListingSettlementEmpty: 'No settlement data for this listing.',
+    productsDetailListingViewSettlement: 'View platform payout breakdown',
+    productsDetailListingActionsAria: 'Listing actions',
     productsDetailKpiInventoryDays: 'Days of inventory',
     productsDetailKpiInventoryDaysHelp:
       'Consolidated stock across channels ÷ daily sell-through (units from the last 90 days).',

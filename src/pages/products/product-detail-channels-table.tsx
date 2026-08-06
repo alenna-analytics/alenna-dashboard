@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table'
+import { toast } from 'sonner'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductListingApi } from '@/lib/types/catalog'
@@ -37,16 +38,23 @@ export function ProductDetailChannelsTable({
     async (sku: string) => {
       try {
         await navigator.clipboard.writeText(sku)
+        toast.success(t('productsDetailToastSkuCopied'))
       } catch {
-        /* clipboard unavailable */
+        toast.error(t('productsDetailToastSaveFailed'))
       }
     },
-    [],
+    [t],
   )
 
+  const onViewSettlement = useCallback((listing: ProductListingApi) => {
+    if (!listing.period_settlement) return
+    setSelectedListing(listing)
+    setSheetOpen(true)
+  }, [])
+
   const columns = useMemo(
-    () => createProductDetailChannelsColumns(t, fmtBase, { onCopySku }),
-    [t, fmtBase, onCopySku],
+    () => createProductDetailChannelsColumns(t, fmtBase, { onCopySku, onViewSettlement }),
+    [t, fmtBase, onCopySku, onViewSettlement],
   )
   const sortedListings = useMemo(() => sortListingsByStockAlert(listings), [listings])
 
@@ -58,12 +66,6 @@ export function ProductDetailChannelsTable({
     getRowId: (row) => row.id,
   })
 
-  const onRowClick = useCallback((listing: ProductListingApi) => {
-    if (!listing.period_settlement) return
-    setSelectedListing(listing)
-    setSheetOpen(true)
-  }, [])
-
   return (
     <>
       <DataTable
@@ -73,7 +75,6 @@ export function ProductDetailChannelsTable({
         hasEverLoaded
         emptyContent={emptyContent}
         scrollClassName="max-h-[28rem] min-w-[640px] overflow-auto"
-        onRowClick={onRowClick}
       />
       <ProductListingSettlementSheet
         listing={selectedListing}

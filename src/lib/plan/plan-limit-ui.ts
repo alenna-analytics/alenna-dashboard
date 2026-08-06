@@ -1,9 +1,7 @@
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { Language } from '@/shell/providers/language-provider'
 import type { MeResponse } from '@/lib/types/me-types'
-
-export const UPGRADE_GROWTH_MAILTO =
-  'mailto:support@alenna.io?subject=Upgrade%20to%20Growth'
+import type { CheckoutPlanSlug } from '@/lib/billing/billing-api'
 
 export const UPGRADE_ENTERPRISE_MAILTO =
   'mailto:support@alenna.io?subject=Upgrade%20to%20Enterprise'
@@ -11,9 +9,19 @@ export const UPGRADE_ENTERPRISE_MAILTO =
 export function upgradeMailtoForCta(
   upgradeCta: MeResponse['upgrade_cta'],
 ): string | null {
-  if (upgradeCta === 'growth') return UPGRADE_GROWTH_MAILTO
   if (upgradeCta === 'enterprise') return UPGRADE_ENTERPRISE_MAILTO
   return null
+}
+
+export function checkoutPlanForCta(
+  upgradeCta: MeResponse['upgrade_cta'],
+): CheckoutPlanSlug | null {
+  if (upgradeCta === 'growth') return 'growth'
+  return null
+}
+
+export function isBillingOwner(me: MeResponse | null | undefined): boolean {
+  return me?.role === 'owner'
 }
 
 export function upgradeLabelKeyForCta(

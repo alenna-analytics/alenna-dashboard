@@ -18,6 +18,8 @@ function normalizeMeResponse(raw: MeResponse): MeResponse {
     modules: parseModuleIds(Array.isArray(raw.modules) ? raw.modules : []),
     trial_ends_at: raw.trial_ends_at ?? null,
     trial_expired: Boolean(raw.trial_expired),
+    signup_intent: raw.signup_intent === 'growth' ? 'growth' : 'trial',
+    payment_required: Boolean(raw.payment_required),
   }
 }
 

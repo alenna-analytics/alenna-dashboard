@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  checkoutPlanForCta,
+  isBillingOwner,
   isPlanLimitSyncPaused,
   upgradeLabelForCta,
   upgradeMailtoForCta,
@@ -32,42 +34,74 @@ const baseMe: MeResponse = {
   sync_paused: false,
   sync_paused_reason: null,
   upgrade_cta: 'growth',
+  signup_intent: 'trial',
+  payment_required: false,
 }
 
 describe('plan-limit-ui', () => {
-  it('upgradeMailtoForCta returns growth mailto', () => {
-    expect(upgradeMailtoForCta('growth')).toContain('Growth')
+  it('checkoutPlanForCta returns growth for growth cta', () => {
+    expect(checkoutPlanForCta('growth')).toBe('growth')
   })
 
-  it('upgradeMailtoForCta returns enterprise mailto', () => {
+  it('checkoutPlanForCta returns null for enterprise', () => {
+    expect(checkoutPlanForCta('enterprise')).toBeNull()
+  })
+
+  it('upgradeMailtoForCta returns enterprise mailto only', () => {
     expect(upgradeMailtoForCta('enterprise')).toContain('Enterprise')
+    expect(upgradeMailtoForCta('growth')).toBeNull()
   })
 
   it('upgradeLabelForCta returns translated growth label', () => {
     expect(upgradeLabelForCta('growth', 'en')).toContain('Growth')
   })
 
-  it('isPlanLimitSyncPaused ignores trial_expired', () => {
-    expect(
-      isPlanLimitSyncPaused({
-        ...baseMe,
-        sync_paused: true,
-        sync_paused_reason: 'trial_expired',
-      }),
-    ).toBe(false)
-  })
-
-  it('isPlanLimitSyncPaused true for orders_limit', () => {
-    expect(
-      isPlanLimitSyncPaused({
-        ...baseMe,
-        sync_paused: true,
-        sync_paused_reason: 'orders_limit',
-      }),
-    ).toBe(true)
+  it('isBillingOwner true for owner role', () => {
+    expect(isBillingOwner(baseMe)).toBe(true)
+    expect(isBillingOwner({ ...baseMe, role: 'admin' })).toBe(false)
   })
 
   it('upgradeMailtoForCta returns null for none', () => {
     expect(upgradeMailtoForCta('none')).toBeNull()
+  })
+
+  describe('isPlanLimitSyncPaused', () => {
+    it('returns true when sync paused for orders_limit', () => {
+      expect(
+        isPlanLimitSyncPaused({
+          ...baseMe,
+          sync_paused: true,
+          sync_paused_reason: 'orders_limit',
+        }),
+      ).toBe(true)
+    })
+
+    it('returns true when sync paused for skus_limit', () => {
+      expect(
+        isPlanLimitSyncPaused({
+          ...baseMe,
+          sync_paused: true,
+          sync_paused_reason: 'skus_limit',
+        }),
+      ).toBe(true)
+    })
+
+    it('returns false when sync paused for trial_expired', () => {
+      expect(
+        isPlanLimitSyncPaused({
+          ...baseMe,
+          sync_paused: true,
+          sync_paused_reason: 'trial_expired',
+        }),
+      ).toBe(false)
+    })
+
+    it('returns false when sync is not paused', () => {
+      expect(isPlanLimitSyncPaused(baseMe)).toBe(false)
+    })
+
+    it('returns false when me is null', () => {
+      expect(isPlanLimitSyncPaused(null)).toBe(false)
+    })
   })
 })

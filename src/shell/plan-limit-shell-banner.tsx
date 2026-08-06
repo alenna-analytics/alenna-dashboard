@@ -1,15 +1,10 @@
 import { AlertTriangle } from 'lucide-react'
 
+import { PlanUpgradeCta } from '@/components/billing/plan-upgrade-cta'
 import { shellT } from '@/lib/i18n/shell-strings'
-import {
-  isPlanLimitSyncPaused,
-  upgradeLabelForCta,
-  upgradeMailtoForCta,
-} from '@/lib/plan/plan-limit-ui'
-import { cn } from '@/lib/utils'
+import { isPlanLimitSyncPaused } from '@/lib/plan/plan-limit-ui'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
-import { buttonVariants } from '@/ui/button'
 
 export function PlanLimitShellBanner() {
   const { lang } = useLanguage()
@@ -27,8 +22,8 @@ export function PlanLimitShellBanner() {
         ? 'planLimitBannerSkus'
         : 'planLimitBannerGeneric'
 
-  const upgradeHref = me ? upgradeMailtoForCta(me.upgrade_cta) : null
-  const ctaLabel = me ? upgradeLabelForCta(me.upgrade_cta, lang) : null
+  const upgradeCtaVisible =
+    me && (me.upgrade_cta === 'growth' || me.upgrade_cta === 'enterprise')
 
   return (
     <div
@@ -41,10 +36,8 @@ export function PlanLimitShellBanner() {
           aria-hidden
         />
         <p className="min-w-0 flex-1">{shellT(lang, messageKey)}</p>
-        {upgradeHref && ctaLabel ? (
-          <a href={upgradeHref} className={cn(buttonVariants({ size: 'sm' }), 'h-8 shrink-0')}>
-            {ctaLabel}
-          </a>
+        {upgradeCtaVisible && me ? (
+          <PlanUpgradeCta me={me} lang={lang} className="h-8 shrink-0" />
         ) : null}
       </div>
     </div>

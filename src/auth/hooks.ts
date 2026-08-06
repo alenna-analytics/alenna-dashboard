@@ -83,6 +83,9 @@ export type CreateWorkspaceResult = {
   base_currency: string
   plan: string
   trial_ends_at: string
+  signup_intent: 'trial' | 'growth'
+  checkout_required: boolean
+  checkout_plan: 'growth' | null
 }
 
 export class WorkspaceCreatedNeedsActiveTenantError extends Error {
@@ -107,7 +110,12 @@ type WorkspaceErrorDetail = {
 
 export async function createWorkspace(
   getToken: GetTokenFn,
-  body: { first_name: string; last_name: string; company_name: string },
+  body: {
+    first_name: string
+    last_name: string
+    company_name: string
+    signup_intent?: 'trial' | 'growth'
+  },
 ): Promise<CreateWorkspaceResult> {
   const res = await apiPostJson('/me/workspaces', getToken, body)
   if (res.status === 502) {

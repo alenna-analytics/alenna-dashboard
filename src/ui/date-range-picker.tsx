@@ -365,6 +365,7 @@ export function DateRangePickerPanel({
         <div className="flex min-w-0 flex-1 flex-col p-3">
           <Calendar
             mode="range"
+            resetOnSelect
             captionLayout="dropdown"
             startMonth={new Date(new Date().getFullYear() - 10, 0, 1)}
             endMonth={new Date(new Date().getFullYear() + 1, 11, 31)}

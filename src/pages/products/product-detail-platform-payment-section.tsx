@@ -166,7 +166,15 @@ export function ProductDetailPlatformPaymentSection({
                 </p>
               ) : null}
             </div>
-            <SettlementWaterfallList settlement={settlement} fmtBase={fmtBase} t={t} />
+            <SettlementWaterfallList
+              settlement={settlement}
+              byPlatform={
+                activeChannel === ALL_CHANNELS ? detail.period_settlement_by_platform : undefined
+              }
+              fmtBase={fmtBase}
+              t={t}
+              rowHover
+            />
           </CardContent>
         </Card>
       ) : (

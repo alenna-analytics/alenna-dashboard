@@ -24,7 +24,6 @@ import { ProductDetailSections } from './product-detail-sections'
 import { ProductDetailHeader } from './product-detail-header'
 import { ProductDetailUnsavedBar } from './product-detail-unsaved-bar'
 import { defaultProductInsightRange } from './product-detail-range'
-import { productDetailDateLocale } from './product-detail-header-utils'
 import { usePatchProductCostMutation, useProductDetailQuery } from './use-catalog-queries'
 
 function costAmountWithBaseCode(
@@ -369,6 +368,8 @@ function ProductDetailBody({ productId }: { productId: string }) {
       ) : null}
 
       <ProductDetailSections
+        productId={productId}
+        lang={lang}
         detail={detail}
         t={t}
         baseCurrency={baseCurrency}
@@ -389,7 +390,6 @@ function ProductDetailBody({ productId }: { productId: string }) {
         insightsFetching={detailQuery.isFetching}
         onEditCost={openEditSheet}
         onOpenVariantCostEditor={openVariantCostEditor}
-        dateLocale={productDetailDateLocale(lang)}
       />
 
       <ProductDetailUnsavedBar

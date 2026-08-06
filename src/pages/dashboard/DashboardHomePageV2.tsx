@@ -919,24 +919,6 @@ export function DashboardHomePageV2() {
             </div>
           ) : null}
 
-          {settlementWaterfallSegments.length > 0 ? (
-            <SectionContainer className="mt-6 overflow-visible">
-              <SectionHeader
-                title={t('reportsSectionSettlementTitle')}
-                description={t('reportsSectionSettlementSubtitle')}
-              />
-              <WaterfallChart
-                segments={settlementWaterfallSegments}
-                currency={effectiveDisplayCurrency}
-                grossRevenue={convertFromBase(settlementSource?.gross_revenue ?? 0)}
-                formatPctOfGross={(pct) =>
-                  t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))
-                }
-                finalBarCaption={t('reportsSettlementFinalHint')}
-              />
-            </SectionContainer>
-          ) : null}
-
           <SectionContainer className="mt-6 mb-8">
             <SectionHeader
               title={t('homeMetricsTrendTitle')}
@@ -1019,6 +1001,24 @@ export function DashboardHomePageV2() {
               </div>
             </div>
           </PageSection>
+
+          {settlementWaterfallSegments.length > 0 ? (
+            <SectionContainer className="mt-6 mb-8 overflow-visible">
+              <SectionHeader
+                title={t('reportsSectionSettlementTitle')}
+                description={t('reportsSectionSettlementSubtitle')}
+              />
+              <WaterfallChart
+                segments={settlementWaterfallSegments}
+                currency={effectiveDisplayCurrency}
+                grossRevenue={convertFromBase(settlementSource?.gross_revenue ?? 0)}
+                formatPctOfGross={(pct) =>
+                  t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))
+                }
+                finalBarCaption={t('reportsSettlementFinalHint')}
+              />
+            </SectionContainer>
+          ) : null}
         </>
       )}
     </DashboardPage>

@@ -1085,6 +1085,12 @@ const SHELL_STRINGS = {
     productsDetailKpiCogsTotal: 'COGS (periodo)',
     productsDetailKpiSales: 'Ventas',
     productsDetailKpiOrders: 'Pedidos',
+    productsDetailKpiOrdersHelp:
+      'Pedidos con ingreso en el rango de fechas seleccionado (estatus de ingreso).',
+    productsDetailMetricsTrendDescription:
+      'Selecciona métricas y granularidad. Por defecto, semanal en las últimas 8 semanas.',
+    productsDetailMetricsTrendPrimary: 'Métrica 1',
+    productsDetailMetricsTrendSecondary: 'Métrica 2',
     productsDetailKpiNetSales: 'Ventas Netas',
     productsDetailKpiNetSalesHelp:
       'Ingreso neto del producto en el rango (agregados diarios). No incluye prorrateo de reembolsos ni comisiones a nivel pedido.',
@@ -2510,6 +2516,12 @@ const SHELL_STRINGS = {
     productsDetailKpiCogsTotal: 'COGS (period)',
     productsDetailKpiSales: 'Sales',
     productsDetailKpiOrders: 'Orders',
+    productsDetailKpiOrdersHelp:
+      'Revenue-status orders in the selected date range.',
+    productsDetailMetricsTrendDescription:
+      'Pick metrics and granularity. Default: weekly over the last 8 weeks.',
+    productsDetailMetricsTrendPrimary: 'Metric 1',
+    productsDetailMetricsTrendSecondary: 'Metric 2',
     productsDetailKpiNetSales: 'Net sales',
     productsDetailKpiNetSalesHelp:
       'Product net revenue in the range (daily aggregates). Does not prorate order-level refunds or fees.',

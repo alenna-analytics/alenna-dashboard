@@ -81,7 +81,6 @@ export function ProductDetailSettlementSection({
             ) : null}
           </div>
         </div>
-        <p className="mt-3 text-xs text-text-tertiary">{t('productsDetailSettlementCallout')}</p>
       </CardContent>
     </Card>
   )

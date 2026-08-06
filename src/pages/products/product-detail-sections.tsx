@@ -1,4 +1,4 @@
-import { useCallback, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 import { useSalesMetricBasis } from '@/hooks/use-sales-metric-basis'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -27,9 +27,11 @@ import { formatInventoryDays } from './product-detail-format-inventory-days'
 import { ProductDetailInsightKpiTile } from './product-detail-insight-kpi-tile'
 import { ProductDetailKpiPlatformBreakdown } from './product-detail-kpi-platform-breakdown'
 import { ProductDetailSettlementSection } from './product-detail-settlement-section'
-import { ProductDetailWeeklyNetSalesChart } from './product-detail-weekly-net-sales-chart'
+import { ProductDetailMetricsTrendSection } from './product-detail-metrics-trend-section'
 
 type ProductDetailSectionsProps = {
+  productId: string
+  lang: string
   detail: ProductDetailApi
   t: (key: ShellStringKey) => string
   baseCurrency: string
@@ -50,10 +52,11 @@ type ProductDetailSectionsProps = {
   insightsFetching: boolean
   onEditCost: () => void
   onOpenVariantCostEditor: (productId: string) => void
-  dateLocale: string
 }
 
 export function ProductDetailSections({
+  productId,
+  lang,
   detail,
   t,
   baseCurrency,
@@ -74,25 +77,9 @@ export function ProductDetailSections({
   insightsFetching,
   onEditCost,
   onOpenVariantCostEditor,
-  dateLocale,
 }: ProductDetailSectionsProps) {
   const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
   const hasVariants = (detail.variants?.length ?? 0) > 0
-  const isVariantChild = Boolean(detail.parent_product_id)
-
-  const weekLabelFor = useCallback(
-    (weekStart: string) => {
-      const d = new Date(`${weekStart}T12:00:00`)
-      return d.toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' })
-    },
-    [dateLocale],
-  )
-
-  const weeklyChartSubtitle = isVariantChild
-    ? t('productsDetailWeeklyNetSalesSubtitleVariant')
-    : hasVariants
-      ? t('productsDetailWeeklyNetSalesSubtitleParent')
-      : t('productsDetailWeeklyNetSalesSubtitle')
 
   const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
 
@@ -150,9 +137,16 @@ export function ProductDetailSections({
       breakdown: platformUnitsBreakdown,
     },
     {
+      key: 'orders',
+      label: t('productsDetailKpiOrders'),
+      helpText: t('productsDetailKpiOrdersHelp'),
+      numericValue: detail.period_orders,
+      value: insightKpi(detail.period_orders.toLocaleString()),
+    },
+    {
       key: 'margin',
-      label: t('productsDetailKpiGrossMarginPct'),
-      helpText: t('productsDetailKpiGrossMarginPctHelp'),
+      label: t('productsDetailKpiContributionMarginPct'),
+      helpText: t('productsDetailKpiContributionMarginPctHelp'),
       numericValue: Number(detail.gross_margin_pct),
       value: insightKpi(`${Number(detail.gross_margin_pct).toFixed(1)}%`),
     },
@@ -200,7 +194,7 @@ export function ProductDetailSections({
             t={t}
             className="mb-3"
           />
-          <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-6">
             {insightKpis.map((kpi) => (
               <ProductDetailInsightKpiTile
                 key={kpi.key}
@@ -229,28 +223,16 @@ export function ProductDetailSections({
         baseCurrency={baseCurrency}
       />
 
-      <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
-        <CardContent className="p-0">
-          <div className="border-t border-border-subtle/60 pt-4">
-            <p className="text-sm font-semibold text-text-primary">
-              {t('productsDetailWeeklyNetSalesTitle')}
-            </p>
-            <p className="mb-3 text-xs text-text-secondary">
-              {weeklyChartSubtitle}
-            </p>
-            <ProductDetailWeeklyNetSalesChart
-              points={detail.weekly_net_sales ?? []}
-              weekLabelFor={weekLabelFor}
-              formatValue={fmtBase}
-              ariaLabel={t('productsDetailWeeklyNetSalesAria')}
-              tooltipLabels={{
-                week: t('productsDetailWeeklyNetSalesTooltipWeek'),
-                sales: t('productsDetailWeeklyNetSalesTooltipSales'),
-              }}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <ProductDetailMetricsTrendSection
+        productId={productId}
+        insightStart={insightStart}
+        insightEnd={insightEnd}
+        salesMetricBasis={salesMetricBasis}
+        fmtBase={fmtBase}
+        baseCurrency={baseCurrency}
+        lang={lang}
+        t={t}
+      />
 
       {hasVariants ? (
         <ProductDetailVariantsTable
@@ -275,7 +257,7 @@ export function ProductDetailSections({
               <ProductDetailChannelsTable
               listings={detail.listings}
               isLoading={false}
-              isFetching={false}
+              isFetching={insightsFetching}
               t={t}
               fmtBase={fmtBase}
               emptyContent={

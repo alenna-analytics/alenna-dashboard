@@ -10,6 +10,7 @@ import type { FilterOption } from '@/ui/filters/types'
 import { Skeleton } from '@/ui/skeleton'
 
 import { ProductPlatformLogoName } from './product-platform-logo-name'
+import { ProductDetailInsightKpiTile } from './product-detail-insight-kpi-tile'
 import {
   listingCountByPlatform,
   platformSettlementFilterOptions,
@@ -134,49 +135,75 @@ export function ProductDetailPlatformPaymentSection({
           allowClear={false}
           triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
         />
+
       </div>
 
       {isFetching ? (
-        <Card size="sm" className="border-border-subtle">
-          <CardContent className="space-y-3 py-4">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <Skeleton key={index} className="h-8 w-full" />
-            ))}
-          </CardContent>
-        </Card>
-      ) : settlement ? (
-        <Card size="sm" className="border-border-subtle">
-          <CardContent className="space-y-3 py-4">
-            <div className="space-y-1 border-b border-border-subtle/80 pb-3">
-              {selectedPlatformSlug ? (
-                <ProductPlatformLogoName
-                  platformSlug={selectedPlatformSlug}
-                  t={t}
-                  className="text-sm font-medium text-text-primary"
-                />
-              ) : (
-                <p className="text-sm font-medium text-text-primary">{selectedPlatformLabel}</p>
-              )}
-              {listingCount > 0 ? (
-                <p className="text-xs text-text-tertiary">
-                  {t('productsDetailPlatformPaymentListingCount').replace(
-                    '{count}',
-                    String(listingCount),
-                  )}
-                </p>
-              ) : null}
-            </div>
-            <SettlementWaterfallList
-              settlement={settlement}
-              byPlatform={
-                activeChannel === ALL_CHANNELS ? detail.period_settlement_by_platform : undefined
-              }
-              fmtBase={fmtBase}
-              t={t}
-              rowHover
+        <>
+          <div className="grid grid-cols-1 gap-3 sm:max-w-xs">
+            <ProductDetailInsightKpiTile
+              label={t('productsDetailPlatformPaymentTotalPayout')}
+              helpText={t('productsDetailPlatformPaymentTotalPayoutHelp')}
+              value=""
+              showValues={false}
+              isFetching
+              skeleton={<Skeleton className="mt-0.5 h-7 w-32 max-w-full" aria-hidden />}
             />
-          </CardContent>
-        </Card>
+          </div>
+          <Card size="sm" className="border-border-subtle">
+            <CardContent className="space-y-3 py-4">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <Skeleton key={index} className="h-8 w-full" />
+              ))}
+            </CardContent>
+          </Card>
+        </>
+      ) : settlement ? (
+        <>
+          <div className="grid grid-cols-1 gap-3 sm:max-w-xs">
+            <ProductDetailInsightKpiTile
+              label={t('productsDetailPlatformPaymentTotalPayout')}
+              helpText={t('productsDetailPlatformPaymentTotalPayoutHelp')}
+              value={fmtBase(settlement.estimated_payout)}
+              numericValue={settlement.estimated_payout}
+              showValues
+              isFetching={false}
+              skeleton={<Skeleton className="mt-0.5 h-7 w-32 max-w-full" aria-hidden />}
+            />
+          </div>
+          <Card size="sm" className="border-border-subtle">
+            <CardContent className="space-y-3 py-4">
+              <div className="space-y-1 border-b border-border-subtle/80 pb-3">
+                {selectedPlatformSlug ? (
+                  <ProductPlatformLogoName
+                    platformSlug={selectedPlatformSlug}
+                    t={t}
+                    className="text-sm font-medium text-text-primary"
+                  />
+                ) : (
+                  <p className="text-sm font-medium text-text-primary">{selectedPlatformLabel}</p>
+                )}
+                {listingCount > 0 ? (
+                  <p className="text-xs text-text-tertiary">
+                    {t('productsDetailPlatformPaymentListingCount').replace(
+                      '{count}',
+                      String(listingCount),
+                    )}
+                  </p>
+                ) : null}
+              </div>
+              <SettlementWaterfallList
+                settlement={settlement}
+                byPlatform={
+                  activeChannel === ALL_CHANNELS ? detail.period_settlement_by_platform : undefined
+                }
+                fmtBase={fmtBase}
+                t={t}
+                rowHover
+              />
+            </CardContent>
+          </Card>
+        </>
       ) : (
         <p className="py-8 text-center text-sm text-text-tertiary">
           {t('productsDetailPlatformPaymentEmpty')}

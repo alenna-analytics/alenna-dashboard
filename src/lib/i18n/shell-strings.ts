@@ -227,22 +227,22 @@ const SHELL_STRINGS = {
     comingSoonPageBody: 'Esta sección estará disponible pronto.',
     homeKpiNetSales: 'Ventas netas',
     homeKpiNetSalesHelp:
-      'Ingresos netos del periodo seleccionado. Es el pulso del negocio: ventas reales, no brutas.',
+      'Ingresos por producto después de descuentos, devoluciones y cancelaciones. Incluye pedidos pagados en tránsito.',
     homeKpiGrossSalesHelp:
-      'Ingresos brutos del periodo antes de descuentos y devoluciones.',
+      'Ingresos por producto antes de descuentos, devoluciones y cancelaciones.',
     kpiSalesMetricBasisShowGross: 'Mostrar Ventas/Utilidad Bruta',
     kpiSalesMetricBasisToggleAria: 'Mostrar ventas y utilidad en bruto',
     reportsNetProfit: 'Utilidad neta',
-    reportsKpiHelpNetProfit: 'Ventas netas menos el costo de bienes vendidos (CMV).',
+    reportsKpiHelpNetProfit: 'Ventas netas menos el costo de los productos vendidos (COGS).',
     homeKpiRoasGlobal: 'ROAS global',
     homeKpiRoasGlobalHelp:
-      'Retorno de la inversión publicitaria agregada. Si cae por debajo del mínimo rentable, requiere acción inmediata.',
+      'Ingresos atribuidos a publicidad divididos entre el gasto en ads del periodo.',
     homeKpiContributionMarginPct: 'Contribución marginal %',
     homeKpiContributionMarginPctHelp:
-      'Conecta ventas con rentabilidad real. Un día récord con CM negativa puede significar pérdidas.',
+      'Contribución marginal como porcentaje de las ventas netas.',
     homeKpiActiveAlerts: 'Alertas activas',
     homeKpiActiveAlertsHelp:
-      'Productos con inventario bajo o sin stock según ventas del mes anterior.',
+      'Productos con stock bajo o agotado según las reglas de alertas configuradas.',
     homeKpiActiveAlertsLow: 'Bajo',
     homeKpiActiveAlertsCritical: 'Críticas',
     homeAlertsDialogTitle: 'Centro de alertas',
@@ -822,22 +822,24 @@ const SHELL_STRINGS = {
     reportsCardProfit: 'Utilidad',
     reportsCardOrders: 'Pedidos',
     reportsCardVolume: 'Volumen',
-    reportsKpiHelpOrders: 'Cantidad de pedidos en el periodo seleccionado.',
-    reportsKpiHelpUnits: 'Unidades vendidas en el periodo seleccionado.',
+    reportsKpiHelpOrders: 'Pedidos con venta registrada en el periodo, por fecha de compra.',
+    reportsKpiHelpUnits: 'Unidades de producto vendidas en el periodo seleccionado.',
     reportsSectionRevenueBreakdown: 'Cascada P&L',
     reportsLastUpdated: 'Actualizado',
     reportsVsPreviousPeriod: 'vs periodo anterior',
     reportsComparisonUnavailable: 'Comparación no disponible',
     reportsComparisonNoBaseline: 'Sin base',
-    reportsKpiHelpGrossRevenue: 'Suma de ventas antes de descuentos e impuestos en el periodo seleccionado.',
-    reportsKpiHelpNetRevenue: 'Ventas después de descuentos y devoluciones.',
-    reportsKpiHelpGrossProfit: 'Ventas netas menos el costo de bienes vendidos (CMV).',
+    reportsKpiHelpGrossRevenue:
+      'Ingresos por producto antes de descuentos, devoluciones y cancelaciones.',
+    reportsKpiHelpNetRevenue:
+      'Ingresos por producto después de descuentos, devoluciones y cancelaciones. Incluye pedidos pagados en tránsito.',
+    reportsKpiHelpGrossProfit: 'Ventas netas menos el costo de los productos vendidos (COGS).',
     reportsKpiHelpGrossProfitOnGrossSales:
-      'Ventas brutas menos el costo de bienes vendidos (CMV).',
-    reportsKpiHelpGrossMargin: 'Utilidad bruta como porcentaje de las ventas netas.',
+      'Ventas brutas menos el costo de los productos vendidos (COGS).',
+    reportsKpiHelpGrossMargin: 'Utilidad bruta dividida entre ventas netas.',
     reportsKpiHelpContributionMargin:
-      'Utilidad bruta menos comisiones de plataforma, costo de envío merchant y gasto en ads. No uses ventas netas − COGS − … si las ventas netas ya llevan comisiones o envío deducidos (evita doble descuento).',
-    reportsKpiHelpEbitda: 'Contribución marginal menos gastos operativos fijos.',
+      'Utilidad bruta menos comisiones, envío, impuestos de canal y publicidad.',
+    reportsKpiHelpEbitda: 'Contribución marginal menos gastos operativos fijos del periodo.',
     reportsOrdersTotal: 'Pedidos totales',
     reportsOrdersPaid: 'Pagados',
     reportsOrdersRefunded: 'Reembolsados',
@@ -879,8 +881,7 @@ const SHELL_STRINGS = {
     reportsWfCogs: 'COGS',
     reportsWfGrossProfit: 'Utilidad bruta',
     reportsWfAdsSpend: 'Gasto en Ads',
-    reportsKpiHelpAdsSpend:
-      'Inversión publicitaria atribuida al periodo (según tus fuentes conectadas y reglas de atribución).',
+    reportsKpiHelpAdsSpend: 'Gasto en publicidad atribuido al periodo seleccionado.',
     reportsWfContributionMargin: 'Contribución marginal',
     reportsWfOpex: 'Gastos operativos fijos',
     reportsWfEbitda: 'EBITDA',
@@ -901,39 +902,33 @@ const SHELL_STRINGS = {
     reportsWfDiscountsReturns: 'Descuentos + Devoluciones',
     reportsKpiDeductionsCombined: 'Descuentos + Devoluciones',
     reportsKpiHelpDeductionsCombined:
-      'Total deducido por descuentos y devoluciones aplicados a ventas brutas.',
+      'Total restado por descuentos, devoluciones y cancelaciones sobre ventas brutas.',
     reportsKpiAov: 'AOV',
-    reportsKpiHelpAov: 'Valor promedio por orden: Ventas netas ÷ número de pedidos.',
+    reportsKpiHelpAov: 'Ticket promedio: ventas netas divididas entre número de pedidos.',
     reportsKpiMomLabel: 'Crecimiento MoM %',
-    reportsKpiHelpMom:
-      'Ventas netas del mes calendario que contiene la fecha fin seleccionada vs el mes natural anterior.',
+    reportsKpiHelpMom: 'Cambio de ventas netas vs el mes calendario anterior.',
     reportsKpiYoyLabel: 'Crecimiento YoY %',
-    reportsKpiHelpYoy:
-      'Ventas netas del periodo seleccionado vs las mismas fechas del año anterior.',
+    reportsKpiHelpYoy: 'Cambio de ventas netas vs el mismo periodo del año anterior.',
     reportsKpiCogsLabel: 'COGS',
     reportsKpiHelpCogs:
-      'Costo de mercancía vendida: costo unitario × unidades vendidas (costos desde tu maestro de productos).',
+      'Costo unitario de catálogo multiplicado por las unidades vendidas.',
     reportsKpiMargenBrutoPct: 'Margen bruto %',
-    reportsKpiHelpMargenBrutoPct:
-      '(Utilidad bruta ÷ Ventas netas) × 100. Benchmark saludable por encima del 40%.',
+    reportsKpiHelpMargenBrutoPct: 'Utilidad bruta dividida entre ventas netas.',
     reportsKpiPlatformFees: 'Comisiones de plataforma',
-    reportsKpiHelpPlatformFees:
-      'Fees cobrados por la plataforma de venta (Shopify Payments, Amazon, Mercado Libre, etc.).',
+    reportsKpiHelpPlatformFees: 'Comisiones cobradas por la plataforma de venta.',
     reportsKpiFulfillmentCost: 'Costo de envío',
-    reportsKpiHelpFulfillmentCost:
-      'Lo que la empresa paga por enviar el pedido al cliente (no lo que cobra el cliente por envío).',
+    reportsKpiHelpFulfillmentCost: 'Costo de envío que paga el vendedor por pedido.',
     reportsKpiContributionMarginPctLabel: 'Margen de contribución %',
     reportsKpiHelpContributionMarginPct:
-      '(CM ÷ Ventas netas) × 100. Benchmark útil por encima del 20%; por debajo del 10% es zona de riesgo.',
+      'Contribución marginal dividida entre ventas netas.',
     reportsKpiFixedOpex: 'Gastos operativos fijos',
     reportsKpiHelpFixedOpex:
-      'Sueldos, renta, software, agencias u otros gastos fijos configurados.',
+      'Gastos fijos registrados: nómina, renta, software y similares.',
     reportsKpiEbitdaMarginPct: 'Margen EBITDA %',
-    reportsKpiHelpEbitdaMarginPct:
-      'EBITDA como porcentaje de ventas netas. Benchmark útil por encima del 10%.',
+    reportsKpiHelpEbitdaMarginPct: 'EBITDA dividido entre ventas netas.',
     reportsKpiBreakEven: 'Punto de equilibrio',
     reportsKpiHelpBreakEven:
-      'Ingresos necesarios para cubrir gastos fijos con tu margen de contribución actual: Gastos fijos ÷ CM (como decimal). Sin margen positivo no se calcula.',
+      'Ventas netas necesarias para cubrir gastos fijos al margen de contribución actual.',
     reportsMonthlyEvolutionTitle: 'Evolución mensual — Ventas y margen bruto %',
     reportsMonthlyEvolutionSubtitle:
       'Tres barras del mismo ancho, superpuestas desde la misma base (bruta detrás, neta y utilidad encima). Línea: margen bruto %. Clic en la leyenda para ocultar.',
@@ -941,7 +936,7 @@ const SHELL_STRINGS = {
     reportsMonthlyLoadError: 'No se pudo cargar la evolución mensual.',
     reportsKpiGrowthLabel: 'Crecimiento',
     reportsKpiHelpGrowth:
-      'MoM: mes calendario de la fecha fin vs mes anterior. YoY: mismo rango de fechas hace un año. Ambos sobre ventas netas.',
+      'Crecimiento mes a mes y año contra año sobre ventas netas.',
     reportsPnlTableTitle: 'Estado de resultados (P&L)',
     reportsPnlTableSubtitle:
       'Periodo anterior = mismo número de días justo antes del rango seleccionado. YoY = mismo rango hace un año.',
@@ -994,7 +989,7 @@ const SHELL_STRINGS = {
     expensesSummaryUsd: 'Volumen en USD',
     expensesSummaryCombined: 'Total en {currency}',
     expensesSummaryWindowHint:
-      'Totales prorrateados al rango de fechas seleccionado (misma lógica que el P&L). Sin fechas, se muestran montos de catálogo.',
+      'Gastos prorrateados al rango de fechas seleccionado.',
     expensesReportsHint:
       'Los gastos se aplican en vivo al P&L (opex → EBITDA; categoría Publicidad → CM). No hay backfill como en COGS: revisa la cascada P&L / KPI EBITDA, no las gráficas de ventas.',
     expensesTableSearchPlaceholder: 'Buscar gastos…',
@@ -1095,27 +1090,29 @@ const SHELL_STRINGS = {
     productsDetailKpiSales: 'Ventas',
     productsDetailKpiOrders: 'Pedidos',
     productsDetailKpiOrdersHelp:
-      'Pedidos con ingreso en el rango de fechas seleccionado (estatus de ingreso).',
+      'Pedidos con venta de este producto en el periodo, por fecha de compra.',
     productsDetailMetricsTrendDescription:
       'Selecciona métricas y granularidad. Por defecto, semanal en las últimas 8 semanas.',
     productsDetailMetricsTrendPrimary: 'Métrica 1',
     productsDetailMetricsTrendSecondary: 'Métrica 2',
     productsDetailKpiNetSales: 'Ventas Netas',
     productsDetailKpiNetSalesHelp:
-      'Ingreso neto del producto en el rango (agregados diarios). No incluye prorrateo de reembolsos ni comisiones a nivel pedido.',
+      'Ingresos de este producto después de descuentos, devoluciones y cancelaciones. Incluye pedidos pagados en tránsito.',
     productsDetailKpiGrossSalesHelp:
-      'Ingreso bruto del producto en el rango (agregados diarios). Antes de descuentos y devoluciones a nivel línea.',
+      'Ingresos de este producto antes de descuentos, devoluciones y cancelaciones.',
     productsDetailKpiGrossProfit: 'Utilidad bruta',
     productsDetailKpiNetProfitHelp:
-      'Ventas netas del rango menos COGS del producto. No incluye ads, envío ni gastos fijos.',
+      'Ventas netas del producto menos su costo (COGS). Sin ads, envío ni gastos fijos.',
     productsDetailKpiGrossProfitOnGrossSalesHelp:
-      'Ventas brutas del rango menos COGS del producto. No incluye ads, envío ni gastos fijos.',
+      'Ventas brutas del producto menos su costo (COGS). Sin ads, envío ni gastos fijos.',
     productsDetailKpiContributionMarginPct: 'Contribución marginal %',
     productsDetailKpiContributionMarginPctHelp:
-      'Margen bruto del producto: utilidad bruta ÷ ventas del rango. No incluye ads, envío ni gastos fijos.',
+      'Utilidad bruta del producto dividida entre sus ventas del periodo.',
     productsDetailKpiGrossMarginPct: 'Utilidad bruta %',
     productsDetailKpiGrossMarginPctHelp:
-      'Margen bruto del producto: utilidad bruta ÷ ventas del rango. No incluye ads, envío ni gastos fijos.',
+      'Utilidad bruta del producto dividida entre sus ventas del periodo.',
+    productsDetailKpiUnitsSoldHelp:
+      'Unidades de este producto vendidas en el periodo seleccionado.',
     productsDetailSettlementTitle: 'Liquidación plataforma',
     productsDetailSettlementDescription:
       'Estimado de cobro neto de la plataforma en el rango (antes de depósito bancario).',
@@ -1130,7 +1127,7 @@ const SHELL_STRINGS = {
     productsDetailListingActionsAria: 'Acciones del listing',
     productsDetailKpiInventoryDays: 'Días de inventario',
     productsDetailKpiInventoryDaysHelp:
-      'Stock consolidado en todos los canales ÷ velocidad de venta diaria (unidades de los últimos 90 días).',
+      'Días que alcanzaría el stock al ritmo de venta de los últimos 90 días.',
     productsDetailKpiInventoryDaysWindow: 'Últimos 90 días',
     productsDetailKpiInventoryDaysNoSales: 'Sin ventas (90d)',
     productsDetailKpiInventoryDaysNegativeStock: 'Stock negativo en canal',
@@ -1146,6 +1143,9 @@ const SHELL_STRINGS = {
     productsDetailTabCogs: 'COGS',
     productsDetailPlatformPaymentDescription:
       'Desglose de cobro por publicación en el periodo seleccionado.',
+    productsDetailPlatformPaymentTotalPayout: 'Pago total',
+    productsDetailPlatformPaymentTotalPayoutHelp:
+      'Cobro neto estimado de la plataforma después de comisiones, envío e impuestos.',
     productsDetailPlatformPaymentListingCount: '{count} publicaciones agrupadas',
     productsDetailPlatformPaymentEmpty: 'Sin datos de pago por plataforma en este periodo.',
     productsDetailMetricsTrendSelectHint: 'Selecciona al menos una métrica en las cards de arriba.',
@@ -1161,7 +1161,7 @@ const SHELL_STRINGS = {
     productsDetailListingColChannel: 'Canal',
     productsDetailListingColVelocityPerDay: 'Velocidad/día',
     productsDetailListingColVelocityPerDayHelp:
-      'Unidades vendidas por día en promedio, últimos 90 días.',
+      'Promedio de unidades vendidas por día en los últimos 90 días.',
     productsDetailListingColInventoryDays: 'Días inv',
     productsDetailVariantsTitle: 'Variantes',
     productsDetailVariantsDescription:
@@ -1170,9 +1170,11 @@ const SHELL_STRINGS = {
     productsDetailVariantsColChannel: 'Canal',
     productsDetailParentLink: 'Ver producto principal',
     productsDetailListingColSales: 'Ventas',
-    productsDetailVariantsColSalesHelp: 'Ventas brutas de las últimas 8 semanas (todas las conexiones).',
-    productsDetailVariantsColOrdersHelp: 'Pedidos de las últimas 8 semanas.',
-    productsDetailVariantsColUnitsHelp: 'Unidades vendidas en las últimas 8 semanas.',
+    productsDetailVariantsColSalesHelp:
+      'Ventas brutas acumuladas en las últimas 8 semanas.',
+    productsDetailVariantsColOrdersHelp: 'Pedidos acumulados en las últimas 8 semanas.',
+    productsDetailVariantsColUnitsHelp:
+      'Unidades vendidas en las últimas 8 semanas.',
     productsDetailListingColOrders: 'Pedidos',
     productsDetailListingColUnits: 'Unidades',
     productsDetailChannelsEmpty: 'Sin publicaciones vinculadas.',
@@ -1702,22 +1704,22 @@ const SHELL_STRINGS = {
     comingSoonPageBody: 'This section will be available soon.',
     homeKpiNetSales: 'Net sales',
     homeKpiNetSalesHelp:
-      'Net revenue for the selected period. The business pulse: real sales, not gross.',
+      'Product revenue after discounts, returns, and cancellations. Includes paid in-transit orders.',
     homeKpiGrossSalesHelp:
-      'Gross revenue for the period before discounts and returns.',
+      'Product revenue before discounts, returns, and cancellations.',
     kpiSalesMetricBasisShowGross: 'Show gross sales/profit',
     kpiSalesMetricBasisToggleAria: 'Show gross sales and profit',
     reportsNetProfit: 'Net profit',
-    reportsKpiHelpNetProfit: 'Net revenue minus cost of goods sold.',
+    reportsKpiHelpNetProfit: 'Net sales minus cost of products sold (COGS).',
     homeKpiRoasGlobal: 'Global ROAS',
     homeKpiRoasGlobalHelp:
-      'Blended return on ad spend. If it drops below your profitable floor, act immediately.',
+      'Ad-attributed revenue divided by ad spend for the period.',
     homeKpiContributionMarginPct: 'Marginal Contribution %',
     homeKpiContributionMarginPctHelp:
-      'Links sales to real profitability. Record revenue with negative CM can still mean losses.',
+      'Marginal contribution as a percentage of net sales.',
     homeKpiActiveAlerts: 'Active alerts',
     homeKpiActiveAlertsHelp:
-      'Products with low or out-of-stock inventory based on prior-month sales velocity.',
+      'Products with low or out-of-stock inventory per your alert rules.',
     homeKpiActiveAlertsLow: 'Low',
     homeKpiActiveAlertsCritical: 'Critical',
     homeAlertsDialogTitle: 'Alert center',
@@ -2291,21 +2293,23 @@ const SHELL_STRINGS = {
     reportsCardProfit: 'Profit',
     reportsCardOrders: 'Orders',
     reportsCardVolume: 'Volume',
-    reportsKpiHelpOrders: 'Order count in the selected period.',
-    reportsKpiHelpUnits: 'Units sold in the selected period.',
+    reportsKpiHelpOrders: 'Orders with recorded sales in the period, by purchase date.',
+    reportsKpiHelpUnits: 'Product units sold in the selected period.',
     reportsSectionRevenueBreakdown: 'P&L waterfall',
     reportsLastUpdated: 'Updated',
     reportsVsPreviousPeriod: 'vs prior period',
     reportsComparisonUnavailable: 'Comparison unavailable',
     reportsComparisonNoBaseline: 'No baseline',
-    reportsKpiHelpGrossRevenue: 'Sum of sales before discounts and taxes for the selected range.',
-    reportsKpiHelpNetRevenue: 'Sales after discounts and returns.',
-    reportsKpiHelpGrossProfit: 'Net revenue minus cost of goods sold.',
-    reportsKpiHelpGrossProfitOnGrossSales: 'Gross revenue minus cost of goods sold.',
-    reportsKpiHelpGrossMargin: 'Gross profit as a percentage of net revenue.',
+    reportsKpiHelpGrossRevenue:
+      'Product revenue before discounts, returns, and cancellations.',
+    reportsKpiHelpNetRevenue:
+      'Product revenue after discounts, returns, and cancellations. Includes paid in-transit orders.',
+    reportsKpiHelpGrossProfit: 'Net sales minus cost of products sold (COGS).',
+    reportsKpiHelpGrossProfitOnGrossSales: 'Gross sales minus cost of products sold (COGS).',
+    reportsKpiHelpGrossMargin: 'Gross profit divided by net sales.',
     reportsKpiHelpContributionMargin:
-      'Gross profit minus platform fees, merchant shipping cost, and ads spend. Avoid net revenue − COGS − … if net revenue already deducts fees/shipping (double-count risk).',
-    reportsKpiHelpEbitda: 'Marginal Contribution minus fixed operating expenses.',
+      'Gross profit minus platform fees, shipping, channel taxes, and ad spend.',
+    reportsKpiHelpEbitda: 'Marginal contribution minus fixed operating expenses for the period.',
     reportsOrdersTotal: 'Total orders',
     reportsOrdersPaid: 'Paid',
     reportsOrdersRefunded: 'Refunded',
@@ -2347,8 +2351,7 @@ const SHELL_STRINGS = {
     reportsWfCogs: 'COGS',
     reportsWfGrossProfit: 'Gross Profit',
     reportsWfAdsSpend: 'Ads Spend',
-    reportsKpiHelpAdsSpend:
-      'Advertising spend attributed to the period (per connected sources and attribution rules).',
+    reportsKpiHelpAdsSpend: 'Advertising spend attributed to the selected period.',
     reportsWfContributionMargin: 'Marginal Contribution',
     reportsWfOpex: 'Fixed OpEx',
     reportsWfEbitda: 'EBITDA',
@@ -2369,39 +2372,32 @@ const SHELL_STRINGS = {
     reportsWfDiscountsReturns: 'Discounts + Returns',
     reportsKpiDeductionsCombined: 'Discounts + Returns',
     reportsKpiHelpDeductionsCombined:
-      'Total deducted by discounts and returns applied to gross sales.',
+      'Total deducted from gross sales for discounts, returns, and cancellations.',
     reportsKpiAov: 'AOV',
-    reportsKpiHelpAov: 'Average order value: Net revenue ÷ order count.',
+    reportsKpiHelpAov: 'Average ticket: net sales divided by order count.',
     reportsKpiMomLabel: 'MoM growth %',
-    reportsKpiHelpMom:
-      'Net revenue for the calendar month containing your selected end date vs the prior calendar month.',
+    reportsKpiHelpMom: 'Change in net sales vs the prior calendar month.',
     reportsKpiYoyLabel: 'YoY growth %',
-    reportsKpiHelpYoy:
-      'Net revenue for the selected date range vs the same calendar dates one year earlier.',
+    reportsKpiHelpYoy: 'Change in net sales vs the same period one year ago.',
     reportsKpiCogsLabel: 'COGS',
-    reportsKpiHelpCogs:
-      'Cost of goods sold: unit cost × units sold (costs from your product master data).',
+    reportsKpiHelpCogs: 'Catalog unit cost multiplied by units sold.',
     reportsKpiMargenBrutoPct: 'Gross margin %',
-    reportsKpiHelpMargenBrutoPct:
-      '(Gross profit ÷ Net revenue) × 100. Healthy benchmark above ~40%.',
+    reportsKpiHelpMargenBrutoPct: 'Gross profit divided by net sales.',
     reportsKpiPlatformFees: 'Platform fees',
-    reportsKpiHelpPlatformFees:
-      'Fees charged by the sales channel (Shopify Payments, Amazon, Mercado Libre, etc.).',
+    reportsKpiHelpPlatformFees: 'Fees charged by the sales platform.',
     reportsKpiFulfillmentCost: 'Fulfillment cost',
-    reportsKpiHelpFulfillmentCost:
-      'What you pay to ship orders to customers (not shipping charged to the buyer).',
+    reportsKpiHelpFulfillmentCost: 'Shipping cost paid by the seller per order.',
     reportsKpiContributionMarginPctLabel: 'Marginal Contribution %',
     reportsKpiHelpContributionMarginPct:
-      '(CM ÷ Net revenue) × 100. Useful benchmark above ~20%; below ~10% is risky.',
+      'Marginal contribution divided by net sales.',
     reportsKpiFixedOpex: 'Fixed operating expenses',
     reportsKpiHelpFixedOpex:
-      'Payroll, rent, software, agencies, or other fixed costs you configured.',
+      'Recorded fixed costs: payroll, rent, software, and similar.',
     reportsKpiEbitdaMarginPct: 'EBITDA margin %',
-    reportsKpiHelpEbitdaMarginPct:
-      'EBITDA as a percentage of net revenue. Useful benchmark above ~10%.',
+    reportsKpiHelpEbitdaMarginPct: 'EBITDA divided by net sales.',
     reportsKpiBreakEven: 'Break-even revenue',
     reportsKpiHelpBreakEven:
-      'Revenue needed to cover fixed costs at your current CM ratio: Fixed OpEx ÷ CM (decimal). Not computed without positive CM.',
+      'Net sales needed to cover fixed costs at the current contribution margin.',
     reportsMonthlyEvolutionTitle: 'Monthly evolution — Sales & gross margin %',
     reportsMonthlyEvolutionSubtitle:
       'Three same-width bars overlapped from one baseline (gross behind, net and profit on top). Line: gross margin %. Click legend to hide.',
@@ -2409,7 +2405,7 @@ const SHELL_STRINGS = {
     reportsMonthlyLoadError: 'Could not load the monthly evolution chart.',
     reportsKpiGrowthLabel: 'Growth',
     reportsKpiHelpGrowth:
-      'MoM: calendar month of the end date vs prior month. YoY: same date range one year ago. Both on net revenue.',
+      'Month-over-month and year-over-year growth on net sales.',
     reportsPnlTableTitle: 'Profit & loss (P&L)',
     reportsPnlTableSubtitle:
       'Previous period = same day count ending the day before your range. YoY = same range one year ago.',
@@ -2462,7 +2458,7 @@ const SHELL_STRINGS = {
     expensesSummaryUsd: 'Volume in USD',
     expensesSummaryCombined: 'Total in {currency}',
     expensesSummaryWindowHint:
-      'Totals are prorated to the selected date range (same logic as P&L). Without dates, catalog face amounts are shown.',
+      'Expenses prorated to the selected date range.',
     expensesReportsHint:
       'Expenses apply live to the P&L (opex → EBITDA; Ads category → CM). No COGS-style backfill: check the P&L waterfall / EBITDA KPI, not sales bar charts.',
     expensesTableSearchPlaceholder: 'Search expenses…',
@@ -2563,27 +2559,29 @@ const SHELL_STRINGS = {
     productsDetailKpiSales: 'Sales',
     productsDetailKpiOrders: 'Orders',
     productsDetailKpiOrdersHelp:
-      'Revenue-status orders in the selected date range.',
+      'Orders with sales for this product in the period, by purchase date.',
     productsDetailMetricsTrendDescription:
       'Pick metrics and granularity. Default: weekly over the last 8 weeks.',
     productsDetailMetricsTrendPrimary: 'Metric 1',
     productsDetailMetricsTrendSecondary: 'Metric 2',
     productsDetailKpiNetSales: 'Net sales',
     productsDetailKpiNetSalesHelp:
-      'Product net revenue in the range (daily aggregates). Does not prorate order-level refunds or fees.',
+      'This product’s revenue after discounts, returns, and cancellations. Includes paid in-transit orders.',
     productsDetailKpiGrossSalesHelp:
-      'Product gross revenue in the range (daily aggregates). Before line-level discounts and returns.',
+      'This product’s revenue before discounts, returns, and cancellations.',
     productsDetailKpiGrossProfit: 'Gross profit',
     productsDetailKpiNetProfitHelp:
-      'Range net sales minus product COGS. Excludes ads, shipping, and fixed opex.',
+      'Product net sales minus its cost (COGS). Excludes ads, shipping, and fixed opex.',
     productsDetailKpiGrossProfitOnGrossSalesHelp:
-      'Range gross sales minus product COGS. Excludes ads, shipping, and fixed opex.',
+      'Product gross sales minus its cost (COGS). Excludes ads, shipping, and fixed opex.',
     productsDetailKpiContributionMarginPct: 'Marginal Contribution %',
     productsDetailKpiContributionMarginPctHelp:
-      'Product gross margin: gross profit ÷ range sales. Excludes ads, shipping, and fixed opex.',
+      'Product gross profit divided by its sales for the period.',
     productsDetailKpiGrossMarginPct: 'Gross margin %',
     productsDetailKpiGrossMarginPctHelp:
-      'Product gross margin: gross profit ÷ range sales. Excludes ads, shipping, and fixed opex.',
+      'Product gross profit divided by its sales for the period.',
+    productsDetailKpiUnitsSoldHelp:
+      'Units of this product sold in the selected period.',
     productsDetailSettlementTitle: 'Platform settlement',
     productsDetailSettlementDescription:
       'Estimated net platform payout for the range (before bank deposit).',
@@ -2598,7 +2596,7 @@ const SHELL_STRINGS = {
     productsDetailListingActionsAria: 'Listing actions',
     productsDetailKpiInventoryDays: 'Days of inventory',
     productsDetailKpiInventoryDaysHelp:
-      'Consolidated stock across channels ÷ daily sell-through (units from the last 90 days).',
+      'Days stock would last at the sell-through rate of the last 90 days.',
     productsDetailKpiInventoryDaysWindow: 'Last 90 days',
     productsDetailKpiInventoryDaysNoSales: 'No sales (90d)',
     productsDetailKpiInventoryDaysNegativeStock: 'Negative channel stock',
@@ -2614,6 +2612,9 @@ const SHELL_STRINGS = {
     productsDetailTabCogs: 'COGS',
     productsDetailPlatformPaymentDescription:
       'Payout breakdown by listing for the selected period.',
+    productsDetailPlatformPaymentTotalPayout: 'Total payout',
+    productsDetailPlatformPaymentTotalPayoutHelp:
+      'Estimated net platform payout after fees, shipping, and tax withholdings.',
     productsDetailPlatformPaymentListingCount: '{count} listings grouped',
     productsDetailPlatformPaymentEmpty: 'No platform payout data for this period.',
     productsDetailMetricsTrendSelectHint: 'Select at least one metric card above.',
@@ -2638,8 +2639,8 @@ const SHELL_STRINGS = {
     productsDetailVariantsColChannel: 'Channel',
     productsDetailParentLink: 'View parent product',
     productsDetailListingColSales: 'Sales',
-    productsDetailVariantsColSalesHelp: 'Gross sales over the last 8 weeks (all connections).',
-    productsDetailVariantsColOrdersHelp: 'Orders over the last 8 weeks.',
+    productsDetailVariantsColSalesHelp: 'Gross sales accumulated over the last 8 weeks.',
+    productsDetailVariantsColOrdersHelp: 'Orders accumulated over the last 8 weeks.',
     productsDetailVariantsColUnitsHelp: 'Units sold over the last 8 weeks.',
     productsDetailListingColOrders: 'Orders',
     productsDetailListingColUnits: 'Units',

@@ -96,8 +96,11 @@ export function ProductDetailSections({
         fmtBase={fmtBase}
         showValues={showInsightValues}
         isFetching={insightsFetching}
-        costAmountWithBaseCode={costAmountWithBaseCode}
-        baseCurrency={baseCurrency}
+        periodLabel={
+          detail.period_start && detail.period_end
+            ? `${detail.period_start} — ${detail.period_end}`
+            : null
+        }
       />
 
       {hasVariants ? (

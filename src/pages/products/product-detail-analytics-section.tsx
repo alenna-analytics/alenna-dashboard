@@ -163,24 +163,21 @@ export function ProductDetailAnalyticsSection({
 
   return (
     <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
-      <CardHeader className="flex flex-col gap-4 p-0 lg:flex-row lg:items-start lg:justify-between">
+      <CardHeader className="flex flex-col gap-3 p-0">
         <div className="space-y-1">
           <CardTitle className="text-xl">{t('productsDetailSectionInsightsTitle')}</CardTitle>
           <CardDescription className="text-xs">
             {t('productsDetailSectionInsightsDescription')}
           </CardDescription>
         </div>
-        <div className="flex w-full max-w-md flex-col gap-2 sm:ml-auto sm:items-end">
-          <DateRangePicker
-            strings={pickerStrings}
-            startValue={insightStart}
-            endValue={insightEnd}
-            onStartChange={(v) => v && setInsightStart(v)}
-            onEndChange={(v) => v && setInsightEnd(v)}
-            className="w-full shrink-0"
-          />
-          <ChartGranularityFilter value={granularity} onChange={setGranularity} t={t} />
-        </div>
+        <DateRangePicker
+          strings={pickerStrings}
+          startValue={insightStart}
+          endValue={insightEnd}
+          onStartChange={(v) => v && setInsightStart(v)}
+          onEndChange={(v) => v && setInsightEnd(v)}
+          className="w-full max-w-md"
+        />
       </CardHeader>
       <CardContent className="flex flex-col gap-4 p-0 pt-4">
         <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
@@ -202,6 +199,9 @@ export function ProductDetailAnalyticsSection({
               onSelect={kpi.selectable ? () => onMetricClick(kpi.id) : undefined}
             />
           ))}
+        </div>
+        <div className="flex justify-end">
+          <ChartGranularityFilter value={granularity} onChange={setGranularity} t={t} />
         </div>
         {isError ? (
           <p className="text-sm text-destructive">{t('reportsMonthlyLoadError')}</p>

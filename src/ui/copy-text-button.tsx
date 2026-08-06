@@ -8,6 +8,7 @@ import { Button } from '@/ui/button'
 type CopyTextButtonProps = {
   text: string
   copiedLabel: string
+  failedLabel: string
   copyAriaLabel: string
   className?: string
   disabled?: boolean
@@ -16,6 +17,7 @@ type CopyTextButtonProps = {
 export function CopyTextButton({
   text,
   copiedLabel,
+  failedLabel,
   copyAriaLabel,
   className,
   disabled = false,
@@ -29,10 +31,10 @@ export function CopyTextButton({
         await navigator.clipboard.writeText(value)
         toast.message(copiedLabel)
       } catch {
-        // Clipboard access may fail silently in unsupported contexts.
+        toast.error(failedLabel)
       }
     },
-    [text, disabled, copiedLabel],
+    [text, disabled, copiedLabel, failedLabel],
   )
 
   return (

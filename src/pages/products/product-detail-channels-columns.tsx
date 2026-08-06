@@ -85,6 +85,7 @@ function ProductListingPublicationCell({
           <CopyTextButton
             text={copyText}
             copiedLabel={t('productsCopyFeedback')}
+            failedLabel={t('productsCopyFailed')}
             copyAriaLabel={t('productsDetailListingCopyPublication')}
           />
         ) : null}
@@ -117,6 +118,7 @@ function ProductListingPublicationCell({
             <CopyTextButton
               text={copyText}
               copiedLabel={t('productsCopyFeedback')}
+              failedLabel={t('productsCopyFailed')}
               copyAriaLabel={t('productsDetailListingCopyPublication')}
             />
           ) : null}
@@ -196,6 +198,7 @@ export function createProductDetailChannelsColumns(
             <CopyTextButton
               text={sku}
               copiedLabel={t('productsCopyFeedback')}
+              failedLabel={t('productsCopyFailed')}
               copyAriaLabel={t('productsTableCopySku')}
             />
           </div>

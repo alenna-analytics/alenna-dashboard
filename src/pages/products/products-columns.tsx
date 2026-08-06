@@ -257,6 +257,7 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
               <CopyTextButton
                 text={rawSku.trim()}
                 copiedLabel={t("productsCopyFeedback")}
+                failedLabel={t("productsCopyFailed")}
                 copyAriaLabel={t("productsTableCopySku")}
               />
             ) : null}

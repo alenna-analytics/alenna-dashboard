@@ -12,9 +12,9 @@ export function AppToaster() {
       toastOptions={{
         classNames: {
           toast:
-            '!min-h-0 !w-full !max-w-none !rounded-xl !border-0 !bg-[#1f1f1f] !px-4 !py-3 !text-white shadow-lg [&_[data-icon]]:!hidden',
-          title: '!w-full !text-center !text-sm !font-normal !text-white',
-          description: '!w-full !text-center !text-sm !text-white/80',
+            '!min-h-0 !w-auto !max-w-[min(calc(100vw-2rem),24rem)] !rounded-xl !border-0 !bg-[#1f1f1f] !px-2.5 !py-2 !text-white shadow-lg [&_[data-icon]]:!hidden',
+          title: '!text-center !text-sm !font-normal !text-white',
+          description: '!text-center !text-sm !text-white/80',
           default: '',
           success: '',
           error: '',

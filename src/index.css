@@ -1037,16 +1037,39 @@
   animation: connector-sync-indeterminate 1.25s ease-in-out infinite;
 }
 
-/* Sonner (alenna): centered bottom toast, compact width */
+/* Sonner (alenna): centered bottom toast, shrink-wrap to content */
 [data-sonner-toaster].alenna-sonner {
   --width: auto;
+  left: 50% !important;
+  right: auto !important;
+  width: max-content;
+  max-width: min(calc(100vw - 2rem), 24rem);
+  transform: translateX(-50%) !important;
 }
 
 [data-sonner-toaster].alenna-sonner [data-sonner-toast][data-styled='true'] {
   align-items: center;
   justify-content: center;
-  padding-inline: 1rem;
-  padding-block: 0.75rem;
+  width: max-content !important;
+  max-width: min(calc(100vw - 2rem), 24rem);
+  padding: 0.5rem 0.625rem;
+}
+
+@media (max-width: 600px) {
+  [data-sonner-toaster].alenna-sonner {
+    left: 50% !important;
+    right: auto !important;
+    width: max-content !important;
+    max-width: calc(100vw - 2rem);
+    transform: translateX(-50%) !important;
+  }
+
+  [data-sonner-toaster].alenna-sonner [data-sonner-toast][data-styled='true'] {
+    left: auto !important;
+    right: auto !important;
+    width: max-content !important;
+    max-width: calc(100vw - 2rem);
+  }
 }
 
 /* Calendar range highlight: pill bar aligned with circular start/end caps */

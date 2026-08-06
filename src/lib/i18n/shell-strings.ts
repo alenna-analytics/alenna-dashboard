@@ -1279,7 +1279,7 @@ const SHELL_STRINGS = {
     productsTableActions: 'Acciones',
     productsTableViewDetail: 'Ver detalle',
     productsTableCopySku: 'Copiar SKU',
-    productsCopyFeedback: 'copiado al portapapeles',
+    productsCopyFeedback: 'Copiado al portapapeles',
     productsTableWatchAdd: 'Marcar seguimiento',
     productsTableWatchRemove: 'Quitar seguimiento',
     productsTableRefresh: 'Actualizar',

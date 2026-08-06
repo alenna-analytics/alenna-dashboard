@@ -1,4 +1,5 @@
 import { flexRender, type Table as TableType } from "@tanstack/react-table"
+import { Fragment } from "react"
 import { Search, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -35,6 +36,8 @@ type DataTableProps<TData> = {
   }
   footer?: React.ReactNode
   onRowClick?: (row: TData) => void
+  expandedRowIds?: ReadonlySet<string>
+  renderExpandedContent?: (row: TData) => React.ReactNode
 }
 
 export function DataTable<TData>({
@@ -50,6 +53,8 @@ export function DataTable<TData>({
   search,
   footer,
   onRowClick,
+  expandedRowIds,
+  renderExpandedContent,
 }: DataTableProps<TData>) {
   const rows = table.getRowModel().rows
   const showSkeleton = isLoading && !hasEverLoaded
@@ -177,31 +182,48 @@ export function DataTable<TData>({
               </TableRow>
             ) : null}
             {!showSkeleton && !showEmpty
-              ? rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() ? "selected" : undefined}
-                  className={cn(
-                    "group",
-                    isPlain
-                      ? "bg-transparent hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
-                      : "bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]",
-                    onRowClick && "cursor-pointer",
-                  )}
-                  onClick={onRowClick ? () => onRowClick(row.original) : undefined}
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    const meta = cell.column.columnDef.meta as ColumnMetaWithCellClass | undefined
-                    return (
-                      <TableCell key={cell.id} className={meta?.cellClassName}>
-                        <div className="flex min-h-10 w-full items-center text-sm leading-normal [&:has([role=checkbox])]:[&_input]:self-center">
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </div>
-                      </TableCell>
-                    )
-                  })}
-                </TableRow>
-              ))
+              ? rows.map((row) => {
+                const isExpanded = expandedRowIds?.has(row.id) ?? false
+                const colSpan = table.getVisibleFlatColumns().length
+                return (
+                  <Fragment key={row.id}>
+                    <TableRow
+                      data-state={row.getIsSelected() ? "selected" : undefined}
+                      className={cn(
+                        "group",
+                        isPlain
+                          ? "bg-transparent hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
+                          : "bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]",
+                        onRowClick && "cursor-pointer",
+                      )}
+                      onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                    >
+                      {row.getVisibleCells().map((cell) => {
+                        const meta = cell.column.columnDef.meta as ColumnMetaWithCellClass | undefined
+                        return (
+                          <TableCell key={cell.id} className={meta?.cellClassName}>
+                            <div className="flex min-h-10 w-full items-center text-sm leading-normal [&:has([role=checkbox])]:[&_input]:self-center">
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </div>
+                          </TableCell>
+                        )
+                      })}
+                    </TableRow>
+                    {isExpanded && renderExpandedContent ? (
+                      <TableRow
+                        key={`${row.id}-detail`}
+                        className={cn(
+                          isPlain ? 'bg-transparent' : 'bg-[color-mix(in_srgb,var(--bg-section)_80%,white)]',
+                        )}
+                      >
+                        <TableCell colSpan={colSpan} className="py-3">
+                          {renderExpandedContent(row.original)}
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </Fragment>
+                )
+              })
               : null}
           </TableBody>
         </table>

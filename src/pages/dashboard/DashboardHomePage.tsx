@@ -53,7 +53,9 @@ import {
 } from '@/pages/reports/reports-ui-helpers'
 import { useMoney } from '@/hooks/use-money'
 import { buildWaterfallSegments } from '@/pages/reports/waterfall-segments'
+import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
 import { WaterfallChart } from '@/pages/reports/waterfall-chart'
+import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 import { useReports } from '@/pages/reports/use-reports'
 import { useProductReports } from '@/pages/reports/use-product-reports'
@@ -88,6 +90,7 @@ function zeroKpiResponse(currency: string): KpiResponse {
     currency,
     cogs_incomplete: false,
     order_status_counts: {},
+    settlement: zeroSettlementBreakdown(),
   }
 }
 
@@ -102,6 +105,7 @@ function zeroProductKpi(currency: string): ProductKpiResponse {
     units_sold: 0,
     order_count: 0,
     currency,
+    settlement: zeroSettlementBreakdown(),
   }
 }
 
@@ -620,6 +624,21 @@ export function DashboardHomePage() {
     }))
   }, [displayKpi, productMode, t, convertFromBase])
 
+  const settlementSource = productMode ? displayProductKpi?.settlement : displayKpi?.settlement
+
+  const settlementWaterfallSegments = useMemo(() => {
+    if (!settlementSource) return []
+    const segs = buildSettlementWaterfallSegments(settlementSource, t)
+    return segs.map((s) => ({
+      ...s,
+      value: convertFromBase(s.value),
+      stackedParts: s.stackedParts?.map((p) => ({
+        ...p,
+        value: convertFromBase(p.value),
+      })),
+    }))
+  }, [settlementSource, t, convertFromBase])
+
   const pairedChartBodyPx = useMemo(() => getTopProductsChartHeightPx(), [])
 
   const revenueComparePrevious = Boolean(revenuePrevPeriod && monthlyPrev)
@@ -1019,6 +1038,23 @@ export function DashboardHomePage() {
                       t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))
                     }
                     finalBarCaption={t('reportsWaterfallFinalHint')}
+                  />
+                </SectionContainer>
+              ) : null}
+              {settlementWaterfallSegments.length > 0 ? (
+                <SectionContainer className="overflow-visible">
+                  <SectionHeader
+                    title={t('reportsSectionSettlementTitle')}
+                    description={t('reportsSectionSettlementSubtitle')}
+                  />
+                  <WaterfallChart
+                    segments={settlementWaterfallSegments}
+                    currency={effectiveDisplayCurrency}
+                    grossRevenue={convertFromBase(settlementSource?.gross_revenue ?? 0)}
+                    formatPctOfGross={(pct) =>
+                      t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))
+                    }
+                    finalBarCaption={t('reportsSettlementFinalHint')}
                   />
                 </SectionContainer>
               ) : null}

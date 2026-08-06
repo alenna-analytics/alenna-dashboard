@@ -1,8 +1,17 @@
 import type { ColumnDef } from '@tanstack/react-table'
+import { Copy, MoreVertical, Wallet } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductListingApi, StockAlertLevel } from '@/lib/types/catalog'
+import { cn } from '@/lib/utils'
+import { Button } from '@/ui/button'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/ui/dropdown-menu'
 
 import { ProductDetailColumnHeaderWithHelp } from './product-detail-column-header-with-help'
 import {
@@ -24,6 +33,13 @@ const TEXT_CELL_META = {
   cellClassName: '[&>div]:justify-start',
 } as const
 
+const SKU_TRUNCATE_LEN = 12
+
+function truncateSku(sku: string): string {
+  if (sku.length <= SKU_TRUNCATE_LEN) return sku
+  return `${sku.slice(0, SKU_TRUNCATE_LEN)}…`
+}
+
 function alertRank(level: StockAlertLevel): number {
   if (level === 'out') return 0
   if (level === 'low') return 1
@@ -41,8 +57,17 @@ export function sortListingsByStockAlert(listings: ProductListingApi[]): Product
 export function createProductDetailChannelsColumns(
   t: (key: ShellStringKey) => string,
   fmtBase: (value: number) => string,
+  options?: {
+    onCopySku: (sku: string) => void
+    onViewSettlement?: (listing: ProductListingApi) => void
+    preset?: 'full' | 'platform-payment'
+  },
 ): ColumnDef<ProductListingApi>[] {
-  return [
+  const preset = options?.preset ?? 'full'
+  const showInventoryMetrics = preset === 'full'
+  const showActions = preset === 'full' && Boolean(options?.onViewSettlement)
+
+  const columns: ColumnDef<ProductListingApi>[] = [
     {
       id: 'platform',
       accessorKey: 'platform',
@@ -63,76 +88,99 @@ export function createProductDetailChannelsColumns(
       accessorKey: 'platform_sku',
       meta: {
         ...TEXT_CELL_META,
-        headerClassName: 'min-w-[14rem]',
-        cellClassName: 'min-w-[14rem] [&>div]:justify-start',
+        headerClassName: 'min-w-[10rem]',
+        cellClassName: 'min-w-[10rem] [&>div]:justify-start',
       },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsDetailListingColSku')} />
       ),
-      cell: ({ row }) => (
-        <span
-          className="block min-w-0 max-w-[18rem] truncate font-mono text-sm leading-normal"
-          title={row.original.platform_sku}
-        >
-          {row.original.platform_sku}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const sku = row.original.platform_sku
+        return (
+          <div className="flex min-w-0 items-center gap-1">
+            <span className="truncate font-mono text-sm leading-normal" title={sku}>
+              {truncateSku(sku)}
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="size-7 shrink-0 text-text-tertiary hover:text-text-primary"
+              aria-label={t('productsTableCopySku')}
+              onClick={(event) => {
+                event.stopPropagation()
+                options?.onCopySku(sku)
+              }}
+            >
+              <Copy className="size-3.5" aria-hidden />
+            </Button>
+          </div>
+        )
+      },
     },
-    {
-      id: 'stock_quantity',
-      accessorKey: 'stock_quantity',
-      meta: NUMERIC_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          className="justify-end"
-          column={column}
-          title={t('productsDetailListingColStock')}
-        />
-      ),
-      cell: ({ row }) => <ProductStockQuantityCell quantity={row.original.stock_quantity} />,
-    },
-    {
-      id: 'stock_alert',
-      accessorKey: 'stock_alert',
-      meta: TEXT_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('productsDetailListingColAlert')} />
-      ),
-      cell: ({ row }) => <ProductStockAlertBadge level={row.original.stock_alert} t={t} />,
-    },
-    {
-      id: 'velocity_units_per_day_90d',
-      accessorKey: 'velocity_units_per_day_90d',
-      meta: NUMERIC_CELL_META,
-      header: () => (
-        <div className="flex w-full min-w-0 items-center justify-end text-sm font-semibold text-text-secondary">
-          <ProductDetailColumnHeaderWithHelp
-            title={t('productsDetailListingColVelocityPerDay')}
-            helpText={t('productsDetailListingColVelocityPerDayHelp')}
+  ]
+
+  if (showInventoryMetrics) {
+    columns.push(
+      {
+        id: 'stock_quantity',
+        accessorKey: 'stock_quantity',
+        meta: NUMERIC_CELL_META,
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            className="justify-end"
+            column={column}
+            title={t('productsDetailListingColStock')}
           />
-        </div>
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm tabular-nums">
-          {formatListingVelocityPerDay(row.original.velocity_units_per_day_90d)}
-        </span>
-      ),
-    },
-    {
-      id: 'inventory_days',
-      accessorKey: 'inventory_days',
-      meta: NUMERIC_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          className="justify-end"
-          column={column}
-          title={t('productsDetailListingColInventoryDays')}
-        />
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm tabular-nums">{formatListingInventoryDays(row.original, t)}</span>
-      ),
-    },
+        ),
+        cell: ({ row }) => <ProductStockQuantityCell quantity={row.original.stock_quantity} />,
+      },
+      {
+        id: 'stock_alert',
+        accessorKey: 'stock_alert',
+        meta: TEXT_CELL_META,
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('productsDetailListingColAlert')} />
+        ),
+        cell: ({ row }) => <ProductStockAlertBadge level={row.original.stock_alert} t={t} />,
+      },
+      {
+        id: 'velocity_units_per_day_90d',
+        accessorKey: 'velocity_units_per_day_90d',
+        meta: NUMERIC_CELL_META,
+        header: () => (
+          <div className="flex w-full min-w-0 items-center justify-end text-sm font-semibold text-text-secondary">
+            <ProductDetailColumnHeaderWithHelp
+              title={t('productsDetailListingColVelocityPerDay')}
+              helpText={t('productsDetailListingColVelocityPerDayHelp')}
+            />
+          </div>
+        ),
+        cell: ({ row }) => (
+          <span className="text-sm tabular-nums">
+            {formatListingVelocityPerDay(row.original.velocity_units_per_day_90d)}
+          </span>
+        ),
+      },
+      {
+        id: 'inventory_days',
+        accessorKey: 'inventory_days',
+        meta: NUMERIC_CELL_META,
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            className="justify-end"
+            column={column}
+            title={t('productsDetailListingColInventoryDays')}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="text-sm tabular-nums">{formatListingInventoryDays(row.original, t)}</span>
+        ),
+      },
+    )
+  }
+
+  columns.push(
     {
       id: 'period_sales',
       accessorKey: 'period_sales',
@@ -164,6 +212,25 @@ export function createProductDetailChannelsColumns(
       ),
     },
     {
+      id: 'period_estimated_payout',
+      accessorFn: (row) => row.period_settlement?.estimated_payout ?? null,
+      meta: NUMERIC_CELL_META,
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          className="justify-end"
+          column={column}
+          title={t('productsDetailListingColEstimatedPayout')}
+        />
+      ),
+      cell: ({ row }) => {
+        const payout = row.original.period_settlement?.estimated_payout
+        if (payout === null || payout === undefined) {
+          return <span className="text-sm text-text-tertiary">—</span>
+        }
+        return <span className="text-sm tabular-nums">{fmtBase(payout)}</span>
+      },
+    },
+    {
       id: 'period_units_sold',
       accessorKey: 'period_units_sold',
       meta: NUMERIC_CELL_META,
@@ -178,5 +245,43 @@ export function createProductDetailChannelsColumns(
         <span className="text-sm tabular-nums">{row.original.period_units_sold}</span>
       ),
     },
-  ]
+  )
+
+  if (showActions) {
+    columns.push({
+      id: 'actions',
+      meta: {
+        headerClassName: '[&>div]:justify-end',
+        cellClassName: '[&>div]:justify-end',
+      },
+      header: () => null,
+      cell: ({ row }) => {
+        const listing = row.original
+        const hasSettlement = listing.period_settlement !== null
+        if (!hasSettlement) return null
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={cn(
+                'inline-flex size-8 items-center justify-center rounded-full border border-transparent text-foreground outline-none',
+                'hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30',
+              )}
+              aria-label={t('productsDetailListingActionsAria')}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <MoreVertical className="size-4 shrink-0" aria-hidden />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => options?.onViewSettlement?.(listing)}>
+                <Wallet className="size-4 shrink-0" aria-hidden />
+                {t('productsDetailListingViewSettlement')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+    })
+  }
+
+  return columns
 }

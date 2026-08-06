@@ -13,8 +13,10 @@ import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChannelsCmChart } from '@/pages/channels/channels-cm-chart'
 import { ChannelsCostStructureChart } from '@/pages/channels/channels-cost-structure-chart'
 import { ChannelsPnlTable } from '@/pages/channels/channels-pnl-table'
+import { ChannelsSettlementTable } from '@/pages/channels/channels-settlement-table'
 import {
   aggregateChannelKpisByPlatform,
+  aggregateChannelSettlementByPlatform,
   buildScoreboardRows,
   type ChannelPlatform,
 } from '@/pages/channels/channels-platform-aggregate'
@@ -197,6 +199,10 @@ export function ChannelsPage() {
     agg.total.ads_spend = Number(kpis?.tenant_ads_spend ?? 0)
     return agg
   }, [kpis, displayedPlatforms])
+  const settlementAgg = useMemo(
+    () => aggregateChannelSettlementByPlatform(kpis?.items ?? [], displayedPlatforms),
+    [kpis, displayedPlatforms],
+  )
   const previousAgg = useMemo(() => {
     if (!kpisPrev) return null
     const agg = aggregateChannelKpisByPlatform(kpisPrev.items, displayedPlatforms)
@@ -297,6 +303,13 @@ export function ChannelsPage() {
             formatMoney={formatConverted}
             t={t}
             cmIncomplete={cmIncomplete}
+          />
+
+          <ChannelsSettlementTable
+            metrics={settlementAgg}
+            platforms={displayedPlatforms}
+            formatMoney={formatConverted}
+            t={t}
           />
 
           <SectionContainer>

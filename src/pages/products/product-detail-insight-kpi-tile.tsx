@@ -17,6 +17,10 @@ type ProductDetailInsightKpiTileProps = {
   showValues: boolean
   isFetching: boolean
   skeleton: ReactNode
+  selectable?: boolean
+  selected?: boolean
+  accentColor?: string
+  onSelect?: () => void
 }
 
 export function ProductDetailInsightKpiTile({
@@ -29,9 +33,13 @@ export function ProductDetailInsightKpiTile({
   showValues,
   isFetching,
   skeleton,
+  selectable = false,
+  selected = false,
+  accentColor,
+  onSelect,
 }: ProductDetailInsightKpiTileProps) {
-  return (
-    <div className="rounded-md border border-border-subtle bg-muted/20 px-3 py-2.5">
+  const body = (
+    <>
       <div className="flex items-start justify-between gap-1">
         <p className="text-xs font-medium text-text-secondary">{label}</p>
         {helpText ? (
@@ -41,6 +49,7 @@ export function ProductDetailInsightKpiTile({
                 type="button"
                 className="shrink-0 rounded-full p-0.5 text-text-tertiary hover:text-text-secondary"
                 aria-label={helpText}
+                onClick={(event) => event.stopPropagation()}
               >
                 <HelpCircle className="size-3.5" aria-hidden />
               </button>
@@ -63,7 +72,46 @@ export function ProductDetailInsightKpiTile({
         {isFetching ? skeleton : value}
       </p>
       {!isFetching && breakdown ? breakdown : null}
-      {footer ? <p className="mt-1 text-[0.65rem] leading-tight text-text-tertiary">{footer}</p> : null}
+      <p
+        className={cn(
+          'mt-auto min-h-4 pt-1 text-[0.65rem] leading-tight text-text-tertiary',
+          !footer && 'invisible',
+        )}
+        aria-hidden={!footer}
+      >
+        {footer ?? '\u00a0'}
+      </p>
+    </>
+  )
+
+  const className = cn(
+    'flex h-full flex-col rounded-md border bg-muted/20 px-3 py-2.5 text-left transition-colors',
+    selected ? 'border-border-subtle bg-muted/30' : 'border-border-subtle',
+    selectable ? 'cursor-pointer hover:bg-muted/35' : '',
+  )
+
+  const style =
+    selected && accentColor
+      ? { borderTopWidth: 3, borderTopColor: accentColor, borderTopStyle: 'solid' as const }
+      : undefined
+
+  if (selectable && onSelect) {
+    return (
+      <button
+        type="button"
+        className={className}
+        style={style}
+        aria-pressed={selected}
+        onClick={onSelect}
+      >
+        {body}
+      </button>
+    )
+  }
+
+  return (
+    <div className={className} style={style}>
+      {body}
     </div>
   )
 }

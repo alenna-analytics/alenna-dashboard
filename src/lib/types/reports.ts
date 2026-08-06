@@ -15,6 +15,18 @@ export type MonthlyRevenueSeriesResponse = {
   months: MonthlyRevenueMonthRow[]
 }
 
+export type SettlementBreakdown = {
+  gross_revenue: number
+  discounts: number
+  returns: number
+  net_revenue: number
+  marketplace_fees: number
+  shipping_charges: number
+  tax_withholdings: number
+  estimated_payout: number
+  completeness: string
+}
+
 export type KpiResponse = {
   gross_revenue: number
   discounts: number
@@ -40,6 +52,7 @@ export type KpiResponse = {
   currency: string
   cogs_incomplete: boolean
   order_status_counts: Record<string, number>
+  settlement: SettlementBreakdown
 }
 
 export type ProductKpiResponse = {
@@ -52,6 +65,7 @@ export type ProductKpiResponse = {
   units_sold: number
   order_count: number
   currency: string
+  settlement: SettlementBreakdown
 }
 
 export type TopProductRow = {
@@ -98,6 +112,11 @@ export type ChannelKpiRow = {
   contribution_margin_pct: number
   units_sold: number
   order_count: number
+  marketplace_fees: number
+  shipping_charges: number
+  tax_withholdings: number
+  estimated_payout: number
+  settlement_completeness: string
 }
 
 export type ChannelKpisResponse = {

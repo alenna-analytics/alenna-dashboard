@@ -23,6 +23,7 @@ import {
 } from '@/lib/sales-metric-basis'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { KpiResponse, ProductKpiResponse, RevenueSeriesGranularity } from '@/lib/types/reports'
+import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { HomeChannelDonutChart } from '@/pages/dashboard/home-channel-donut-chart'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
@@ -55,6 +56,8 @@ import {
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
+import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 import { useProductReports } from '@/pages/reports/use-product-reports'
 import { useReports } from '@/pages/reports/use-reports'
@@ -127,6 +130,7 @@ function zeroKpiResponse(currency: string): KpiResponse {
     currency,
     cogs_incomplete: false,
     order_status_counts: {},
+    settlement: zeroSettlementBreakdown(),
   }
 }
 
@@ -141,6 +145,7 @@ function zeroProductKpi(currency: string): ProductKpiResponse {
     units_sold: 0,
     order_count: 0,
     currency,
+    settlement: zeroSettlementBreakdown(),
   }
 }
 
@@ -449,6 +454,21 @@ export function DashboardHomePageV2() {
     (n: number) => formatKpiAmount(convertFromBase(n), effectiveDisplayCurrency, lang),
     [convertFromBase, effectiveDisplayCurrency, lang],
   )
+
+  const settlementSource = productMode ? displayProductKpi?.settlement : displayKpi?.settlement
+
+  const settlementWaterfallSegments = useMemo(() => {
+    if (!settlementSource) return []
+    const segs = buildSettlementWaterfallSegments(settlementSource, t)
+    return segs.map((s) => ({
+      ...s,
+      value: convertFromBase(s.value),
+      stackedParts: s.stackedParts?.map((p) => ({
+        ...p,
+        value: convertFromBase(p.value),
+      })),
+    }))
+  }, [settlementSource, t, convertFromBase])
 
   const salesCurrent = productMode
     ? productKpiSales(displayProductKpi ?? zeroProductKpi(currency), salesMetricBasis)
@@ -981,6 +1001,24 @@ export function DashboardHomePageV2() {
               </div>
             </div>
           </PageSection>
+
+          {settlementWaterfallSegments.length > 0 ? (
+            <SectionContainer className="mt-6 mb-8 overflow-visible">
+              <SectionHeader
+                title={t('reportsSectionSettlementTitle')}
+                description={t('reportsSectionSettlementSubtitle')}
+              />
+              <WaterfallChart
+                segments={settlementWaterfallSegments}
+                currency={effectiveDisplayCurrency}
+                grossRevenue={convertFromBase(settlementSource?.gross_revenue ?? 0)}
+                formatPctOfGross={(pct) =>
+                  t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))
+                }
+                finalBarCaption={t('reportsSettlementFinalHint')}
+              />
+            </SectionContainer>
+          ) : null}
         </>
       )}
     </DashboardPage>

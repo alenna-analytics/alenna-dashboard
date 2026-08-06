@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { TopProductRow } from '@/lib/types/reports'
@@ -50,14 +51,12 @@ function TopProductChartRow({
     <li className="flex min-h-0 min-w-0" style={{ minHeight: TOP_PRODUCTS_BAR_ROW_PX }}>
       <div className="flex w-full min-w-0 flex-1 flex-col justify-center rounded-md px-0.5 py-2 sm:px-1">
         <p className="mb-1 min-w-0 truncate text-xs text-text-secondary" title={row.title}>
-          <a
-            href={`/dashboard/products/${row.productId}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to={`/dashboard/products/${row.productId}`}
             className="block min-w-0 truncate text-text-secondary underline-offset-2 hover:text-[var(--country-green-base)] hover:underline"
           >
             {row.title}
-          </a>
+          </Link>
         </p>
         <div className="flex min-h-4.5 min-w-0 items-center gap-1.5 sm:gap-2.5">
           <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted/55">

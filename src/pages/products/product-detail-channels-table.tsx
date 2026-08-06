@@ -1,5 +1,6 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table'
+import { toast } from 'sonner'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductListingApi } from '@/lib/types/catalog'
@@ -9,6 +10,7 @@ import {
   createProductDetailChannelsColumns,
   sortListingsByStockAlert,
 } from './product-detail-channels-columns'
+import { ProductListingSettlementSheet } from './product-listing-settlement-sheet'
 
 type ProductDetailChannelsTableProps = {
   listings: ProductListingApi[]
@@ -16,6 +18,7 @@ type ProductDetailChannelsTableProps = {
   isFetching: boolean
   t: (key: ShellStringKey) => string
   fmtBase: (value: number) => string
+  periodLabel: string | null
   emptyContent: React.ReactNode
 }
 
@@ -25,9 +28,34 @@ export function ProductDetailChannelsTable({
   isFetching,
   t,
   fmtBase,
+  periodLabel,
   emptyContent,
 }: ProductDetailChannelsTableProps) {
-  const columns = useMemo(() => createProductDetailChannelsColumns(t, fmtBase), [t, fmtBase])
+  const [selectedListing, setSelectedListing] = useState<ProductListingApi | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
+
+  const onCopySku = useCallback(
+    async (sku: string) => {
+      try {
+        await navigator.clipboard.writeText(sku)
+        toast.success(t('productsDetailToastSkuCopied'))
+      } catch {
+        toast.error(t('productsDetailToastSaveFailed'))
+      }
+    },
+    [t],
+  )
+
+  const onViewSettlement = useCallback((listing: ProductListingApi) => {
+    if (!listing.period_settlement) return
+    setSelectedListing(listing)
+    setSheetOpen(true)
+  }, [])
+
+  const columns = useMemo(
+    () => createProductDetailChannelsColumns(t, fmtBase, { onCopySku, onViewSettlement }),
+    [t, fmtBase, onCopySku, onViewSettlement],
+  )
   const sortedListings = useMemo(() => sortListingsByStockAlert(listings), [listings])
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
@@ -39,13 +67,23 @@ export function ProductDetailChannelsTable({
   })
 
   return (
-    <DataTable
-      table={table}
-      isLoading={isLoading}
-      isFetching={isFetching}
-      hasEverLoaded
-      emptyContent={emptyContent}
-      scrollClassName="max-h-[28rem] min-w-[640px] overflow-auto"
-    />
+    <>
+      <DataTable
+        table={table}
+        isLoading={isLoading}
+        isFetching={isFetching}
+        hasEverLoaded
+        emptyContent={emptyContent}
+        scrollClassName="max-h-[28rem] min-w-[640px] overflow-auto"
+      />
+      <ProductListingSettlementSheet
+        listing={selectedListing}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        fmtBase={fmtBase}
+        t={t}
+        periodLabel={periodLabel}
+      />
+    </>
   )
 }

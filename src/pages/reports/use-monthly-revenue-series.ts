@@ -48,7 +48,11 @@ export function useMonthlyRevenueSeries({
     ],
     placeholderData: productKey ? undefined : keepPreviousData,
     enabled: Boolean(
-      enabled && tenantId && startDate && endDate && (ids || connectionId),
+      enabled &&
+        tenantId &&
+        startDate &&
+        endDate &&
+        (ids || connectionId || productKey),
     ),
     queryFn: async (): Promise<MonthlyRevenueSeriesResponse> => {
       const params = new URLSearchParams()

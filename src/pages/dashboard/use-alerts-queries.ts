@@ -19,8 +19,9 @@ export function alertsListQueryKey(
   tenantId: string | null,
   section: AlertSection,
   limit?: number,
+  productId?: string | null,
 ) {
-  return ['alerts', 'list', tenantId, section, limit ?? 50] as const
+  return ['alerts', 'list', tenantId, section, limit ?? 50, productId ?? null] as const
 }
 
 export function useAlertsSummaryQuery() {
@@ -43,14 +44,15 @@ export function useAlertsSummaryQuery() {
 export function useAlertsListQuery(
   section: AlertSection,
   enabled: boolean,
-  options?: { limit?: number },
+  options?: { limit?: number; productId?: string },
 ) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const limit = options?.limit ?? 50
+  const productId = options?.productId
 
   return useQuery({
-    queryKey: alertsListQueryKey(tenantId, section, limit),
+    queryKey: alertsListQueryKey(tenantId, section, limit, productId),
     enabled: Boolean(tenantId) && enabled,
     staleTime: 30_000,
     refetchOnMount: 'always',
@@ -60,6 +62,9 @@ export function useAlertsListQuery(
         limit: String(limit),
         offset: '0',
       })
+      if (productId) {
+        params.set('product_id', productId)
+      }
       const res = await apiFetch(
         `/alerts?${params.toString()}`,
         (a) => getToken(a),

@@ -9,6 +9,7 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table"
 import { Columns3, X } from "lucide-react"
+import { toast } from "sonner"
 
 import type { ShellStringKey } from "@/lib/i18n/shell-strings"
 import type { ProductSummaryApi } from "@/lib/types/catalog"
@@ -135,10 +136,11 @@ export function ProductsDataTable({
     if (!sku?.trim()) return
     try {
       await navigator.clipboard.writeText(sku)
+      toast.success(t('productsDetailToastSkuCopied'))
     } catch {
-      /* ignore */
+      toast.error(t('productsDetailToastSaveFailed'))
     }
-  }, [])
+  }, [t])
 
   const onGoDetail = useCallback(
     (productId: string) => {

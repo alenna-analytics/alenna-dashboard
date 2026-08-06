@@ -5,7 +5,7 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { MoreVertical } from 'lucide-react'
+import { MoreVertical, Pencil, Trash2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -152,13 +152,15 @@ export function ExpensesTable({
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem onClick={() => onEdit(row.original)}>
+                    <Pencil className="size-4 shrink-0" aria-hidden />
                     {t('expensesEditBtn')}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={isBusy}
-                    className="text-destructive focus:text-destructive"
+                    variant="destructive"
                     onClick={() => onDelete(row.original.id)}
                   >
+                    <Trash2 className="size-4 shrink-0" aria-hidden />
                     {t('expensesDeleteBtn')}
                   </DropdownMenuItem>
                 </DropdownMenuGroup>

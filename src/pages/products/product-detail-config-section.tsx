@@ -24,6 +24,7 @@ type ProductDetailConfigSectionProps = {
   fmtBase: (value: number) => string
   updatedAtIso: string
   onEditCost: () => void
+  showSectionTitle?: boolean
 }
 
 export function ProductDetailConfigSection({
@@ -38,27 +39,28 @@ export function ProductDetailConfigSection({
   fmtBase,
   updatedAtIso,
   onEditCost,
+  showSectionTitle = true,
 }: ProductDetailConfigSectionProps) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-row flex-wrap items-center justify-between gap-3">
+      {showSectionTitle ? (
         <h2 className="text-xl font-semibold tracking-tight text-text-primary">
           {t('productsDetailSectionProductConfigTitle')}
         </h2>
-        <Button type="button" variant="outline" size="default" onClick={onEditCost}>
-          <Pencil className="size-3.5" />
-          {t('productsDetailEditAria')}
-        </Button>
-      </div>
+      ) : null}
 
       <Card className="border-none p-0 shadow-none hover:shadow-none">
-        <CardContent className="grid gap-4 p-0 lg:grid-cols-3 lg:items-stretch">
-          <div className="flex flex-col gap-3 lg:col-span-1">
+        <CardContent className="flex flex-col gap-4 p-0">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Card size="sm" className="flex-1">
-              <CardHeader className="pb-2">
+              <CardHeader className="flex flex-row items-start justify-between gap-2 pb-2">
                 <CardTitle className="text-xs font-medium text-text-secondary">
                   {t('productsDetailKpiCurrentCost')}
                 </CardTitle>
+                <Button type="button" variant="accent" size="sm" onClick={onEditCost}>
+                  <Pencil className="size-3.5" />
+                  {t('productsDetailEditAria')}
+                </Button>
               </CardHeader>
               <CardContent className="space-y-2 p-0">
                 <p className={cn('text-2xl font-semibold text-text-primary sm:text-3xl', NUM)}>
@@ -96,11 +98,11 @@ export function ProductDetailConfigSection({
               </CardContent>
             </Card>
           </div>
-          <div className="flex min-w-0 flex-col lg:col-span-2">
+          <div className="flex min-w-0 flex-col">
             <p className="mb-2 text-xs font-medium text-text-secondary">
               {t('productsDetailCostVsPriceOverTimeTitle')}
             </p>
-            <div className="min-h-64 flex-1">
+            <div className="min-h-80 w-full sm:min-h-96">
               <ProductCostOverTimeChart data={chartData.points} series={chartData.series} t={t} />
             </div>
           </div>

@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { Copy, MoreVertical } from 'lucide-react'
+import { Copy, MoreVertical, Wallet } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductListingApi, StockAlertLevel } from '@/lib/types/catalog'
@@ -59,10 +59,15 @@ export function createProductDetailChannelsColumns(
   fmtBase: (value: number) => string,
   options?: {
     onCopySku: (sku: string) => void
-    onViewSettlement: (listing: ProductListingApi) => void
+    onViewSettlement?: (listing: ProductListingApi) => void
+    preset?: 'full' | 'platform-payment'
   },
 ): ColumnDef<ProductListingApi>[] {
-  return [
+  const preset = options?.preset ?? 'full'
+  const showInventoryMetrics = preset === 'full'
+  const showActions = preset === 'full' && Boolean(options?.onViewSettlement)
+
+  const columns: ColumnDef<ProductListingApi>[] = [
     {
       id: 'platform',
       accessorKey: 'platform',
@@ -113,61 +118,69 @@ export function createProductDetailChannelsColumns(
         )
       },
     },
-    {
-      id: 'stock_quantity',
-      accessorKey: 'stock_quantity',
-      meta: NUMERIC_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          className="justify-end"
-          column={column}
-          title={t('productsDetailListingColStock')}
-        />
-      ),
-      cell: ({ row }) => <ProductStockQuantityCell quantity={row.original.stock_quantity} />,
-    },
-    {
-      id: 'stock_alert',
-      accessorKey: 'stock_alert',
-      meta: TEXT_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('productsDetailListingColAlert')} />
-      ),
-      cell: ({ row }) => <ProductStockAlertBadge level={row.original.stock_alert} t={t} />,
-    },
-    {
-      id: 'velocity_units_per_day_90d',
-      accessorKey: 'velocity_units_per_day_90d',
-      meta: NUMERIC_CELL_META,
-      header: () => (
-        <div className="flex w-full min-w-0 items-center justify-end text-sm font-semibold text-text-secondary">
-          <ProductDetailColumnHeaderWithHelp
-            title={t('productsDetailListingColVelocityPerDay')}
-            helpText={t('productsDetailListingColVelocityPerDayHelp')}
+  ]
+
+  if (showInventoryMetrics) {
+    columns.push(
+      {
+        id: 'stock_quantity',
+        accessorKey: 'stock_quantity',
+        meta: NUMERIC_CELL_META,
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            className="justify-end"
+            column={column}
+            title={t('productsDetailListingColStock')}
           />
-        </div>
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm tabular-nums">
-          {formatListingVelocityPerDay(row.original.velocity_units_per_day_90d)}
-        </span>
-      ),
-    },
-    {
-      id: 'inventory_days',
-      accessorKey: 'inventory_days',
-      meta: NUMERIC_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          className="justify-end"
-          column={column}
-          title={t('productsDetailListingColInventoryDays')}
-        />
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm tabular-nums">{formatListingInventoryDays(row.original, t)}</span>
-      ),
-    },
+        ),
+        cell: ({ row }) => <ProductStockQuantityCell quantity={row.original.stock_quantity} />,
+      },
+      {
+        id: 'stock_alert',
+        accessorKey: 'stock_alert',
+        meta: TEXT_CELL_META,
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title={t('productsDetailListingColAlert')} />
+        ),
+        cell: ({ row }) => <ProductStockAlertBadge level={row.original.stock_alert} t={t} />,
+      },
+      {
+        id: 'velocity_units_per_day_90d',
+        accessorKey: 'velocity_units_per_day_90d',
+        meta: NUMERIC_CELL_META,
+        header: () => (
+          <div className="flex w-full min-w-0 items-center justify-end text-sm font-semibold text-text-secondary">
+            <ProductDetailColumnHeaderWithHelp
+              title={t('productsDetailListingColVelocityPerDay')}
+              helpText={t('productsDetailListingColVelocityPerDayHelp')}
+            />
+          </div>
+        ),
+        cell: ({ row }) => (
+          <span className="text-sm tabular-nums">
+            {formatListingVelocityPerDay(row.original.velocity_units_per_day_90d)}
+          </span>
+        ),
+      },
+      {
+        id: 'inventory_days',
+        accessorKey: 'inventory_days',
+        meta: NUMERIC_CELL_META,
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            className="justify-end"
+            column={column}
+            title={t('productsDetailListingColInventoryDays')}
+          />
+        ),
+        cell: ({ row }) => (
+          <span className="text-sm tabular-nums">{formatListingInventoryDays(row.original, t)}</span>
+        ),
+      },
+    )
+  }
+
+  columns.push(
     {
       id: 'period_sales',
       accessorKey: 'period_sales',
@@ -232,7 +245,10 @@ export function createProductDetailChannelsColumns(
         <span className="text-sm tabular-nums">{row.original.period_units_sold}</span>
       ),
     },
-    {
+  )
+
+  if (showActions) {
+    columns.push({
       id: 'actions',
       meta: {
         headerClassName: '[&>div]:justify-end',
@@ -255,14 +271,17 @@ export function createProductDetailChannelsColumns(
             >
               <MoreVertical className="size-4 shrink-0" aria-hidden />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuItem onClick={() => options?.onViewSettlement(listing)}>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => options?.onViewSettlement?.(listing)}>
+                <Wallet className="size-4 shrink-0" aria-hidden />
                 {t('productsDetailListingViewSettlement')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )
       },
-    },
-  ]
+    })
+  }
+
+  return columns
 }

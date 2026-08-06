@@ -133,23 +133,41 @@ export function productDetailTrendPeriodValue(
   detail: ProductDetailApi,
   id: ProductDetailTrendMetricId,
 ): number | null {
+  return productDetailTrendPeriodValueFromFiltered(detail, id)
+}
+
+export function productDetailTrendPeriodValueFromFiltered(
+  period: Pick<
+    ProductDetailApi,
+    | 'period_gross_sales'
+    | 'period_net_sales'
+    | 'period_gross_profit'
+    | 'gross_profit'
+    | 'period_gross_units_sold'
+    | 'period_units_sold'
+    | 'period_orders'
+    | 'gross_margin_pct'
+    | 'inventory_days'
+  >,
+  id: ProductDetailTrendMetricId,
+): number | null {
   switch (id) {
     case 'gross-sales':
-      return detail.period_gross_sales
+      return period.period_gross_sales
     case 'net-sales':
-      return detail.period_net_sales
+      return period.period_net_sales
     case 'gross-profit':
-      return detail.period_gross_profit
+      return period.period_gross_profit
     case 'net-profit':
-      return detail.gross_profit
+      return period.gross_profit
     case 'units':
-      return detail.period_gross_units_sold ?? detail.period_units_sold
+      return period.period_gross_units_sold ?? period.period_units_sold
     case 'orders':
-      return detail.period_orders
+      return period.period_orders
     case 'contribution-margin-pct':
-      return Number(detail.gross_margin_pct)
+      return Number(period.gross_margin_pct)
     case 'inventory-days':
-      return detail.inventory_days
+      return period.inventory_days
     default:
       return null
   }

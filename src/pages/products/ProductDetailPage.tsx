@@ -24,7 +24,6 @@ import { ProductDetailSections } from './product-detail-sections'
 import { ProductDetailHeader } from './product-detail-header'
 import { ProductDetailUnsavedBar } from './product-detail-unsaved-bar'
 import { defaultProductInsightRange } from './product-detail-range'
-import { productDetailDateLocale } from './product-detail-header-utils'
 import { usePatchProductCostMutation, useProductDetailQuery } from './use-catalog-queries'
 
 function costAmountWithBaseCode(
@@ -140,34 +139,51 @@ function ProductDetailSkeleton() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-8">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-7 w-40" />
-            <Skeleton className="h-3 w-full max-w-md" />
-          </div>
-          <Skeleton className="h-8 w-full max-w-md shrink-0 rounded-md" />
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-md border border-border-subtle bg-muted/20 px-3 py-2.5"
-            >
-              <Skeleton className="mb-2 h-3 w-16" />
-              <Skeleton className="h-6 w-20" />
-            </div>
+      <div className="flex flex-col gap-4">
+        <div className="inline-flex w-full gap-6 border-b border-border-subtle pb-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className={cn('h-5 rounded-sm', i === 0 ? 'w-20' : 'w-28')} />
           ))}
         </div>
 
-        <div className="flex flex-col gap-3">
-          <Skeleton className="h-6 w-56" />
-          <Skeleton className="h-3 w-72 max-w-full" />
-          <div className="overflow-hidden rounded-md border border-border-subtle">
-            <Skeleton className="h-10 w-full rounded-none" />
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-11 w-full rounded-none border-t border-border-subtle" />
+        <div className="flex flex-col gap-8">
+          <Skeleton className="h-3 w-full max-w-md" />
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+            <Skeleton className="h-9 w-full max-w-md rounded-md" />
+            <Skeleton className="h-9 w-full rounded-md sm:w-48" />
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-md border border-border-subtle bg-muted/20 px-3 py-2.5"
+              >
+                <Skeleton className="mb-2 h-3 w-20" />
+                <Skeleton className="h-6 w-24" />
+              </div>
             ))}
+          </div>
+
+          <div className="flex justify-end">
+            <Skeleton className="h-8 w-28 rounded-md" />
+          </div>
+
+          <Skeleton className="h-[220px] w-full rounded-md" />
+
+          <div className="flex flex-col gap-3">
+            <Skeleton className="h-6 w-56" />
+            <Skeleton className="h-3 w-72 max-w-full" />
+            <div className="overflow-hidden rounded-md border border-border-subtle">
+              <Skeleton className="h-10 w-full rounded-none" />
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton
+                  key={i}
+                  className="h-11 w-full rounded-none border-t border-border-subtle"
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -369,6 +385,8 @@ function ProductDetailBody({ productId }: { productId: string }) {
       ) : null}
 
       <ProductDetailSections
+        productId={productId}
+        lang={lang}
         detail={detail}
         t={t}
         baseCurrency={baseCurrency}
@@ -389,7 +407,6 @@ function ProductDetailBody({ productId }: { productId: string }) {
         insightsFetching={detailQuery.isFetching}
         onEditCost={openEditSheet}
         onOpenVariantCostEditor={openVariantCostEditor}
-        dateLocale={productDetailDateLocale(lang)}
       />
 
       <ProductDetailUnsavedBar

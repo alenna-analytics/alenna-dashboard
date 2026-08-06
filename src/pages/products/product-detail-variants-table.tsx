@@ -16,6 +16,7 @@ type ProductDetailVariantsTableProps = {
   t: (key: ShellStringKey) => string
   fmtBase: (value: number) => string
   onOpenCostEditor: (productId: string) => void
+  showSectionTitle?: boolean
 }
 
 export function ProductDetailVariantsTable({
@@ -23,6 +24,7 @@ export function ProductDetailVariantsTable({
   t,
   fmtBase,
   onOpenCostEditor,
+  showSectionTitle = true,
 }: ProductDetailVariantsTableProps) {
   const onOpenVariantCostEditor = useCallback(
     (productId: string) => {
@@ -60,8 +62,14 @@ export function ProductDetailVariantsTable({
       className="scroll-mt-24 rounded-none border-none p-0 shadow-none hover:shadow-none"
     >
       <CardHeader className="p-0">
-        <CardTitle className="text-xl">{t('productsDetailVariantsTitle')}</CardTitle>
-        <CardDescription className="text-xs">{t('productsDetailVariantsDescription')}</CardDescription>
+        {showSectionTitle ? (
+          <>
+            <CardTitle className="text-xl">{t('productsDetailVariantsTitle')}</CardTitle>
+            <CardDescription className="text-xs">{t('productsDetailVariantsDescription')}</CardDescription>
+          </>
+        ) : (
+          <CardDescription className="text-xs">{t('productsDetailVariantsDescription')}</CardDescription>
+        )}
       </CardHeader>
       <CardContent className="p-0">
         <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">

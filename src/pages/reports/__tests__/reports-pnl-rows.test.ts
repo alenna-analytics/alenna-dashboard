@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { KpiResponse, ProductKpiResponse } from '@/lib/types/reports'
+import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
 import { buildProductPnlRows, buildTenantPnlRows } from '@/pages/reports/reports-pnl-rows'
 
 function baseKpi(overrides: Partial<KpiResponse> = {}): KpiResponse {
@@ -29,6 +30,7 @@ function baseKpi(overrides: Partial<KpiResponse> = {}): KpiResponse {
     currency: 'MXN',
     cogs_incomplete: false,
     order_status_counts: {},
+    settlement: zeroSettlementBreakdown(),
     ...overrides,
   }
 }
@@ -76,6 +78,7 @@ describe('buildProductPnlRows', () => {
       units_sold: 4,
       order_count: 2,
       currency: 'MXN',
+      settlement: zeroSettlementBreakdown(),
     }
     const rows = buildProductPnlRows(kpi, null, null)
     expect(rows.map((r) => r.id)).toEqual([

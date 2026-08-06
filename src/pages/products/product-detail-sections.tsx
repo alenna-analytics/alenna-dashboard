@@ -1,34 +1,20 @@
-import { useCallback, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
-import { useSalesMetricBasis } from '@/hooks/use-sales-metric-basis'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import {
-  productDetailProfitValue,
-  productDetailSalesValue,
-  productDetailUnitsValue,
-  productPlatformSalesValue,
-  productPlatformUnitsValue,
-  productProfitHelpKey,
-  productSalesHelpKey,
-  profitLabelKey,
-  salesLabelKey,
-  unitsLabelKey,
-} from '@/lib/sales-metric-basis'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
-import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
-import { SalesMetricBasisToggle } from '@/ui/sales-metric-basis-toggle'
-import { Skeleton } from '@/ui/skeleton'
+import type { DateRangePickerStrings } from '@/ui/date-range-picker'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs'
+import { ProductDetailAnalyticsSection } from './product-detail-analytics-section'
 import { ProductDetailChannelsTable } from './product-detail-channels-table'
+import { ProductDetailPlatformPaymentSection } from './product-detail-platform-payment-section'
 import { ProductDetailVariantsTable } from './product-detail-variants-table'
 import { ProductDetailConfigSection } from './product-detail-config-section'
 import type { ProductCostPriceChartData } from './product-cost-chart-points'
-import { formatInventoryDays } from './product-detail-format-inventory-days'
-import { ProductDetailInsightKpiTile } from './product-detail-insight-kpi-tile'
-import { ProductDetailKpiPlatformBreakdown } from './product-detail-kpi-platform-breakdown'
-import { ProductDetailWeeklyNetSalesChart } from './product-detail-weekly-net-sales-chart'
 
 type ProductDetailSectionsProps = {
+  productId: string
+  lang: string
   detail: ProductDetailApi
   t: (key: ShellStringKey) => string
   baseCurrency: string
@@ -49,10 +35,11 @@ type ProductDetailSectionsProps = {
   insightsFetching: boolean
   onEditCost: () => void
   onOpenVariantCostEditor: (productId: string) => void
-  dateLocale: string
 }
 
 export function ProductDetailSections({
+  productId,
+  lang,
   detail,
   t,
   baseCurrency,
@@ -73,100 +60,17 @@ export function ProductDetailSections({
   insightsFetching,
   onEditCost,
   onOpenVariantCostEditor,
-  dateLocale,
 }: ProductDetailSectionsProps) {
-  const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
   const hasVariants = (detail.variants?.length ?? 0) > 0
-  const isVariantChild = Boolean(detail.parent_product_id)
-
-  const weekLabelFor = useCallback(
-    (weekStart: string) => {
-      const d = new Date(`${weekStart}T12:00:00`)
-      return d.toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' })
-    },
-    [dateLocale],
-  )
-
-  const weeklyChartSubtitle = isVariantChild
-    ? t('productsDetailWeeklyNetSalesSubtitleVariant')
-    : hasVariants
-      ? t('productsDetailWeeklyNetSalesSubtitleParent')
-      : t('productsDetailWeeklyNetSalesSubtitle')
-
-  const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
-
-  const periodByPlatform = detail.period_by_platform ?? []
-
-  const platformSalesBreakdown =
-    periodByPlatform.length > 0 ? (
-      <ProductDetailKpiPlatformBreakdown
-        rows={periodByPlatform}
-        t={t}
-        formatValue={(row) => fmtBase(productPlatformSalesValue(row, salesMetricBasis))}
-      />
-    ) : undefined
-
-  const platformUnitsBreakdown =
-    periodByPlatform.length > 0 ? (
-      <ProductDetailKpiPlatformBreakdown
-        rows={periodByPlatform}
-        t={t}
-        formatValue={(row) =>
-          productPlatformUnitsValue(row, salesMetricBasis).toLocaleString()
-        }
-      />
-    ) : undefined
-
-  const salesValue = productDetailSalesValue(detail, salesMetricBasis)
-  const profitValue = productDetailProfitValue(detail, salesMetricBasis)
-  const unitsValue = productDetailUnitsValue(detail, salesMetricBasis)
-
-  const insightKpis = [
-    {
-      key: 'sales',
-      label: t(salesLabelKey(salesMetricBasis)),
-      helpText: t(productSalesHelpKey(salesMetricBasis)),
-      numericValue: salesValue,
-      value: insightKpi(
-        costAmountWithBaseCode(fmtBase(salesValue), baseCurrency, 'text-xs'),
-      ),
-      breakdown: platformSalesBreakdown,
-    },
-    {
-      key: 'profit',
-      label: t(profitLabelKey(salesMetricBasis)),
-      helpText: t(productProfitHelpKey(salesMetricBasis)),
-      numericValue: profitValue,
-      value: insightKpi(
-        costAmountWithBaseCode(fmtBase(profitValue), baseCurrency, 'text-xs'),
-      ),
-    },
-    {
-      key: 'units',
-      label: t(unitsLabelKey(salesMetricBasis)),
-      numericValue: unitsValue,
-      value: insightKpi(unitsValue.toLocaleString()),
-      breakdown: platformUnitsBreakdown,
-    },
-    {
-      key: 'margin',
-      label: t('productsDetailKpiContributionMarginPct'),
-      helpText: t('productsDetailKpiContributionMarginPctHelp'),
-      numericValue: Number(detail.gross_margin_pct),
-      value: insightKpi(`${Number(detail.gross_margin_pct).toFixed(1)}%`),
-    },
-    {
-      key: 'inventory-days',
-      label: t('productsDetailKpiInventoryDays'),
-      helpText: t('productsDetailKpiInventoryDaysHelp'),
-      footer: t('productsDetailKpiInventoryDaysWindow'),
-      numericValue: detail.inventory_days,
-      value: insightKpi(formatInventoryDays(detail, t)),
-    },
-  ]
+  const showVariantsTab = hasVariants
+  const showCogsTab = !hasVariants
+  const periodLabel =
+    detail.period_start && detail.period_end
+      ? `${detail.period_start} — ${detail.period_end}`
+      : null
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       {detail.has_listing_currency_mismatch ? (
         <Card size="sm" variant="solid">
           <CardContent className="py-3 text-xs text-text-secondary">
@@ -175,119 +79,119 @@ export function ProductDetailSections({
         </Card>
       ) : null}
 
-      <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
-        <CardHeader className="flex flex-col gap-4 p-0 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-xl">{t('productsDetailSectionInsightsTitle')}</CardTitle>
-            <CardDescription className="text-xs">
-              {t('productsDetailSectionInsightsDescription')}
-            </CardDescription>
-          </div>
-          <DateRangePicker
-            strings={pickerStrings}
-            startValue={insightStart}
-            endValue={insightEnd}
-            onStartChange={(v) => v && setInsightStart(v)}
-            onEndChange={(v) => v && setInsightEnd(v)}
-            className="w-full max-w-md shrink-0"
-          />
-        </CardHeader>
-        <CardContent className="p-0">
-          <SalesMetricBasisToggle
-            basis={salesMetricBasis}
-            onBasisChange={setSalesMetricBasis}
-            t={t}
-            className="mb-3"
-          />
-          <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
-            {insightKpis.map((kpi) => (
-              <ProductDetailInsightKpiTile
-                key={kpi.key}
-                label={kpi.label}
-                helpText={kpi.helpText}
-                footer={kpi.footer}
-                breakdown={kpi.breakdown}
-                showValues={showInsightValues}
-                isFetching={insightsFetching}
-                skeleton={kpiSkeleton}
-                numericValue={kpi.numericValue}
-                value={kpi.value}
-              />
-            ))}
-          </div>
-          <div className="mt-4 border-t border-border-subtle/60 pt-4">
-            <p className="text-sm font-semibold text-text-primary">
-              {t('productsDetailWeeklyNetSalesTitle')}
-            </p>
-            <p className="mb-3 text-xs text-text-secondary">
-              {weeklyChartSubtitle}
-            </p>
-            <ProductDetailWeeklyNetSalesChart
-              points={detail.weekly_net_sales ?? []}
-              weekLabelFor={weekLabelFor}
-              formatValue={fmtBase}
-              ariaLabel={t('productsDetailWeeklyNetSalesAria')}
-              tooltipLabels={{
-                week: t('productsDetailWeeklyNetSalesTooltipWeek'),
-                sales: t('productsDetailWeeklyNetSalesTooltipSales'),
-              }}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="analytics">
+        <TabsList variant="line">
+          <TabsTrigger value="analytics">{t('productsDetailTabAnalytics')}</TabsTrigger>
+          {showVariantsTab ? (
+            <TabsTrigger value="variants">{t('productsDetailTabVariants')}</TabsTrigger>
+          ) : null}
+          {showCogsTab ? (
+            <TabsTrigger value="cogs">{t('productsDetailTabCogs')}</TabsTrigger>
+          ) : null}
+          <TabsTrigger value="platform-payment">{t('productsDetailTabPlatformPayment')}</TabsTrigger>
+        </TabsList>
 
-      {hasVariants ? (
-        <ProductDetailVariantsTable
-          variants={detail.variants}
-          t={t}
-          fmtBase={fmtBase}
-          onOpenCostEditor={onOpenVariantCostEditor}
-        />
-      ) : (
-        <Card
-          id="product-channels-table"
-          className="scroll-mt-24 rounded-none border-none p-0 shadow-none hover:shadow-none"
-        >
-          <CardHeader className="p-0">
-            <CardTitle className="text-xl">{t('productsDetailSectionChannelsTitle')}</CardTitle>
-            <CardDescription className="text-xs">
-              {t('productsDetailSectionChannelsDescription')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-              <ProductDetailChannelsTable
-              listings={detail.listings}
-              isLoading={false}
-              isFetching={false}
+        <div className="relative mt-6 grid w-full grid-cols-1 overflow-hidden">
+        <TabsContent value="analytics">
+          <div className="flex flex-col gap-8">
+            <ProductDetailAnalyticsSection
+              productId={productId}
+              lang={lang}
+              detail={detail}
+              t={t}
+              baseCurrency={baseCurrency}
+              fmtBase={fmtBase}
+              costAmountWithBaseCode={costAmountWithBaseCode}
+              insightStart={insightStart}
+              insightEnd={insightEnd}
+              setInsightStart={setInsightStart}
+              setInsightEnd={setInsightEnd}
+              pickerStrings={pickerStrings}
+              showInsightValues={showInsightValues}
+              insightKpi={insightKpi}
+              insightsFetching={insightsFetching}
+              showSectionTitle={false}
+            />
+
+            {!hasVariants ? (
+              <Card
+                id="product-channels-table"
+                className="scroll-mt-24 rounded-none border-none p-0 shadow-none hover:shadow-none"
+              >
+                <CardHeader className="p-0">
+                  <CardTitle className="text-xl">{t('productsDetailSectionChannelsTitle')}</CardTitle>
+                  <CardDescription className="text-xs">
+                    {t('productsDetailSectionChannelsDescription')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0 pt-4">
+                  <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+                    <ProductDetailChannelsTable
+                      listings={detail.listings}
+                      isLoading={false}
+                      isFetching={insightsFetching}
+                      t={t}
+                      fmtBase={fmtBase}
+                      periodLabel={periodLabel}
+                      emptyContent={
+                        <p className="py-8 text-center text-sm text-text-tertiary">
+                          {t('productsDetailChannelsEmpty')}
+                        </p>
+                      }
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+          </div>
+        </TabsContent>
+
+        {showVariantsTab ? (
+          <TabsContent value="variants">
+            <ProductDetailVariantsTable
+              variants={detail.variants}
               t={t}
               fmtBase={fmtBase}
-              emptyContent={
-                <p className="py-8 text-center text-sm text-text-tertiary">
-                  {t('productsDetailChannelsEmpty')}
-                </p>
-              }
-              />
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              onOpenCostEditor={onOpenVariantCostEditor}
+              showSectionTitle={false}
+            />
+          </TabsContent>
+        ) : null}
 
-      {!hasVariants ? (
-        <ProductDetailConfigSection
-          t={t}
-          baseCurrency={baseCurrency}
-          bigCostFormatted={bigCostFormatted}
-          updatedBadge={updatedBadge}
-          effectiveSinceLabel={effectiveSinceLabel}
-          avgHistory={avgHistory}
-          chartData={chartData}
-          costAmountWithBaseCode={costAmountWithBaseCode}
-          fmtBase={fmtBase}
-          updatedAtIso={detail.updated_at}
-          onEditCost={onEditCost}
-        />
-      ) : null}
+        {showCogsTab ? (
+          <TabsContent value="cogs">
+            <ProductDetailConfigSection
+              t={t}
+              baseCurrency={baseCurrency}
+              bigCostFormatted={bigCostFormatted}
+              updatedBadge={updatedBadge}
+              effectiveSinceLabel={effectiveSinceLabel}
+              avgHistory={avgHistory}
+              chartData={chartData}
+              costAmountWithBaseCode={costAmountWithBaseCode}
+              fmtBase={fmtBase}
+              updatedAtIso={detail.updated_at}
+              onEditCost={onEditCost}
+              showSectionTitle={false}
+            />
+          </TabsContent>
+        ) : null}
+
+        <TabsContent value="platform-payment">
+          <ProductDetailPlatformPaymentSection
+            detail={detail}
+            isFetching={insightsFetching}
+            t={t}
+            fmtBase={fmtBase}
+            insightStart={insightStart}
+            insightEnd={insightEnd}
+            setInsightStart={setInsightStart}
+            setInsightEnd={setInsightEnd}
+            pickerStrings={pickerStrings}
+          />
+        </TabsContent>
+        </div>
+      </Tabs>
     </div>
   )
 }

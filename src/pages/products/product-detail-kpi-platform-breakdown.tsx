@@ -1,18 +1,17 @@
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { ProductPlatformPeriodApi } from '@/lib/types/catalog'
 import { ProductPlatformLogoName } from './product-platform-logo-name'
 
-type ProductDetailKpiPlatformBreakdownProps = {
-  rows: ProductPlatformPeriodApi[]
-  formatValue: (row: ProductPlatformPeriodApi) => string
+type ProductDetailKpiPlatformBreakdownProps<T extends { platform: string }> = {
+  rows: T[]
+  formatValue: (row: T) => string
   t: (key: ShellStringKey) => string
 }
 
-export function ProductDetailKpiPlatformBreakdown({
+export function ProductDetailKpiPlatformBreakdown<T extends { platform: string }>({
   rows,
   formatValue,
   t,
-}: ProductDetailKpiPlatformBreakdownProps) {
+}: ProductDetailKpiPlatformBreakdownProps<T>) {
   if (rows.length === 0) {
     return null
   }

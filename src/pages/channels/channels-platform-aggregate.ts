@@ -24,6 +24,83 @@ export type PlatformMetrics = {
   units_sold: number
 }
 
+export type PlatformSettlementMetrics = {
+  platform: string
+  gross_revenue: number
+  discounts: number
+  returns: number
+  net_revenue: number
+  marketplace_fees: number
+  shipping_charges: number
+  tax_withholdings: number
+  estimated_payout: number
+  completeness: string
+}
+
+function emptySettlementMetrics(platform: string): PlatformSettlementMetrics {
+  return {
+    platform,
+    gross_revenue: 0,
+    discounts: 0,
+    returns: 0,
+    net_revenue: 0,
+    marketplace_fees: 0,
+    shipping_charges: 0,
+    tax_withholdings: 0,
+    estimated_payout: 0,
+    completeness: 'unavailable',
+  }
+}
+
+function mergeCompleteness(a: string, b: string): string {
+  const rank = (c: string) => {
+    const x = c.trim().toLowerCase()
+    if (x === 'unavailable') return 0
+    if (x === 'partial') return 1
+    return 2
+  }
+  return rank(a) <= rank(b) ? a : b
+}
+
+function addSettlementRow(target: PlatformSettlementMetrics, row: ChannelKpiRow): void {
+  target.gross_revenue += row.gross_revenue
+  target.discounts += row.discounts
+  target.returns += row.returns
+  target.net_revenue += row.net_revenue
+  target.marketplace_fees += row.marketplace_fees
+  target.shipping_charges += row.shipping_charges
+  target.tax_withholdings += row.tax_withholdings
+  target.estimated_payout += row.estimated_payout
+  target.completeness = mergeCompleteness(target.completeness, row.settlement_completeness)
+}
+
+export function aggregateChannelSettlementByPlatform(
+  items: ChannelKpiRow[],
+  platforms: ChannelPlatform[],
+): Record<string, PlatformSettlementMetrics> {
+  const byPlatform: Record<string, PlatformSettlementMetrics> = {}
+  for (const platform of platforms) {
+    byPlatform[platform.slug] = emptySettlementMetrics(platform.slug)
+  }
+  const total = emptySettlementMetrics('total')
+
+  for (const row of items) {
+    const slug = row.platform.trim().toLowerCase()
+    if (byPlatform[slug]) {
+      addSettlementRow(byPlatform[slug], row)
+    }
+    addSettlementRow(total, row)
+  }
+
+  const result: Record<string, PlatformSettlementMetrics> = {
+    total,
+  }
+  for (const platform of platforms) {
+    result[platform.slug] = byPlatform[platform.slug]
+  }
+  return result
+}
+
 function emptyMetrics(platform: string): PlatformMetrics {
   return {
     platform,

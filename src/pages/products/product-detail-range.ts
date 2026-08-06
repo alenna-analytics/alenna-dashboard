@@ -3,7 +3,7 @@ import { toYmd } from '@/pages/reports/reports-ui-helpers'
 export function defaultProductInsightRange(): { start: string; end: string } {
   const end = new Date()
   const start = new Date()
-  start.setDate(start.getDate() - 29)
+  start.setDate(start.getDate() - 55)
   return { start: toYmd(start), end: toYmd(end) }
 }
 

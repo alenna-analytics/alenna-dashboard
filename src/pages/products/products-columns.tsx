@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import type { ComponentProps } from "react"
 import { Link } from "react-router-dom"
-import { MoreVertical } from "lucide-react"
+import { Copy, Eye, MoreVertical } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { ShellStringKey } from "@/lib/i18n/shell-strings"
@@ -294,8 +294,14 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => onGoDetail(p.id)}>{t("productsTableViewDetail")}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onCopySku(p.internal_sku)}>{t("productsTableCopySku")}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onGoDetail(p.id)}>
+                  <Eye className="size-4 shrink-0" aria-hidden />
+                  {t("productsTableViewDetail")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onCopySku(p.internal_sku)}>
+                  <Copy className="size-4 shrink-0" aria-hidden />
+                  {t("productsTableCopySku")}
+                </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>

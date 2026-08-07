@@ -140,7 +140,15 @@ export function ProductDetailPlatformPaymentSection({
 
       {isFetching ? (
         <>
-          <div className="grid grid-cols-1 gap-3 sm:max-w-xs">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:max-w-2xl">
+            <ProductDetailInsightKpiTile
+              label={t('productsDetailPlatformPaymentGrossSales')}
+              helpText={t('productsDetailPlatformPaymentGrossSalesHelp')}
+              value=""
+              showValues={false}
+              isFetching
+              skeleton={<Skeleton className="mt-0.5 h-7 w-32 max-w-full" aria-hidden />}
+            />
             <ProductDetailInsightKpiTile
               label={t('productsDetailPlatformPaymentTotalPayout')}
               helpText={t('productsDetailPlatformPaymentTotalPayoutHelp')}
@@ -160,7 +168,16 @@ export function ProductDetailPlatformPaymentSection({
         </>
       ) : settlement ? (
         <>
-          <div className="grid grid-cols-1 gap-3 sm:max-w-xs">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:max-w-2xl">
+            <ProductDetailInsightKpiTile
+              label={t('productsDetailPlatformPaymentGrossSales')}
+              helpText={t('productsDetailPlatformPaymentGrossSalesHelp')}
+              value={fmtBase(settlement.gross_revenue)}
+              numericValue={settlement.gross_revenue}
+              showValues
+              isFetching={false}
+              skeleton={<Skeleton className="mt-0.5 h-7 w-32 max-w-full" aria-hidden />}
+            />
             <ProductDetailInsightKpiTile
               label={t('productsDetailPlatformPaymentTotalPayout')}
               helpText={t('productsDetailPlatformPaymentTotalPayoutHelp')}

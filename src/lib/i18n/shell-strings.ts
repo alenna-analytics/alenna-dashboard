@@ -1101,13 +1101,14 @@ const SHELL_STRINGS = {
     productsDetailKpiGrossSalesHelp:
       'Ingresos de este producto antes de descuentos, devoluciones y cancelaciones.',
     productsDetailKpiGrossProfit: 'Utilidad bruta',
+    productsDetailKpiGrossProfitOnGrossSales: 'Utilidad sobre ventas brutas',
     productsDetailKpiNetProfitHelp:
-      'Ventas netas del producto menos su costo (COGS). Sin ads, envío ni gastos fijos.',
+      'Utilidad bruta menos comisiones, envío, impuestos de canal y publicidad.',
     productsDetailKpiGrossProfitOnGrossSalesHelp:
       'Ventas brutas del producto menos su costo (COGS). Sin ads, envío ni gastos fijos.',
     productsDetailKpiContributionMarginPct: 'Contribución marginal %',
     productsDetailKpiContributionMarginPctHelp:
-      'Utilidad bruta del producto dividida entre sus ventas del periodo.',
+      'Utilidad neta del producto dividida entre sus ventas netas del periodo.',
     productsDetailKpiGrossMarginPct: 'Utilidad bruta %',
     productsDetailKpiGrossMarginPctHelp:
       'Utilidad bruta del producto dividida entre sus ventas del periodo.',
@@ -1146,6 +1147,9 @@ const SHELL_STRINGS = {
     productsDetailPlatformPaymentTotalPayout: 'Pago total',
     productsDetailPlatformPaymentTotalPayoutHelp:
       'Cobro neto estimado de la plataforma después de comisiones, envío e impuestos.',
+    productsDetailPlatformPaymentGrossSales: 'Ventas brutas',
+    productsDetailPlatformPaymentGrossSalesHelp:
+      'Ingresos de este producto antes de descuentos, devoluciones y cancelaciones.',
     productsDetailPlatformPaymentListingCount: '{count} publicaciones agrupadas',
     productsDetailPlatformPaymentEmpty: 'Sin datos de pago por plataforma en este periodo.',
     productsDetailMetricsTrendSelectHint: 'Selecciona al menos una métrica en las cards de arriba.',
@@ -2570,13 +2574,14 @@ const SHELL_STRINGS = {
     productsDetailKpiGrossSalesHelp:
       'This product’s revenue before discounts, returns, and cancellations.',
     productsDetailKpiGrossProfit: 'Gross profit',
+    productsDetailKpiGrossProfitOnGrossSales: 'Profit on gross sales',
     productsDetailKpiNetProfitHelp:
-      'Product net sales minus its cost (COGS). Excludes ads, shipping, and fixed opex.',
+      'Gross profit minus platform fees, shipping, channel taxes, and advertising.',
     productsDetailKpiGrossProfitOnGrossSalesHelp:
       'Product gross sales minus its cost (COGS). Excludes ads, shipping, and fixed opex.',
     productsDetailKpiContributionMarginPct: 'Marginal Contribution %',
     productsDetailKpiContributionMarginPctHelp:
-      'Product gross profit divided by its sales for the period.',
+      'Product net profit divided by its net sales for the period.',
     productsDetailKpiGrossMarginPct: 'Gross margin %',
     productsDetailKpiGrossMarginPctHelp:
       'Product gross profit divided by its sales for the period.',
@@ -2615,6 +2620,9 @@ const SHELL_STRINGS = {
     productsDetailPlatformPaymentTotalPayout: 'Total payout',
     productsDetailPlatformPaymentTotalPayoutHelp:
       'Estimated net platform payout after fees, shipping, and tax withholdings.',
+    productsDetailPlatformPaymentGrossSales: 'Gross sales',
+    productsDetailPlatformPaymentGrossSalesHelp:
+      'This product’s revenue before discounts, returns, and cancellations.',
     productsDetailPlatformPaymentListingCount: '{count} listings grouped',
     productsDetailPlatformPaymentEmpty: 'No platform payout data for this period.',
     productsDetailMetricsTrendSelectHint: 'Select at least one metric card above.',

@@ -33,6 +33,7 @@ import {
   productDetailTrendPeriodValueFromFiltered,
   toggleProductDetailTrendMetric,
   type ProductDetailTrendMetricId,
+  type ProductDetailPeriodView,
 } from './product-detail-trend-metrics'
 
 type ProductDetailAnalyticsSectionProps = {
@@ -56,27 +57,19 @@ type ProductDetailAnalyticsSectionProps = {
 
 function filteredPeriodAsDetailShape(
   filtered: ReturnType<typeof filteredProductDetailPeriod>,
-): Pick<
-  ProductDetailApi,
-  | 'period_gross_sales'
-  | 'period_net_sales'
-  | 'period_gross_profit'
-  | 'gross_profit'
-  | 'period_gross_units_sold'
-  | 'period_units_sold'
-  | 'period_orders'
-  | 'gross_margin_pct'
-  | 'inventory_days'
-> {
+): ProductDetailPeriodView {
   return {
     period_gross_sales: filtered.period_gross_sales,
     period_net_sales: filtered.period_net_sales,
     period_gross_profit: filtered.period_gross_profit,
-    gross_profit: filtered.net_profit,
+    gross_profit: filtered.gross_profit,
+    contribution_margin: filtered.contribution_margin,
+    contribution_margin_pct: filtered.contribution_margin_pct,
+    gross_margin_pct: filtered.gross_margin_pct,
+    cm_incomplete: filtered.cm_incomplete,
     period_gross_units_sold: filtered.period_units_sold,
     period_units_sold: filtered.period_units_sold,
     period_orders: filtered.period_orders,
-    gross_margin_pct: filtered.contribution_margin_pct,
     inventory_days: filtered.inventory_days,
   }
 }

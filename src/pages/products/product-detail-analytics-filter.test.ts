@@ -64,6 +64,9 @@ function detail(partial: Partial<ProductDetailApi>): ProductDetailApi {
     period_end: '2026-01-31',
     gross_profit: 800,
     gross_margin_pct: 88.9,
+    contribution_margin: 650,
+    contribution_margin_pct: 72.2,
+    cm_incomplete: false,
     velocity_units_per_day_90d: null,
     consolidated_stock_quantity: null,
     inventory_days: 0,
@@ -125,13 +128,37 @@ describe('filteredProductDetailPeriod', () => {
     const filtered = filteredProductDetailPeriod(detail({}), PRODUCT_DETAIL_ALL_CHANNELS)
     expect(filtered.period_gross_sales).toBe(1000)
     expect(filtered.period_orders).toBe(8)
+    expect(filtered.gross_profit).toBe(800)
+    expect(filtered.contribution_margin).toBe(650)
   })
 
   it('aggregates mercadolibre listings into one platform view', () => {
-    const filtered = filteredProductDetailPeriod(detail({}), 'mercadolibre')
+    const filtered = filteredProductDetailPeriod(
+      detail({
+        period_settlement_by_platform: [
+          {
+            platform: 'mercadolibre',
+            gross_revenue: 600,
+            discounts: 0,
+            returns: 60,
+            net_revenue: 540,
+            marketplace_fees: 50,
+            shipping_charges: 20,
+            tax_withholdings: 0,
+            estimated_payout: 470,
+            completeness: 'full',
+          },
+        ],
+      }),
+      'mercadolibre',
+    )
     expect(filtered.period_gross_sales).toBe(600)
     expect(filtered.period_net_sales).toBe(540)
     expect(filtered.period_units_sold).toBe(6)
     expect(filtered.period_orders).toBe(5)
+    expect(filtered.gross_profit).toBe(480)
+    expect(filtered.contribution_margin).toBe(410)
+    expect(filtered.gross_margin_pct).toBeCloseTo(88.888, 2)
+    expect(filtered.contribution_margin_pct).toBeCloseTo(75.926, 2)
   })
 })

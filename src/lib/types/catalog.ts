@@ -172,6 +172,9 @@ export type ProductDetailApi = {
   period_end: string | null
   gross_profit: number
   gross_margin_pct: number
+  contribution_margin: number
+  contribution_margin_pct: number
+  cm_incomplete: boolean
   velocity_units_per_day_90d: number | null
   consolidated_stock_quantity: number | null
   inventory_days: number | null

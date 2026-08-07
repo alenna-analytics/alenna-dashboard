@@ -34,8 +34,24 @@ export const PRODUCT_DETAIL_METRIC_COLORS: Record<ProductDetailTrendMetricId, st
   'inventory-days': '#64748b',
 }
 
+export type ProductDetailPeriodView = Pick<
+  ProductDetailApi,
+  | 'period_gross_sales'
+  | 'period_net_sales'
+  | 'period_gross_profit'
+  | 'gross_profit'
+  | 'contribution_margin'
+  | 'contribution_margin_pct'
+  | 'gross_margin_pct'
+  | 'cm_incomplete'
+  | 'period_gross_units_sold'
+  | 'period_units_sold'
+  | 'period_orders'
+  | 'inventory_days'
+>
+
 export function isProductDetailTrendMetricChartable(id: ProductDetailTrendMetricId): boolean {
-  return id !== 'inventory-days'
+  return id !== 'inventory-days' && id !== 'net-profit' && id !== 'contribution-margin-pct'
 }
 
 export function isProductDetailTrendMetricCount(id: ProductDetailTrendMetricId): boolean {
@@ -82,9 +98,9 @@ export function productDetailTrendMetricHelp(
     case 'net-sales':
       return t('productsDetailKpiNetSalesHelp')
     case 'gross-profit':
-      return t('productsDetailKpiGrossProfitOnGrossSalesHelp')
+      return t('reportsKpiHelpGrossProfit')
     case 'net-profit':
-      return t('productsDetailKpiNetProfitHelp')
+      return t('reportsKpiHelpContributionMargin')
     case 'orders':
       return t('productsDetailKpiOrdersHelp')
     case 'units':
@@ -96,11 +112,6 @@ export function productDetailTrendMetricHelp(
     default:
       return undefined
   }
-}
-
-function rowNetProfit(row: Pick<MonthlyChartRow, 'gross_revenue' | 'gross_profit' | 'net_revenue'>): number {
-  const cogs = row.gross_revenue - row.gross_profit
-  return row.net_revenue - cogs
 }
 
 export function productDetailTrendSeriesValue(
@@ -115,15 +126,13 @@ export function productDetailTrendSeriesValue(
     case 'gross-profit':
       return row.gross_profit
     case 'net-profit':
-      return rowNetProfit(row)
+      return 0
     case 'units':
       return row.units_sold ?? 0
     case 'orders':
       return row.order_count ?? 0
-    case 'contribution-margin-pct': {
-      const netProfit = rowNetProfit(row)
-      return row.net_revenue !== 0 ? (netProfit / row.net_revenue) * 100 : 0
-    }
+    case 'contribution-margin-pct':
+      return 0
     case 'inventory-days':
       return 0
     default:
@@ -139,18 +148,7 @@ export function productDetailTrendPeriodValue(
 }
 
 export function productDetailTrendPeriodValueFromFiltered(
-  period: Pick<
-    ProductDetailApi,
-    | 'period_gross_sales'
-    | 'period_net_sales'
-    | 'period_gross_profit'
-    | 'gross_profit'
-    | 'period_gross_units_sold'
-    | 'period_units_sold'
-    | 'period_orders'
-    | 'gross_margin_pct'
-    | 'inventory_days'
-  >,
+  period: ProductDetailPeriodView,
   id: ProductDetailTrendMetricId,
 ): number | null {
   switch (id) {
@@ -159,15 +157,15 @@ export function productDetailTrendPeriodValueFromFiltered(
     case 'net-sales':
       return period.period_net_sales
     case 'gross-profit':
-      return period.period_gross_profit
-    case 'net-profit':
       return period.gross_profit
+    case 'net-profit':
+      return period.contribution_margin
     case 'units':
       return period.period_gross_units_sold ?? period.period_units_sold
     case 'orders':
       return period.period_orders
     case 'contribution-margin-pct':
-      return Number(period.gross_margin_pct)
+      return Number(period.contribution_margin_pct)
     case 'inventory-days':
       return period.inventory_days
     default:

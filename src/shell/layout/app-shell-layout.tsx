@@ -127,6 +127,11 @@ export function AppShellLayout() {
     retry: refetchTenants,
   } = useAppBootstrap()
 
+  useEffect(() => {
+    if (!paymentForced && !trialForced) return
+    void refetchMe()
+  }, [paymentForced, trialForced, refetchMe])
+
   const workspaceValue = useMemo(
     () => ({ me, refetchMe, refetchTenants }),
     [me, refetchMe, refetchTenants],
@@ -169,7 +174,17 @@ export function AppShellLayout() {
     return <ShellBootstrapError lang={lang} />
   }
 
-  if (!subscriptionAlreadyActive && shouldShowPaymentPending(me, paymentForced)) {
+  const billingUnlocked = Boolean(me?.has_stripe_subscription)
+  const showPaymentPending =
+    !billingUnlocked &&
+    !subscriptionAlreadyActive &&
+    shouldShowPaymentPending(me, paymentForced)
+  const showTrialExpired =
+    !billingUnlocked &&
+    !subscriptionAlreadyActive &&
+    shouldShowTrialExpired(me, trialForced)
+
+  if (showPaymentPending) {
     return (
       <WorkspaceProvider value={workspaceValue}>
         <PaymentPendingScreen />
@@ -177,7 +192,7 @@ export function AppShellLayout() {
     )
   }
 
-  if (!subscriptionAlreadyActive && shouldShowTrialExpired(me, trialForced)) {
+  if (showTrialExpired) {
     return (
       <WorkspaceProvider value={workspaceValue}>
         <TrialExpiredScreen />

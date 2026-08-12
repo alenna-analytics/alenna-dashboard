@@ -22,6 +22,7 @@ export function PaymentPendingScreen() {
   const t = (key: ShellStringKey, vars?: Readonly<Record<string, string>>) =>
     shellT(lang, key, vars)
 
+  const lapsedCustomer = Boolean(me?.has_stripe_customer)
   const renewPlan = renewPlanForMe(me?.signup_intent)
   const renewPlanLabel =
     renewPlan === 'growth' ? t('billingPlanNameGrowth') : t('billingPlanNameBasic')
@@ -29,9 +30,11 @@ export function PaymentPendingScreen() {
   const checkoutOptions = { cancelUrl: paymentPendingCancelUrl() }
   const gateButtonClass = 'min-w-44 rounded-lg px-6'
 
-  // Growth onboarding unpaid: single renew CTA. Otherwise renew + upgrade.
+  // Growth onboarding unpaid: single renew CTA.
+  // Lapsed Stripe customers: offer Basic + Growth (prior plan is unknown after cancel → trial).
+  // Otherwise renew + upgrade.
   const singleRenewOnly =
-    me?.signup_intent === 'growth' && !me?.has_stripe_customer
+    me?.signup_intent === 'growth' && !lapsedCustomer
 
   return (
     <BillingGateScreen
@@ -47,6 +50,25 @@ export function PaymentPendingScreen() {
             className={gateButtonClass}
             checkoutOptions={checkoutOptions}
           />
+        ) : lapsedCustomer ? (
+          <>
+            <StripeCheckoutButton
+              plan="basic"
+              label={t('billingRenewWithPlan', { plan: t('billingPlanNameBasic') })}
+              variant="accent"
+              size="default"
+              className={gateButtonClass}
+              checkoutOptions={checkoutOptions}
+            />
+            <StripeCheckoutButton
+              plan="growth"
+              label={t('billingRenewWithPlan', { plan: t('billingPlanNameGrowth') })}
+              variant="success"
+              size="default"
+              className={gateButtonClass}
+              checkoutOptions={checkoutOptions}
+            />
+          </>
         ) : renewPlan === 'growth' ? (
           <>
             <StripeCheckoutButton

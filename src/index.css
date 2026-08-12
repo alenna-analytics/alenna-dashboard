@@ -387,6 +387,12 @@
     transparent
   );
 
+  /** Plan-limit shell banner: same height as activity bar, softer warning surface. */
+  --plan-limit-banner-bg: #fff8eb;
+  --plan-limit-banner-fg: var(--firefly-100);
+  --plan-limit-banner-border: color-mix(in srgb, var(--stock-alert-warning) 22%, transparent);
+  --plan-limit-banner-icon: var(--stock-alert-warning);
+
   --kpi-pill-positive-bg: var(--pill-success-bg);
   --kpi-pill-positive-text: var(--pill-success-text);
   --kpi-pill-negative-bg: var(--pill-error-bg);

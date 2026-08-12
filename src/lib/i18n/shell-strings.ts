@@ -490,6 +490,14 @@ const SHELL_STRINGS = {
     billingCheckoutCancel: 'Checkout cancelado. No se realizó ningún cargo.',
     billingOwnerOnly: 'Solo el propietario del espacio de trabajo puede gestionar la facturación.',
     workspaceConfigBillingDescription: 'Plan, límites de uso y facturación.',
+    planLimitBannerTitle: 'Llegaste al límite de tu plan',
+    planLimitBannerOrdersDetail:
+      'Los pedidos nuevos ya no se sincronizarán con tus conexiones. Actualiza tu plan o contáctanos.',
+    planLimitBannerSkusDetail:
+      'Los productos nuevos ya no se sincronizarán con tus conexiones. Actualiza tu plan o contáctanos.',
+    planLimitBannerGenericDetail:
+      'La sincronización está pausada. Actualiza tu plan o contáctanos.',
+    planLimitBannerBillingLink: 'Ir a facturación',
     planLimitBannerOrders:
       'Has alcanzado el límite de pedidos de tu plan. La sincronización está pausada hasta que amplíes tu plan.',
     planLimitBannerSkus:
@@ -497,10 +505,17 @@ const SHELL_STRINGS = {
     planLimitBannerGeneric:
       'Has alcanzado un límite de tu plan. La sincronización está pausada hasta que amplíes tu plan.',
     planLimitSyncOrders:
-      'Has alcanzado el límite mensual de pedidos. La sincronización está pausada.',
+      'Has alcanzado el límite mensual de pedidos. La sincronización de pedidos está pausada.',
     planLimitSyncSkus:
-      'Has alcanzado el límite de productos sincronizados. La sincronización está pausada.',
+      'Has alcanzado el límite de productos sincronizados. La sincronización de productos está pausada.',
     planLimitSyncGeneric: 'Has alcanzado un límite de tu plan. La sincronización está pausada.',
+    planLimitBillingAlertTitle: 'Llegaste al límite de tu plan',
+    planLimitBillingAlertOrders:
+      'Superaste el límite mensual de pedidos. Los pedidos nuevos ya no se sincronizarán hasta que actualices tu plan.',
+    planLimitBillingAlertSkus:
+      'Superaste el límite de productos activos. Los productos nuevos ya no se sincronizarán hasta que actualices tu plan.',
+    planLimitBillingAlertGeneric:
+      'Superaste un límite de tu plan. La sincronización está pausada hasta que actualices tu plan.',
     companyLabel: 'Empresa',
     companySelectPlaceholder: 'Seleccionar…',
     shellAlertsOpenAria: 'Abrir alertas activas',
@@ -2103,6 +2118,13 @@ const SHELL_STRINGS = {
     billingCheckoutCancel: 'Checkout canceled. No charge was made.',
     billingOwnerOnly: 'Only the workspace owner can manage billing.',
     workspaceConfigBillingDescription: 'Plan, usage limits, and billing.',
+    planLimitBannerTitle: 'You reached your plan limit',
+    planLimitBannerOrdersDetail:
+      'New orders will no longer sync from your connections. Upgrade your plan or contact us.',
+    planLimitBannerSkusDetail:
+      'New products will no longer sync from your connections. Upgrade your plan or contact us.',
+    planLimitBannerGenericDetail: 'Sync is paused. Upgrade your plan or contact us.',
+    planLimitBannerBillingLink: 'Go to billing',
     planLimitBannerOrders:
       'You have reached your plan order limit. Sync is paused until you upgrade your plan.',
     planLimitBannerSkus:
@@ -2110,10 +2132,17 @@ const SHELL_STRINGS = {
     planLimitBannerGeneric:
       'You have reached a plan limit. Sync is paused until you upgrade your plan.',
     planLimitSyncOrders:
-      'You have reached your monthly order limit. Sync is paused.',
+      'You have reached your monthly order limit. Order sync is paused.',
     planLimitSyncSkus:
-      'You have reached your synced product limit. Sync is paused.',
+      'You have reached your synced product limit. Product sync is paused.',
     planLimitSyncGeneric: 'You have reached a plan limit. Sync is paused.',
+    planLimitBillingAlertTitle: 'You reached your plan limit',
+    planLimitBillingAlertOrders:
+      'You exceeded your monthly order limit. New orders will not sync until you upgrade your plan.',
+    planLimitBillingAlertSkus:
+      'You exceeded your active product limit. New products will not sync until you upgrade your plan.',
+    planLimitBillingAlertGeneric:
+      'You exceeded a plan limit. Sync is paused until you upgrade your plan.',
     companyLabel: 'Company',
     companySelectPlaceholder: 'Select…',
     shellAlertsOpenAria: 'Open active alerts',

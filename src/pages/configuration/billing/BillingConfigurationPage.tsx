@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
-import { ExternalLink, FileText } from 'lucide-react'
+import { ExternalLink, FileText, AlertTriangle } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
@@ -29,6 +29,7 @@ import {
   formatPlanLimit,
   formatTrialEndDate,
   isBillingOwner,
+  isPlanLimitSyncPaused,
   UPGRADE_ENTERPRISE_MAILTO,
 } from '@/lib/plan/plan-limit-ui'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -39,6 +40,7 @@ import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Badge } from '@/ui/badge'
 import { Button, buttonVariants } from '@/ui/button'
+import { ContextAlertCard } from '@/ui/context-alert'
 
 function BillingSection({
   label,
@@ -314,6 +316,13 @@ export function BillingConfigurationPage() {
     overview?.current_period_start,
     overview?.current_period_end,
   )
+  const planLimitReached = isPlanLimitSyncPaused(me)
+  const planLimitAlertSubtitleKey =
+    me?.sync_paused_reason === 'orders_limit'
+      ? 'planLimitBillingAlertOrders'
+      : me?.sync_paused_reason === 'skus_limit'
+        ? 'planLimitBillingAlertSkus'
+        : 'planLimitBillingAlertGeneric'
 
   if (me && !isOwner) {
     return <Navigate to="/dashboard" replace />
@@ -332,6 +341,22 @@ export function BillingConfigurationPage() {
         <p className="rounded-md border border-border-default bg-[var(--platinum-blonde-300)] px-4 py-3 text-sm text-text-primary">
           {t(checkoutFeedbackKey)}
         </p>
+      ) : null}
+
+      {planLimitReached ? (
+        <ContextAlertCard
+          tone="warning"
+          icon={AlertTriangle}
+          title={t('planLimitBillingAlertTitle')}
+          subtitle={t(planLimitAlertSubtitleKey)}
+          action={
+            isOwner && me ? (
+              <Button type="button" variant="accent" size="sm" onClick={() => setAdjustOpen(true)}>
+                {t('billingChangePlan')}
+              </Button>
+            ) : null
+          }
+        />
       ) : null}
 
       <div className="divide-y divide-border-default">

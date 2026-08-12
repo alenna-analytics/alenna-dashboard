@@ -31,6 +31,6 @@ export type TeamMemberRolePayload = {
 }
 
 export type TeamInviteResponse = {
-  kind: 'invited' | 'added'
+  kind: 'invited'
   member: TeamMember
 }

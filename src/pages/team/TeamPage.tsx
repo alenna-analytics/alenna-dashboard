@@ -12,7 +12,9 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
+import { fetchMyTenants, useTenantSwitcher } from '@/auth/hooks'
 import { EditTeamMemberRoleSheet } from '@/components/team/edit-team-member-role-sheet'
 import { InviteTeamMemberSheet } from '@/components/team/invite-team-member-sheet'
 import {
@@ -75,7 +77,9 @@ type RowAction = {
 
 export function TeamPage() {
   const { getToken } = useAuth()
-  const { me } = useWorkspace()
+  const { me, refetchTenants } = useWorkspace()
+  const { switchTenant } = useTenantSwitcher()
+  const navigate = useNavigate()
   const { lang } = useLanguage()
   const queryClient = useQueryClient()
   const t = useCallback(
@@ -116,9 +120,24 @@ export function TeamPage() {
 
   const leaveMutation = useMutation({
     mutationFn: () => leaveTeam(getToken, tenantId!, lang),
-    onSuccess: () => {
+    onSuccess: async () => {
       setPendingConfirm(null)
-      invalidate()
+      const leftTenantId = tenantId!
+      try {
+        const tenants = await fetchMyTenants(getToken)
+        const remaining = tenants.filter((row) => row.tenant_id !== leftTenantId)
+        if (remaining.length === 0) {
+          refetchTenants()
+          navigate('/onboarding', { replace: true })
+          return
+        }
+        await switchTenant(remaining[0].tenant_id)
+        refetchTenants()
+        navigate('/dashboard', { replace: true })
+      } catch {
+        refetchTenants()
+        navigate('/onboarding', { replace: true })
+      }
     },
   })
 

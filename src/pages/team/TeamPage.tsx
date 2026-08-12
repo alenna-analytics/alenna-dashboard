@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { UserPlus } from 'lucide-react'
+import { MoreVertical, Search, UserPlus, X } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 
 import { InviteTeamMemberSheet } from '@/components/team/invite-team-member-sheet'
@@ -14,18 +14,26 @@ import { shellT } from '@/lib/i18n/shell-strings'
 import { formatPlanLimit, UPGRADE_ENTERPRISE_MAILTO } from '@/lib/plan/plan-limit-ui'
 import type { TeamMember } from '@/lib/types/team-types'
 import { cn } from '@/lib/utils'
-import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
-import { useLanguage } from '@/shell/providers/language-provider'
-import { useWorkspace } from '@/shell/providers/workspace-context'
-import { Button, buttonVariants } from '@/ui/button'
 import {
   TeamConfirmDialog,
   type TeamConfirmKind,
 } from '@/pages/team/team-confirm-dialog'
+import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
+import { Badge } from '@/ui/badge'
+import { Button, buttonVariants } from '@/ui/button'
 import {
-  TeamMembersTable,
-  type TeamMemberRowAction,
-} from '@/pages/team/team-members-table'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/ui/dropdown-menu'
+import { Input } from '@/ui/input'
+import { Skeleton } from '@/ui/skeleton'
 
 function memberDisplayName(member: TeamMember): string {
   const parts = [member.first_name, member.last_name].filter(Boolean)
@@ -45,6 +53,13 @@ function isOwnerRole(role: string): boolean {
 type PendingConfirm =
   | { kind: 'leave' }
   | { kind: 'remove'; userId: string; memberName: string }
+
+type RowAction = {
+  key: string
+  label: string
+  destructive?: boolean
+  onSelect: () => void
+}
 
 export function TeamPage() {
   const { getToken } = useAuth()
@@ -95,6 +110,14 @@ export function TeamPage() {
   })
 
   const members = useMemo(() => teamQuery.data?.members ?? [], [teamQuery.data?.members])
+  const filtered = useMemo(() => {
+    const q = filter.trim().toLowerCase()
+    if (!q) return members
+    return members.filter((m) => {
+      const hay = `${memberDisplayName(m)} ${m.email} ${m.role_name}`.toLowerCase()
+      return hay.includes(q)
+    })
+  }, [filter, members])
 
   const atSeatLimit =
     teamQuery.data?.users_limit != null &&
@@ -109,51 +132,50 @@ export function TeamPage() {
   const actionsBusy =
     leaveMutation.isPending || revokeMutation.isPending || removeMutation.isPending
 
-  const getRowActions = useCallback(
-    (member: TeamMember): TeamMemberRowAction[] => {
-      const actions: TeamMemberRowAction[] = []
+  const showSkeleton = teamQuery.isLoading && teamQuery.data === undefined
 
-      if (member.is_you && canLeaveTeam) {
+  function rowActions(member: TeamMember): RowAction[] {
+    const actions: RowAction[] = []
+
+    if (member.is_you && canLeaveTeam) {
+      actions.push({
+        key: 'leave',
+        label: t('teamLeaveAction'),
+        destructive: true,
+        onSelect: () => setPendingConfirm({ kind: 'leave' }),
+      })
+    }
+
+    if (!member.is_you && canManage && member.status === 'pending' && member.invitation_id) {
+      actions.push({
+        key: 'revoke',
+        label: t('teamRevokeInvite'),
+        destructive: true,
+        onSelect: () => revokeMutation.mutate(member.invitation_id!),
+      })
+    }
+
+    if (!member.is_you && canManage && member.status === 'active' && member.user_id) {
+      const targetIsOwner = isOwnerRole(member.role)
+      const actorIsOwner = isOwnerRole(me?.role ?? '')
+      const wouldLeaveNoOwner = targetIsOwner && ownerCount <= 1
+      if ((!targetIsOwner || actorIsOwner) && !wouldLeaveNoOwner) {
         actions.push({
-          key: 'leave',
-          label: t('teamLeaveAction'),
+          key: 'remove',
+          label: t('teamRemoveMember'),
           destructive: true,
-          onSelect: () => setPendingConfirm({ kind: 'leave' }),
+          onSelect: () =>
+            setPendingConfirm({
+              kind: 'remove',
+              userId: member.user_id!,
+              memberName: memberDisplayName(member),
+            }),
         })
       }
+    }
 
-      if (!member.is_you && canManage && member.status === 'pending' && member.invitation_id) {
-        actions.push({
-          key: 'revoke',
-          label: t('teamRevokeInvite'),
-          destructive: true,
-          onSelect: () => revokeMutation.mutate(member.invitation_id!),
-        })
-      }
-
-      if (!member.is_you && canManage && member.status === 'active' && member.user_id) {
-        const targetIsOwner = isOwnerRole(member.role)
-        const actorIsOwner = isOwnerRole(me?.role ?? '')
-        const wouldLeaveNoOwner = targetIsOwner && ownerCount <= 1
-        if ((!targetIsOwner || actorIsOwner) && !wouldLeaveNoOwner) {
-          actions.push({
-            key: 'remove',
-            label: t('teamRemoveMember'),
-            destructive: true,
-            onSelect: () =>
-              setPendingConfirm({
-                kind: 'remove',
-                userId: member.user_id!,
-                memberName: memberDisplayName(member),
-              }),
-          })
-        }
-      }
-
-      return actions
-    },
-    [canLeaveTeam, canManage, me?.role, ownerCount, revokeMutation, t],
-  )
+    return actions
+  }
 
   const confirmKind: TeamConfirmKind =
     pendingConfirm?.kind === 'remove' ? 'remove' : 'leave'
@@ -201,30 +223,150 @@ export function TeamPage() {
           </div>
         ) : null}
 
-        <TeamMembersTable
-          rows={members}
-          searchQ={filter}
-          onSearchChange={setFilter}
-          isLoading={teamQuery.isLoading}
-          isFetching={teamQuery.isFetching}
-          hasEverLoaded={teamQuery.data !== undefined}
-          actionsBusy={actionsBusy}
-          getRowActions={getRowActions}
-          t={t}
-          footer={
-            <>
-              {t('teamMemberCount').replace('{count}', String(activeCount))}
-              {teamQuery.data ? (
-                <>
-                  {' · '}
-                  {formatPlanLimit(teamQuery.data.users_used, lang)}
-                  {' / '}
-                  {formatPlanLimit(teamQuery.data.users_limit, lang)}
-                </>
+        <div className="relative w-72 shrink-0">
+          <Search
+            className="pointer-events-none absolute top-1/2 left-2.5 z-10 size-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
+          <Input
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder={t('teamFilterPlaceholder')}
+            aria-label={t('teamFilterPlaceholder')}
+            className="h-[33px] border-border-default bg-white pl-8 text-xs placeholder:text-xs focus-visible:border-border-emphasis focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          {filter.trim() ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              className="absolute top-1/2 right-0.5 z-10 size-7 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={t('filterClear')}
+              onClick={() => setFilter('')}
+            >
+              <X className="size-4 shrink-0" aria-hidden />
+            </Button>
+          ) : null}
+        </div>
+
+        <div className="overflow-x-auto rounded-md border border-border-subtle">
+          <table className="w-full min-w-lg text-left text-sm">
+            <thead>
+              <tr className="border-b border-border-subtle text-[11px] font-medium uppercase tracking-wide text-text-tertiary">
+                <th className="px-4 py-3">{t('teamColumnMember')}</th>
+                <th className="px-4 py-3">{t('teamColumnRole')}</th>
+                <th className="px-4 py-3">{t('teamColumnStatus')}</th>
+                <th className="px-4 py-3" />
+              </tr>
+            </thead>
+            <tbody>
+              {showSkeleton
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <tr key={`sk-${i}`} className="border-b border-border-subtle last:border-0">
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col gap-2">
+                          <Skeleton className="h-4 w-40" />
+                          <Skeleton className="h-3 w-56" />
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Skeleton className="h-4 w-16" />
+                      </td>
+                      <td className="px-4 py-3">
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                      </td>
+                      <td className="px-4 py-3" />
+                    </tr>
+                  ))
+                : null}
+
+              {!showSkeleton
+                ? filtered.map((member) => {
+                    const actions = rowActions(member)
+                    return (
+                      <tr
+                        key={member.invitation_id ?? member.user_id ?? member.email}
+                        className="border-b border-border-subtle last:border-0"
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-text-primary">
+                              {memberDisplayName(member)}
+                            </span>
+                            {member.is_you ? (
+                              <Badge variant="secondary">{t('teamYouBadge')}</Badge>
+                            ) : null}
+                          </div>
+                          <p className="text-xs text-text-tertiary">{member.email}</p>
+                        </td>
+                        <td className="px-4 py-3 text-text-primary">{member.role_name}</td>
+                        <td className="px-4 py-3">
+                          <Badge variant={member.status === 'pending' ? 'secondary' : 'success'}>
+                            {member.status === 'pending'
+                              ? t('teamStatusPending')
+                              : t('teamStatusActive')}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {actions.length > 0 ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger
+                                className={cn(
+                                  'inline-flex size-8 items-center justify-center rounded-full border border-transparent text-foreground outline-none',
+                                  'hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30',
+                                )}
+                                aria-label={t('teamActions')}
+                                disabled={actionsBusy}
+                              >
+                                <MoreVertical className="size-4 shrink-0" aria-hidden />
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuGroup>
+                                  <DropdownMenuLabel>{t('teamActions')}</DropdownMenuLabel>
+                                </DropdownMenuGroup>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuGroup>
+                                  {actions.map((action) => (
+                                    <DropdownMenuItem
+                                      key={action.key}
+                                      variant={action.destructive ? 'destructive' : 'default'}
+                                      onClick={action.onSelect}
+                                    >
+                                      {action.label}
+                                    </DropdownMenuItem>
+                                  ))}
+                                </DropdownMenuGroup>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          ) : null}
+                        </td>
+                      </tr>
+                    )
+                  })
+                : null}
+
+              {!showSkeleton && filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-10 text-center text-sm text-text-tertiary">
+                    {t('teamEmpty')}
+                  </td>
+                </tr>
               ) : null}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="text-sm text-text-tertiary">
+          {t('teamMemberCount').replace('{count}', String(activeCount))}
+          {teamQuery.data ? (
+            <>
+              {' · '}
+              {formatPlanLimit(teamQuery.data.users_used, lang)}
+              {' / '}
+              {formatPlanLimit(teamQuery.data.users_limit, lang)}
             </>
-          }
-        />
+          ) : null}
+        </p>
       </div>
 
       {tenantId && me ? (

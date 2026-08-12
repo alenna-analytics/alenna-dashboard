@@ -1,10 +1,7 @@
 import { flexRender, type Table as TableType } from "@tanstack/react-table"
-import { Fragment } from "react"
-import { Search, X } from "lucide-react"
+import { Fragment, type ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
-import { Button } from "@/ui/button"
-import { Input } from "@/ui/input"
 import { Skeleton } from "@/ui/skeleton"
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 
@@ -18,28 +15,20 @@ type DataTableProps<TData> = {
   isLoading: boolean
   isFetching: boolean
   hasEverLoaded: boolean
-  emptyContent: React.ReactNode
+  emptyContent: ReactNode
   skeletonRowCount?: number
   /** Max height so ~8 rows are visible with vertical scroll (page size may be 10). */
   scrollClassName?: string
   /** `card` (default) keeps bordered section shell; `plain` is borderless for flat analytics layouts. */
   variant?: 'card' | 'plain'
   /** Renders inside the card above the scroll area (e.g. toolbar with column visibility). */
-  toolbar?: React.ReactNode
+  toolbar?: ReactNode
   /** Renders in the toolbar row on the left (e.g. bulk selection summary). */
-  selectionBanner?: React.ReactNode
-  search?: {
-    value: string
-    onChange: (value: string) => void
-    placeholder?: string
-    ariaLabel?: string
-    clearAriaLabel?: string
-    className?: string
-  }
-  footer?: React.ReactNode
+  selectionBanner?: ReactNode
+  footer?: ReactNode
   onRowClick?: (row: TData) => void
   expandedRowIds?: ReadonlySet<string>
-  renderExpandedContent?: (row: TData) => React.ReactNode
+  renderExpandedContent?: (row: TData) => ReactNode
 }
 
 export function DataTable<TData>({
@@ -53,7 +42,6 @@ export function DataTable<TData>({
   variant = 'card',
   toolbar,
   selectionBanner,
-  search,
   footer,
   onRowClick,
   expandedRowIds,
@@ -74,7 +62,7 @@ export function DataTable<TData>({
           : 'overflow-hidden rounded-md border border-border-subtle bg-bg-section',
       )}
     >
-      {toolbar || search || selectionBanner ? (
+      {toolbar || selectionBanner ? (
         <div
           className={cn(
             'flex h-10 items-center justify-between gap-2 border-b border-border-subtle px-3',
@@ -90,36 +78,6 @@ export function DataTable<TData>({
         >
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {selectionBanner}
-            {search ? (
-              <div className={cn("relative w-full max-w-xs", search.className)}>
-                <Search
-                  className="pointer-events-none absolute left-2.5 top-1/2 z-20 size-4 -translate-y-1/2 text-[var(--ink)]/55"
-                  aria-hidden
-                />
-                <Input
-                  value={search.value}
-                  onChange={(e) => search.onChange(e.target.value)}
-                  placeholder={search.placeholder}
-                  aria-label={search.ariaLabel}
-                  className={cn(
-                    "relative z-0 h-8 border-border-subtle bg-glass-fill-raised pl-8 focus-visible:border-border-subtle focus-visible:ring-0 focus-visible:ring-offset-0",
-                    search.value ? "pr-8" : "",
-                  )}
-                />
-                {search.value ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="xs"
-                    className="absolute right-0.5 top-1/2 z-20 size-7 min-w-7 -translate-y-1/2 p-0 text-text-secondary hover:text-text-primary active:-translate-y-1/2!"
-                    aria-label={search.clearAriaLabel ?? "Clear search"}
-                    onClick={() => search.onChange("")}
-                  >
-                    <X className="size-4 shrink-0" aria-hidden />
-                  </Button>
-                ) : null}
-              </div>
-            ) : null}
           </div>
           {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
         </div>

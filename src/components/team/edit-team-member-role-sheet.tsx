@@ -1,18 +1,17 @@
 import { useAuth } from '@clerk/react'
 import { useMutation } from '@tanstack/react-query'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
-import { inviteTeamMember } from '@/lib/team/team-api'
+import { updateTeamMemberRole } from '@/lib/team/team-api'
 import {
   selectableTeamRoles,
   TEAM_ROLE_OPTIONS,
 } from '@/lib/team/team-role-options'
 import { shellT } from '@/lib/i18n/shell-strings'
-import type { TeamRoleSlug } from '@/lib/types/team-types'
+import type { TeamMember, TeamRoleSlug } from '@/lib/types/team-types'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
-import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import {
   Sheet,
@@ -24,21 +23,34 @@ import {
   SheetTitle,
 } from '@/ui/sheet'
 
-type InviteTeamMemberSheetProps = {
+type EditTeamMemberRoleSheetProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   tenantId: string
   actorRole: string
+  member: TeamMember
+  /** When true, demoting the last owner is blocked by filtering roles. */
+  isLastOwner: boolean
   onSuccess: () => void
 }
 
-export function InviteTeamMemberSheet({
+function initialRoleForMember(
+  member: TeamMember,
+  allowed: TeamRoleSlug[],
+): TeamRoleSlug {
+  if (allowed.includes(member.role)) return member.role
+  return allowed[0] ?? 'staff'
+}
+
+export function EditTeamMemberRoleSheet({
   open,
   onOpenChange,
   tenantId,
   actorRole,
+  member,
+  isLastOwner,
   onSuccess,
-}: InviteTeamMemberSheetProps) {
+}: EditTeamMemberRoleSheetProps) {
   const { getToken } = useAuth()
   const { lang } = useLanguage()
   const t = useCallback(
@@ -46,15 +58,25 @@ export function InviteTeamMemberSheet({
     [lang],
   )
 
-  const allowed = selectableTeamRoles(actorRole)
-  const [email, setEmail] = useState('')
-  const [role, setRole] = useState<TeamRoleSlug>(allowed.includes('admin') ? 'admin' : 'staff')
+  const allowed = useMemo(() => {
+    const base = selectableTeamRoles(actorRole)
+    if (isLastOwner && member.role === 'owner') {
+      return base.filter((role) => role === 'owner')
+    }
+    return base
+  }, [actorRole, isLastOwner, member.role])
+
+  const [role, setRole] = useState<TeamRoleSlug>(() =>
+    initialRoleForMember(member, allowed),
+  )
   const [error, setError] = useState<string | null>(null)
 
-  const inviteMutation = useMutation({
-    mutationFn: () => inviteTeamMember(getToken, tenantId, { email: email.trim(), role }, lang),
+  const updateMutation = useMutation({
+    mutationFn: () => {
+      if (!member.user_id) throw new Error('missing member')
+      return updateTeamMemberRole(getToken, tenantId, member.user_id, role, lang)
+    },
     onSuccess: () => {
-      setEmail('')
       setError(null)
       onSuccess()
       onOpenChange(false)
@@ -64,29 +86,22 @@ export function InviteTeamMemberSheet({
     },
   })
 
+  const memberLabel =
+    [member.first_name, member.last_name].filter(Boolean).join(' ') || member.email
+  const unchanged = role === member.role
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right">
         <div className="flex min-h-0 flex-1 flex-col">
           <SheetHeader>
-            <SheetTitle>{t('teamInviteSheetTitle')}</SheetTitle>
+            <SheetTitle>{t('teamEditRoleSheetTitle')}</SheetTitle>
           </SheetHeader>
 
           <SheetBody className="space-y-4">
-            <SheetDescription>{t('teamInviteSheetDescription')}</SheetDescription>
-
-            <div className="space-y-2">
-              <Label htmlFor="team-invite-email">{t('teamInviteEmailLabel')}</Label>
-              <Input
-                id="team-invite-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t('teamInviteEmailPlaceholder')}
-                autoComplete="off"
-                disabled={inviteMutation.isPending}
-              />
-            </div>
+            <SheetDescription>
+              {t('teamEditRoleSheetDescription').replace('{name}', memberLabel)}
+            </SheetDescription>
 
             <div className="space-y-2">
               <Label>{t('teamInviteRoleLabel')}</Label>
@@ -97,7 +112,7 @@ export function InviteTeamMemberSheet({
                     <button
                       key={opt.id}
                       type="button"
-                      disabled={inviteMutation.isPending}
+                      disabled={updateMutation.isPending}
                       onClick={() => setRole(opt.id)}
                       className={cn(
                         'w-full rounded-md border px-3 py-3 text-left transition-colors',
@@ -124,18 +139,18 @@ export function InviteTeamMemberSheet({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={inviteMutation.isPending}
+              disabled={updateMutation.isPending}
             >
               {t('teamInviteCancel')}
             </Button>
             <Button
               type="button"
               variant="accent"
-              disabled={!email.trim()}
-              loading={inviteMutation.isPending}
-              onClick={() => inviteMutation.mutate()}
+              disabled={unchanged || !member.user_id}
+              loading={updateMutation.isPending}
+              onClick={() => updateMutation.mutate()}
             >
-              {t('teamInviteSubmit')}
+              {t('teamEditRoleSubmit')}
             </Button>
           </SheetFooter>
         </div>

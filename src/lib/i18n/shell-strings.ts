@@ -42,6 +42,10 @@ const SHELL_STRINGS = {
     teamLeaveConfirmDescription:
       'Dejarás de tener acceso a este workspace. Podrás volver solo si te invitan de nuevo.',
     teamRevokeInvite: 'Revocar invitación',
+    teamEditRoleAction: 'Editar',
+    teamEditRoleSheetTitle: 'Editar rol',
+    teamEditRoleSheetDescription: 'Cambia el acceso de {name} en este workspace.',
+    teamEditRoleSubmit: 'Guardar rol',
     teamRemoveMember: 'Quitar miembro',
     teamRemoveConfirmTitle: '¿Quitar a este miembro?',
     teamRemoveConfirmDescription:
@@ -1647,6 +1651,10 @@ const SHELL_STRINGS = {
     teamLeaveConfirmDescription:
       'You will lose access to this workspace. You can return only if you are invited again.',
     teamRevokeInvite: 'Revoke invitation',
+    teamEditRoleAction: 'Edit',
+    teamEditRoleSheetTitle: 'Edit role',
+    teamEditRoleSheetDescription: 'Change {name}’s access in this workspace.',
+    teamEditRoleSubmit: 'Save role',
     teamRemoveMember: 'Remove member',
     teamRemoveConfirmTitle: 'Remove this member?',
     teamRemoveConfirmDescription:

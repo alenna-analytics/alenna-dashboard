@@ -1,8 +1,19 @@
 import { useAuth } from '@clerk/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { MoreVertical, Search, UserPlus, X } from 'lucide-react'
+import {
+  Ban,
+  LogOut,
+  MoreVertical,
+  Pencil,
+  Search,
+  Trash2,
+  UserPlus,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 
+import { EditTeamMemberRoleSheet } from '@/components/team/edit-team-member-role-sheet'
 import { InviteTeamMemberSheet } from '@/components/team/invite-team-member-sheet'
 import {
   fetchTeamMembers,
@@ -57,6 +68,7 @@ type PendingConfirm =
 type RowAction = {
   key: string
   label: string
+  icon: LucideIcon
   destructive?: boolean
   onSelect: () => void
 }
@@ -73,6 +85,7 @@ export function TeamPage() {
 
   const [filter, setFilter] = useState('')
   const [inviteOpen, setInviteOpen] = useState(false)
+  const [editMember, setEditMember] = useState<TeamMember | null>(null)
   const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null)
 
   const tenantId = me?.tenant_id ?? null
@@ -141,6 +154,7 @@ export function TeamPage() {
       actions.push({
         key: 'leave',
         label: t('teamLeaveAction'),
+        icon: LogOut,
         destructive: true,
         onSelect: () => setPendingConfirm({ kind: 'leave' }),
       })
@@ -150,6 +164,7 @@ export function TeamPage() {
       actions.push({
         key: 'revoke',
         label: t('teamRevokeInvite'),
+        icon: Ban,
         destructive: true,
         onSelect: () => revokeMutation.mutate(member.invitation_id!),
       })
@@ -158,11 +173,21 @@ export function TeamPage() {
     if (!member.is_you && canManage && member.status === 'active' && member.user_id) {
       const targetIsOwner = isOwnerRole(member.role)
       const actorIsOwner = isOwnerRole(me?.role ?? '')
+      const canModify = !targetIsOwner || actorIsOwner
+      if (canModify) {
+        actions.push({
+          key: 'edit',
+          label: t('teamEditRoleAction'),
+          icon: Pencil,
+          onSelect: () => setEditMember(member),
+        })
+      }
       const wouldLeaveNoOwner = targetIsOwner && ownerCount <= 1
-      if ((!targetIsOwner || actorIsOwner) && !wouldLeaveNoOwner) {
+      if (canModify && !wouldLeaveNoOwner) {
         actions.push({
           key: 'remove',
           label: t('teamRemoveMember'),
+          icon: Trash2,
           destructive: true,
           onSelect: () =>
             setPendingConfirm({
@@ -183,6 +208,8 @@ export function TeamPage() {
     pendingConfirm?.kind === 'leave'
       ? leaveMutation.isPending
       : removeMutation.isPending
+  const editingLastOwner =
+    editMember != null && isOwnerRole(editMember.role) && ownerCount <= 1
 
   return (
     <DashboardPage>
@@ -326,15 +353,19 @@ export function TeamPage() {
                                 </DropdownMenuGroup>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuGroup>
-                                  {actions.map((action) => (
-                                    <DropdownMenuItem
-                                      key={action.key}
-                                      variant={action.destructive ? 'destructive' : 'default'}
-                                      onClick={action.onSelect}
-                                    >
-                                      {action.label}
-                                    </DropdownMenuItem>
-                                  ))}
+                                  {actions.map((action) => {
+                                    const Icon = action.icon
+                                    return (
+                                      <DropdownMenuItem
+                                        key={action.key}
+                                        variant={action.destructive ? 'destructive' : 'default'}
+                                        onClick={action.onSelect}
+                                      >
+                                        <Icon className="size-4 shrink-0" aria-hidden />
+                                        {action.label}
+                                      </DropdownMenuItem>
+                                    )
+                                  })}
                                 </DropdownMenuGroup>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -375,6 +406,21 @@ export function TeamPage() {
           onOpenChange={setInviteOpen}
           tenantId={tenantId}
           actorRole={me.role}
+          onSuccess={invalidate}
+        />
+      ) : null}
+
+      {tenantId && me && editMember ? (
+        <EditTeamMemberRoleSheet
+          key={editMember.user_id ?? editMember.email}
+          open
+          onOpenChange={(open) => {
+            if (!open) setEditMember(null)
+          }}
+          tenantId={tenantId}
+          actorRole={me.role}
+          member={editMember}
+          isLastOwner={editingLastOwner}
           onSuccess={invalidate}
         />
       ) : null}

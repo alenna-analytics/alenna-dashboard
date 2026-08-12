@@ -9,7 +9,7 @@ import { shellT } from '@/lib/i18n/shell-strings'
 import { apiFetch } from '@/lib/api'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
-import { DashboardPage } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { Skeleton } from '@/ui/skeleton'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
@@ -656,7 +656,7 @@ export function DashboardHomePage() {
       {!hasNoIntegrations ? (
         <header className="flex flex-col gap-4">
           <div className="min-w-0">
-            <h1 className="text-title font-semibold tracking-[-0.02em] text-text-primary">
+            <h1 className={pageTitleClassName}>
               {t('navHome')}
             </h1>
           </div>

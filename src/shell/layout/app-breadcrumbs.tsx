@@ -37,8 +37,8 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
   if (normalized === '/dashboard/configuration') {
     return [{ label: shellT(lang, 'navWorkspaceConfiguration') }]
   }
-  if (normalized === '/dashboard/configuration/billing') {
-    return [{ label: shellT(lang, 'navWorkspaceConfiguration') }]
+  if (normalized === '/dashboard/billing') {
+    return [{ label: shellT(lang, 'navBilling') }]
   }
   if (normalized === '/dashboard/configuration/general') {
     return [{ label: shellT(lang, 'navWorkspaceConfiguration') }]

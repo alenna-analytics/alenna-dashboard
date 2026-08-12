@@ -22,7 +22,7 @@ import {
 } from '@/ui/dropdown-menu'
 
 const SETTINGS_PATH = '/dashboard/configuration/general'
-const BILLING_PATH = '/dashboard/configuration/billing'
+const BILLING_PATH = '/dashboard/billing'
 
 type HeaderWorkspaceSwitcherProps = {
   companyName: string

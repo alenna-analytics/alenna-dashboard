@@ -33,7 +33,7 @@ import {
   useStockRuleQuery,
 } from '@/pages/configuration/alarms/stock/use-alert-rules-queries'
 import { ConfigurationInnerSubmoduleBreadcrumb } from '@/pages/configuration/configuration-inner-submodule-breadcrumb'
-import { DashboardPage } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Skeleton } from '@/ui/skeleton'
 
@@ -227,7 +227,7 @@ export function StockAlarmConfigurationPage() {
     <DashboardPage className="space-y-8">
       <section className="max-w-2xl">
         <ConfigurationInnerSubmoduleBreadcrumb />
-        <h1 className="text-subtitle font-semibold tracking-[-0.02em] text-text-primary">
+        <h1 className={pageTitleClassName}>
           {shellT(lang, 'alarmsStockTypeTitle')}
         </h1>
         <p className="mt-1.5 text-sm text-text-secondary">

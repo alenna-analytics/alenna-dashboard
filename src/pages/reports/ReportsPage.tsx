@@ -36,7 +36,7 @@ import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
 import { useChannelTimeSeries } from '@/pages/reports/use-channel-time-series'
 import { useProductReports } from '@/pages/reports/use-product-reports'
 import { useReports } from '@/pages/reports/use-reports'
-import { DashboardPage } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { includesAmazonWithUnavailableFees } from '@/lib/integrations/amazon-fees-notice'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
@@ -484,7 +484,7 @@ export function ReportsPage() {
       {!hasNoIntegrations ? (
         <header className="flex flex-col gap-4">
           <div className="min-w-0">
-            <h1 className="text-title font-semibold tracking-[-0.02em] text-text-primary">
+            <h1 className={pageTitleClassName}>
               {t('reportsPageTitle')}
             </h1>
           </div>

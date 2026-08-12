@@ -31,7 +31,7 @@ import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import { computeShiftedPreviousPeriod } from '@/pages/reports/reports-ui-helpers'
 import { useChannelTimeSeries } from '@/pages/reports/use-channel-time-series'
 import { useKpisByChannel } from '@/pages/reports/use-kpis-by-channel'
-import { DashboardPage } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
@@ -269,7 +269,7 @@ export function ChannelsPage() {
       {!hasNoIntegrations ? (
         <header className="flex flex-col gap-4">
           <div className="min-w-0">
-            <h1 className="text-title font-semibold tracking-[-0.02em] text-text-primary">
+            <h1 className={pageTitleClassName}>
               {t('channelsPageTitle')}
             </h1>
             <p className="mt-1 max-w-2xl text-sm text-text-secondary">

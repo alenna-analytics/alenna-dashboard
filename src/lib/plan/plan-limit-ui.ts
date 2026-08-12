@@ -99,6 +99,10 @@ export function formatTrialEndDate(trialEndsAt: string | null, lang: Language): 
   })
 }
 
+export function formatBillingDate(iso: string | null, lang: Language): string | null {
+  return formatTrialEndDate(iso, lang)
+}
+
 export function trialEndsOnLabel(me: MeResponse, lang: Language): string | null {
   if (me.plan !== 'trial') return null
   const date = formatTrialEndDate(me.trial_ends_at, lang)
@@ -130,4 +134,57 @@ export function isPlanLimitSyncPaused(me: MeResponse | null | undefined): boolea
 export function formatPlanLimit(value: number | null | undefined, lang: Language): string {
   if (value == null) return shellT(lang, 'billingLimitUnlimited')
   return new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'es-MX').format(value)
+}
+
+export function normalizedPlanSlug(plan: string): string {
+  return plan.trim().toLowerCase()
+}
+
+export function billingCatalogPrice(plan: string, lang: Language): string {
+  const slug = normalizedPlanSlug(plan)
+  if (slug === 'growth') return shellT(lang, 'billingPlanPriceGrowth')
+  if (slug === 'enterprise' || slug === 'custom') return shellT(lang, 'billingPlanPriceEnterprise')
+  return shellT(lang, 'billingPlanPriceBasic')
+}
+
+export function billingCatalogDescription(plan: string, lang: Language): string {
+  const slug = normalizedPlanSlug(plan)
+  if (slug === 'growth') return shellT(lang, 'billingPlanDescriptionGrowth')
+  if (slug === 'enterprise' || slug === 'custom') return shellT(lang, 'billingPlanDescriptionEnterprise')
+  return shellT(lang, 'billingPlanDescriptionBasic')
+}
+
+export function billingPlanDisplayName(me: MeResponse): string {
+  const slug = normalizedPlanSlug(me.plan)
+  if (slug === 'trial') return 'Basic'
+  return me.plan_display_name?.trim() || me.plan
+}
+
+export function formatMoneyCents(
+  cents: number,
+  currency: string,
+  lang: Language,
+): string {
+  return new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'es-MX', {
+    style: 'currency',
+    currency: currency.trim().toUpperCase() || 'USD',
+  }).format(cents / 100)
+}
+
+export function daysUntilIso(iso: string | null | undefined): number | null {
+  if (!iso) return null
+  const end = new Date(iso)
+  if (Number.isNaN(end.getTime())) return null
+  return Math.max(0, Math.ceil((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+}
+
+export function cycleProgressPct(
+  startIso: string | null | undefined,
+  endIso: string | null | undefined,
+): number {
+  if (!startIso || !endIso) return 0
+  const start = new Date(startIso).getTime()
+  const end = new Date(endIso).getTime()
+  if (Number.isNaN(start) || Number.isNaN(end) || end <= start) return 0
+  return Math.min(100, Math.max(0, ((Date.now() - start) / (end - start)) * 100))
 }

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  billingCatalogDescription,
+  billingCatalogPrice,
   billingPlanDetailLine,
   billingPlanHeadline,
   checkoutPlanForCta,
@@ -92,6 +94,12 @@ describe('plan-limit-ui', () => {
 
   it('trialEndsOnLabel returns null for non-trial', () => {
     expect(trialEndsOnLabel(baseMe, 'es')).toBeNull()
+  })
+
+  it('billingCatalogPrice and description match subscribed plans', () => {
+    expect(billingCatalogPrice('basic', 'en')).toMatch(/\$30/)
+    expect(billingCatalogPrice('growth', 'en')).toMatch(/\$60/)
+    expect(billingCatalogDescription('basic', 'es')).toMatch(/1,000/)
   })
 
   it('billingPlanHeadline and detail use two-line trial copy', () => {

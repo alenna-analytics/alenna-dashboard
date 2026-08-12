@@ -217,6 +217,15 @@ export function AppSidebarPanel({
               />
             ) : null}
             {workspaceConfigEnabled ? (
+              <NavItem
+                icon="billing"
+                to="/dashboard/billing"
+                label={t('navBilling')}
+                collapsed={collapsed}
+                onNavigate={onNavigate}
+              />
+            ) : null}
+            {workspaceConfigEnabled ? (
               <WorkspaceConfigNavItem collapsed={collapsed} onNavigate={onNavigate} />
             ) : null}
             <ModuleNavItems

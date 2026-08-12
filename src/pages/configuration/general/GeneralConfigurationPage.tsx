@@ -8,7 +8,7 @@ import { DeleteAccountDialog } from '@/pages/configuration/general/delete-accoun
 import {
   useDeleteAccountMutation,
 } from '@/pages/configuration/general/use-account-deletion-mutations'
-import { DashboardPage } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
@@ -112,7 +112,7 @@ export function GeneralConfigurationPage() {
     <DashboardPage className="space-y-8">
       <section>
         <div className="w-full">
-          <h1 className="text-subtitle font-semibold tracking-[-0.02em] text-text-primary">
+          <h1 className={pageTitleClassName}>
             {t('navGeneral')}
           </h1>
           <p className="mt-1.5 text-sm text-text-secondary">

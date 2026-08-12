@@ -22,7 +22,7 @@ import { ExpensesDeleteDialog } from '@/pages/expenses/expenses-delete-dialog'
 import { ExpensesSheet } from '@/pages/expenses/expenses-sheet'
 import { ExpensesTable } from '@/pages/expenses/expenses-table'
 import { useExpenses } from '@/pages/expenses/use-expenses'
-import { DashboardPage } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useDisplayCurrency } from '@/shell/providers/display-currency-provider'
 import { Button } from '@/ui/button'
@@ -229,7 +229,7 @@ export function ExpensesPage() {
       <header className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <h1 className="text-title font-semibold tracking-[-0.02em] text-text-primary">
+            <h1 className={pageTitleClassName}>
               {t('navExpenses')}
             </h1>
             <p className="mt-1 max-w-2xl text-sm text-text-secondary">

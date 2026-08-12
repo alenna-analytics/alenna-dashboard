@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/react'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -18,7 +18,7 @@ import { Button, type buttonVariants } from '@/ui/button'
 
 type StripeCheckoutButtonProps = {
   plan: CheckoutPlanSlug
-  label: string
+  label: ReactNode
   variant?: NonNullable<Parameters<typeof buttonVariants>[0]>['variant']
   size?: NonNullable<Parameters<typeof buttonVariants>[0]>['size']
   className?: string
@@ -76,10 +76,10 @@ export function StripeCheckoutButton({
         variant={variant}
         size={size}
         className={cn(className)}
-        disabled={loading}
+        loading={loading}
         onClick={() => void handleClick()}
       >
-        {loading ? '…' : label}
+        {label}
       </Button>
       {showPortalFallback && me.has_stripe_subscription ? (
         <StripePortalButton
@@ -93,7 +93,7 @@ export function StripeCheckoutButton({
 }
 
 type StripePortalButtonProps = {
-  label: string
+  label: ReactNode
   variant?: NonNullable<Parameters<typeof buttonVariants>[0]>['variant']
   size?: NonNullable<Parameters<typeof buttonVariants>[0]>['size']
   className?: string
@@ -130,10 +130,10 @@ export function StripePortalButton({
       variant={variant}
       size={size}
       className={cn(className)}
-      disabled={loading}
+      loading={loading}
       onClick={() => void handleClick()}
     >
-      {loading ? '…' : label}
+      {label}
     </Button>
   )
 }

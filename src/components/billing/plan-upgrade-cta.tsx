@@ -1,16 +1,10 @@
-import {
-  StripeCheckoutButton,
-  StripePortalButton,
-} from '@/components/billing/stripe-checkout-button'
-import {
-  checkoutPlanForCta,
-  upgradeLabelForCta,
-  upgradeMailtoForCta,
-} from '@/lib/plan/plan-limit-ui'
-import { shellT } from '@/lib/i18n/shell-strings'
+import { useState } from 'react'
+import { Sparkles } from 'lucide-react'
+
+import { AdjustPlanSheet } from '@/components/billing/adjust-plan-sheet'
+import { upgradeLabelForTarget, upgradeTargetForPlan } from '@/lib/plan/plan-limit-ui'
 import type { MeResponse } from '@/lib/types/me-types'
-import { cn } from '@/lib/utils'
-import { buttonVariants } from '@/ui/button'
+import { Button } from '@/ui/button'
 import type { Language } from '@/shell/providers/language-provider'
 
 type PlanUpgradeCtaProps = {
@@ -19,6 +13,7 @@ type PlanUpgradeCtaProps = {
   variant?: 'outline' | 'primary'
   size?: 'sm' | 'default'
   className?: string
+  onClick?: () => void
 }
 
 export function PlanUpgradeCta({
@@ -27,43 +22,34 @@ export function PlanUpgradeCta({
   variant = 'outline',
   size = 'sm',
   className,
+  onClick,
 }: PlanUpgradeCtaProps) {
-  const checkoutPlan = checkoutPlanForCta(me.upgrade_cta)
-  const mailtoHref = upgradeMailtoForCta(me.upgrade_cta)
-  const label = upgradeLabelForCta(me.upgrade_cta, lang)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const label = upgradeLabelForTarget(upgradeTargetForPlan(me.plan), lang)
 
   if (!label) return null
 
-  if (checkoutPlan && me.has_stripe_subscription) {
-    return (
-      <StripePortalButton
-        label={shellT(lang, 'billingManageSubscription')}
+  return (
+    <>
+      <Button
+        type="button"
         variant={variant}
         size={size}
         className={className}
-      />
-    )
-  }
-
-  if (checkoutPlan) {
-    return (
-      <StripeCheckoutButton
-        plan={checkoutPlan}
-        label={label}
-        variant={variant}
-        size={size}
-        className={className}
-      />
-    )
-  }
-
-  if (mailtoHref) {
-    return (
-      <a href={mailtoHref} className={cn(buttonVariants({ variant, size }), className)}>
+        onClick={() => {
+          if (onClick) {
+            onClick()
+            return
+          }
+          setSheetOpen(true)
+        }}
+      >
+        <Sparkles className="size-3.5 shrink-0" aria-hidden />
         {label}
-      </a>
-    )
-  }
-
-  return null
+      </Button>
+      {onClick ? null : (
+        <AdjustPlanSheet open={sheetOpen} onOpenChange={setSheetOpen} me={me} />
+      )}
+    </>
+  )
 }

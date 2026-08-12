@@ -1,4 +1,4 @@
-import { apiPostJson } from '@/lib/api/client'
+import { apiFetch, apiPostJson } from '@/lib/api/client'
 import type { GetTokenFn } from '@/lib/api/client'
 
 export type CheckoutPlanSlug = 'basic' | 'growth'
@@ -87,4 +87,33 @@ export function redirectToStripe(url: string): void {
 
 export function paymentPendingCancelUrl(): string {
   return `${window.location.origin}/payment-pending`
+}
+
+export type BillingInvoice = {
+  id: string
+  number: string | null
+  status: string
+  amount_cents: number
+  currency: string
+  created_at: string
+  hosted_invoice_url: string | null
+}
+
+export type BillingOverview = {
+  current_period_start: string | null
+  current_period_end: string | null
+  plan_amount_cents: number | null
+  currency: string | null
+  invoices: BillingInvoice[]
+}
+
+export async function fetchBillingOverview(
+  getToken: GetTokenFn,
+  tenantId: string,
+): Promise<BillingOverview> {
+  const res = await apiFetch('/billing/overview', getToken, {}, tenantId)
+  if (!res.ok) {
+    throw new Error('Unable to load billing overview.')
+  }
+  return (await res.json()) as BillingOverview
 }

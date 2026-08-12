@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
 import { AppAuthBoundary } from '@/shell/app-auth-boundary'
 import { AppShellLayout } from '@/shell/layout/app-shell-layout'
@@ -37,6 +37,11 @@ import { StockAlarmConfigurationPage } from '@/pages/configuration/alarms/stock/
 import { GeneralConfigurationPage } from '@/pages/configuration/general/GeneralConfigurationPage'
 import { BillingConfigurationPage } from '@/pages/configuration/billing/BillingConfigurationPage'
 
+function BillingLegacyRedirect() {
+  const { search } = useLocation()
+  return <Navigate to={`/dashboard/billing${search}`} replace />
+}
+
 function App() {
   return (
     <Routes>
@@ -68,10 +73,11 @@ function App() {
           <Route path="integrations/ads" element={<IntegrationsAdsComingSoonPage />} />
           <Route path="integrations/:slug" element={<IntegrationDetailPage />} />
           <Route path="integrations" element={<IntegrationsListPage category="all" />} />
+          <Route path="billing" element={<BillingConfigurationPage />} />
+          <Route path="configuration/billing" element={<BillingLegacyRedirect />} />
           <Route path="configuration" element={<ConfigurationShellLayout />}>
             <Route index element={<ConfigurationIndexRedirect />} />
             <Route path="general" element={<GeneralConfigurationPage />} />
-            <Route path="billing" element={<BillingConfigurationPage />} />
             <Route path="alarms" element={<AlarmsConfigurationListPage />} />
             <Route path="alarms/stock" element={<StockAlarmConfigurationPage />} />
           </Route>

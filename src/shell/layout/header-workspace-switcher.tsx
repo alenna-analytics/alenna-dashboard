@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { ChevronsUpDown } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import {
   planPillLabel,
   planSummaryLabel,
+  upgradeTargetForPlan,
 } from '@/lib/plan/plan-limit-ui'
+import { AdjustPlanSheet } from '@/components/billing/adjust-plan-sheet'
 import { PlanUpgradeCta } from '@/components/billing/plan-upgrade-cta'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { MeResponse } from '@/lib/types/me-types'
@@ -22,7 +25,7 @@ import {
 } from '@/ui/dropdown-menu'
 
 const SETTINGS_PATH = '/dashboard/configuration/general'
-const BILLING_PATH = '/dashboard/configuration/billing'
+const BILLING_PATH = '/dashboard/billing'
 
 type HeaderWorkspaceSwitcherProps = {
   companyName: string
@@ -37,12 +40,15 @@ const menuIconClassName = cn(sidebarNavIconClassName, 'text-text-tertiary')
 export function HeaderWorkspaceSwitcher({ companyName, me }: HeaderWorkspaceSwitcherProps) {
   const { lang } = useLanguage()
   const navigate = useNavigate()
-  const showUpgrade = me && (me.upgrade_cta === 'growth' || me.upgrade_cta === 'enterprise')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [adjustOpen, setAdjustOpen] = useState(false)
+  const showUpgrade = Boolean(me && upgradeTargetForPlan(me.plan))
   const pillLabel = me ? planPillLabel(me, lang) : null
   const planLine = me ? planSummaryLabel(me, lang) : null
 
   return (
-    <DropdownMenu>
+    <>
+    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
       <div className="flex h-8 min-w-0 max-w-[min(100%,14rem)] items-center gap-1.5">
         <span className="hidden min-w-0 flex-1 truncate text-subtitle font-semibold text-text-primary sm:block">
           {companyName}
@@ -86,6 +92,10 @@ export function HeaderWorkspaceSwitcher({ companyName, me }: HeaderWorkspaceSwit
                 me={me}
                 lang={lang}
                 className="h-8 w-full gap-1.5 border-border-subtle bg-white font-normal text-text-primary hover:bg-[var(--sidebar-accent)]"
+                onClick={() => {
+                  setMenuOpen(false)
+                  setAdjustOpen(true)
+                }}
               />
             </div>
             <DropdownMenuSeparator className="my-1 bg-border-subtle" />
@@ -109,5 +119,9 @@ export function HeaderWorkspaceSwitcher({ companyName, me }: HeaderWorkspaceSwit
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    {me ? (
+      <AdjustPlanSheet open={adjustOpen} onOpenChange={setAdjustOpen} me={me} />
+    ) : null}
+    </>
   )
 }

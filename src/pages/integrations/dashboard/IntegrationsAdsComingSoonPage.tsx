@@ -1,4 +1,4 @@
-import { DashboardPage } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { shellT } from '@/lib/i18n/shell-strings'
 
@@ -9,7 +9,7 @@ export function IntegrationsAdsComingSoonPage() {
     <DashboardPage className="space-y-8">
       <section>
         <div className="max-w-2xl">
-          <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">
+          <h1 className={pageTitleClassName}>
             {shellT(lang, 'integrationsNavAds')}
           </h1>
           <p className="mt-1.5 text-sm text-text-secondary">

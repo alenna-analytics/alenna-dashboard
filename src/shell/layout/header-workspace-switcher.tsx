@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   planPillLabel,
   planSummaryLabel,
+  upgradeTargetForPlan,
 } from '@/lib/plan/plan-limit-ui'
 import { PlanUpgradeCta } from '@/components/billing/plan-upgrade-cta'
 import { shellT } from '@/lib/i18n/shell-strings'
@@ -37,7 +38,7 @@ const menuIconClassName = cn(sidebarNavIconClassName, 'text-text-tertiary')
 export function HeaderWorkspaceSwitcher({ companyName, me }: HeaderWorkspaceSwitcherProps) {
   const { lang } = useLanguage()
   const navigate = useNavigate()
-  const showUpgrade = me && (me.upgrade_cta === 'growth' || me.upgrade_cta === 'enterprise')
+  const showUpgrade = Boolean(me && upgradeTargetForPlan(me.plan))
   const pillLabel = me ? planPillLabel(me, lang) : null
   const planLine = me ? planSummaryLabel(me, lang) : null
 

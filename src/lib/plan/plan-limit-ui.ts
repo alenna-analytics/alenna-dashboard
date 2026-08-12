@@ -1,5 +1,4 @@
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { AppIconName } from '@/lib/icons/catalog'
 import type { Language } from '@/shell/providers/language-provider'
 import type { MeResponse } from '@/lib/types/me-types'
 import type { CheckoutPlanSlug } from '@/lib/billing/billing-api'
@@ -7,17 +6,23 @@ import type { CheckoutPlanSlug } from '@/lib/billing/billing-api'
 export const UPGRADE_ENTERPRISE_MAILTO =
   'mailto:support@alenna.io?subject=Upgrade%20to%20Enterprise'
 
-export function upgradeMailtoForCta(
-  upgradeCta: MeResponse['upgrade_cta'],
-): string | null {
-  if (upgradeCta === 'enterprise') return UPGRADE_ENTERPRISE_MAILTO
+export type UpgradeTarget = 'basic' | 'growth' | 'enterprise'
+
+export function upgradeTargetForPlan(plan: string | null | undefined): UpgradeTarget | null {
+  const normalized = plan?.trim().toLowerCase()
+  if (normalized === 'trial') return 'basic'
+  if (normalized === 'basic') return 'growth'
+  if (normalized === 'growth') return 'enterprise'
   return null
 }
 
-export function checkoutPlanForCta(
-  upgradeCta: MeResponse['upgrade_cta'],
-): CheckoutPlanSlug | null {
-  if (upgradeCta === 'growth') return 'growth'
+export function checkoutPlanForTarget(target: UpgradeTarget | null): CheckoutPlanSlug | null {
+  if (target === 'basic' || target === 'growth') return target
+  return null
+}
+
+export function upgradeMailtoForTarget(target: UpgradeTarget | null): string | null {
+  if (target === 'enterprise') return UPGRADE_ENTERPRISE_MAILTO
   return null
 }
 
@@ -25,29 +30,20 @@ export function isBillingOwner(me: MeResponse | null | undefined): boolean {
   return me?.role === 'owner'
 }
 
-export function upgradeLabelKeyForCta(
-  upgradeCta: MeResponse['upgrade_cta'],
-): ShellStringKey | null {
-  if (upgradeCta === 'growth') return 'planUpgradeToGrowth'
-  if (upgradeCta === 'enterprise') return 'planUpgradeToEnterprise'
+export function upgradeLabelKeyForTarget(target: UpgradeTarget | null): ShellStringKey | null {
+  if (target === 'basic') return 'planUpgradeToBasic'
+  if (target === 'growth') return 'planUpgradeToGrowth'
+  if (target === 'enterprise') return 'planUpgradeToEnterprise'
   return null
 }
 
-export function upgradeLabelForCta(
-  upgradeCta: MeResponse['upgrade_cta'],
+export function upgradeLabelForTarget(
+  target: UpgradeTarget | null,
   lang: Language,
 ): string | null {
-  const key = upgradeLabelKeyForCta(upgradeCta)
+  const key = upgradeLabelKeyForTarget(target)
   if (!key) return null
   return shellT(lang, key)
-}
-
-export function upgradeIconForCta(
-  upgradeCta: MeResponse['upgrade_cta'],
-): AppIconName | null {
-  if (upgradeCta === 'growth') return 'growth'
-  if (upgradeCta === 'enterprise') return 'billing'
-  return null
 }
 
 export function planPillLabel(me: MeResponse, lang: Language): string {

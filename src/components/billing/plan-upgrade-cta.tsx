@@ -1,17 +1,17 @@
+import { Sparkles } from 'lucide-react'
+
 import {
   StripeCheckoutButton,
   StripePortalButton,
 } from '@/components/billing/stripe-checkout-button'
 import {
-  checkoutPlanForCta,
-  upgradeIconForCta,
-  upgradeLabelForCta,
-  upgradeMailtoForCta,
+  checkoutPlanForTarget,
+  upgradeLabelForTarget,
+  upgradeMailtoForTarget,
+  upgradeTargetForPlan,
 } from '@/lib/plan/plan-limit-ui'
-import { shellT } from '@/lib/i18n/shell-strings'
 import type { MeResponse } from '@/lib/types/me-types'
 import { cn } from '@/lib/utils'
-import { AppIcon } from '@/ui/app-icon'
 import { buttonVariants } from '@/ui/button'
 import type { Language } from '@/shell/providers/language-provider'
 
@@ -30,26 +30,24 @@ export function PlanUpgradeCta({
   size = 'sm',
   className,
 }: PlanUpgradeCtaProps) {
-  const checkoutPlan = checkoutPlanForCta(me.upgrade_cta)
-  const mailtoHref = upgradeMailtoForCta(me.upgrade_cta)
-  const label = upgradeLabelForCta(me.upgrade_cta, lang)
-  const iconName = upgradeIconForCta(me.upgrade_cta)
+  const target = upgradeTargetForPlan(me.plan)
+  const checkoutPlan = checkoutPlanForTarget(target)
+  const mailtoHref = upgradeMailtoForTarget(target)
+  const label = upgradeLabelForTarget(target, lang)
 
   if (!label) return null
 
-  const labelContent = iconName ? (
+  const labelContent = (
     <>
-      <AppIcon name={iconName} colorize className="size-3.5 shrink-0" />
+      <Sparkles className="size-3.5 shrink-0" aria-hidden />
       {label}
     </>
-  ) : (
-    label
   )
 
   if (checkoutPlan && me.has_stripe_subscription) {
     return (
       <StripePortalButton
-        label={shellT(lang, 'billingManageSubscription')}
+        label={labelContent}
         variant={variant}
         size={size}
         className={className}

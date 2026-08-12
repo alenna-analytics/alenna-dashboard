@@ -2,7 +2,7 @@ import { AlertTriangle } from 'lucide-react'
 
 import { PlanUpgradeCta } from '@/components/billing/plan-upgrade-cta'
 import { shellT } from '@/lib/i18n/shell-strings'
-import { isPlanLimitSyncPaused } from '@/lib/plan/plan-limit-ui'
+import { isPlanLimitSyncPaused, upgradeTargetForPlan } from '@/lib/plan/plan-limit-ui'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 
@@ -22,8 +22,7 @@ export function PlanLimitShellBanner() {
         ? 'planLimitBannerSkus'
         : 'planLimitBannerGeneric'
 
-  const upgradeCtaVisible =
-    me && (me.upgrade_cta === 'growth' || me.upgrade_cta === 'enterprise')
+  const upgradeCtaVisible = Boolean(me && upgradeTargetForPlan(me.plan))
 
   return (
     <div

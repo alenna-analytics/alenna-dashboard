@@ -5,13 +5,13 @@ import {
   billingCatalogPrice,
   billingPlanDetailLine,
   billingPlanHeadline,
-  checkoutPlanForCta,
+  checkoutPlanForTarget,
   isBillingOwner,
   isPlanLimitSyncPaused,
   planSummaryLabel,
-  upgradeIconForCta,
-  upgradeLabelForCta,
-  upgradeMailtoForCta,
+  upgradeLabelForTarget,
+  upgradeMailtoForTarget,
+  upgradeTargetForPlan,
   formatTrialEndDate,
   trialEndsOnLabel,
 } from '@/lib/plan/plan-limit-ui'
@@ -47,21 +47,29 @@ const baseMe: MeResponse = {
 }
 
 describe('plan-limit-ui', () => {
-  it('checkoutPlanForCta returns growth for growth cta', () => {
-    expect(checkoutPlanForCta('growth')).toBe('growth')
+  it('upgradeTargetForPlan maps trial basic growth and hides enterprise', () => {
+    expect(upgradeTargetForPlan('trial')).toBe('basic')
+    expect(upgradeTargetForPlan('basic')).toBe('growth')
+    expect(upgradeTargetForPlan('growth')).toBe('enterprise')
+    expect(upgradeTargetForPlan('enterprise')).toBeNull()
   })
 
-  it('checkoutPlanForCta returns null for enterprise', () => {
-    expect(checkoutPlanForCta('enterprise')).toBeNull()
+  it('checkoutPlanForTarget returns stripe plans only', () => {
+    expect(checkoutPlanForTarget('basic')).toBe('basic')
+    expect(checkoutPlanForTarget('growth')).toBe('growth')
+    expect(checkoutPlanForTarget('enterprise')).toBeNull()
   })
 
-  it('upgradeMailtoForCta returns enterprise mailto only', () => {
-    expect(upgradeMailtoForCta('enterprise')).toContain('Enterprise')
-    expect(upgradeMailtoForCta('growth')).toBeNull()
+  it('upgradeMailtoForTarget returns enterprise mailto only', () => {
+    expect(upgradeMailtoForTarget('enterprise')).toContain('Enterprise')
+    expect(upgradeMailtoForTarget('growth')).toBeNull()
   })
 
-  it('upgradeLabelForCta returns translated growth label', () => {
-    expect(upgradeLabelForCta('growth', 'en')).toContain('Growth')
+  it('upgradeLabelForTarget follows the current plan', () => {
+    expect(upgradeLabelForTarget('basic', 'es')).toBe('Mejorar a Basic')
+    expect(upgradeLabelForTarget('growth', 'es')).toBe('Mejorar a Growth')
+    expect(upgradeLabelForTarget('enterprise', 'es')).toBe('Contratar Enterprise')
+    expect(upgradeLabelForTarget(null, 'es')).toBeNull()
   })
 
   it('planSummaryLabel clarifies Basic free trial', () => {
@@ -77,11 +85,6 @@ describe('plan-limit-ui', () => {
     expect(label).toMatch(/prueba gratuita/)
   })
 
-  it('upgradeIconForCta maps cta to icon names', () => {
-    expect(upgradeIconForCta('growth')).toBe('growth')
-    expect(upgradeIconForCta('enterprise')).toBe('billing')
-    expect(upgradeIconForCta('none')).toBeNull()
-  })
 
   it('trialEndsOnLabel includes formatted end date for trial', () => {
     const label = trialEndsOnLabel(
@@ -117,9 +120,6 @@ describe('plan-limit-ui', () => {
     expect(isBillingOwner({ ...baseMe, role: 'admin' })).toBe(false)
   })
 
-  it('upgradeMailtoForCta returns null for none', () => {
-    expect(upgradeMailtoForCta('none')).toBeNull()
-  })
 
   describe('isPlanLimitSyncPaused', () => {
     it('returns true when sync paused for orders_limit', () => {

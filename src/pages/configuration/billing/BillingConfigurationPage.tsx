@@ -93,7 +93,7 @@ function PlanChangeActions({
   if (me.has_stripe_subscription) {
     return (
       <div className="flex shrink-0 flex-row flex-nowrap items-center gap-2">
-        <Button type="button" variant="accent" size="sm" onClick={onChangePlan}>
+        <Button type="button" variant="success" size="sm" onClick={onChangePlan}>
           {t('billingChangePlan')}
         </Button>
         <CancelSubscriptionButton />

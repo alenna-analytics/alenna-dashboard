@@ -104,6 +104,8 @@ export type BillingOverview = {
   current_period_end: string | null
   plan_amount_cents: number | null
   currency: string | null
+  users_used: number
+  users_limit: number | null
   invoices: BillingInvoice[]
 }
 

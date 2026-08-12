@@ -207,6 +207,13 @@ export function AppSidebarPanel({
         />
         {showBottomSection ? (
           <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionConfiguration')}>
+            <NavItem
+              icon="orgs"
+              to="/dashboard/team"
+              label={t('navTeam')}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+            />
             {integrationsModule ? (
               <NavItem
                 icon={integrationsModule.icon}

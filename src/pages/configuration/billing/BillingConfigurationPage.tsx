@@ -173,6 +173,19 @@ function UsageRows({ me, lang }: { me: MeResponse | null; lang: Language }) {
           {formatPlanLimit(me?.skus_used, lang)} / {formatPlanLimit(me?.skus_limit, lang)}
         </p>
       </div>
+      <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-text-primary">
+            {shellT(lang, 'billingUsersLimitLabel')}
+          </p>
+          <p className="mt-0.5 text-xs text-text-tertiary">
+            {shellT(lang, 'billingUsersLimitDescription')}
+          </p>
+        </div>
+        <p className="shrink-0 text-sm font-medium text-text-primary">
+          {formatPlanLimit(me?.users_used, lang)} / {formatPlanLimit(me?.users_limit, lang)}
+        </p>
+      </div>
     </div>
   )
 }

@@ -7,9 +7,10 @@ import {
   StripePortalButton,
 } from '@/components/billing/stripe-checkout-button'
 import {
+  billingPlanDetailLine,
+  billingPlanHeadline,
   formatPlanLimit,
   isBillingOwner,
-  planSummaryLabel,
   UPGRADE_ENTERPRISE_MAILTO,
 } from '@/lib/plan/plan-limit-ui'
 import { shellT } from '@/lib/i18n/shell-strings'
@@ -20,37 +21,34 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { buttonVariants } from '@/ui/button'
 
-function SettingsSection({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <section className={cn(className)}>
-      <div className="w-full overflow-hidden rounded-md border border-border-default bg-white divide-y divide-border-default">
-        {children}
-      </div>
-    </section>
-  )
-}
-
-function SettingsRow({
+function BillingSection({
   label,
   description,
   children,
+  className,
 }: {
   label: string
   description: string
   children: ReactNode
+  className?: string
 }) {
   return (
-    <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-text-primary">{label}</p>
-        <p className="mt-0.5 text-sm leading-snug text-text-secondary">{description}</p>
+    <section
+      className={cn(
+        'grid gap-4 py-8 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] sm:gap-10 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]',
+        className,
+      )}
+    >
+      <div className="min-w-0">
+        <h2 className="text-sm font-medium text-text-primary">{label}</h2>
+        <p className="mt-1 text-sm leading-snug text-text-secondary">{description}</p>
       </div>
-      <div className="w-full min-w-0 sm:max-w-sm sm:shrink-0">{children}</div>
-    </div>
+      <div className="min-w-0">{children}</div>
+    </section>
   )
 }
 
-function BillingActions({ me }: { me: MeResponse }) {
+function PlanChangeActions({ me }: { me: MeResponse }) {
   const { lang } = useLanguage()
   const t = useCallback(
     (key: Parameters<typeof shellT>[1]) => shellT(lang, key),
@@ -60,43 +58,36 @@ function BillingActions({ me }: { me: MeResponse }) {
 
   if (normalized === 'trial') {
     return (
-      <div className="flex flex-col gap-2 sm:items-end">
+      <div className="flex flex-wrap items-center gap-2">
         <StripeCheckoutButton plan="basic" label={t('billingSubscribeBasic')} variant="primary" />
-        <StripeCheckoutButton plan="growth" label={t('billingUpgradeGrowth')} variant="outline" />
+        <StripeCheckoutButton plan="growth" label={t('billingUpgradeGrowth')} variant="accent" />
       </div>
     )
   }
 
   if (normalized === 'basic') {
-    if (me.has_stripe_subscription) {
-      return (
-        <div className="flex flex-col gap-2 sm:items-end">
-          <StripePortalButton label={t('billingManageSubscription')} />
-        </div>
-      )
-    }
+    if (me.has_stripe_subscription) return null
     return (
-      <div className="flex flex-col gap-2 sm:items-end">
-        <StripeCheckoutButton plan="growth" label={t('billingUpgradeGrowth')} variant="primary" />
+      <div className="flex flex-wrap items-center gap-2">
+        <StripeCheckoutButton plan="growth" label={t('billingUpgradeGrowth')} variant="accent" />
       </div>
     )
   }
 
   if (normalized === 'growth') {
     return (
-      <div className="flex flex-col gap-2 sm:items-end">
+      <div className="flex flex-wrap items-center gap-2">
         <a
           href={UPGRADE_ENTERPRISE_MAILTO}
-          className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          className={buttonVariants({ variant: 'accent', size: 'sm' })}
         >
           {t('planUpgradeToEnterprise')}
         </a>
-        <StripePortalButton label={t('billingManageSubscription')} />
       </div>
     )
   }
 
-  return <StripePortalButton label={t('billingManageSubscription')} />
+  return null
 }
 
 export function BillingConfigurationPage() {
@@ -128,18 +119,19 @@ export function BillingConfigurationPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on landing with ?checkout=
   }, [])
 
-  const planLine = me ? planSummaryLabel(me, lang) : '—'
+  const planLine = me ? billingPlanHeadline(me, lang) : '—'
+  const planDetailLine = me ? billingPlanDetailLine(me, lang) : null
   const isOwner = isBillingOwner(me)
+  const showPayment = Boolean(isOwner && me?.has_stripe_subscription)
+  const planActions = isOwner && me ? <PlanChangeActions me={me} /> : null
 
   return (
-    <DashboardPage className="space-y-8">
-      <section>
-        <div className="w-full">
-          <h1 className="text-subtitle font-semibold tracking-[-0.02em] text-text-primary">
-            {t('navBilling')}
-          </h1>
-          <p className="mt-1.5 text-sm text-text-secondary">{t('billingPageSubtitle')}</p>
-        </div>
+    <DashboardPage className="space-y-2">
+      <section className="pb-4">
+        <h1 className="text-subtitle font-semibold tracking-[-0.02em] text-text-primary">
+          {t('navBilling')}
+        </h1>
+        <p className="mt-1.5 text-sm text-text-secondary">{t('billingPageSubtitle')}</p>
       </section>
 
       {checkoutFeedbackKey ? (
@@ -152,29 +144,59 @@ export function BillingConfigurationPage() {
         <p className="text-sm text-text-secondary">{t('billingOwnerOnly')}</p>
       ) : null}
 
-      <SettingsSection>
-        <SettingsRow label={t('billingCurrentPlanLabel')} description={t('billingCurrentPlanDescription')}>
-          <p className="text-sm font-medium text-text-primary">{planLine}</p>
-        </SettingsRow>
+      <div className="divide-y divide-border-default border-y border-border-default">
+        <BillingSection
+          label={t('billingCurrentPlanLabel')}
+          description={t('billingCurrentPlanDescription')}
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+            <div className="min-w-0">
+              <p className="text-base font-semibold tracking-[-0.01em] text-text-primary">{planLine}</p>
+              {planDetailLine ? (
+                <p className="mt-1 text-sm text-text-tertiary">{planDetailLine}</p>
+              ) : null}
+            </div>
+            {planActions}
+          </div>
+        </BillingSection>
 
-        <SettingsRow label={t('billingOrdersLimitLabel')} description={t('billingOrdersLimitDescription')}>
-          <p className="text-sm font-medium text-text-primary">
-            {formatPlanLimit(me?.orders_used, lang)} / {formatPlanLimit(me?.orders_limit, lang)}
-          </p>
-        </SettingsRow>
-
-        <SettingsRow label={t('billingSkusLimitLabel')} description={t('billingSkusLimitDescription')}>
-          <p className="text-sm font-medium text-text-primary">
-            {formatPlanLimit(me?.skus_used, lang)} / {formatPlanLimit(me?.skus_limit, lang)}
-          </p>
-        </SettingsRow>
-
-        {isOwner && me ? (
-          <SettingsRow label={t('billingActionsLabel')} description={t('billingActionsDescription')}>
-            <BillingActions me={me} />
-          </SettingsRow>
+        {showPayment && me ? (
+          <BillingSection
+            label={t('billingPaymentLabel')}
+            description={t('billingPaymentDescription')}
+          >
+            <div className="flex sm:justify-end">
+              <StripePortalButton label={t('billingUpdateInStripe')} />
+            </div>
+          </BillingSection>
         ) : null}
-      </SettingsSection>
+
+        <BillingSection
+          label={t('billingUsageLabel')}
+          description={t('billingUsageDescription')}
+        >
+          <div className="divide-y divide-border-subtle">
+            <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary">{t('billingOrdersLimitLabel')}</p>
+                <p className="mt-0.5 text-xs text-text-tertiary">{t('billingOrdersLimitDescription')}</p>
+              </div>
+              <p className="shrink-0 text-sm font-medium text-text-primary">
+                {formatPlanLimit(me?.orders_used, lang)} / {formatPlanLimit(me?.orders_limit, lang)}
+              </p>
+            </div>
+            <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary">{t('billingSkusLimitLabel')}</p>
+                <p className="mt-0.5 text-xs text-text-tertiary">{t('billingSkusLimitDescription')}</p>
+              </div>
+              <p className="shrink-0 text-sm font-medium text-text-primary">
+                {formatPlanLimit(me?.skus_used, lang)} / {formatPlanLimit(me?.skus_limit, lang)}
+              </p>
+            </div>
+          </div>
+        </BillingSection>
+      </div>
     </DashboardPage>
   )
 }

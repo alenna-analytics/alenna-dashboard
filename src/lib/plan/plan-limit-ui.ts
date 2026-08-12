@@ -1,4 +1,5 @@
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
+import type { AppIconName } from '@/lib/icons/catalog'
 import type { Language } from '@/shell/providers/language-provider'
 import type { MeResponse } from '@/lib/types/me-types'
 import type { CheckoutPlanSlug } from '@/lib/billing/billing-api'
@@ -41,6 +42,14 @@ export function upgradeLabelForCta(
   return shellT(lang, key)
 }
 
+export function upgradeIconForCta(
+  upgradeCta: MeResponse['upgrade_cta'],
+): AppIconName | null {
+  if (upgradeCta === 'growth') return 'growth'
+  if (upgradeCta === 'enterprise') return 'billing'
+  return null
+}
+
 export function planPillLabel(me: MeResponse, lang: Language): string {
   if (me.plan === 'trial') {
     const days = trialDaysRemaining(me.trial_ends_at)
@@ -59,6 +68,7 @@ export function planSummaryLabel(me: MeResponse, lang: Language): string {
     if (days != null) {
       return shellT(lang, 'shellSidebarPlanTrialDays', { days: String(days) })
     }
+    return shellT(lang, 'shellSidebarPlanTrial')
   }
   const planName = me.plan_display_name?.trim() || me.plan
   return shellT(lang, 'shellSidebarPlanNamed', { plan: planName })
@@ -76,6 +86,40 @@ export function trialDaysRemaining(trialEndsAt: string | null): number | null {
   if (Number.isNaN(end.getTime())) return null
   const diffMs = end.getTime() - Date.now()
   return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)))
+}
+
+export function formatTrialEndDate(trialEndsAt: string | null, lang: Language): string | null {
+  if (!trialEndsAt) return null
+  const end = new Date(trialEndsAt)
+  if (Number.isNaN(end.getTime())) return null
+  return end.toLocaleDateString(lang === 'en' ? 'en-US' : 'es-MX', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+export function trialEndsOnLabel(me: MeResponse, lang: Language): string | null {
+  if (me.plan !== 'trial') return null
+  const date = formatTrialEndDate(me.trial_ends_at, lang)
+  if (!date) return null
+  return shellT(lang, 'billingTrialEndsOn', { date })
+}
+
+export function billingPlanHeadline(me: MeResponse, lang: Language): string {
+  if (me.plan === 'trial') return shellT(lang, 'billingTrialPlanTitle')
+  return planSummaryLabel(me, lang)
+}
+
+export function billingPlanDetailLine(me: MeResponse, lang: Language): string | null {
+  if (me.plan !== 'trial') return null
+  const days = trialDaysRemaining(me.trial_ends_at)
+  const date = formatTrialEndDate(me.trial_ends_at, lang)
+  if (days != null && date) {
+    return shellT(lang, 'billingTrialRemainingEnds', { days: String(days), date })
+  }
+  if (date) return shellT(lang, 'billingTrialEndsOn', { date })
+  return null
 }
 
 export function isPlanLimitSyncPaused(me: MeResponse | null | undefined): boolean {

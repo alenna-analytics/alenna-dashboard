@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  billingPlanDetailLine,
+  billingPlanHeadline,
   checkoutPlanForCta,
   isBillingOwner,
   isPlanLimitSyncPaused,
+  planSummaryLabel,
+  upgradeIconForCta,
   upgradeLabelForCta,
   upgradeMailtoForCta,
+  formatTrialEndDate,
+  trialEndsOnLabel,
 } from '@/lib/plan/plan-limit-ui'
 import type { MeResponse } from '@/lib/types/me-types'
 
@@ -54,6 +60,48 @@ describe('plan-limit-ui', () => {
 
   it('upgradeLabelForCta returns translated growth label', () => {
     expect(upgradeLabelForCta('growth', 'en')).toContain('Growth')
+  })
+
+  it('planSummaryLabel clarifies Basic free trial', () => {
+    const label = planSummaryLabel(
+      {
+        ...baseMe,
+        plan: 'trial',
+        trial_ends_at: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      'es',
+    )
+    expect(label).toMatch(/Basic/)
+    expect(label).toMatch(/prueba gratuita/)
+  })
+
+  it('upgradeIconForCta maps cta to icon names', () => {
+    expect(upgradeIconForCta('growth')).toBe('growth')
+    expect(upgradeIconForCta('enterprise')).toBe('billing')
+    expect(upgradeIconForCta('none')).toBeNull()
+  })
+
+  it('trialEndsOnLabel includes formatted end date for trial', () => {
+    const label = trialEndsOnLabel(
+      { ...baseMe, plan: 'trial', trial_ends_at: '2026-08-26T23:59:59.000Z' },
+      'es',
+    )
+    expect(label).toMatch(/Termina el/)
+    expect(formatTrialEndDate('2026-08-26T23:59:59.000Z', 'en')).toMatch(/2026/)
+  })
+
+  it('trialEndsOnLabel returns null for non-trial', () => {
+    expect(trialEndsOnLabel(baseMe, 'es')).toBeNull()
+  })
+
+  it('billingPlanHeadline and detail use two-line trial copy', () => {
+    const trialMe = {
+      ...baseMe,
+      plan: 'trial',
+      trial_ends_at: '2026-08-26T23:59:59.000Z',
+    }
+    expect(billingPlanHeadline(trialMe, 'es')).toBe('Basic Plan - Prueba Gratuita')
+    expect(billingPlanDetailLine(trialMe, 'es')).toMatch(/días restantes\. Termina el/)
   })
 
   it('isBillingOwner true for owner role', () => {

@@ -51,6 +51,7 @@ export type MeResponse = {
   sync_paused_reason?: 'orders_limit' | 'skus_limit' | 'trial_expired' | null
   upgrade_cta?: 'growth' | 'enterprise' | 'none'
   has_stripe_subscription?: boolean
+  has_stripe_customer?: boolean
   signup_intent: 'trial' | 'growth'
   payment_required: boolean
 }

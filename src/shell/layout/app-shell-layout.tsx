@@ -22,7 +22,11 @@ import { PlatformSyncActivityHost } from '@/shell/layout/platform-sync-activity-
 import { PlanLimitShellBanner } from '@/shell/plan-limit-shell-banner'
 import { PaymentPendingScreen } from '@/shell/payment-pending-screen'
 import { TrialExpiredScreen } from '@/shell/trial-expired-screen'
-import { onTrialExpired } from '@/lib/trial-expired-signal'
+import {
+  onPaymentRequired,
+  onSubscriptionAlreadyActive,
+  onTrialExpired,
+} from '@/lib/trial-expired-signal'
 import { shouldShowPaymentPending, shouldShowTrialExpired } from '@/lib/plan/shell-gates'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -61,6 +65,8 @@ export function AppShellLayout() {
   const [sidebarHoverExpanded, setSidebarHoverExpanded] = useState(false)
   const [mobileNavPath, setMobileNavPath] = useState<string | null>(null)
   const [trialForced, setTrialForced] = useState(false)
+  const [paymentForced, setPaymentForced] = useState(false)
+  const [subscriptionAlreadyActive, setSubscriptionAlreadyActive] = useState(false)
 
   const sidebarCollapsed = isSidebarVisuallyCollapsed(sidebarControlMode, sidebarHoverExpanded)
 
@@ -72,7 +78,23 @@ export function AppShellLayout() {
     setMobileNavPath(location.pathname)
   }, [location.pathname])
 
-  useEffect(() => onTrialExpired(() => setTrialForced(true)), [])
+  useEffect(() => onTrialExpired(() => {
+    setSubscriptionAlreadyActive(false)
+    setTrialForced(true)
+  }), [])
+  useEffect(() => onPaymentRequired(() => {
+    setSubscriptionAlreadyActive(false)
+    setPaymentForced(true)
+  }), [])
+  useEffect(
+    () =>
+      onSubscriptionAlreadyActive(() => {
+        setSubscriptionAlreadyActive(true)
+        setTrialForced(false)
+        setPaymentForced(false)
+      }),
+    [],
+  )
 
   const setSidebarControlModePersisted = useCallback((mode: SidebarControlMode) => {
     writeSidebarControlMode(mode)
@@ -147,7 +169,7 @@ export function AppShellLayout() {
     return <ShellBootstrapError lang={lang} />
   }
 
-  if (shouldShowPaymentPending(me)) {
+  if (!subscriptionAlreadyActive && shouldShowPaymentPending(me, paymentForced)) {
     return (
       <WorkspaceProvider value={workspaceValue}>
         <PaymentPendingScreen />
@@ -155,7 +177,7 @@ export function AppShellLayout() {
     )
   }
 
-  if (shouldShowTrialExpired(me, trialForced)) {
+  if (!subscriptionAlreadyActive && shouldShowTrialExpired(me, trialForced)) {
     return (
       <WorkspaceProvider value={workspaceValue}>
         <TrialExpiredScreen />

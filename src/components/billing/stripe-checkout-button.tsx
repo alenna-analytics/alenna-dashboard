@@ -1,5 +1,6 @@
 import { useAuth } from '@clerk/react'
 import { useState, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import {
@@ -11,6 +12,7 @@ import {
   type CheckoutSessionOptions,
 } from '@/lib/billing/billing-api'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { signalSubscriptionAlreadyActive } from '@/lib/trial-expired-signal'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
@@ -37,9 +39,9 @@ export function StripeCheckoutButton({
 }: StripeCheckoutButtonProps) {
   const { getToken } = useAuth()
   const { lang } = useLanguage()
-  const { me } = useWorkspace()
+  const { me, refetchMe } = useWorkspace()
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
-  const [showPortalFallback, setShowPortalFallback] = useState(false)
 
   if (!me) return null
   if (ownerOnly && me.role !== 'owner') return null
@@ -57,8 +59,10 @@ export function StripeCheckoutButton({
       redirectToStripe(url)
     } catch (error) {
       if (error instanceof BillingUseCustomerPortalError) {
-        toast.error(shellT(lang, 'billingUseCustomerPortal'))
-        setShowPortalFallback(true)
+        signalSubscriptionAlreadyActive()
+        toast.success(shellT(lang, 'billingSubscriptionAlreadyActive'))
+        void refetchMe()
+        navigate('/dashboard', { replace: true })
         setLoading(false)
         return
       }
@@ -70,25 +74,16 @@ export function StripeCheckoutButton({
   }
 
   return (
-    <div className={cn('flex flex-col gap-2', className?.includes('w-full') ? 'w-full' : undefined)}>
-      <Button
-        type="button"
-        variant={variant}
-        size={size}
-        className={cn(className)}
-        loading={loading}
-        onClick={() => void handleClick()}
-      >
-        {label}
-      </Button>
-      {showPortalFallback && me.has_stripe_subscription ? (
-        <StripePortalButton
-          label={shellT(lang, 'billingManageSubscription')}
-          variant={variant}
-          size={size}
-        />
-      ) : null}
-    </div>
+    <Button
+      type="button"
+      variant={variant}
+      size={size}
+      className={cn(className)}
+      loading={loading}
+      onClick={() => void handleClick()}
+    >
+      {label}
+    </Button>
   )
 }
 

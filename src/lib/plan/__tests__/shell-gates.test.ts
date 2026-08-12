@@ -36,6 +36,10 @@ describe('shell-gates', () => {
     expect(shouldShowTrialExpired(me, false)).toBe(false)
   })
 
+  it('paymentForced shows payment pending', () => {
+    expect(shouldShowPaymentPending(baseMe, true)).toBe(true)
+  })
+
   it('growth signup with trial_expired does not show TrialExpiredScreen', () => {
     const me: MeResponse = {
       ...baseMe,
@@ -54,7 +58,11 @@ describe('shell-gates', () => {
     expect(shouldShowTrialExpired(me, false)).toBe(true)
   })
 
-  it('trialForced shows trial expired for trial intent', () => {
-    expect(shouldShowTrialExpired(baseMe, true)).toBe(true)
+  it('trialForced shows trial expired even for growth intent', () => {
+    const me: MeResponse = {
+      ...baseMe,
+      signup_intent: 'growth',
+    }
+    expect(shouldShowTrialExpired(me, true)).toBe(true)
   })
 })

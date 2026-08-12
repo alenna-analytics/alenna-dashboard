@@ -50,6 +50,7 @@ export function AdjustPlanSheet({ open, onOpenChange, me }: AdjustPlanSheetProps
       features: [
         shellT(lang, 'billingPlanFeatureBasicOrders'),
         shellT(lang, 'billingPlanFeatureBasicSkus'),
+        shellT(lang, 'billingPlanFeatureBasicUsers'),
         shellT(lang, 'billingPlanFeatureCore'),
       ],
     },
@@ -61,6 +62,7 @@ export function AdjustPlanSheet({ open, onOpenChange, me }: AdjustPlanSheetProps
       features: [
         shellT(lang, 'billingPlanFeatureGrowthOrders'),
         shellT(lang, 'billingPlanFeatureGrowthSkus'),
+        shellT(lang, 'billingPlanFeatureGrowthUsers'),
         shellT(lang, 'billingPlanFeatureCore'),
       ],
     },

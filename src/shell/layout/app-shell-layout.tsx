@@ -102,9 +102,13 @@ export function AppShellLayout() {
     meLoading,
     resolvingSingleTenant,
     tenantsReady,
+    retry: refetchTenants,
   } = useAppBootstrap()
 
-  const workspaceValue = useMemo(() => ({ me, refetchMe }), [me, refetchMe])
+  const workspaceValue = useMemo(
+    () => ({ me, refetchMe, refetchTenants }),
+    [me, refetchMe, refetchTenants],
+  )
   const mainRef = useRef<HTMLElement>(null)
 
   const companyName = useMemo(() => {

@@ -5,6 +5,7 @@ import type { MeResponse } from '@/lib/types/me-types'
 type WorkspaceContextValue = {
   me: MeResponse | null
   refetchMe: () => Promise<void>
+  refetchTenants: () => void
 }
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null)

@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ExternalLink, FileText } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 
 import { AdjustPlanSheet } from '@/components/billing/adjust-plan-sheet'
 import { CancelSubscriptionButton } from '@/components/billing/cancel-subscription-button'
@@ -173,6 +173,19 @@ function UsageRows({ me, lang }: { me: MeResponse | null; lang: Language }) {
           {formatPlanLimit(me?.skus_used, lang)} / {formatPlanLimit(me?.skus_limit, lang)}
         </p>
       </div>
+      <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-text-primary">
+            {shellT(lang, 'billingUsersLimitLabel')}
+          </p>
+          <p className="mt-0.5 text-xs text-text-tertiary">
+            {shellT(lang, 'billingUsersLimitDescription')}
+          </p>
+        </div>
+        <p className="shrink-0 text-sm font-medium text-text-primary">
+          {formatPlanLimit(me?.users_used, lang)} / {formatPlanLimit(me?.users_limit, lang)}
+        </p>
+      </div>
     </div>
   )
 }
@@ -302,6 +315,10 @@ export function BillingConfigurationPage() {
     overview?.current_period_end,
   )
 
+  if (me && !isOwner) {
+    return <Navigate to="/dashboard" replace />
+  }
+
   return (
     <DashboardPage className="space-y-2">
       <section className="pb-2">
@@ -315,10 +332,6 @@ export function BillingConfigurationPage() {
         <p className="rounded-md border border-border-default bg-[var(--platinum-blonde-300)] px-4 py-3 text-sm text-text-primary">
           {t(checkoutFeedbackKey)}
         </p>
-      ) : null}
-
-      {!isOwner ? (
-        <p className="text-sm text-text-secondary">{t('billingOwnerOnly')}</p>
       ) : null}
 
       <div className="divide-y divide-border-default">

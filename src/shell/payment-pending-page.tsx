@@ -11,8 +11,16 @@ import { useLanguage } from '@/shell/providers/language-provider'
 export function PaymentPendingPage() {
   const { lang } = useLanguage()
   const { tenantId } = useCurrentTenant()
-  const { me, refetchMe, error, tenantsLoading, meLoading, resolvingSingleTenant, tenantsReady } =
-    useAppBootstrap()
+  const {
+    me,
+    refetchMe,
+    error,
+    tenantsLoading,
+    meLoading,
+    resolvingSingleTenant,
+    tenantsReady,
+    retry: refetchTenants,
+  } = useAppBootstrap()
 
   const bootLoading =
     !tenantsReady ||
@@ -37,7 +45,7 @@ export function PaymentPendingPage() {
   }
 
   return (
-    <WorkspaceProvider value={{ me, refetchMe }}>
+    <WorkspaceProvider value={{ me, refetchMe, refetchTenants }}>
       <PaymentPendingScreen />
     </WorkspaceProvider>
   )

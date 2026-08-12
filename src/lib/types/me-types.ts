@@ -45,6 +45,8 @@ export type MeResponse = {
   orders_limit?: number | null
   skus_used?: number
   skus_limit?: number | null
+  users_used?: number
+  users_limit?: number | null
   sync_paused?: boolean
   sync_paused_reason?: 'orders_limit' | 'skus_limit' | 'trial_expired' | null
   upgrade_cta?: 'growth' | 'enterprise' | 'none'

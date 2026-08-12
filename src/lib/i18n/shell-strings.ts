@@ -80,7 +80,7 @@ const SHELL_STRINGS = {
     workspaceConfigGeneralPageSubtitle: 'Administra reglas y preferencias del workspace.',
     workspaceConfigGeneralSectionTitle: 'Configuración general',
     settingsCompanyDescription: 'Nombre del workspace activo.',
-    settingsLanguageDescription: 'Idioma de la interfaz de Alenna.',
+    settingsLanguageDescription: 'Idioma de la interfaz de alenna.',
     homeKpiDeltaTooltip:
       'Variación porcentual frente al periodo anterior de la misma duración (p. ej. los 30 días previos al rango seleccionado).',
     homeKpiDragHandleAria: 'Arrastrar para reordenar tarjeta',
@@ -93,14 +93,14 @@ const SHELL_STRINGS = {
       'Cuenta de demostración preconfigurada para revisión de la app. Las conexiones, sincronizaciones y acciones destructivas están deshabilitadas.',
     fixtureActionDisabled: 'Esta acción no está disponible en la cuenta de demostración.',
     settingsDangerZoneSubtitle:
-      'Elimina permanentemente tu cuenta de Alenna y los datos de tu workspace.',
+      'Elimina permanentemente tu cuenta de alenna y los datos de tu workspace.',
     settingsDeleteAccountCardTitle: 'Solicitud de eliminación de cuenta',
     settingsDeleteAccountCardDescription:
-      'Al confirmar, programaremos el borrado de tu cuenta y espacio de trabajo para dentro de 90 días. Hasta entonces no se eliminará nada: puedes cancelar la solicitud y seguir usando Alenna con normalidad. Pasada esa fecha, borraremos tus datos personales y comerciales y se detienen las sincronizaciones. Si necesitas adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
+      'Al confirmar, programaremos el borrado de tu cuenta y espacio de trabajo para dentro de 90 días. Hasta entonces no se eliminará nada: puedes cancelar la solicitud y seguir usando alenna con normalidad. Pasada esa fecha, borraremos tus datos personales y comerciales y se detienen las sincronizaciones. Si necesitas adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
     settingsDeleteAccountCardDescriptionWithMembers:
-      'Al confirmar, programaremos el borrado de tu cuenta y espacio de trabajo para dentro de 90 días. Hasta entonces no se eliminará nada: puedes cancelar la solicitud y seguir usando Alenna con normalidad. Pasada esa fecha, borraremos tus datos y todos los miembros perderán acceso. Para adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
+      'Al confirmar, programaremos el borrado de tu cuenta y espacio de trabajo para dentro de 90 días. Hasta entonces no se eliminará nada: puedes cancelar la solicitud y seguir usando alenna con normalidad. Pasada esa fecha, borraremos tus datos y todos los miembros perderán acceso. Para adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
     settingsDeleteAccountCardDescriptionWithOneMember:
-      'Al confirmar, programaremos el borrado de tu cuenta y espacio de trabajo para dentro de 90 días. Hasta entonces no se eliminará nada: puedes cancelar la solicitud y seguir usando Alenna con normalidad. Pasada esa fecha, borraremos tus datos y todos los miembros perderán acceso. Para adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
+      'Al confirmar, programaremos el borrado de tu cuenta y espacio de trabajo para dentro de 90 días. Hasta entonces no se eliminará nada: puedes cancelar la solicitud y seguir usando alenna con normalidad. Pasada esa fecha, borraremos tus datos y todos los miembros perderán acceso. Para adelantar el borrado, escribe a privacidad@alenna.io (máx. 30 días hábiles).',
     settingsDeleteAccountRequestButton: 'Solicitar eliminación de cuenta',
     settingsDeleteAccountSectionTitle: 'Eliminar cuenta',
     settingsDeleteAccountIntro:
@@ -356,13 +356,21 @@ const SHELL_STRINGS = {
     homeTrendsSectionTitle: 'Tendencias',
     trialExpiredTitle: 'Tu periodo de prueba terminó',
     trialExpiredBody:
-      'Para seguir usando Alenna, elige un plan que se adapte a tu operación.',
+      'Para seguir usando alenna, elige un plan que se adapte a tu operación.',
     trialExpiredSignOut: 'Cerrar sesión',
     paymentPendingTitle: 'Completa tu suscripción',
     paymentPendingBody:
-      'Tu espacio de trabajo está listo. Finaliza el pago de Growth para empezar a usar Alenna.',
+      'Tu espacio de trabajo está listo. Finaliza el pago de Growth para empezar a usar alenna.',
     paymentPendingCta: 'Completar pago de Growth',
     paymentPendingSignOut: 'Cerrar sesión',
+    subscriptionInactiveTitle: 'Tu plan ya no está activo',
+    subscriptionInactiveBody:
+      'Renueva tu plan para continuar analizando las métricas de tu negocio en alenna.',
+    billingGateHelp: 'Si necesitas ayuda, escríbenos a {email}.',
+    billingRenewWithPlan: 'Continuar con {plan}',
+    billingPlanNameBasic: 'Basic',
+    billingPlanNameGrowth: 'Growth',
+    billingPlanNameEnterprise: 'Enterprise',
     navComponents: 'Componentes',
     shellHomeChartRegion: 'Área de gráficos',
     dashboardRevenueTrendTitle: 'Tendencia de ventas',
@@ -420,6 +428,7 @@ const SHELL_STRINGS = {
     billingUpgradeGrowth: 'Mejorar a Growth',
     billingManageSubscription: 'Administrar suscripción',
     billingUseCustomerPortal: 'Ya tienes una suscripción activa. Usa el portal para cambiar de plan.',
+    billingSubscriptionAlreadyActive: 'Tu suscripción ya está activa',
     billingActionsLabel: 'Cambiar plan',
     billingActionsDescription: 'Suscríbete o cambia de plan con checkout seguro en Stripe.',
     billingPaymentLabel: 'Pago',
@@ -481,6 +490,14 @@ const SHELL_STRINGS = {
     billingCheckoutCancel: 'Checkout cancelado. No se realizó ningún cargo.',
     billingOwnerOnly: 'Solo el propietario del espacio de trabajo puede gestionar la facturación.',
     workspaceConfigBillingDescription: 'Plan, límites de uso y facturación.',
+    planLimitBannerTitle: 'Llegaste al límite de tu plan',
+    planLimitBannerOrdersDetail:
+      'Los pedidos nuevos ya no se sincronizarán con tus conexiones. Actualiza tu plan o contáctanos.',
+    planLimitBannerSkusDetail:
+      'Los productos nuevos ya no se sincronizarán con tus conexiones. Actualiza tu plan o contáctanos.',
+    planLimitBannerGenericDetail:
+      'La sincronización está pausada. Actualiza tu plan o contáctanos.',
+    planLimitBannerBillingLink: 'Ir a facturación',
     planLimitBannerOrders:
       'Has alcanzado el límite de pedidos de tu plan. La sincronización está pausada hasta que amplíes tu plan.',
     planLimitBannerSkus:
@@ -488,10 +505,17 @@ const SHELL_STRINGS = {
     planLimitBannerGeneric:
       'Has alcanzado un límite de tu plan. La sincronización está pausada hasta que amplíes tu plan.',
     planLimitSyncOrders:
-      'Has alcanzado el límite mensual de pedidos. La sincronización está pausada.',
+      'Has alcanzado el límite mensual de pedidos. La sincronización de pedidos está pausada.',
     planLimitSyncSkus:
-      'Has alcanzado el límite de productos sincronizados. La sincronización está pausada.',
+      'Has alcanzado el límite de productos sincronizados. La sincronización de productos está pausada.',
     planLimitSyncGeneric: 'Has alcanzado un límite de tu plan. La sincronización está pausada.',
+    planLimitBillingAlertTitle: 'Llegaste al límite de tu plan',
+    planLimitBillingAlertOrders:
+      'Superaste el límite mensual de pedidos. Los pedidos nuevos ya no se sincronizarán hasta que actualices tu plan.',
+    planLimitBillingAlertSkus:
+      'Superaste el límite de productos activos. Los productos nuevos ya no se sincronizarán hasta que actualices tu plan.',
+    planLimitBillingAlertGeneric:
+      'Superaste un límite de tu plan. La sincronización está pausada hasta que actualices tu plan.',
     companyLabel: 'Empresa',
     companySelectPlaceholder: 'Seleccionar…',
     shellAlertsOpenAria: 'Abrir alertas activas',
@@ -527,7 +551,7 @@ const SHELL_STRINGS = {
       'Menos ruido. Más claridad en ventas, márgenes y operación.',
     authLoginTitle: 'Inicia sesión',
     authLoginSubtitle: 'Continúa con Google o usa tu correo.',
-    authSignUpHeadline: 'Empieza tu prueba de Alenna',
+    authSignUpHeadline: 'Empieza tu prueba de alenna',
     authSignUpSupporting: 'Crea tu cuenta en minutos y conecta tu operación.',
     authSignUpTitle: 'Crea tu cuenta',
     authSignUpSubtitle: 'Sin tarjeta para empezar.',
@@ -561,9 +585,9 @@ const SHELL_STRINGS = {
     onboardingFirstName: 'Nombre',
     onboardingLastName: 'Apellido',
     onboardingCompanyTitle: 'Nombre de tu empresa',
-    onboardingCompanySubtitle: 'Será el nombre de tu workspace en Alenna.',
+    onboardingCompanySubtitle: 'Será el nombre de tu workspace en alenna.',
     onboardingCompanyName: 'Empresa',
-    onboardingTrialTitle: 'Prueba Alenna por {days} días sin costo',
+    onboardingTrialTitle: 'Prueba alenna por {days} días sin costo',
     onboardingTrialIntro: 'Después, USD ${price}/mes.',
     onboardingTrialBulletReports: 'Reportes y panel consolidado',
     onboardingTrialBulletCogs: 'Productos y costos (COGS)',
@@ -575,7 +599,7 @@ const SHELL_STRINGS = {
     onboardingGrowthIntro:
       'Tras crear tu espacio, completarás el pago de Growth en Stripe.',
     onboardingGrowthPaymentNote:
-      'Necesitas una suscripción activa de Growth para usar Alenna con este registro.',
+      'Necesitas una suscripción activa de Growth para usar alenna con este registro.',
     onboardingCheckoutFailed:
       'No pudimos abrir el checkout. Puedes completar el pago desde la pantalla de pago pendiente.',
     onboardingContinue: 'Continuar',
@@ -586,7 +610,7 @@ const SHELL_STRINGS = {
     onboardingLoadError: 'No pudimos preparar el onboarding.',
     onboardingSubmitFailed: 'No pudimos crear tu workspace. Intenta de nuevo.',
     onboardingSessionSyncFailed: 'No pudimos sincronizar tu sesión. Reintenta.',
-    welcomeTitle: 'Bienvenido a Alenna',
+    welcomeTitle: 'Bienvenido a alenna',
     welcomeSubtitle: 'Tu panel de analítica Shopify.',
     connectionsPageTitle: 'Conexiones',
     connectionsPageSubtitle:
@@ -760,7 +784,7 @@ const SHELL_STRINGS = {
     integrationDetailEventSyncCompleted: 'Última sincronización correcta',
     shellErrorTitle: 'Algo salió mal',
     shellErrorDescription:
-      'No pudimos cargar Alenna en este momento. Por favor, vuelve a intentar en unos segundos.',
+      'No pudimos cargar alenna en este momento. Por favor, vuelve a intentar en unos segundos.',
     shellErrorRetry: 'Reintentar',
     shellErrorRefresh: 'Recargar página',
     shellErrorViewDetails: 'Ver detalles técnicos',
@@ -837,7 +861,7 @@ const SHELL_STRINGS = {
     shopifySyncProgressTitle: 'Sincronizando con Shopify',
     shopifySyncFailedTitle: 'Error al sincronizar con Shopify',
     shopifySyncProgressQueued: 'En proceso...',
-    jobTriggeredBySystem: 'Iniciado automáticamente por Alenna',
+    jobTriggeredBySystem: 'Iniciado automáticamente por alenna',
     shopifySyncProgressOrders: 'Pedidos importados',
     shopifySyncProgressCatalog: 'Actualizando catálogo (imágenes e inventario)...',
     shopifySyncProgressPages: 'Página',
@@ -1193,7 +1217,7 @@ const SHELL_STRINGS = {
     productsDetailHeaderStatCreatedLabel: 'Creado',
     productsDetailHeaderStatUpdatedLabel: 'Última modificación',
     productsDetailHeaderStatLastSyncLabel: 'Última sincronización',
-    productsDetailEditSkuAria: 'Editar SKU de Alenna',
+    productsDetailEditSkuAria: 'Editar SKU de alenna',
     productsDetailSkuPlaceholder: 'SKU interno',
     productsDetailSkuSave: 'Guardar SKU',
     productsDetailSkuUnsavedChanges: 'Cambios no guardados',
@@ -1396,7 +1420,7 @@ const SHELL_STRINGS = {
     productsDetailEffectiveTo: 'Válido hasta (opcional)',
     productsDetailEnqueueBackfill: 'Iniciar recálculo',
     productsJobQueued: 'Trabajo en proceso...',
-    productsJobSystemTrigger: 'Iniciado automáticamente por Alenna',
+    productsJobSystemTrigger: 'Iniciado automáticamente por alenna',
     productsJobRunning: 'Procesando…',
     productsJobSucceeded: 'Recálculo completado',
     productsJobFailed: 'Falló el trabajo',
@@ -1689,7 +1713,7 @@ const SHELL_STRINGS = {
     workspaceConfigGeneralPageSubtitle: 'General workspace preferences.',
     workspaceConfigGeneralSectionTitle: 'General settings',
     settingsCompanyDescription: 'Active workspace name.',
-    settingsLanguageDescription: 'Language for the Alenna interface.',
+    settingsLanguageDescription: 'Language for the alenna interface.',
     homeKpiDeltaTooltip:
       'Percent change versus the previous period of the same length (e.g. the 30 days before your selected range).',
     homeKpiDragHandleAria: 'Drag to reorder card',
@@ -1701,10 +1725,10 @@ const SHELL_STRINGS = {
     fixtureTenantBannerMessage:
       'Preloaded demo account for app review. Connections, syncs, and destructive actions are disabled.',
     fixtureActionDisabled: 'This action is not available on the demo account.',
-    settingsDangerZoneSubtitle: 'Permanently delete your Alenna account and workspace data.',
+    settingsDangerZoneSubtitle: 'Permanently delete your alenna account and workspace data.',
     settingsDeleteAccountCardTitle: 'Request for account deletion',
     settingsDeleteAccountCardDescription:
-      'When you confirm, we will schedule deletion of your account and workspace in 90 days. Nothing will be removed until then—you can cancel and keep using Alenna normally. After that date, we permanently delete your personal and commercial data and stop syncs. To delete sooner, email privacidad@alenna.io (within 30 business days).',
+      'When you confirm, we will schedule deletion of your account and workspace in 90 days. Nothing will be removed until then—you can cancel and keep using alenna normally. After that date, we permanently delete your personal and commercial data and stop syncs. To delete sooner, email privacidad@alenna.io (within 30 business days).',
     settingsDeleteAccountCardDescriptionWithMembers:
       'When you confirm, we will schedule deletion of your account and workspace in 90 days. Nothing will be removed until then and you can cancel. After that date, we will delete your data and all members will lose access. To delete sooner, email privacidad@alenna.io (within 30 business days).',
     settingsDeleteAccountCardDescriptionWithOneMember:
@@ -1960,13 +1984,21 @@ const SHELL_STRINGS = {
     homeAnalysisSectionTitle: 'Analysis',
     homeTrendsSectionTitle: 'Trends',
     trialExpiredTitle: 'Your trial has ended',
-    trialExpiredBody: 'To keep using Alenna, choose a plan that fits your operation.',
+    trialExpiredBody: 'To keep using alenna, choose a plan that fits your operation.',
     trialExpiredSignOut: 'Sign out',
     paymentPendingTitle: 'Complete your subscription',
     paymentPendingBody:
-      'Your workspace is ready. Finish paying for Growth to start using Alenna.',
+      'Your workspace is ready. Finish paying for Growth to start using alenna.',
     paymentPendingCta: 'Complete Growth payment',
     paymentPendingSignOut: 'Sign out',
+    subscriptionInactiveTitle: 'Your plan is no longer active',
+    subscriptionInactiveBody:
+      'Renew your plan to keep analyzing your business metrics in alenna.',
+    billingGateHelp: 'If you need help, write to us at {email}.',
+    billingRenewWithPlan: 'Continue with {plan}',
+    billingPlanNameBasic: 'Basic',
+    billingPlanNameGrowth: 'Growth',
+    billingPlanNameEnterprise: 'Enterprise',
     navComponents: 'Components',
     shellHomeChartRegion: 'Chart area',
     dashboardRevenueTrendTitle: 'Revenue trend',
@@ -2024,6 +2056,7 @@ const SHELL_STRINGS = {
     billingUpgradeGrowth: 'Upgrade to Growth',
     billingManageSubscription: 'Manage subscription',
     billingUseCustomerPortal: 'You already have an active subscription. Use the portal to change plans.',
+    billingSubscriptionAlreadyActive: 'Your subscription is already active',
     billingActionsLabel: 'Change plan',
     billingActionsDescription: 'Subscribe or change plans via secure Stripe checkout.',
     billingPaymentLabel: 'Payment',
@@ -2085,6 +2118,13 @@ const SHELL_STRINGS = {
     billingCheckoutCancel: 'Checkout canceled. No charge was made.',
     billingOwnerOnly: 'Only the workspace owner can manage billing.',
     workspaceConfigBillingDescription: 'Plan, usage limits, and billing.',
+    planLimitBannerTitle: 'You reached your plan limit',
+    planLimitBannerOrdersDetail:
+      'New orders will no longer sync from your connections. Upgrade your plan or contact us.',
+    planLimitBannerSkusDetail:
+      'New products will no longer sync from your connections. Upgrade your plan or contact us.',
+    planLimitBannerGenericDetail: 'Sync is paused. Upgrade your plan or contact us.',
+    planLimitBannerBillingLink: 'Go to billing',
     planLimitBannerOrders:
       'You have reached your plan order limit. Sync is paused until you upgrade your plan.',
     planLimitBannerSkus:
@@ -2092,10 +2132,17 @@ const SHELL_STRINGS = {
     planLimitBannerGeneric:
       'You have reached a plan limit. Sync is paused until you upgrade your plan.',
     planLimitSyncOrders:
-      'You have reached your monthly order limit. Sync is paused.',
+      'You have reached your monthly order limit. Order sync is paused.',
     planLimitSyncSkus:
-      'You have reached your synced product limit. Sync is paused.',
+      'You have reached your synced product limit. Product sync is paused.',
     planLimitSyncGeneric: 'You have reached a plan limit. Sync is paused.',
+    planLimitBillingAlertTitle: 'You reached your plan limit',
+    planLimitBillingAlertOrders:
+      'You exceeded your monthly order limit. New orders will not sync until you upgrade your plan.',
+    planLimitBillingAlertSkus:
+      'You exceeded your active product limit. New products will not sync until you upgrade your plan.',
+    planLimitBillingAlertGeneric:
+      'You exceeded a plan limit. Sync is paused until you upgrade your plan.',
     companyLabel: 'Company',
     companySelectPlaceholder: 'Select…',
     shellAlertsOpenAria: 'Open active alerts',
@@ -2130,7 +2177,7 @@ const SHELL_STRINGS = {
       'Less noise. Clearer revenue, margins, and operations.',
     authLoginTitle: 'Sign in',
     authLoginSubtitle: 'Continue with Google or use your email.',
-    authSignUpHeadline: 'Start your Alenna trial',
+    authSignUpHeadline: 'Start your alenna trial',
     authSignUpSupporting: 'Create your account in minutes and connect your ops.',
     authSignUpTitle: 'Create your account',
     authSignUpSubtitle: 'No card required to start.',
@@ -2164,9 +2211,9 @@ const SHELL_STRINGS = {
     onboardingFirstName: 'First name',
     onboardingLastName: 'Last name',
     onboardingCompanyTitle: 'Company name',
-    onboardingCompanySubtitle: 'This becomes your Alenna workspace name.',
+    onboardingCompanySubtitle: 'This becomes your alenna workspace name.',
     onboardingCompanyName: 'Company',
-    onboardingTrialTitle: 'Try Alenna free for {days} days',
+    onboardingTrialTitle: 'Try alenna free for {days} days',
     onboardingTrialIntro: 'Then, USD ${price}/month.',
     onboardingTrialBulletReports: 'Reports and consolidated dashboard',
     onboardingTrialBulletCogs: 'Products and COGS',
@@ -2178,7 +2225,7 @@ const SHELL_STRINGS = {
     onboardingGrowthIntro:
       'After creating your workspace, you will complete Growth payment in Stripe.',
     onboardingGrowthPaymentNote:
-      'An active Growth subscription is required to use Alenna with this signup.',
+      'An active Growth subscription is required to use alenna with this signup.',
     onboardingCheckoutFailed:
       'We could not open checkout. You can complete payment from the payment pending screen.',
     onboardingContinue: 'Continue',
@@ -2189,7 +2236,7 @@ const SHELL_STRINGS = {
     onboardingLoadError: 'We could not prepare onboarding.',
     onboardingSubmitFailed: 'We could not create your workspace. Try again.',
     onboardingSessionSyncFailed: 'We could not sync your workspace session. Retry.',
-    welcomeTitle: 'Welcome to Alenna',
+    welcomeTitle: 'Welcome to alenna',
     welcomeSubtitle: 'Your Shopify analytics home.',
     connectionsPageTitle: 'Connections',
     connectionsPageSubtitle:
@@ -2362,7 +2409,7 @@ const SHELL_STRINGS = {
     integrationDetailEventSyncCompleted: 'Last sync completed successfully',
     shellErrorTitle: 'Something went wrong',
     shellErrorDescription:
-      "We couldn't load Alenna right now. Please try again in a few seconds.",
+      "We couldn't load alenna right now. Please try again in a few seconds.",
     shellErrorRetry: 'Retry',
     shellErrorRefresh: 'Reload page',
     shellErrorViewDetails: 'View technical details',
@@ -2436,7 +2483,7 @@ const SHELL_STRINGS = {
     shopifySyncProgressTitle: 'Syncing with Shopify',
     shopifySyncFailedTitle: 'Shopify sync failed',
     shopifySyncProgressQueued: 'Queued, waiting for worker…',
-    jobTriggeredBySystem: 'Started automatically by Alenna',
+    jobTriggeredBySystem: 'Started automatically by alenna',
     shopifySyncProgressOrders: 'Orders imported',
     shopifySyncProgressCatalog: 'Updating catalog (images & stock)...',
     shopifySyncProgressPages: 'Page',
@@ -2790,7 +2837,7 @@ const SHELL_STRINGS = {
     productsDetailHeaderStatCreatedLabel: 'Created',
     productsDetailHeaderStatUpdatedLabel: 'Last modified',
     productsDetailHeaderStatLastSyncLabel: 'Last sync',
-    productsDetailEditSkuAria: 'Edit Alenna SKU',
+    productsDetailEditSkuAria: 'Edit alenna SKU',
     productsDetailSkuPlaceholder: 'Internal SKU',
     productsDetailSkuSave: 'Save SKU',
     productsDetailSkuUnsavedChanges: 'Unsaved changes',
@@ -2991,7 +3038,7 @@ const SHELL_STRINGS = {
     productsDetailEffectiveTo: 'Effective to (optional)',
     productsDetailEnqueueBackfill: 'Queue recalculation',
     productsJobQueued: 'Job queued…',
-    productsJobSystemTrigger: 'Started automatically by Alenna',
+    productsJobSystemTrigger: 'Started automatically by alenna',
     productsJobRunning: 'Processing…',
     productsJobSucceeded: 'Recalculation complete',
     productsJobFailed: 'Job failed',

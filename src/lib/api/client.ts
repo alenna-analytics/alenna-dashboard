@@ -1,23 +1,24 @@
-import { signalTrialExpired } from '@/lib/trial-expired-signal'
+import { signalPaymentRequired, signalTrialExpired } from '@/lib/trial-expired-signal'
 
 const baseUrl = (): string =>
   (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
-type TrialExpiredDetail = {
+type BillingGateDetail = {
   code?: string
   message?: string
 }
 
-async function maybeSignalTrialExpired(res: Response): Promise<void> {
+async function maybeSignalBillingGate(res: Response): Promise<void> {
   if (res.status !== 402) return
   try {
-    const body = (await res.clone().json()) as { detail?: TrialExpiredDetail | string }
+    const body = (await res.clone().json()) as { detail?: BillingGateDetail | string }
     const detail = body.detail
-    if (
-      typeof detail === 'object' &&
-      detail !== null &&
-      detail.code === 'trial_expired'
-    ) {
+    if (typeof detail !== 'object' || detail === null) return
+    if (detail.code === 'payment_required') {
+      signalPaymentRequired()
+      return
+    }
+    if (detail.code === 'trial_expired') {
       signalTrialExpired()
     }
   } catch {
@@ -44,7 +45,7 @@ export async function apiFetch(
     headers.set('Authorization', `Bearer ${token}`)
   }
   const res = await fetch(url, { ...init, headers })
-  await maybeSignalTrialExpired(res)
+  await maybeSignalBillingGate(res)
   return res
 }
 

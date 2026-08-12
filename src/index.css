@@ -387,6 +387,12 @@
     transparent
   );
 
+  /** Plan-limit shell banner: same height as activity bar, softer warning surface. */
+  --plan-limit-banner-bg: #fff8eb;
+  --plan-limit-banner-fg: var(--firefly-100);
+  --plan-limit-banner-border: color-mix(in srgb, var(--stock-alert-warning) 22%, transparent);
+  --plan-limit-banner-icon: var(--stock-alert-warning);
+
   --kpi-pill-positive-bg: var(--pill-success-bg);
   --kpi-pill-positive-text: var(--pill-success-text);
   --kpi-pill-negative-bg: var(--pill-error-bg);
@@ -1046,13 +1052,13 @@
 }
 
 [data-sonner-toaster].alenna-sonner [data-sonner-toast][data-styled='true'] {
-  display: flex !important;
-  width: fit-content !important;
-  max-width: min(calc(100vw - 2rem), 24rem) !important;
+  display: inline-flex !important;
+  width: max-content !important;
+  max-width: calc(100vw - 2rem) !important;
   left: 0 !important;
   right: 0 !important;
   margin-inline: auto !important;
-  padding: 0.5rem 0.75rem !important;
+  padding: 0.5rem 0.875rem !important;
   border: 0 !important;
   border-radius: 0.75rem !important;
   background: #1f1f1f !important;
@@ -1066,8 +1072,10 @@
 
 [data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-content] {
   display: block !important;
-  flex: 0 0 auto !important;
-  width: auto !important;
+  flex: 0 1 auto !important;
+  width: max-content !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
 }
 
 [data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-icon] {
@@ -1080,7 +1088,8 @@
   line-height: 1.25rem !important;
   color: #fff !important;
   text-align: center !important;
-  white-space: nowrap !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
 }
 
 [data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-description] {
@@ -1092,13 +1101,8 @@
 
 @media (max-width: 600px) {
   [data-sonner-toaster].alenna-sonner [data-sonner-toast][data-styled='true'] {
-    width: fit-content !important;
+    width: max-content !important;
     max-width: calc(100vw - 2rem) !important;
-  }
-
-  [data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-title] {
-    white-space: normal !important;
-    overflow-wrap: break-word !important;
   }
 }
 

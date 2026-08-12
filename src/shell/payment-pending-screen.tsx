@@ -1,32 +1,113 @@
-import { UserButton } from '@clerk/react'
-
 import { StripeCheckoutButton } from '@/components/billing/stripe-checkout-button'
-import { paymentPendingCancelUrl } from '@/lib/billing/billing-api'
+import {
+  paymentPendingCancelUrl,
+  type CheckoutPlanSlug,
+} from '@/lib/billing/billing-api'
+import { UPGRADE_ENTERPRISE_MAILTO } from '@/lib/plan/plan-limit-ui'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
+import { cn } from '@/lib/utils'
+import { BillingGateScreen } from '@/shell/billing-gate-screen'
+import { BillingGateSignOutButton } from '@/shell/billing-gate-sign-out-button'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
+import { buttonVariants } from '@/ui/button'
+
+function renewPlanForMe(signupIntent: 'trial' | 'growth' | undefined): CheckoutPlanSlug {
+  return signupIntent === 'growth' ? 'growth' : 'basic'
+}
 
 export function PaymentPendingScreen() {
   const { lang } = useLanguage()
-  const t = (key: ShellStringKey) => shellT(lang, key)
+  const { me } = useWorkspace()
+  const t = (key: ShellStringKey, vars?: Readonly<Record<string, string>>) =>
+    shellT(lang, key, vars)
+
+  const lapsedCustomer = Boolean(me?.has_stripe_customer)
+  const renewPlan = renewPlanForMe(me?.signup_intent)
+  const renewPlanLabel =
+    renewPlan === 'growth' ? t('billingPlanNameGrowth') : t('billingPlanNameBasic')
+  const renewLabel = t('billingRenewWithPlan', { plan: renewPlanLabel })
+  const checkoutOptions = { cancelUrl: paymentPendingCancelUrl() }
+  const gateButtonClass = 'min-w-44 rounded-lg px-6'
+
+  // Growth onboarding unpaid: single renew CTA.
+  // Lapsed Stripe customers: offer Basic + Growth (prior plan is unknown after cancel → trial).
+  // Otherwise renew + upgrade.
+  const singleRenewOnly =
+    me?.signup_intent === 'growth' && !lapsedCustomer
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-[var(--bg-base)] p-6">
-      <div className="w-full max-w-md rounded-md border border-[var(--shell-structure-border)] bg-white p-8 text-center shadow-[var(--shadow-ink-sm)]">
-        <h1 className="text-xl font-semibold text-text-primary">{t('paymentPendingTitle')}</h1>
-        <p className="mt-3 text-sm leading-relaxed text-text-secondary">{t('paymentPendingBody')}</p>
-        <div className="mt-6 flex flex-col items-center gap-3">
+    <BillingGateScreen
+      title={t('subscriptionInactiveTitle')}
+      description={t('subscriptionInactiveBody')}
+      actions={
+        singleRenewOnly ? (
           <StripeCheckoutButton
             plan="growth"
-            label={t('paymentPendingCta')}
-            variant="primary"
-            checkoutOptions={{ cancelUrl: paymentPendingCancelUrl() }}
+            label={renewLabel}
+            variant="accent"
+            size="default"
+            className={gateButtonClass}
+            checkoutOptions={checkoutOptions}
           />
-          <div className="flex items-center gap-2 text-sm text-text-secondary">
-            <span>{t('paymentPendingSignOut')}</span>
-            <UserButton />
-          </div>
-        </div>
-      </div>
-    </div>
+        ) : lapsedCustomer ? (
+          <>
+            <StripeCheckoutButton
+              plan="basic"
+              label={t('billingRenewWithPlan', { plan: t('billingPlanNameBasic') })}
+              variant="accent"
+              size="default"
+              className={gateButtonClass}
+              checkoutOptions={checkoutOptions}
+            />
+            <StripeCheckoutButton
+              plan="growth"
+              label={t('billingRenewWithPlan', { plan: t('billingPlanNameGrowth') })}
+              variant="success"
+              size="default"
+              className={gateButtonClass}
+              checkoutOptions={checkoutOptions}
+            />
+          </>
+        ) : renewPlan === 'growth' ? (
+          <>
+            <StripeCheckoutButton
+              plan="growth"
+              label={renewLabel}
+              variant="accent"
+              size="default"
+              className={gateButtonClass}
+              checkoutOptions={checkoutOptions}
+            />
+            <a
+              href={UPGRADE_ENTERPRISE_MAILTO}
+              className={cn(buttonVariants({ variant: 'success', size: 'default' }), gateButtonClass)}
+            >
+              {t('planUpgradeToEnterprise')}
+            </a>
+          </>
+        ) : (
+          <>
+            <StripeCheckoutButton
+              plan="basic"
+              label={renewLabel}
+              variant="accent"
+              size="default"
+              className={gateButtonClass}
+              checkoutOptions={checkoutOptions}
+            />
+            <StripeCheckoutButton
+              plan="growth"
+              label={t('planUpgradeToGrowth')}
+              variant="success"
+              size="default"
+              className={gateButtonClass}
+              checkoutOptions={checkoutOptions}
+            />
+          </>
+        )
+      }
+      footer={<BillingGateSignOutButton label={t('paymentPendingSignOut')} />}
+    />
   )
 }

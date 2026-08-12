@@ -20,6 +20,7 @@ function normalizeMeResponse(raw: MeResponse): MeResponse {
     trial_expired: Boolean(raw.trial_expired),
     signup_intent: raw.signup_intent === 'growth' ? 'growth' : 'trial',
     payment_required: Boolean(raw.payment_required),
+    has_stripe_customer: Boolean(raw.has_stripe_customer),
   }
 }
 

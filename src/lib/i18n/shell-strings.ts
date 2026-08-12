@@ -38,8 +38,14 @@ const SHELL_STRINGS = {
     teamStatusActive: 'Activo',
     teamActions: 'Acciones',
     teamLeaveAction: 'Salir del equipo',
+    teamLeaveConfirmTitle: '¿Salir del equipo?',
+    teamLeaveConfirmDescription:
+      'Dejarás de tener acceso a este workspace. Podrás volver solo si te invitan de nuevo.',
     teamRevokeInvite: 'Revocar invitación',
     teamRemoveMember: 'Quitar miembro',
+    teamRemoveConfirmTitle: '¿Quitar a este miembro?',
+    teamRemoveConfirmDescription:
+      'Se quitará a {name} del workspace. Perderá el acceso de inmediato.',
     teamMemberCount: '{count} miembros',
     teamEmpty: 'No hay miembros que coincidan con tu búsqueda.',
     teamLoading: 'Cargando miembros…',
@@ -1637,8 +1643,14 @@ const SHELL_STRINGS = {
     teamStatusActive: 'Active',
     teamActions: 'Actions',
     teamLeaveAction: 'Leave team',
+    teamLeaveConfirmTitle: 'Leave this team?',
+    teamLeaveConfirmDescription:
+      'You will lose access to this workspace. You can return only if you are invited again.',
     teamRevokeInvite: 'Revoke invitation',
     teamRemoveMember: 'Remove member',
+    teamRemoveConfirmTitle: 'Remove this member?',
+    teamRemoveConfirmDescription:
+      '{name} will be removed from the workspace and lose access immediately.',
     teamMemberCount: '{count} members',
     teamEmpty: 'No members match your search.',
     teamLoading: 'Loading members…',

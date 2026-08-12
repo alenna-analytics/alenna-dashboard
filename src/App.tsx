@@ -36,6 +36,7 @@ import { AlarmsConfigurationListPage } from '@/pages/configuration/alarms/Alarms
 import { StockAlarmConfigurationPage } from '@/pages/configuration/alarms/stock/StockAlarmConfigurationPage'
 import { GeneralConfigurationPage } from '@/pages/configuration/general/GeneralConfigurationPage'
 import { BillingConfigurationPage } from '@/pages/configuration/billing/BillingConfigurationPage'
+import { TeamPage } from '@/pages/team/TeamPage'
 
 function BillingLegacyRedirect() {
   const { search } = useLocation()
@@ -73,6 +74,7 @@ function App() {
           <Route path="integrations/ads" element={<IntegrationsAdsComingSoonPage />} />
           <Route path="integrations/:slug" element={<IntegrationDetailPage />} />
           <Route path="integrations" element={<IntegrationsListPage category="all" />} />
+          <Route path="team" element={<TeamPage />} />
           <Route path="billing" element={<BillingConfigurationPage />} />
           <Route path="configuration/billing" element={<BillingLegacyRedirect />} />
           <Route path="configuration" element={<ConfigurationShellLayout />}>

@@ -3,6 +3,7 @@ import { ChevronsUpDown } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import {
+  isBillingOwner,
   planPillLabel,
   planSummaryLabel,
   upgradeTargetForPlan,
@@ -42,7 +43,8 @@ export function HeaderWorkspaceSwitcher({ companyName, me }: HeaderWorkspaceSwit
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [adjustOpen, setAdjustOpen] = useState(false)
-  const showUpgrade = Boolean(me && upgradeTargetForPlan(me.plan))
+  const canManageBilling = isBillingOwner(me)
+  const showUpgrade = Boolean(canManageBilling && me && upgradeTargetForPlan(me.plan))
   const pillLabel = me ? planPillLabel(me, lang) : null
   const planLine = me ? planSummaryLabel(me, lang) : null
 
@@ -102,13 +104,15 @@ export function HeaderWorkspaceSwitcher({ companyName, me }: HeaderWorkspaceSwit
           </>
         ) : null}
 
-        <DropdownMenuItem
-          className={menuItemClassName}
-          onClick={() => navigate(BILLING_PATH)}
-        >
-          <AppIcon name="billing" colorize className={menuIconClassName} />
-          {shellT(lang, 'navBilling')}
-        </DropdownMenuItem>
+        {canManageBilling ? (
+          <DropdownMenuItem
+            className={menuItemClassName}
+            onClick={() => navigate(BILLING_PATH)}
+          >
+            <AppIcon name="billing" colorize className={menuIconClassName} />
+            {shellT(lang, 'navBilling')}
+          </DropdownMenuItem>
+        ) : null}
 
         <DropdownMenuItem
           className={menuItemClassName}

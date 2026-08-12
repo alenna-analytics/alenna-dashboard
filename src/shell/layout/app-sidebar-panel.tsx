@@ -6,7 +6,9 @@ import { useEnabledModules } from '@/lib/modules/use-modules'
 import { useConfigSectionModules, useWorkspaceConfigModuleEnabled } from '@/lib/modules/use-workspace-config'
 import type { ModuleSection, ModuleState } from '@/lib/modules/types'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { isBillingOwner } from '@/lib/plan/plan-limit-ui'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { SidebarNavSection } from '@/shell/layout/sidebar-nav-section'
 import { SidebarControlMenu } from '@/shell/layout/sidebar-control-menu'
 import { WorkspaceConfigNavItem } from '@/shell/layout/workspace-config-nav-group'
@@ -167,6 +169,7 @@ export function AppSidebarPanel({
   className,
 }: AppSidebarPanelProps) {
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
   const t = (k: Parameters<typeof shellT>[1]) => shellT(lang, k)
   const enabledModules = useEnabledModules()
   const analyticsModules = modulesForSection(enabledModules, 'analytics')
@@ -174,6 +177,7 @@ export function AppSidebarPanel({
   const integrationsModule = configModules.find((mod) => mod.id === 'integrations')
   const otherConfigModules = configModules.filter((mod) => mod.id !== 'integrations')
   const workspaceConfigEnabled = useWorkspaceConfigModuleEnabled()
+  const canSeeBilling = workspaceConfigEnabled && isBillingOwner(me)
   const showBottomSection =
     integrationsModule != null || workspaceConfigEnabled || otherConfigModules.length > 0
 
@@ -207,6 +211,13 @@ export function AppSidebarPanel({
         />
         {showBottomSection ? (
           <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionConfiguration')}>
+            <NavItem
+              icon="orgs"
+              to="/dashboard/team"
+              label={t('navTeam')}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+            />
             {integrationsModule ? (
               <NavItem
                 icon={integrationsModule.icon}
@@ -216,7 +227,7 @@ export function AppSidebarPanel({
                 onNavigate={onNavigate}
               />
             ) : null}
-            {workspaceConfigEnabled ? (
+            {canSeeBilling ? (
               <NavItem
                 icon="billing"
                 to="/dashboard/billing"

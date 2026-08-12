@@ -5,7 +5,6 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import { pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { PRODUCTS_BASE_PATH } from '@/pages/products/products-inner-nav'
-import { cn } from '@/lib/utils'
 
 import { ProductDetailHeaderStats } from './product-detail-header-stats'
 import { ProductDetailPlatformBadges } from './product-detail-platform-badges'
@@ -52,7 +51,7 @@ export function ProductDetailHeader({
         <div className="flex min-w-0 gap-4 sm:block sm:flex-1 sm:space-y-3">
           <div className="shrink-0 sm:hidden">{thumb}</div>
           <div className="min-w-0 flex-1 space-y-3">
-            <h1 className={cn(pageTitleClassName, 'text-xl sm:text-2xl')}>{displayTitle}</h1>
+            <h1 className={pageTitleClassName}>{displayTitle}</h1>
 
             {detail.parent_product_id ? (
               <Link

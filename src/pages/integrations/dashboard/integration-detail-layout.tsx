@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import type { ManagedIntegration } from '@/lib/integrations/catalog'
 import { IntegrationLogo } from '@/pages/integrations/details/integration-logo'
+import { pageTitleClassName } from '@/shell/layout/dashboard-page'
 
 type IntegrationDetailLayoutProps = {
   definition: ManagedIntegration
@@ -26,7 +27,7 @@ export function IntegrationDetailLayout({
         <IntegrationLogo src={definition.logoSrc} alt={title} size="xl" />
         <div className="min-w-0 flex-1 pt-0.5">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text-primary">{title}</h1>
+            <h1 className={pageTitleClassName}>{title}</h1>
             {titleBadges}
           </div>
           {description ? (

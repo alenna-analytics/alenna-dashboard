@@ -63,7 +63,7 @@ import { useProductReports } from '@/pages/reports/use-product-reports'
 import { useReports } from '@/pages/reports/use-reports'
 import { useChannelBreakdown } from '@/pages/reports/use-channel-breakdown'
 import { useTopProducts } from '@/pages/reports/use-top-products'
-import { DashboardPage } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
@@ -844,7 +844,7 @@ export function DashboardHomePageV2() {
       {!hasNoIntegrations ? (
         <header className="flex flex-col gap-4">
           <div className="min-w-0">
-            <h1 className="text-title font-semibold tracking-[-0.02em] text-text-primary">
+            <h1 className={pageTitleClassName}>
               {t('navHome')}
             </h1>
           </div>

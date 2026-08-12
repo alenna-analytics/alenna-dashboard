@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ExternalLink, FileText } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 
 import { AdjustPlanSheet } from '@/components/billing/adjust-plan-sheet'
 import { CancelSubscriptionButton } from '@/components/billing/cancel-subscription-button'
@@ -315,6 +315,10 @@ export function BillingConfigurationPage() {
     overview?.current_period_end,
   )
 
+  if (me && !isOwner) {
+    return <Navigate to="/dashboard" replace />
+  }
+
   return (
     <DashboardPage className="space-y-2">
       <section className="pb-2">
@@ -328,10 +332,6 @@ export function BillingConfigurationPage() {
         <p className="rounded-md border border-border-default bg-[var(--platinum-blonde-300)] px-4 py-3 text-sm text-text-primary">
           {t(checkoutFeedbackKey)}
         </p>
-      ) : null}
-
-      {!isOwner ? (
-        <p className="text-sm text-text-secondary">{t('billingOwnerOnly')}</p>
       ) : null}
 
       <div className="divide-y divide-border-default">

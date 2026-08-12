@@ -2,7 +2,11 @@ import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 
 import { AdjustPlanSheet } from '@/components/billing/adjust-plan-sheet'
-import { upgradeLabelForTarget, upgradeTargetForPlan } from '@/lib/plan/plan-limit-ui'
+import {
+  isBillingOwner,
+  upgradeLabelForTarget,
+  upgradeTargetForPlan,
+} from '@/lib/plan/plan-limit-ui'
 import type { MeResponse } from '@/lib/types/me-types'
 import { Button } from '@/ui/button'
 import type { Language } from '@/shell/providers/language-provider'
@@ -27,7 +31,7 @@ export function PlanUpgradeCta({
   const [sheetOpen, setSheetOpen] = useState(false)
   const label = upgradeLabelForTarget(upgradeTargetForPlan(me.plan), lang)
 
-  if (!label) return null
+  if (!isBillingOwner(me) || !label) return null
 
   return (
     <>

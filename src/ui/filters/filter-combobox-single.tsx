@@ -56,7 +56,7 @@ export type FilterComboboxSingleProps = {
 }
 
 const stackedTriggerClassName =
-  'flex h-[33px] w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border-default bg-white px-2 text-sm outline-none transition-colors hover:border-border-emphasis focus-visible:ring-3 focus-visible:ring-ring/45 disabled:cursor-not-allowed disabled:opacity-50'
+  'flex h-7 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-border-default bg-white px-2 text-sm outline-none transition-colors hover:border-border-emphasis focus-visible:ring-3 focus-visible:ring-ring/45 disabled:cursor-not-allowed disabled:opacity-50'
 
 export function FilterComboboxSingle({
   label,

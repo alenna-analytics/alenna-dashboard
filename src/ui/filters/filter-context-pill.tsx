@@ -121,7 +121,7 @@ export function FilterContextPill({
             isActive && valueOnlyWhenActive ? `${label}: ${valueLabel}` : undefined
           }
           className={cn(
-            'inline-flex h-8 min-w-0 items-center gap-1.5 px-2.5 transition-colors',
+            'inline-flex h-7 min-w-0 items-center gap-1.5 px-2.5 transition-colors',
             contextPillTypographyClassName,
             isActive
               ? 'hover:bg-[color-mix(in_srgb,var(--firefly-base)_12%,white)]'

@@ -286,7 +286,7 @@ export function TeamPage() {
             onChange={(e) => setFilter(e.target.value)}
             placeholder={t('teamFilterPlaceholder')}
             aria-label={t('teamFilterPlaceholder')}
-            className="h-[33px] border-border-default bg-white pl-8 text-xs placeholder:text-xs focus-visible:border-border-emphasis focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="h-7 border-border-default bg-white pl-8 text-xs placeholder:text-xs focus-visible:border-border-emphasis focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           {filter.trim() ? (
             <Button

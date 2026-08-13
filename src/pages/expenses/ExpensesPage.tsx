@@ -254,7 +254,7 @@ export function ExpensesPage() {
                 onChange={(e) => setSearchQ(e.target.value)}
                 placeholder={t('expensesTableSearchPlaceholder')}
                 aria-label={t('expensesTableSearchPlaceholder')}
-                className="h-[33px] border-border-default bg-white pl-8 text-xs placeholder:text-xs focus-visible:border-border-emphasis focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="h-7 border-border-default bg-white pl-8 text-xs placeholder:text-xs focus-visible:border-border-emphasis focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               {searchQ.trim() ? (
                 <Button

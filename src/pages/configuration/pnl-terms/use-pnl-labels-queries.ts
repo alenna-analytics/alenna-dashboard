@@ -6,7 +6,7 @@ import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch, apiPutJson } from '@/lib/api'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { shellT } from '@/lib/i18n/shell-strings'
-import { resolvePnlLabel } from '@/lib/pnl/resolve-pnl-label'
+import { resolvePnlAwareShellLabel, resolvePnlLabel } from '@/lib/pnl/resolve-pnl-label'
 import type { PnlLabelOverridesResponse, PutPnlLabelOverridesBody } from '@/lib/types/pnl-labels'
 import type { PnlRowId } from '@/pages/reports/reports-pnl-rows'
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -58,6 +58,23 @@ export function usePnlLabelResolver(): (rowId: PnlRowId) => string {
   return useCallback(
     (rowId: PnlRowId) =>
       resolvePnlLabel(rowId, locale, (key: ShellStringKey) => shellT(lang, key), data?.overrides),
+    [data?.overrides, lang, locale],
+  )
+}
+
+export function usePnlAwareT(): (key: ShellStringKey) => string {
+  const { lang } = useLanguage()
+  const { data } = usePnlLabelsQuery()
+  const locale = lang === 'en' ? 'en' : 'es'
+
+  return useCallback(
+    (key: ShellStringKey) =>
+      resolvePnlAwareShellLabel(
+        key,
+        locale,
+        (k: ShellStringKey) => shellT(lang, k),
+        data?.overrides,
+      ),
     [data?.overrides, lang, locale],
   )
 }

@@ -93,7 +93,7 @@ function NavItem({
           <span className={cn(sidebarNavLabelClassName, 'text-sm')}>{label}</span>
           {comingSoon && comingSoonLabel ? (
             <span
-              className="ml-auto size-2 shrink-0 rounded-full bg-[var(--info)] ring-2 ring-[var(--info-dim)]"
+              className="ml-auto size-2 shrink-0 rounded-full bg-[var(--status-blue-200)]"
               aria-label={comingSoonLabel}
               title={comingSoonLabel}
             />
@@ -101,7 +101,7 @@ function NavItem({
         </>
       ) : comingSoon ? (
         <span
-          className="absolute right-2 top-2 size-2 rounded-full bg-[var(--info)] ring-2 ring-white"
+          className="absolute right-2 top-2 size-2 rounded-full bg-[var(--status-blue-200)]"
           aria-label={comingSoonLabel}
           title={comingSoonLabel}
         />

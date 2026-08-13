@@ -45,6 +45,8 @@ export function ProductCostInlineCell({
   const costValue = costMissing || cost == null ? null : cost
 
   const editAria = t('productsInlineCostEditAria').replace('{label}', label)
+  const pencilClassName =
+    'size-3 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100'
 
   const displayRow =
     !readOnly && costValue != null ? (
@@ -60,7 +62,7 @@ export function ProductCostInlineCell({
         onClick={openEditor}
       >
         <span className="truncate tabular-nums">{formatMoney(costValue)}</span>
-        <Pencil className="size-3 shrink-0 text-text-tertiary" aria-hidden />
+        <Pencil className={pencilClassName} aria-hidden />
       </button>
     ) : !readOnly && costValue == null ? (
       <button
@@ -70,7 +72,7 @@ export function ProductCostInlineCell({
         onClick={openEditor}
       >
         <MissingCostBadge t={t} />
-        <Pencil className="size-3 shrink-0 text-text-tertiary" aria-hidden />
+        <Pencil className={pencilClassName} aria-hidden />
       </button>
     ) : (
       <div className="inline-flex max-w-full justify-end px-2 py-1">

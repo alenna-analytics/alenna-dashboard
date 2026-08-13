@@ -3,7 +3,7 @@ import { ImageIcon } from 'lucide-react'
 
 import { useParams } from 'react-router-dom'
 
-import { shellT } from '@/lib/i18n/shell-strings'
+import { usePnlAwareT } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
 import type {
   ProductCostHistorySegmentApi,
 } from '@/lib/types/catalog'
@@ -225,7 +225,7 @@ function ProductDetailSkeleton() {
 
 function ProductDetailBody({ productId }: { productId: string }) {
   const { lang } = useLanguage()
-  const t = useCallback((k: Parameters<typeof shellT>[1]) => shellT(lang, k), [lang])
+  const t = usePnlAwareT()
 
   const defaultInsight = useMemo(() => defaultProductInsightRange(), [])
   const [insightStart, setInsightStart] = useState(defaultInsight.start)

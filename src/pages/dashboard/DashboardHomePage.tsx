@@ -1,11 +1,10 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { useAuth } from '@clerk/react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { enUS, es as esLocale } from 'date-fns/locale'
 import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
 import { useCurrentTenant } from '@/auth/hooks'
-import { shellT } from '@/lib/i18n/shell-strings'
 import { apiFetch } from '@/lib/api'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
@@ -53,7 +52,10 @@ import {
 } from '@/pages/reports/reports-ui-helpers'
 import { useMoney } from '@/hooks/use-money'
 import { buildWaterfallSegments } from '@/pages/reports/waterfall-segments'
-import { usePnlLabelResolver } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
+import {
+  usePnlAwareT,
+  usePnlLabelResolver,
+} from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
 import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
 import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
@@ -277,10 +279,7 @@ export function DashboardHomePage() {
   const { tenantId } = useCurrentTenant()
   const queryClient = useQueryClient()
   const { openSheet } = useAlertsSheet()
-  const t = useCallback(
-    (k: Parameters<typeof shellT>[1]) => shellT(lang, k),
-    [lang],
-  )
+  const t = usePnlAwareT()
   const labelForRow = usePnlLabelResolver()
   const adsModule = useModule('ads')
   const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()

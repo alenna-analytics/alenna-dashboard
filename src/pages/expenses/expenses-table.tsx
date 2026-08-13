@@ -5,7 +5,7 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import { MoreVertical, Pencil, Plus, Trash2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -211,9 +211,9 @@ export function ExpensesTable({
         <EmptyState
           icon="billing"
           title={t('expensesEmptyTitle')}
-          description={t('expensesEmptyDescription')}
           action={
-            <Button type="button" variant="inverse" size="default" onClick={onCreate}>
+            <Button type="button" variant="outline" size="xs" onClick={onCreate}>
+              <Plus aria-hidden />
               {t('expensesAddBtn')}
             </Button>
           }

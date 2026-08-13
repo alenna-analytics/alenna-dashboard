@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react'
+import { Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { toast } from 'sonner'
@@ -94,6 +95,7 @@ export function CogsLoadsListPage() {
           <p className="max-w-2xl text-sm text-text-secondary">{t('productsCogsLoadsSubtitle')}</p>
         </div>
         <Button type="button" variant="accent" size="default" className="shrink-0" loading={createMutation.isPending} onClick={() => void onNewLoad()}>
+          <Plus aria-hidden />
           {t('productsCogsLoadNew')}
         </Button>
       </header>
@@ -113,11 +115,12 @@ export function CogsLoadsListPage() {
               action={
                 <Button
                   type="button"
-                  variant="inverse"
-                  size="default"
+                  variant="outline"
+                  size="xs"
                   loading={createMutation.isPending}
                   onClick={() => void onNewLoad()}
                 >
+                  <Plus aria-hidden />
                   {t('productsCogsLoadNew')}
                 </Button>
               }

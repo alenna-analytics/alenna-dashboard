@@ -15,12 +15,11 @@ export function IntegrationsEmptyState({ lang }: IntegrationsEmptyStateProps) {
     <EmptyState
       icon="integrations"
       title={shellT(lang, 'integrationsEmptyTitle')}
-      description={shellT(lang, 'integrationsEmptyDescription')}
       className="rounded-md border border-border-subtle bg-muted/30"
       action={
         <Button
-          variant="inverse"
-          size="default"
+          variant="outline"
+          size="xs"
           onClick={() => navigate('/dashboard/integrations/shopify')}
         >
           {shellT(lang, 'integrationsExploreCta')}

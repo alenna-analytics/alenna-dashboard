@@ -304,6 +304,7 @@ export function TeamPage() {
 
         <div className="overflow-x-auto rounded-md border border-border-subtle">
           <table className="w-full min-w-lg text-left text-sm">
+            {showSkeleton || filtered.length > 0 ? (
             <thead>
               <tr className="border-b border-border-subtle text-[11px] font-medium uppercase tracking-wide text-text-tertiary">
                 <th className="px-4 py-3">{t('teamColumnMember')}</th>
@@ -312,6 +313,7 @@ export function TeamPage() {
                 <th className="px-4 py-3" />
               </tr>
             </thead>
+            ) : null}
             <tbody>
               {showSkeleton
                 ? Array.from({ length: 4 }).map((_, i) => (

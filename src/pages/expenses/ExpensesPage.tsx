@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
-import { Search, X } from 'lucide-react'
+import { Plus, Search, X } from 'lucide-react'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { useMoney } from '@/hooks/use-money'
@@ -237,6 +237,7 @@ export function ExpensesPage() {
             </p>
           </div>
           <Button type="button" variant="accent" className="shrink-0" onClick={openCreate}>
+            <Plus aria-hidden />
             {t('expensesAddBtn')}
           </Button>
         </div>

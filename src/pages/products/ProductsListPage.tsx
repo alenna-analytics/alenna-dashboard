@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useState } from "react"
 
@@ -22,8 +23,7 @@ export function ProductsListPage() {
   const empty = (
     <EmptyState
       icon="products"
-      title={t('productsCatalogEmptyTitle')}
-      description={q.trim() ? t('productsCatalogEmptySearchHint') : t('productsCatalogEmptyHint')}
+      title={q.trim() ? t('productsCatalogEmptySearchHint') : t('productsCatalogEmptyTitle')}
     />
   )
 
@@ -55,6 +55,7 @@ export function ProductsListPage() {
                 })
               }}
             >
+              <Plus aria-hidden />
               {t('productsCogsLoadNew')}
             </Button>
           </div>

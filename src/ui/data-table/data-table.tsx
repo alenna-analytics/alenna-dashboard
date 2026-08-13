@@ -93,6 +93,16 @@ export function DataTable<TData>({
             <div className="h-full w-[38%] rounded-full bg-[var(--color-accent-forest)] connector-sync-indeterminate-bar" />
           </div>
         ) : null}
+        {showEmpty && !showSkeleton ? (
+          <div
+            className={cn(
+              'flex min-h-[22rem] items-center justify-center',
+              isPlain ? 'bg-transparent' : 'bg-white',
+            )}
+          >
+            {emptyContent}
+          </div>
+        ) : (
         <table className="w-full caption-bottom border-separate border-spacing-0 text-sm">
           <TableHeader className="[&_tr]:border-b">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -138,19 +148,7 @@ export function DataTable<TData>({
                 </TableRow>
               ))
               : null}
-            {!showSkeleton && showEmpty ? (
-              <TableRow
-                className={cn(
-                  'hover:bg-transparent data-[state=selected]:bg-transparent',
-                  isPlain ? 'bg-transparent' : 'bg-white hover:bg-white data-[state=selected]:bg-white',
-                )}
-              >
-                <TableCell colSpan={table.getVisibleFlatColumns().length} className="min-h-[22rem] py-8 text-center align-middle">
-                  {emptyContent}
-                </TableCell>
-              </TableRow>
-            ) : null}
-            {!showSkeleton && !showEmpty
+            {!showSkeleton
               ? rows.map((row) => {
                 const isExpanded = expandedRowIds?.has(row.id) ?? false
                 const colSpan = table.getVisibleFlatColumns().length
@@ -196,6 +194,7 @@ export function DataTable<TData>({
               : null}
           </TableBody>
         </table>
+        )}
       </div>
       <div className={cn(showOverlay && "pointer-events-none opacity-55")}>{footer}</div>
     </div>

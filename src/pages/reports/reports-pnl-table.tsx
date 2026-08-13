@@ -12,27 +12,13 @@ import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 
-const ROW_LABEL_KEYS: Record<PnlRowId, ShellStringKey> = {
-  gross_revenue: 'reportsWfGrossRevenue',
-  discounts: 'reportsWfDiscounts',
-  returns: 'reportsWfReturns',
-  net_revenue: 'reportsWfNetRevenue',
-  cogs: 'reportsWfCogs',
-  gross_profit: 'reportsWfGrossProfit',
-  platform_fees: 'reportsKpiPlatformFees',
-  merchant_shipping: 'reportsKpiFulfillmentCost',
-  ads_spend: 'reportsWfAdsSpend',
-  contribution_margin: 'reportsWfContributionMargin',
-  fixed_opex: 'reportsWfOpex',
-  ebitda: 'reportsWfEbitda',
-}
-
 const columnHelper = createColumnHelper<PnlRow>()
 
 type ReportsPnlTableProps = {
   rows: PnlRow[]
   formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
+  labelForRow: (id: PnlRowId) => string
 }
 
 function fmtPct(n: number | null): string {
@@ -55,6 +41,7 @@ export function ReportsPnlTable({
   rows,
   formatMoney,
   t,
+  labelForRow,
 }: ReportsPnlTableProps) {
   const columns = useMemo(
     () => [
@@ -65,7 +52,7 @@ export function ReportsPnlTable({
         ),
         cell: ({ row }) => {
           const r = row.original
-          const label = t(ROW_LABEL_KEYS[r.id])
+          const label = labelForRow(r.id)
           const margin = r.marginPct !== null ? ` (${r.marginPct.toFixed(1)}%)` : ''
           return (
             <span className={cn('text-text-primary', emphasisClass(r.kind))}>
@@ -205,7 +192,7 @@ export function ReportsPnlTable({
         meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
       }),
     ],
-    [formatMoney, t],
+    [formatMoney, t, labelForRow],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design

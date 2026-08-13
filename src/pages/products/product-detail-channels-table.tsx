@@ -9,6 +9,7 @@ import {
   createProductDetailChannelsColumns,
   sortListingsByStockAlert,
 } from './product-detail-channels-columns'
+import { sharedStockListingIds } from './product-detail-listing-stock'
 import { ProductListingSettlementSheet } from './product-listing-settlement-sheet'
 
 type ProductDetailChannelsTableProps = {
@@ -39,11 +40,13 @@ export function ProductDetailChannelsTable({
     setSheetOpen(true)
   }, [])
 
-  const columns = useMemo(
-    () => createProductDetailChannelsColumns(t, fmtBase, { onViewSettlement }),
-    [t, fmtBase, onViewSettlement],
-  )
   const sortedListings = useMemo(() => sortListingsByStockAlert(listings), [listings])
+  const sharedStockIds = useMemo(() => sharedStockListingIds(sortedListings), [sortedListings])
+
+  const columns = useMemo(
+    () => createProductDetailChannelsColumns(t, fmtBase, { onViewSettlement, sharedStockListingIds: sharedStockIds }),
+    [t, fmtBase, onViewSettlement, sharedStockIds],
+  )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
   const table = useReactTable({

@@ -29,6 +29,23 @@ import {
   ProductStockQuantityCell,
 } from './product-stock-alert-ui'
 
+function ProductListingSharedStockCell({
+  t,
+}: {
+  t: (key: ShellStringKey) => string
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="text-sm text-text-tertiary">{t('productsDetailListingSharedStock')}</span>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-[240px] text-left text-xs leading-snug">
+        {t('productsDetailListingSharedStockHelp')}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
 const NUMERIC_CELL_META = {
   headerClassName: '[&>div]:justify-end',
   cellClassName: '[&>div]:justify-end',
@@ -157,11 +174,13 @@ export function createProductDetailChannelsColumns(
   options?: {
     onViewSettlement?: (listing: ProductListingApi) => void
     preset?: 'full' | 'platform-payment'
+    sharedStockListingIds?: Set<string>
   },
 ): ColumnDef<ProductListingApi>[] {
   const preset = options?.preset ?? 'full'
   const showInventoryMetrics = preset === 'full'
   const showActions = preset === 'full' && Boolean(options?.onViewSettlement)
+  const sharedStockIds = options?.sharedStockListingIds ?? new Set<string>()
 
   const columns: ColumnDef<ProductListingApi>[] = [
     {
@@ -233,7 +252,12 @@ export function createProductDetailChannelsColumns(
             title={t('productsDetailListingColStock')}
           />
         ),
-        cell: ({ row }) => <ProductStockQuantityCell quantity={row.original.stock_quantity} />,
+        cell: ({ row }) =>
+          sharedStockIds.has(row.original.id) ? (
+            <ProductListingSharedStockCell t={t} />
+          ) : (
+            <ProductStockQuantityCell quantity={row.original.stock_quantity} />
+          ),
       },
       {
         id: 'stock_alert',

@@ -16,20 +16,10 @@ import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 
-type PnlLineId =
-  | 'gross_revenue'
-  | 'discounts'
-  | 'returns'
-  | 'net_revenue'
-  | 'cogs'
-  | 'gross_profit'
-  | 'platform_fees'
-  | 'merchant_shipping'
-  | 'ads_spend'
-  | 'contribution_margin'
+import type { PnlRowId } from '@/pages/reports/reports-pnl-rows'
 
 type PnlLine = {
-  id: PnlLineId
+  id: PnlRowId
   labelKey: ShellStringKey
   kind: 'line' | 'subtotal' | 'total'
   isDeduction?: boolean
@@ -116,6 +106,7 @@ type ChannelsPnlTableProps = {
   platforms: ChannelPlatform[]
   formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
+  labelForRow: (id: PnlRowId) => string
   cmIncomplete?: boolean
 }
 
@@ -128,6 +119,7 @@ export function ChannelsPnlTable({
   platforms,
   formatMoney,
   t,
+  labelForRow,
   cmIncomplete = false,
 }: ChannelsPnlTableProps) {
   const cols = useMemo(
@@ -144,17 +136,17 @@ export function ChannelsPnlTable({
         ),
         cell: ({ row }) => {
           const line = row.original
-          const labelKey =
+          const label =
             line.id === 'contribution_margin' && cmIncomplete
-              ? ('channelsCmProductScopeLabel' as ShellStringKey)
-              : line.labelKey
+              ? t('channelsCmProductScopeLabel')
+              : labelForRow(line.id)
           return (
             <span className={cn('text-text-primary', emphasisClass(line.kind))}>
               {line.isDeduction
-                ? `(−) ${t(labelKey)}`
+                ? `(−) ${label}`
                 : line.kind !== 'line'
-                  ? `= ${t(labelKey)}`
-                  : t(labelKey)}
+                  ? `= ${label}`
+                  : label}
             </span>
           )
         },
@@ -209,7 +201,7 @@ export function ChannelsPnlTable({
         }),
       ),
     ],
-    [cmIncomplete, cols, formatMoney, metrics, t],
+    [cmIncomplete, cols, formatMoney, labelForRow, metrics, t],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design

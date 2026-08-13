@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
@@ -7,7 +7,7 @@ import { enUS, es as esLocale } from 'date-fns/locale'
 import { useCurrentTenant } from '@/auth/hooks'
 import { useMoney } from '@/hooks/use-money'
 import { apiFetch } from '@/lib/api'
-import { shellT } from '@/lib/i18n/shell-strings'
+import { usePnlAwareT } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
@@ -82,10 +82,7 @@ export function SalesPage() {
   const dateLocale = lang === 'en' ? enUS : esLocale
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
-  const t = useCallback(
-    (k: Parameters<typeof shellT>[1]) => shellT(lang, k),
-    [lang],
-  )
+  const t = usePnlAwareT()
 
   const [filters, setFilters] = useSalesPageFilters(tenantId)
   const { startDate, endDate, connectionIds, productIds } = filters

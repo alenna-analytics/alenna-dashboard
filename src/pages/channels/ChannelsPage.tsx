@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { AlertTriangle, BarChart3, type LucideIcon } from 'lucide-react'
 
@@ -9,12 +9,12 @@ import { enUS, es as esLocale } from 'date-fns/locale'
 import { useCurrentTenant } from '@/auth/hooks'
 import { useMoney } from '@/hooks/use-money'
 import { apiFetch } from '@/lib/api'
-import { shellT } from '@/lib/i18n/shell-strings'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChannelsCmChart } from '@/pages/channels/channels-cm-chart'
 import { ChannelsCostStructureChart } from '@/pages/channels/channels-cost-structure-chart'
 import { ChannelsPnlTable } from '@/pages/channels/channels-pnl-table'
+import { usePnlAwareT, usePnlLabelResolver } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
 import { ChannelsSettlementTable } from '@/pages/channels/channels-settlement-table'
 import {
   aggregateChannelKpisByPlatform,
@@ -73,10 +73,8 @@ export function ChannelsPage() {
   const dateLocale = lang === 'en' ? enUS : esLocale
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
-  const t = useCallback(
-    (k: Parameters<typeof shellT>[1]) => shellT(lang, k),
-    [lang],
-  )
+  const t = usePnlAwareT()
+  const labelForRow = usePnlLabelResolver()
 
   const [filters, setFilters] = useChannelsPageFilters(tenantId)
   const { startDate, endDate, connectionIds } = filters
@@ -336,6 +334,7 @@ export function ChannelsPage() {
             platforms={displayedPlatforms}
             formatMoney={formatConverted}
             t={t}
+            labelForRow={labelForRow}
             cmIncomplete={cmIncomplete}
           />
 

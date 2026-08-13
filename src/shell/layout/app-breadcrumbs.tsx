@@ -46,6 +46,15 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
   if (normalized === '/dashboard/configuration/general') {
     return [{ label: shellT(lang, 'navWorkspaceConfiguration') }]
   }
+  if (normalized === '/dashboard/configuration/pnl-terms') {
+    return [
+      {
+        label: shellT(lang, 'navWorkspaceConfiguration'),
+        to: '/dashboard/configuration/general',
+      },
+      { label: shellT(lang, 'workspaceConfigPnlTermsTitle') },
+    ]
+  }
   if (normalized === '/dashboard/configuration/alarms') {
     return [{ label: shellT(lang, 'navWorkspaceConfiguration') }]
   }

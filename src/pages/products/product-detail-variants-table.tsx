@@ -79,7 +79,7 @@ export function ProductDetailVariantsTable({
             isLoading={false}
             isFetching={false}
             hasEverLoaded
-            emptyContent={<EmptyState title={t('productsDetailVariantsEmpty')} />}
+            emptyContent={<EmptyState size="sm" icon="products" title={t('productsDetailVariantsEmpty')} />}
             scrollClassName="max-h-[28rem] min-w-[640px] overflow-auto [scrollbar-gutter:stable]"
           />
         </div>

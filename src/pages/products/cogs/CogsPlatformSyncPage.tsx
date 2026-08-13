@@ -414,7 +414,7 @@ export function CogsPlatformSyncPage() {
             isLoading={false}
             isFetching={previewMutation.isPending}
             hasEverLoaded
-            emptyContent={<EmptyState title={t('productsCogsSyncPreviewEmpty')} />}
+            emptyContent={<EmptyState size="sm" icon="products" title={t('productsCogsSyncPreviewEmpty')} />}
             scrollClassName="max-h-[calc(100dvh-16rem)] overflow-auto"
             toolbar={
               selectedCount > 0 ? (

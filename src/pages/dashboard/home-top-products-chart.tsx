@@ -113,7 +113,7 @@ export function HomeTopProductsChart({
   const maxRevenue = useMemo(() => Math.max(...data.map((r) => r.revenue), 1), [data])
 
   if (!isLoading && data.length === 0) {
-    return <EmptyState title={t('homeTopProductsEmpty')} />
+    return <EmptyState size="sm" icon="home" title={t('homeTopProductsEmpty')} />
   }
 
   if (isLoading && data.length === 0) {

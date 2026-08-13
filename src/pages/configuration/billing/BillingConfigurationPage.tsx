@@ -203,7 +203,7 @@ function PastInvoicesTable({
   if (invoices.length === 0) {
     return (
       <div className="rounded-md border border-border-subtle">
-        <EmptyState title={shellT(lang, 'billingInvoicesEmpty')} />
+        <EmptyState icon="billing" title={shellT(lang, 'billingInvoicesEmpty')} />
       </div>
     )
   }

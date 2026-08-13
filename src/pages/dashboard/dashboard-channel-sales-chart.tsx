@@ -235,7 +235,7 @@ export function DashboardChannelSalesChart({
   const miniAnimProps = rechartsEnterAnimationProps(CHART_LINE_MINI_MS)
 
   if (channelsOrdered.length === 0) {
-    return <EmptyState title={t('dashboardChannelSalesEmpty')} />
+    return <EmptyState size="sm" icon="home" title={t('dashboardChannelSalesEmpty')} />
   }
 
   const lines = channelsOrdered.flatMap((ch, i) => {

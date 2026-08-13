@@ -129,7 +129,7 @@ export function HomeChannelDonutChart({
   const displayTotal = isLoadingPlaceholder ? 0 : total
 
   if (!isLoading && (slices.length === 0 || total === 0)) {
-    return <EmptyState title={t('homeChannelDonutEmpty')} />
+    return <EmptyState size="sm" icon="home" title={t('homeChannelDonutEmpty')} />
   }
 
   return (

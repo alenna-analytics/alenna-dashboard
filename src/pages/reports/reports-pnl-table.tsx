@@ -217,7 +217,7 @@ export function ReportsPnlTable({
         isFetching={false}
         hasEverLoaded={true}
         scrollClassName=""
-        emptyContent={<EmptyState title={t('reportsNoData')} />}
+        emptyContent={<EmptyState icon="reports" title={t('reportsNoData')} />}
         skeletonRowCount={8}
       />
     </SectionContainer>

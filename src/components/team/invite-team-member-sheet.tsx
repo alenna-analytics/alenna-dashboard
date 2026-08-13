@@ -2,7 +2,7 @@ import { useAuth } from '@clerk/react'
 import { useMutation } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
 
-import { isValidEmail } from '@/lib/email'
+import { EMAIL_MAX_LENGTH, isValidEmail } from '@/lib/email'
 import { inviteTeamMember } from '@/lib/team/team-api'
 import {
   selectableTeamRoles,
@@ -94,8 +94,9 @@ export function InviteTeamMemberSheet({
                 id="team-invite-email"
                 type="email"
                 value={email}
+                maxLength={EMAIL_MAX_LENGTH}
                 onChange={(e) => {
-                  setEmail(e.target.value)
+                  setEmail(e.target.value.slice(0, EMAIL_MAX_LENGTH))
                   setError(null)
                 }}
                 placeholder={t('teamInviteEmailPlaceholder')}

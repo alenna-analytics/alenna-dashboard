@@ -145,7 +145,7 @@ export function DataTable<TData>({
                   isPlain ? 'bg-transparent' : 'bg-white hover:bg-white data-[state=selected]:bg-white',
                 )}
               >
-                <TableCell colSpan={table.getVisibleFlatColumns().length} className="h-32 text-center">
+                <TableCell colSpan={table.getVisibleFlatColumns().length} className="min-h-[22rem] py-8 text-center align-middle">
                   {emptyContent}
                 </TableCell>
               </TableRow>

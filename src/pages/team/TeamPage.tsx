@@ -405,7 +405,7 @@ export function TeamPage() {
               {!showSkeleton && filtered.length === 0 ? (
                 <tr>
                   <td colSpan={4}>
-                    <EmptyState title={t('teamEmpty')} />
+                    <EmptyState icon="orgs" title={t('teamEmpty')} />
                   </td>
                 </tr>
               ) : null}

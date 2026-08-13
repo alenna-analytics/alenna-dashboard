@@ -228,7 +228,7 @@ export function ChannelsPnlTable({
         isFetching={false}
         hasEverLoaded={true}
         scrollClassName=""
-        emptyContent={<EmptyState title={t('reportsNoData')} />}
+        emptyContent={<EmptyState icon="channels" title={t('reportsNoData')} />}
         skeletonRowCount={8}
       />
     </SectionContainer>

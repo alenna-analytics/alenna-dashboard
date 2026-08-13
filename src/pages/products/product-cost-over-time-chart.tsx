@@ -140,6 +140,8 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
   if (data.length === 0) {
     return (
       <EmptyState
+        size="sm"
+        icon="products"
         title={t('productsDetailChartEmpty')}
         className={cn('min-h-[14rem] justify-center', className)}
       />

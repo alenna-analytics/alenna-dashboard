@@ -390,7 +390,7 @@ function AlertListView({
         {loading ? (
           <AlertListSkeleton />
         ) : filteredItems.length === 0 ? (
-          <EmptyState title={listEmptyLabel} />
+          <EmptyState size="sm" icon="notifications" title={listEmptyLabel} />
         ) : (
           filteredItems.map((item) => (
             <AlertListRow

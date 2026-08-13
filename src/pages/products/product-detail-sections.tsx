@@ -135,7 +135,7 @@ export function ProductDetailSections({
                       fmtBase={fmtBase}
                       periodLabel={periodLabel}
                       emptyContent={
-                        <EmptyState title={t('productsDetailChannelsEmpty')} />
+                        <EmptyState size="sm" icon="products" title={t('productsDetailChannelsEmpty')} />
                       }
                     />
                   </div>

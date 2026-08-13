@@ -183,7 +183,7 @@ export function ProductDetailTrendChart({
   const dense = visibleData.length > 18
 
   if (chartMetrics.length === 0) {
-    return <EmptyState title={t('productsDetailMetricsTrendSelectHint')} />
+    return <EmptyState size="sm" icon="products" title={t('productsDetailMetricsTrendSelectHint')} />
   }
 
   return (

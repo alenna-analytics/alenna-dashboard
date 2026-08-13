@@ -108,12 +108,13 @@ export function CogsLoadsListPage() {
           hasEverLoaded={loadsQuery.data !== undefined}
           emptyContent={
             <EmptyState
+              icon="products"
               title={t('productsCogsLoadsEmpty')}
               action={
                 <Button
                   type="button"
-                  variant="accent"
-                  size="sm"
+                  variant="inverse"
+                  size="default"
                   loading={createMutation.isPending}
                   onClick={() => void onNewLoad()}
                 >

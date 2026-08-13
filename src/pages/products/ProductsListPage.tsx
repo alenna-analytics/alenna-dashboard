@@ -1,4 +1,3 @@
-import { Package } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useState } from "react"
 
@@ -22,7 +21,7 @@ export function ProductsListPage() {
 
   const empty = (
     <EmptyState
-      icon={Package}
+      icon="products"
       title={t('productsCatalogEmptyTitle')}
       description={q.trim() ? t('productsCatalogEmptySearchHint') : t('productsCatalogEmptyHint')}
     />

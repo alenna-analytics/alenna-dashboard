@@ -84,7 +84,7 @@ function NavItem({
     <NavLink
       to={to}
       end={end}
-      className={cn(linkClassNames(isActive, collapsed), comingSoon && collapsed && 'relative')}
+      className={linkClassNames(isActive, collapsed)}
       onClick={() => onNavigate?.()}
     >
       <AppIcon name={icon} colorize className={sidebarNavIconClassName} />
@@ -99,12 +99,6 @@ function NavItem({
             />
           ) : null}
         </>
-      ) : comingSoon ? (
-        <span
-          className="absolute right-2 top-2 size-2 rounded-full bg-[var(--status-blue-200)]"
-          aria-label={comingSoonLabel}
-          title={comingSoonLabel}
-        />
       ) : null}
     </NavLink>
   )

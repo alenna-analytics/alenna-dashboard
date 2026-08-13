@@ -223,7 +223,7 @@ export function ProductDetailPlatformPaymentSection({
           </Card>
         </>
       ) : (
-        <EmptyState title={t('productsDetailPlatformPaymentEmpty')} />
+        <EmptyState size="sm" icon="products" title={t('productsDetailPlatformPaymentEmpty')} />
       )}
     </div>
   )

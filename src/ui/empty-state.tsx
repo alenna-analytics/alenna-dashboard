@@ -1,12 +1,13 @@
-import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 
+import type { AppIconName } from '@/lib/icons/catalog'
 import { cn } from '@/lib/utils'
+import { AppIcon } from '@/ui/app-icon'
 
 type EmptyStateSize = 'sm' | 'md'
 
 type EmptyStateProps = {
-  icon?: LucideIcon
+  icon?: AppIconName
   title: string
   description?: string
   action?: ReactNode
@@ -15,11 +16,11 @@ type EmptyStateProps = {
 }
 
 export function EmptyState({
-  icon: Icon,
+  icon,
   title,
   description,
   action,
-  size = 'sm',
+  size = 'md',
   className,
 }: EmptyStateProps) {
   const compact = size === 'sm'
@@ -27,22 +28,19 @@ export function EmptyState({
     <div
       role="status"
       className={cn(
-        'mx-auto flex w-full max-w-md flex-col items-center text-center',
-        compact ? 'gap-2 px-4 py-6' : 'gap-4 px-6 py-12',
+        'mx-auto flex w-full max-w-md flex-col items-center justify-center text-center',
+        compact ? 'min-h-[12rem] gap-3 px-4 py-8' : 'min-h-[22rem] gap-5 px-6 py-16',
         className,
       )}
     >
-      {Icon ? (
-        <div
-          className={cn(
-            'flex items-center justify-center rounded-md bg-muted text-muted-foreground',
-            compact ? 'size-10' : 'size-14',
-          )}
-        >
-          <Icon className={compact ? 'size-5' : 'size-7'} aria-hidden />
-        </div>
+      {icon ? (
+        <AppIcon
+          name={icon}
+          colorize
+          className={cn('text-text-tertiary', compact ? 'size-8' : 'size-10')}
+        />
       ) : null}
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <p className={cn('font-medium text-text-primary', compact ? 'text-sm' : 'text-base')}>
           {title}
         </p>

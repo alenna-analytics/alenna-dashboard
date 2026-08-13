@@ -155,7 +155,7 @@ export function SalesProductsTable({
         isLoading={isLoading}
         isFetching={isFetching}
         hasEverLoaded={!isLoading || rows.length > 0}
-        emptyContent={<EmptyState title={t('homeTopProductsEmpty')} />}
+        emptyContent={<EmptyState icon="sales" title={t('homeTopProductsEmpty')} />}
         skeletonRowCount={8}
         scrollClassName="max-h-[28rem] overflow-auto"
       />

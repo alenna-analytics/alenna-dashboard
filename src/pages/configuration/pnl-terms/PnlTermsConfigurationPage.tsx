@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/ui/select'
+import { Skeleton } from '@/ui/skeleton'
 
 import {
   usePnlLabelsQuery,
@@ -43,7 +44,8 @@ export function PnlTermsConfigurationPage() {
   const { me } = useWorkspace()
   const isWorkspaceAdmin = me?.role === 'admin' || me?.role === 'owner'
 
-  const { data, isLoading } = usePnlLabelsQuery()
+  const { data, isPending, isError } = usePnlLabelsQuery()
+  const termsLoading = isPending && !isError
   const putMutation = usePutPnlLabelsMutation()
 
   const [editLang, setEditLang] = useState<PnlLabelLocale>(lang === 'en' ? 'en' : 'es')
@@ -135,7 +137,7 @@ export function PnlTermsConfigurationPage() {
             className="h-8 shrink-0 text-text-secondary"
             onClick={() => void restoreDefaults()}
             loading={putMutation.isPending}
-            disabled={isLoading}
+            disabled={termsLoading}
           >
             {t('workspaceConfigPnlTermsRestoreDefaults')}
           </Button>
@@ -160,17 +162,31 @@ export function PnlTermsConfigurationPage() {
               <div className="hidden text-xs font-medium uppercase tracking-wide text-text-tertiary sm:block">
                 {editLang.toUpperCase()}
               </div>
-              <Input
-                value={customLabel}
-                onChange={(event) => setCustomLabel(rowId, event.target.value)}
-                placeholder={defaultLabel}
-                disabled={!isWorkspaceAdmin || isLoading}
-                maxLength={MAX_PNL_LABEL_LENGTH}
-                aria-label={t('workspaceConfigPnlTermsCustomLabelAria').replace(
-                  '{concept}',
-                  defaultLabel,
+              <div className="relative min-w-0">
+                {termsLoading ? (
+                  <Skeleton className="h-[33px] w-full" />
+                ) : (
+                  <>
+                    <Input
+                      value={customLabel}
+                      onChange={(event) => setCustomLabel(rowId, event.target.value)}
+                      placeholder={defaultLabel}
+                      disabled={!isWorkspaceAdmin}
+                      maxLength={MAX_PNL_LABEL_LENGTH}
+                      className="pr-12"
+                      aria-label={t('workspaceConfigPnlTermsCustomLabelAria').replace(
+                        '{concept}',
+                        defaultLabel,
+                      )}
+                    />
+                    {customLabel.length > 0 ? (
+                      <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs tabular-nums text-text-tertiary">
+                        {customLabel.length}/{MAX_PNL_LABEL_LENGTH}
+                      </span>
+                    ) : null}
+                  </>
                 )}
-              />
+              </div>
             </div>
           )
         })}

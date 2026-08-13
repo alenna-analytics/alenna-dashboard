@@ -30,6 +30,7 @@ import {
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
 import { buildWaterfallSegments } from '@/pages/reports/waterfall-segments'
+import { usePnlLabelResolver } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
 import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
 import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
@@ -150,6 +151,7 @@ export function ReportsPage() {
     (k: Parameters<typeof shellT>[1]) => shellT(lang, k),
     [lang],
   )
+  const labelForRow = usePnlLabelResolver()
 
   const defaultFilters = useMemo((): ReportsFiltersState => {
     const { start, end } = presetDateRangeYmd('last30')
@@ -376,7 +378,7 @@ export function ReportsPage() {
 
   const waterfallSegments = useMemo(() => {
     if (!displayKpi || productMode) return []
-    const segs = buildWaterfallSegments(displayKpi, t)
+    const segs = buildWaterfallSegments(displayKpi, labelForRow, t)
     return segs.map((s) => ({
       ...s,
       value: convertFromBase(s.value),
@@ -385,7 +387,7 @@ export function ReportsPage() {
         value: convertFromBase(p.value),
       })),
     }))
-  }, [displayKpi, productMode, t, convertFromBase])
+  }, [displayKpi, productMode, labelForRow, t, convertFromBase])
 
   const settlementSource = productMode ? pkpi?.settlement : displayKpi?.settlement
 
@@ -568,6 +570,7 @@ export function ReportsPage() {
               rows={pnlRows}
               formatMoney={formatConverted}
               t={t}
+              labelForRow={labelForRow}
             />
           ) : null}
 

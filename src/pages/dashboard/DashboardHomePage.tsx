@@ -53,6 +53,7 @@ import {
 } from '@/pages/reports/reports-ui-helpers'
 import { useMoney } from '@/hooks/use-money'
 import { buildWaterfallSegments } from '@/pages/reports/waterfall-segments'
+import { usePnlLabelResolver } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
 import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
 import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
@@ -280,6 +281,7 @@ export function DashboardHomePage() {
     (k: Parameters<typeof shellT>[1]) => shellT(lang, k),
     [lang],
   )
+  const labelForRow = usePnlLabelResolver()
   const adsModule = useModule('ads')
   const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
 
@@ -613,7 +615,7 @@ export function DashboardHomePage() {
 
   const waterfallSegments = useMemo(() => {
     if (!displayKpi || productMode) return []
-    const segs = buildWaterfallSegments(displayKpi, t)
+    const segs = buildWaterfallSegments(displayKpi, labelForRow, t)
     return segs.map((s) => ({
       ...s,
       value: convertFromBase(s.value),
@@ -622,7 +624,7 @@ export function DashboardHomePage() {
         value: convertFromBase(p.value),
       })),
     }))
-  }, [displayKpi, productMode, t, convertFromBase])
+  }, [displayKpi, productMode, labelForRow, t, convertFromBase])
 
   const settlementSource = productMode ? displayProductKpi?.settlement : displayKpi?.settlement
 

@@ -79,6 +79,19 @@ const SHELL_STRINGS = {
     workspaceConfigGeneralDescription: 'Nombre del workspace e idioma de la interfaz.',
     workspaceConfigGeneralPageSubtitle: 'Administra reglas y preferencias del workspace.',
     workspaceConfigGeneralSectionTitle: 'Configuración general',
+    workspaceConfigPnlTermsTitle: 'Términos P&L',
+    workspaceConfigPnlTermsSubtitle:
+      'Personaliza cómo se muestran las líneas del estado de resultados para este workspace.',
+    workspaceConfigPnlTermsDescription: 'Renombra conceptos del P&L por idioma.',
+    workspaceConfigPnlTermsDefaultLabel: 'Nombre predeterminado en Alenna',
+    workspaceConfigPnlTermsCustomLabelAria: 'Nombre personalizado para {concept}',
+    workspaceConfigPnlTermsSave: 'Guardar cambios',
+    workspaceConfigPnlTermsSaveSuccess: 'Términos P&L actualizados.',
+    workspaceConfigPnlTermsSaveFailed: 'No se pudieron guardar los términos P&L.',
+    workspaceConfigPnlTermsRestoreDefaults: 'Restaurar valores por defecto',
+    workspaceConfigPnlTermsRestoreSuccess: 'Se restauraron los nombres predeterminados del P&L.',
+    workspaceConfigPnlTermsReadOnlyHint:
+      'Solo administradores del workspace pueden editar los términos P&L.',
     settingsCompanyDescription: 'Nombre del workspace activo.',
     settingsLanguageDescription: 'Idioma de la interfaz de alenna.',
     homeKpiDeltaTooltip:
@@ -1715,6 +1728,18 @@ const SHELL_STRINGS = {
     workspaceConfigGeneralDescription: 'Workspace name and interface language.',
     workspaceConfigGeneralPageSubtitle: 'General workspace preferences.',
     workspaceConfigGeneralSectionTitle: 'General settings',
+    workspaceConfigPnlTermsTitle: 'P&L terms',
+    workspaceConfigPnlTermsSubtitle:
+      'Customize how income statement lines appear for this workspace.',
+    workspaceConfigPnlTermsDescription: 'Rename P&L concepts per language.',
+    workspaceConfigPnlTermsDefaultLabel: 'Default Alenna name',
+    workspaceConfigPnlTermsCustomLabelAria: 'Custom name for {concept}',
+    workspaceConfigPnlTermsSave: 'Save changes',
+    workspaceConfigPnlTermsSaveSuccess: 'P&L terms updated.',
+    workspaceConfigPnlTermsSaveFailed: 'Could not save P&L terms.',
+    workspaceConfigPnlTermsRestoreDefaults: 'Restore default values',
+    workspaceConfigPnlTermsRestoreSuccess: 'P&L default names restored.',
+    workspaceConfigPnlTermsReadOnlyHint: 'Only workspace admins can edit P&L terms.',
     settingsCompanyDescription: 'Active workspace name.',
     settingsLanguageDescription: 'Language for the alenna interface.',
     homeKpiDeltaTooltip:

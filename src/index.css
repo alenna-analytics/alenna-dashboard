@@ -782,6 +782,29 @@
   }
 }
 
+.unsaved-changes-bar {
+  transition:
+    opacity 220ms ease-out,
+    transform 220ms ease-out;
+}
+
+.unsaved-changes-bar[data-state='entering'],
+.unsaved-changes-bar[data-state='closing'] {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.unsaved-changes-bar[data-state='visible'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .unsaved-changes-bar {
+    transition: none;
+  }
+}
+
 @keyframes shimmer {
   100% {
     transform: translateX(100%);

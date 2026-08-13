@@ -23,7 +23,6 @@ import {
 } from '@/shell/layout/sidebar-layout'
 import { cn } from '@/lib/utils'
 import { AppIcon } from '@/ui/app-icon'
-import { Badge } from '@/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 export type AppSidebarPanelProps = {
@@ -85,7 +84,7 @@ function NavItem({
     <NavLink
       to={to}
       end={end}
-      className={linkClassNames(isActive, collapsed)}
+      className={cn(linkClassNames(isActive, collapsed), comingSoon && collapsed && 'relative')}
       onClick={() => onNavigate?.()}
     >
       <AppIcon name={icon} colorize className={sidebarNavIconClassName} />
@@ -93,14 +92,19 @@ function NavItem({
         <>
           <span className={cn(sidebarNavLabelClassName, 'text-sm')}>{label}</span>
           {comingSoon && comingSoonLabel ? (
-            <Badge
-              variant="info"
-              className="ml-auto shrink-0 font-numeric"
-            >
-              {comingSoonLabel}
-            </Badge>
+            <span
+              className="ml-auto size-2 shrink-0 rounded-full bg-[var(--status-blue-200)]"
+              aria-label={comingSoonLabel}
+              title={comingSoonLabel}
+            />
           ) : null}
         </>
+      ) : comingSoon ? (
+        <span
+          className="absolute right-2 top-2 size-2 rounded-full bg-[var(--status-blue-200)]"
+          aria-label={comingSoonLabel}
+          title={comingSoonLabel}
+        />
       ) : null}
     </NavLink>
   )

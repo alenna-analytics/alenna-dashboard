@@ -10,7 +10,7 @@ import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
 import { useMoney } from '@/hooks/use-money'
 import { useSalesMetricBasis } from '@/hooks/use-sales-metric-basis'
 import { apiFetch } from '@/lib/api'
-import { shellT } from '@/lib/i18n/shell-strings'
+import { usePnlAwareT } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
 import {
   homeSalesHelpKey,
   orderKpiProfit,
@@ -264,10 +264,7 @@ export function DashboardHomePageV2() {
   const dateLocale = lang === 'en' ? enUS : esLocale
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
-  const t = useCallback(
-    (k: Parameters<typeof shellT>[1]) => shellT(lang, k),
-    [lang],
-  )
+  const t = usePnlAwareT()
   const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
 
   const defaultKpiOrder = useMemo(

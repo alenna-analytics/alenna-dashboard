@@ -26,7 +26,7 @@ export const PRODUCT_DETAIL_TREND_METRIC_IDS: ProductDetailTrendMetricId[] = [
 export const PRODUCT_DETAIL_METRIC_COLORS: Record<ProductDetailTrendMetricId, string> = {
   'gross-sales': 'var(--chart-3)',
   'net-sales': 'var(--country-green-base)',
-  'gross-profit': 'var(--chart-monthly-gross-bar)',
+  'gross-profit': '#b45309',
   'net-profit': '#6366f1',
   units: '#0ea5e9',
   orders: '#f59e0b',
@@ -51,7 +51,7 @@ export type ProductDetailPeriodView = Pick<
 >
 
 export function isProductDetailTrendMetricChartable(id: ProductDetailTrendMetricId): boolean {
-  return id !== 'inventory-days' && id !== 'net-profit' && id !== 'contribution-margin-pct'
+  return id !== 'inventory-days' && id !== 'contribution-margin-pct'
 }
 
 export function isProductDetailTrendMetricCount(id: ProductDetailTrendMetricId): boolean {
@@ -126,7 +126,7 @@ export function productDetailTrendSeriesValue(
     case 'gross-profit':
       return row.gross_profit
     case 'net-profit':
-      return 0
+      return row.contribution_margin ?? 0
     case 'units':
       return row.units_sold ?? 0
     case 'orders':

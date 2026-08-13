@@ -10,7 +10,6 @@ import { useCurrentTenant } from '@/auth/hooks'
 import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
 import { useMoney } from '@/hooks/use-money'
 import { apiFetch } from '@/lib/api'
-import { shellT } from '@/lib/i18n/shell-strings'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { KpiResponse, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
@@ -30,6 +29,7 @@ import {
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
 import { buildWaterfallSegments } from '@/pages/reports/waterfall-segments'
+import { usePnlAwareT, usePnlLabelResolver } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
 import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
 import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
@@ -146,10 +146,8 @@ export function ReportsPage() {
   const dateLocale = lang === 'en' ? enUS : esLocale
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
-  const t = useCallback(
-    (k: Parameters<typeof shellT>[1]) => shellT(lang, k),
-    [lang],
-  )
+  const t = usePnlAwareT()
+  const labelForRow = usePnlLabelResolver()
 
   const defaultFilters = useMemo((): ReportsFiltersState => {
     const { start, end } = presetDateRangeYmd('last30')
@@ -376,7 +374,7 @@ export function ReportsPage() {
 
   const waterfallSegments = useMemo(() => {
     if (!displayKpi || productMode) return []
-    const segs = buildWaterfallSegments(displayKpi, t)
+    const segs = buildWaterfallSegments(displayKpi, labelForRow, t)
     return segs.map((s) => ({
       ...s,
       value: convertFromBase(s.value),
@@ -385,7 +383,7 @@ export function ReportsPage() {
         value: convertFromBase(p.value),
       })),
     }))
-  }, [displayKpi, productMode, t, convertFromBase])
+  }, [displayKpi, productMode, labelForRow, t, convertFromBase])
 
   const settlementSource = productMode ? pkpi?.settlement : displayKpi?.settlement
 
@@ -568,6 +566,7 @@ export function ReportsPage() {
               rows={pnlRows}
               formatMoney={formatConverted}
               t={t}
+              labelForRow={labelForRow}
             />
           ) : null}
 

@@ -35,6 +35,7 @@ import { ConfigurationIndexRedirect } from '@/pages/configuration/configuration-
 import { AlarmsConfigurationListPage } from '@/pages/configuration/alarms/AlarmsConfigurationListPage'
 import { StockAlarmConfigurationPage } from '@/pages/configuration/alarms/stock/StockAlarmConfigurationPage'
 import { GeneralConfigurationPage } from '@/pages/configuration/general/GeneralConfigurationPage'
+import { PnlTermsConfigurationPage } from '@/pages/configuration/pnl-terms/PnlTermsConfigurationPage'
 import { BillingConfigurationPage } from '@/pages/configuration/billing/BillingConfigurationPage'
 import { TeamPage } from '@/pages/team/TeamPage'
 
@@ -80,6 +81,7 @@ function App() {
           <Route path="configuration" element={<ConfigurationShellLayout />}>
             <Route index element={<ConfigurationIndexRedirect />} />
             <Route path="general" element={<GeneralConfigurationPage />} />
+            <Route path="pnl-terms" element={<PnlTermsConfigurationPage />} />
             <Route path="alarms" element={<AlarmsConfigurationListPage />} />
             <Route path="alarms/stock" element={<StockAlarmConfigurationPage />} />
           </Route>

@@ -2,7 +2,7 @@ import type { AppIconName } from '@/lib/icons/catalog'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ModuleId } from '@/lib/modules/types'
 
-export type WorkspaceConfigSubmoduleId = 'general' | 'alarms'
+export type WorkspaceConfigSubmoduleId = 'general' | 'alarms' | 'pnl-terms'
 
 export type WorkspaceConfigSubmodule = {
   id: WorkspaceConfigSubmoduleId
@@ -30,10 +30,18 @@ export const WORKSPACE_CONFIG_SUBMODULES: readonly WorkspaceConfigSubmodule[] = 
     icon: 'notifications',
     requiredModuleId: 'alarms',
   },
+  {
+    id: 'pnl-terms',
+    labelKey: 'workspaceConfigPnlTermsTitle',
+    descriptionKey: 'workspaceConfigPnlTermsDescription',
+    path: '/dashboard/configuration/pnl-terms',
+    icon: 'reports',
+    requiredModuleId: 'workspace-config',
+  },
 ] as const
 
 export function isWorkspaceConfigSubmoduleId(
   value: string,
 ): value is WorkspaceConfigSubmoduleId {
-  return value === 'general' || value === 'alarms'
+  return value === 'general' || value === 'alarms' || value === 'pnl-terms'
 }

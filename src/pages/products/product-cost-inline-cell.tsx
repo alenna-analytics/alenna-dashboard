@@ -44,36 +44,45 @@ export function ProductCostInlineCell({
 
   const costValue = costMissing || cost == null ? null : cost
 
-  const costDisplay = costValue != null ? (
-    <span className="tabular-nums">{formatMoney(costValue)}</span>
-  ) : (
-    <MissingCostBadge t={t} />
-  )
+  const editAria = t('productsInlineCostEditAria').replace('{label}', label)
+  const pencilClassName =
+    'size-3 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100'
 
-  const editButton = !readOnly ? (
-    <button
-      type="button"
-      className={cn(
-        'inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary outline-none',
-        'invisible group-hover:visible focus-visible:visible',
-        'hover:bg-muted/70 hover:text-text-primary focus-visible:ring-2 focus-visible:ring-ring/30',
-      )}
-      aria-label={t('productsInlineCostEditAria').replace('{label}', label)}
-      title={t('productsInlineCostForwardHelp')}
-      onClick={openEditor}
-    >
-      <Pencil className="size-3.5 shrink-0" aria-hidden />
-    </button>
-  ) : (
-    <span className="inline-block size-7 shrink-0" aria-hidden />
-  )
-
-  const displayRow = (
-    <div className="grid w-full grid-cols-[1.75rem_minmax(0,1fr)] items-center justify-items-end gap-1.5">
-      {editButton}
-      <div className="min-w-0 justify-self-end">{costDisplay}</div>
-    </div>
-  )
+  const displayRow =
+    !readOnly && costValue != null ? (
+      <button
+        type="button"
+        className={cn(
+          'inline-flex max-w-full items-center gap-1.5 rounded-md border border-transparent px-2 py-1 outline-none',
+          'text-text-primary hover:border-border-subtle hover:bg-muted/50',
+          'focus-visible:border-border-subtle focus-visible:ring-2 focus-visible:ring-ring/30',
+        )}
+        aria-label={editAria}
+        title={t('productsInlineCostForwardHelp')}
+        onClick={openEditor}
+      >
+        <span className="truncate tabular-nums">{formatMoney(costValue)}</span>
+        <Pencil className={pencilClassName} aria-hidden />
+      </button>
+    ) : !readOnly && costValue == null ? (
+      <button
+        type="button"
+        className="inline-flex items-center gap-1.5 rounded-md border border-transparent px-2 py-1 outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring/30"
+        aria-label={editAria}
+        onClick={openEditor}
+      >
+        <MissingCostBadge t={t} />
+        <Pencil className={pencilClassName} aria-hidden />
+      </button>
+    ) : (
+      <div className="inline-flex max-w-full justify-end px-2 py-1">
+        {costValue != null ? (
+          <span className="truncate tabular-nums text-text-primary">{formatMoney(costValue)}</span>
+        ) : (
+          <MissingCostBadge t={t} />
+        )}
+      </div>
+    )
 
   if (readOnly) {
     if (!readOnlyHint) return displayRow
@@ -94,7 +103,7 @@ export function ProductCostInlineCell({
   }
 
   return (
-    <div className="w-full" onClick={(event) => event.stopPropagation()}>
+    <div className="flex w-full justify-end" onClick={(event) => event.stopPropagation()}>
       {displayRow}
     </div>
   )

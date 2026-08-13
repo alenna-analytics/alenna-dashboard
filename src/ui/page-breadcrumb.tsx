@@ -36,7 +36,7 @@ export function PageBreadcrumb({ items, className, ariaLabel = 'Breadcrumb' }: P
               {item.to && !isLast ? (
                 <Link
                   to={item.to}
-                  className="truncate font-medium text-text-secondary transition-colors hover:text-text-primary"
+                  className="truncate rounded-md px-1.5 py-0.5 font-medium text-text-secondary outline-none transition-colors hover:bg-[var(--sidebar-accent)] hover:text-text-primary focus-visible:bg-[var(--sidebar-accent)] focus-visible:ring-2 focus-visible:ring-ring/30"
                   title={item.label}
                 >
                   {item.label}

@@ -42,9 +42,9 @@ describe('productDetailTrendPeriodValueFromFiltered', () => {
 })
 
 describe('isProductDetailTrendMetricChartable', () => {
-  it('excludes net profit and contribution margin pct from charts in v1', () => {
+  it('allows net profit on charts and excludes contribution margin pct', () => {
     expect(isProductDetailTrendMetricChartable('gross-profit')).toBe(true)
-    expect(isProductDetailTrendMetricChartable('net-profit')).toBe(false)
+    expect(isProductDetailTrendMetricChartable('net-profit')).toBe(true)
     expect(isProductDetailTrendMetricChartable('contribution-margin-pct')).toBe(false)
   })
 })

@@ -8,6 +8,7 @@ export type MonthlyRevenueMonthRow = {
   gross_margin_pct: number
   units_sold?: number
   order_count?: number
+  contribution_margin?: number | null
 }
 
 export type MonthlyRevenueSeriesResponse = {

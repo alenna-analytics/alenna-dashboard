@@ -37,6 +37,7 @@ export type MonthlyChartRow = {
   gross_margin_pct: number
   units_sold: number
   order_count: number
+  contribution_margin: number
 }
 
 type LayerKey = 'bruto' | 'neta' | 'utilidad' | 'margin'
@@ -84,6 +85,7 @@ export function mergeMonthlyRows(
       gross_margin_pct: toNum(p?.gross_margin_pct),
       units_sold: toNum(p?.units_sold),
       order_count: toNum(p?.order_count),
+      contribution_margin: toNum(p?.contribution_margin),
     }
   })
 }
@@ -120,6 +122,7 @@ export function mergeRevenueSeriesRows(
         gross_margin_pct: toNum(p?.gross_margin_pct),
         units_sold: toNum(p?.units_sold),
         order_count: toNum(p?.order_count),
+        contribution_margin: toNum(p?.contribution_margin),
       }
     })
   }
@@ -144,6 +147,7 @@ export function mergeRevenueSeriesRows(
       gross_margin_pct: toNum(p?.gross_margin_pct),
       units_sold: toNum(p?.units_sold),
       order_count: toNum(p?.order_count),
+      contribution_margin: toNum(p?.contribution_margin),
     }
   })
 }

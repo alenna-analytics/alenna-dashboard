@@ -1346,6 +1346,9 @@ const SHELL_STRINGS = {
     productsDetailStockAlertMore: '(+{count} más)',
     productsDetailViewChannelsTable: 'Ver tabla',
     productsDetailListingColStock: 'Stock',
+    productsDetailListingSharedStock: 'Compartido',
+    productsDetailListingSharedStockHelp:
+      'Este stock es el mismo inventario compartido con otra publicación del mismo SKU.',
     productsDetailListingColAlert: 'Alerta',
     productsDetailEffectiveSince: 'Vigente desde',
     productsDetailLastSyncedLabel: 'Última actualización',
@@ -2964,6 +2967,9 @@ const SHELL_STRINGS = {
     productsDetailStockAlertMore: '(+{count} more)',
     productsDetailViewChannelsTable: 'View table',
     productsDetailListingColStock: 'Stock',
+    productsDetailListingSharedStock: 'Shared',
+    productsDetailListingSharedStockHelp:
+      'This stock is the same inventory pool shared with another listing for this SKU.',
     productsDetailListingColAlert: 'Alert',
     productsDetailEffectiveSince: 'Effective since',
     productsDetailLastSyncedLabel: 'Last updated',

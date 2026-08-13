@@ -1535,14 +1535,11 @@ const SHELL_STRINGS = {
     productsCogsHubOpen: 'Abrir',
     productsCogsSyncTitle: 'Sincronizar COGS desde plataforma',
     productsCogsSyncSubtitle:
-      'Obtén el costo de tus productos desde tus integraciones, compara con tu COGS actual y actualiza solo lo que cambió.',
+      'Obtén el costo de tus productos desde tu tienda Shopify, compara con tu COGS actual y actualiza solo lo que cambió.',
     productsCogsSyncPlatformLabel: 'Plataforma',
     productsCogsSyncPlatformShopifyDesc:
       'Importa el costo por ítem (Cost per item) desde tu tienda conectada.',
-    productsCogsSyncPlatformMeliDesc:
-      'Sincroniza costos desde tus publicaciones de Mercado Libre.',
     productsCogsSyncConnectionLabel: 'Conexión',
-    productsCogsSyncMeliSoon: 'Mercado Libre — próximamente.',
     productsCogsSyncNoConnection: 'Conecta Shopify para sincronizar costos.',
     productsCogsSyncConnectShopify: 'Conectar Shopify',
     productsCogsSyncSelectConnection: 'Elige una conexión de Shopify.',
@@ -3164,14 +3161,11 @@ const SHELL_STRINGS = {
     productsCogsHubOpen: 'Open',
     productsCogsSyncTitle: 'Platform COGS sync',
     productsCogsSyncSubtitle:
-      'Get cost per item from your integrations, compare with your current COGS, and update only what changed.',
+      'Get cost per item from your Shopify store, compare with your current COGS, and update only what changed.',
     productsCogsSyncPlatformLabel: 'Platform',
     productsCogsSyncPlatformShopifyDesc:
       'Import Cost per item from your connected store.',
-    productsCogsSyncPlatformMeliDesc:
-      'Sync costs from your Mercado Libre listings.',
     productsCogsSyncConnectionLabel: 'Connection',
-    productsCogsSyncMeliSoon: 'Mercado Libre — coming soon.',
     productsCogsSyncNoConnection: 'Connect Shopify to sync costs.',
     productsCogsSyncConnectShopify: 'Connect Shopify',
     productsCogsSyncSelectConnection: 'Choose a Shopify connection.',

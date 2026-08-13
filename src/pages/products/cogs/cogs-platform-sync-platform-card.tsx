@@ -3,17 +3,15 @@ import type { ReactNode } from 'react'
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { IntegrationLogo } from '@/pages/integrations/details/integration-logo'
-import { Badge } from '@/ui/badge'
 import { cn } from '@/lib/utils'
 
-export type CogsSyncPlatformSlug = 'shopify' | 'mercadolibre'
+export type CogsSyncPlatformSlug = 'shopify'
 
 type CogsPlatformSyncPlatformCardProps = {
   lang: string
   platform: CogsSyncPlatformSlug
   available: boolean
   selected: boolean
-  comingSoon?: boolean
   footer?: ReactNode
   onSelect: () => void
 }
@@ -23,7 +21,6 @@ export function CogsPlatformSyncPlatformCard({
   platform,
   available,
   selected,
-  comingSoon = false,
   footer,
   onSelect,
 }: CogsPlatformSyncPlatformCardProps) {
@@ -55,9 +52,6 @@ export function CogsPlatformSyncPlatformCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-sm font-semibold text-text-primary">{name}</h2>
-            {comingSoon ? (
-              <Badge variant="default">{shellT(lang, 'integrationsComingSoonBadge')}</Badge>
-            ) : null}
           </div>
 
           {footer ? <div className="mt-1 min-w-0">{footer}</div> : null}

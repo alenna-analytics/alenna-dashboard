@@ -33,10 +33,7 @@ import {
 import { StatusPill } from '@/ui/status-pill'
 
 import { CogsPageBreadcrumb } from './cogs-page-breadcrumb'
-import {
-  CogsPlatformSyncPlatformCard,
-  type CogsSyncPlatformSlug,
-} from './cogs-platform-sync-platform-card'
+import { CogsPlatformSyncPlatformCard } from './cogs-platform-sync-platform-card'
 import { CogsPlatformSyncSummaryCard } from './cogs-platform-sync-summary-card'
 import {
   isDefaultSelectedRow,
@@ -85,7 +82,6 @@ export function CogsPlatformSyncPage() {
     [connectionsQuery.data],
   )
 
-  const [selectedPlatform, setSelectedPlatform] = useState<CogsSyncPlatformSlug>('shopify')
   const [connectionId, setConnectionId] = useState<string>('')
   const [preview, setPreview] = useState<CogsPlatformSyncPreviewResponse | null>(null)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
@@ -108,15 +104,6 @@ export function CogsPlatformSyncPage() {
         .map(([id]) => id),
     [rowSelection],
   )
-
-  const handlePlatformSelect = (platform: CogsSyncPlatformSlug) => {
-    if (platform === 'mercadolibre') return
-    setSelectedPlatform(platform)
-    setPreview(null)
-    setRowSelection({})
-    setPagination({ pageIndex: 0, pageSize: PREVIEW_PAGE_SIZE })
-    setScopeError(false)
-  }
 
   const handlePreview = async () => {
     if (!connectionId) {
@@ -362,8 +349,6 @@ export function CogsPlatformSyncPage() {
     t,
   ])
 
-  const showShopifyConnection = selectedPlatform === 'shopify'
-
   return (
     <DashboardPage className="flex flex-1 flex-col gap-5">
       <header className="space-y-2">
@@ -386,28 +371,19 @@ export function CogsPlatformSyncPage() {
 
       <section className="space-y-3">
         <Label>{t('productsCogsSyncPlatformLabel')}</Label>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3">
           <CogsPlatformSyncPlatformCard
             lang={lang}
             platform="shopify"
             available
-            selected={selectedPlatform === 'shopify'}
+            selected
             footer={shopifyConnectionFooter}
-            onSelect={() => handlePlatformSelect('shopify')}
-          />
-          <CogsPlatformSyncPlatformCard
-            lang={lang}
-            platform="mercadolibre"
-            available={false}
-            selected={selectedPlatform === 'mercadolibre'}
-            comingSoon
-            onSelect={() => handlePlatformSelect('mercadolibre')}
+            onSelect={() => undefined}
           />
         </div>
       </section>
 
-      {showShopifyConnection ? (
-        <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button
           type="button"
           variant="accent"
@@ -427,8 +403,7 @@ export function CogsPlatformSyncPage() {
             {t('productsCogsSyncApplyAction').replace('{count}', String(selectedCount))}
           </Button>
         ) : null}
-        </div>
-      ) : null}
+      </div>
 
       {preview ? (
         <div className="space-y-3">

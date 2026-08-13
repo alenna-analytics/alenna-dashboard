@@ -40,6 +40,7 @@ export type MeResponse = {
   scheduled_purge_at?: string | null
   member_count?: number | null
   is_fixture?: boolean
+  team_invites_enabled?: boolean
   plan_display_name?: string
   orders_used?: number
   orders_limit?: number | null

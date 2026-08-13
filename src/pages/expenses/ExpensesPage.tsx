@@ -376,6 +376,7 @@ export function ExpensesPage() {
             const row = filteredRows.find((r) => r.id === id) ?? null
             setDeleteTarget(row)
           }}
+          onCreate={openCreate}
           t={t}
         />
       </section>

@@ -9,6 +9,7 @@ import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
 import { DataTable } from '@/ui/data-table/data-table'
+import { EmptyState } from '@/ui/empty-state'
 
 import { CogsPageBreadcrumb } from './cogs-page-breadcrumb'
 import { cogsLoadOpenPath, createCogsLoadsColumns } from './cogs-loads-columns'
@@ -105,7 +106,22 @@ export function CogsLoadsListPage() {
           isLoading={loadsQuery.isLoading}
           isFetching={loadsQuery.isFetching}
           hasEverLoaded={loadsQuery.data !== undefined}
-          emptyContent={t('productsCogsLoadsEmpty')}
+          emptyContent={
+            <EmptyState
+              title={t('productsCogsLoadsEmpty')}
+              action={
+                <Button
+                  type="button"
+                  variant="accent"
+                  size="sm"
+                  loading={createMutation.isPending}
+                  onClick={() => void onNewLoad()}
+                >
+                  {t('productsCogsLoadNew')}
+                </Button>
+              }
+            />
+          }
           skeletonRowCount={5}
           scrollClassName="overflow-auto"
           onRowClick={onOpenLoad}

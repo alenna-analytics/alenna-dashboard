@@ -36,6 +36,7 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Badge } from '@/ui/badge'
 import { Button, buttonVariants } from '@/ui/button'
+import { EmptyState } from '@/ui/empty-state'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,6 +48,7 @@ import {
 } from '@/ui/dropdown-menu'
 import { Input } from '@/ui/input'
 import { Skeleton } from '@/ui/skeleton'
+import { DisabledTooltip } from '@/ui/tooltip'
 
 function memberDisplayName(member: TeamMember): string {
   const parts = [member.first_name, member.last_name].filter(Boolean)
@@ -94,6 +96,7 @@ export function TeamPage() {
 
   const tenantId = me?.tenant_id ?? null
   const canManage = canManageTeam(me?.role)
+  const invitesEnabled = me?.team_invites_enabled !== false && !me?.is_fixture
 
   const teamQuery = useQuery({
     queryKey: ['team-members', tenantId],
@@ -237,17 +240,21 @@ export function TeamPage() {
           <h1 className={pageTitleClassName}>{t('navTeam')}</h1>
           <div className="flex flex-wrap items-center gap-2">
             {canManage ? (
-              <Button
-                type="button"
-                variant="accent"
-                size="default"
-                className="shrink-0"
-                disabled={atSeatLimit}
-                onClick={() => setInviteOpen(true)}
+              <DisabledTooltip
+                reason={!invitesEnabled ? t('teamInviteDisabledTooltip') : null}
               >
-                <UserPlus aria-hidden />
-                {t('teamInviteMembers')}
-              </Button>
+                <Button
+                  type="button"
+                  variant="accent"
+                  size="default"
+                  className="shrink-0"
+                  disabled={atSeatLimit || !invitesEnabled}
+                  onClick={() => setInviteOpen(true)}
+                >
+                  <UserPlus aria-hidden />
+                  {t('teamInviteMembers')}
+                </Button>
+              </DisabledTooltip>
             ) : null}
           </div>
         </div>
@@ -397,8 +404,8 @@ export function TeamPage() {
 
               {!showSkeleton && filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-4 py-10 text-center text-sm text-text-tertiary">
-                    {t('teamEmpty')}
+                  <td colSpan={4}>
+                    <EmptyState title={t('teamEmpty')} />
                   </td>
                 </tr>
               ) : null}
@@ -425,6 +432,7 @@ export function TeamPage() {
           onOpenChange={setInviteOpen}
           tenantId={tenantId}
           actorRole={me.role}
+          invitesEnabled={invitesEnabled}
           onSuccess={invalidate}
         />
       ) : null}

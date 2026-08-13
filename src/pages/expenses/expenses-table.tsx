@@ -5,7 +5,7 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import { MoreVertical, Pencil, Receipt, Trash2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -16,6 +16,8 @@ import {
 } from '@/pages/expenses/expenses-helpers'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { EmptyState } from '@/ui/empty-state'
+import { Button } from '@/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +39,7 @@ type ExpensesTableProps = {
   formatAmount: (amount: number, currency: string) => string
   onEdit: (expense: Expense) => void
   onDelete: (id: string) => void
+  onCreate: () => void
   t: (key: ShellStringKey) => string
 }
 
@@ -49,6 +52,7 @@ export function ExpensesTable({
   formatAmount,
   onEdit,
   onDelete,
+  onCreate,
   t,
 }: ExpensesTableProps) {
   const columns = useMemo(
@@ -204,7 +208,16 @@ export function ExpensesTable({
       isFetching={isFetching}
       hasEverLoaded={!isLoading || rows.length > 0}
       emptyContent={
-        <p className="px-4 py-8 text-center text-sm text-text-secondary">{t('expensesEmpty')}</p>
+        <EmptyState
+          icon={Receipt}
+          title={t('expensesEmptyTitle')}
+          description={t('expensesEmptyDescription')}
+          action={
+            <Button type="button" variant="accent" size="sm" onClick={onCreate}>
+              {t('expensesAddBtn')}
+            </Button>
+          }
+        />
       }
       skeletonRowCount={8}
     />

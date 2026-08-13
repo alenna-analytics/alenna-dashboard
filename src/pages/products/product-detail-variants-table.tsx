@@ -5,6 +5,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductVariantSummaryApi } from '@/lib/types/catalog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import { DataTable } from '@/ui/data-table/data-table'
+import { EmptyState } from '@/ui/empty-state'
 
 import {
   createProductDetailVariantsColumns,
@@ -78,9 +79,7 @@ export function ProductDetailVariantsTable({
             isLoading={false}
             isFetching={false}
             hasEverLoaded
-            emptyContent={
-              <p className="py-8 text-center text-sm text-text-tertiary">—</p>
-            }
+            emptyContent={<EmptyState title={t('productsDetailVariantsEmpty')} />}
             scrollClassName="max-h-[28rem] min-w-[640px] overflow-auto [scrollbar-gutter:stable]"
           />
         </div>

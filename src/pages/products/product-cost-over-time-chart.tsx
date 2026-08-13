@@ -19,6 +19,7 @@ import {
   rechartsEnterAnimationProps,
 } from '@/pages/dashboard/use-chart-line-load-animation'
 import { cn } from '@/lib/utils'
+import { EmptyState } from '@/ui/empty-state'
 import { fmtCurrency } from '@/pages/reports/reports-ui-helpers'
 
 import type {
@@ -138,14 +139,10 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
 
   if (data.length === 0) {
     return (
-      <div
-        className={cn(
-          'flex min-h-[14rem] items-center justify-center rounded-md border border-dashed border-border-subtle bg-muted/30 px-4 text-center text-sm text-text-secondary',
-          className,
-        )}
-      >
-        {t('productsDetailChartEmpty')}
-      </div>
+      <EmptyState
+        title={t('productsDetailChartEmpty')}
+        className={cn('min-h-[14rem] justify-center', className)}
+      />
     )
   }
   const seriesByKey = Object.fromEntries(series.map((s) => [s.key, s]))

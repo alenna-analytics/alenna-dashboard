@@ -41,6 +41,7 @@ import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Badge } from '@/ui/badge'
 import { Button, buttonVariants } from '@/ui/button'
 import { ContextAlertCard } from '@/ui/context-alert'
+import { EmptyState } from '@/ui/empty-state'
 
 function BillingSection({
   label,
@@ -201,8 +202,8 @@ function PastInvoicesTable({
 }) {
   if (invoices.length === 0) {
     return (
-      <div className="rounded-md border border-border-subtle px-3 py-8 text-center text-sm text-text-tertiary">
-        {shellT(lang, 'billingInvoicesEmpty')}
+      <div className="rounded-md border border-border-subtle">
+        <EmptyState title={shellT(lang, 'billingInvoicesEmpty')} />
       </div>
     )
   }

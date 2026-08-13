@@ -4,6 +4,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import type { DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Card, CardContent } from '@/ui/card'
+import { EmptyState } from '@/ui/empty-state'
 import { DateRangePicker } from '@/ui/date-range-picker'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import type { FilterOption } from '@/ui/filters/types'
@@ -222,9 +223,7 @@ export function ProductDetailPlatformPaymentSection({
           </Card>
         </>
       ) : (
-        <p className="py-8 text-center text-sm text-text-tertiary">
-          {t('productsDetailPlatformPaymentEmpty')}
-        </p>
+        <EmptyState title={t('productsDetailPlatformPaymentEmpty')} />
       )}
     </div>
   )

@@ -15,6 +15,7 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
+import { EmptyState } from '@/ui/empty-state'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import {
   CHART_LINE_MAIN_MS,
@@ -182,11 +183,7 @@ export function ProductDetailTrendChart({
   const dense = visibleData.length > 18
 
   if (chartMetrics.length === 0) {
-    return (
-      <p className="py-8 text-center text-sm text-text-secondary">
-        {t('productsDetailMetricsTrendSelectHint')}
-      </p>
-    )
+    return <EmptyState title={t('productsDetailMetricsTrendSelectHint')} />
   }
 
   return (

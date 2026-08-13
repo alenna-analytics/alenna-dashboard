@@ -22,6 +22,7 @@ import { Button } from '@/ui/button'
 import { Checkbox } from '@/ui/checkbox'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTablePagination } from '@/ui/data-table/data-table-pagination'
+import { EmptyState } from '@/ui/empty-state'
 import { Label } from '@/ui/label'
 import {
   Select,
@@ -413,7 +414,7 @@ export function CogsPlatformSyncPage() {
             isLoading={false}
             isFetching={previewMutation.isPending}
             hasEverLoaded
-            emptyContent={t('productsCogsSyncPreviewEmpty')}
+            emptyContent={<EmptyState title={t('productsCogsSyncPreviewEmpty')} />}
             scrollClassName="max-h-[calc(100dvh-16rem)] overflow-auto"
             toolbar={
               selectedCount > 0 ? (

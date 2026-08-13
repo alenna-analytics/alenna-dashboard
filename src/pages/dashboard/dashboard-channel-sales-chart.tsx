@@ -21,6 +21,7 @@ import {
 } from 'recharts'
 
 import { cn } from '@/lib/utils'
+import { EmptyState } from '@/ui/empty-state'
 import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
 
 import { DashboardZoomStrip } from './dashboard-zoom-strip'
@@ -234,11 +235,7 @@ export function DashboardChannelSalesChart({
   const miniAnimProps = rechartsEnterAnimationProps(CHART_LINE_MINI_MS)
 
   if (channelsOrdered.length === 0) {
-    return (
-      <p className="rounded-md px-2 py-10 text-center text-sm text-text-secondary">
-        {t('dashboardChannelSalesEmpty')}
-      </p>
-    )
+    return <EmptyState title={t('dashboardChannelSalesEmpty')} />
   }
 
   const lines = channelsOrdered.flatMap((ch, i) => {

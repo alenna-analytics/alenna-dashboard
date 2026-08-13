@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { TopProductRow } from '@/lib/types/reports'
+import { EmptyState } from '@/ui/empty-state'
 
 import {
   CHART_BAR_MS,
@@ -112,11 +113,7 @@ export function HomeTopProductsChart({
   const maxRevenue = useMemo(() => Math.max(...data.map((r) => r.revenue), 1), [data])
 
   if (!isLoading && data.length === 0) {
-    return (
-      <p className="rounded-md px-2 py-10 text-center text-sm text-text-secondary">
-        {t('homeTopProductsEmpty')}
-      </p>
-    )
+    return <EmptyState title={t('homeTopProductsEmpty')} />
   }
 
   if (isLoading && data.length === 0) {

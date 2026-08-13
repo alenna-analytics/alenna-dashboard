@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
+import { EmptyState } from '@/ui/empty-state'
 import type { DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs'
 import { ProductDetailAnalyticsSection } from './product-detail-analytics-section'
@@ -134,9 +135,7 @@ export function ProductDetailSections({
                       fmtBase={fmtBase}
                       periodLabel={periodLabel}
                       emptyContent={
-                        <p className="py-8 text-center text-sm text-text-tertiary">
-                          {t('productsDetailChannelsEmpty')}
-                        </p>
+                        <EmptyState title={t('productsDetailChannelsEmpty')} />
                       }
                     />
                   </div>

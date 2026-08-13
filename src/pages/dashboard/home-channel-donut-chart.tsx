@@ -10,6 +10,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ChannelBreakdownRow } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
+import { EmptyState } from '@/ui/empty-state'
 import { TOP_PRODUCTS_PAIRED_MIN_HEIGHT_CLASS } from '@/pages/dashboard/home-top-products-chart-layout'
 
 const PALETTE = [
@@ -128,11 +129,7 @@ export function HomeChannelDonutChart({
   const displayTotal = isLoadingPlaceholder ? 0 : total
 
   if (!isLoading && (slices.length === 0 || total === 0)) {
-    return (
-      <p className="rounded-md px-2 py-10 text-center text-sm text-text-secondary">
-        {t('homeChannelDonutEmpty')}
-      </p>
-    )
+    return <EmptyState title={t('homeChannelDonutEmpty')} />
   }
 
   return (

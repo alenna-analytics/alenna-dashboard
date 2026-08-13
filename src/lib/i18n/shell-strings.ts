@@ -20,6 +20,8 @@ const SHELL_STRINGS = {
     teamInviteRoleLabel: 'Rol',
     teamInviteCancel: 'Cancelar',
     teamInviteSubmit: 'Enviar invitación',
+    teamInviteEmailInvalid: 'El correo no tiene un formato válido.',
+    teamInviteDisabledTooltip: 'Las invitaciones están desactivadas en este entorno.',
     teamRoleOwnerTitle: 'Owner',
     teamRoleOwnerDescription:
       'Acceso total: miembros, facturación, integraciones, ajustes y eliminar el workspace.',
@@ -1132,6 +1134,8 @@ const SHELL_STRINGS = {
     expensesPageSubtitle:
       'Registra costos fijos y recurrentes para que el P&L refleje opex y publicidad manual.',
     expensesEmpty: 'Aún no hay gastos. Agrega el primero para alimentar EBITDA y CM.',
+    expensesEmptyTitle: 'Aún no hay gastos',
+    expensesEmptyDescription: 'Agrega el primero para alimentar EBITDA y el margen de contribución.',
     expensesEditBtn: 'Editar',
     expensesCreateSheetTitle: 'Nuevo gasto',
     expensesEditSheetTitle: 'Editar gasto',
@@ -1329,6 +1333,7 @@ const SHELL_STRINGS = {
       'Promedio de unidades vendidas por día en los últimos 90 días.',
     productsDetailListingColInventoryDays: 'Días inv',
     productsDetailVariantsTitle: 'Variantes',
+    productsDetailVariantsEmpty: 'Este producto no tiene variantes.',
     productsDetailVariantsDescription:
       'Cada variante tiene su propio SKU, stock, COGS y conexiones por canal. Ventas, pedidos y unidades: últimas 8 semanas.',
     productsDetailVariantsColName: 'Variante',
@@ -1666,6 +1671,8 @@ const SHELL_STRINGS = {
     teamInviteRoleLabel: 'Role',
     teamInviteCancel: 'Cancel',
     teamInviteSubmit: 'Send invitation',
+    teamInviteEmailInvalid: 'Enter a valid email address.',
+    teamInviteDisabledTooltip: 'Invitations are disabled in this environment.',
     teamRoleOwnerTitle: 'Owner',
     teamRoleOwnerDescription:
       'Full access: members, billing, integrations, settings, and workspace deletion.',
@@ -2764,6 +2771,8 @@ const SHELL_STRINGS = {
     expensesPageSubtitle:
       'Track fixed and recurring costs so P&L reflects opex and manual ads spend.',
     expensesEmpty: 'No expenses yet. Add the first one to feed EBITDA and contribution margin.',
+    expensesEmptyTitle: 'No expenses yet',
+    expensesEmptyDescription: 'Add the first one to feed EBITDA and contribution margin.',
     expensesEditBtn: 'Edit',
     expensesCreateSheetTitle: 'New expense',
     expensesEditSheetTitle: 'Edit expense',
@@ -2961,6 +2970,7 @@ const SHELL_STRINGS = {
       'Average units sold per day over the last 90 days.',
     productsDetailListingColInventoryDays: 'Inv. days',
     productsDetailVariantsTitle: 'Variants',
+    productsDetailVariantsEmpty: 'This product has no variants.',
     productsDetailVariantsDescription:
       'Each variant has its own SKU, stock, COGS, and per-channel connections. Sales, orders, and units: last 8 weeks.',
     productsDetailVariantsColName: 'Variant',

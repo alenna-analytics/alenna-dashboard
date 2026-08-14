@@ -513,6 +513,7 @@ export function BillingConfigurationPage() {
             points={ordersDailyQuery.data?.points ?? []}
             lang={lang}
             isLoading={ordersDailyQuery.isPending}
+            isError={ordersDailyQuery.isError}
           />
         </BillingSection>
 

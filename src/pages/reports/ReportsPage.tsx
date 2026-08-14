@@ -613,6 +613,10 @@ export function ReportsPage() {
               </SectionContainer>
             ) : null}
 
+            {!productMode && benchmarkRows.length > 0 ? (
+              <ReportsBenchmarksTable rows={benchmarkRows} t={t} />
+            ) : null}
+
             <SectionContainer>
               <SectionHeader
                 title={t('dashboardProfitMarginTitle')}
@@ -644,10 +648,6 @@ export function ReportsPage() {
               )}
             </SectionContainer>
           </div>
-
-          {!productMode && benchmarkRows.length > 0 ? (
-            <ReportsBenchmarksTable rows={benchmarkRows} t={t} />
-          ) : null}
         </div>
       )}
     </DashboardPage>

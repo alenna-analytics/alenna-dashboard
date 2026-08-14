@@ -39,9 +39,9 @@ export function ProductDetailHeader({
       <AppBreadcrumbs />
 
       <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-        <div className="flex min-w-0 gap-4 sm:block sm:flex-1 sm:space-y-3">
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-1 sm:gap-0 sm:space-y-3">
           <div className="shrink-0 sm:hidden">{thumb}</div>
-          <div className="min-w-0 flex-1 space-y-3">
+          <div className="min-w-0 space-y-3">
             <h1 className={pageTitleClassName}>{displayTitle}</h1>
 
             <ProductDetailPlatformBadges listings={detail.listings} t={t} />

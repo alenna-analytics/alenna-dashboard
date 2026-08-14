@@ -11,6 +11,7 @@ import type { Locale } from 'date-fns'
 import type { ChannelTimeSeriesRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
+  Area,
   Bar,
   CartesianGrid,
   ComposedChart,
@@ -99,6 +100,8 @@ export type DashboardProfitMarginChartProps = {
   t: (key: ShellStringKey) => string
 }
 
+type ProfitMarginView = 'bars' | 'area'
+
 type IndexedRow = {
   label: string
   __idx: number
@@ -170,6 +173,7 @@ export function DashboardProfitMarginChart({
   const [zoomStart, setZoomStart] = useState(0)
   const [zoomEnd, setZoomEnd] = useState(() => Math.max(0, fullRows.length - 1))
   const [hiddenKeys, setHiddenKeys] = useState<Record<string, boolean>>({})
+  const [view, setView] = useState<ProfitMarginView>('bars')
 
   const toggleLegendKey = (key: string) => {
     setHiddenKeys((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -204,6 +208,23 @@ export function DashboardProfitMarginChart({
   )
 
   const denseMain = visibleData.length > 18
+  const stackLayers = [
+    {
+      dataKey: 'stkProfit' as const,
+      name: t('reportsGrossProfit'),
+      fill: 'var(--chart-4)',
+    },
+    {
+      dataKey: 'stkMid' as const,
+      name: t('dashboardProfitStackNetMinusProfit'),
+      fill: 'var(--chart-3)',
+    },
+    {
+      dataKey: 'stkTop' as const,
+      name: t('dashboardProfitStackMerchAdj'),
+      fill: 'var(--chart-1)',
+    },
+  ]
 
   return (
     <div
@@ -211,11 +232,37 @@ export function DashboardProfitMarginChart({
         'w-full min-w-0 [&_.recharts-surface:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-wrapper:focus]:outline-none [&_.recharts-brush-traveller:focus]:outline-none',
       )}
     >
+      <div
+        className="mb-2 flex justify-end"
+        role="group"
+        aria-label={t('dashboardProfitViewLabel')}
+      >
+        <div className="inline-flex overflow-hidden rounded-md border border-border-subtle">
+          {(['bars', 'area'] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={view === option}
+              onClick={() => setView(option)}
+              className={cn(
+                'px-2.5 py-1 text-xs font-medium outline-none transition-colors',
+                view === option
+                  ? 'bg-muted text-text-primary'
+                  : 'bg-background text-text-secondary hover:bg-muted/50',
+              )}
+            >
+              {option === 'bars' ? t('dashboardProfitViewBars') : t('dashboardProfitViewArea')}
+            </button>
+          ))}
+        </div>
+      </div>
       <ResponsiveContainer width="100%" height={180}>
         <ComposedChart
-          key={zoomResetKey}
+          key={`${zoomResetKey}:${view}`}
           data={composedChartData}
           margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+          barCategoryGap={denseMain ? 1 : '10%'}
+          barGap={1}
         >
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
@@ -223,7 +270,7 @@ export function DashboardProfitMarginChart({
             tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
             axisLine={{ stroke: 'var(--border-default)' }}
             tickLine={false}
-            interval={denseMain ? 'preserveStartEnd' : 0}
+            interval={view === 'bars' || denseMain ? 'preserveStartEnd' : 0}
           />
           <YAxis
             yAxisId="left"
@@ -263,32 +310,34 @@ export function DashboardProfitMarginChart({
               backdropFilter: 'none',
             }}
           />
-          <Bar
-            yAxisId="left"
-            dataKey="stkProfit"
-            name={t('reportsGrossProfit')}
-            stackId="tot"
-            fill="var(--chart-4)"
-            radius={[0, 0, 0, 0]}
-            isAnimationActive={false}
-          />
-          <Bar
-            yAxisId="left"
-            dataKey="stkMid"
-            name={t('dashboardProfitStackNetMinusProfit')}
-            stackId="tot"
-            fill="var(--chart-3)"
-            isAnimationActive={false}
-          />
-          <Bar
-            yAxisId="left"
-            dataKey="stkTop"
-            name={t('dashboardProfitStackMerchAdj')}
-            stackId="tot"
-            fill="var(--chart-1)"
-            radius={[4, 4, 0, 0]}
-            isAnimationActive={false}
-          />
+          {view === 'bars'
+            ? stackLayers.map((layer) => (
+                <Bar
+                  key={layer.dataKey}
+                  yAxisId="left"
+                  dataKey={layer.dataKey}
+                  name={layer.name}
+                  stackId="tot"
+                  fill={layer.fill}
+                  radius={0}
+                  isAnimationActive={false}
+                />
+              ))
+            : stackLayers.map((layer) => (
+                <Area
+                  key={layer.dataKey}
+                  yAxisId="left"
+                  type="stepAfter"
+                  dataKey={layer.dataKey}
+                  name={layer.name}
+                  stackId="tot"
+                  stroke={layer.fill}
+                  fill={layer.fill}
+                  fillOpacity={0.42}
+                  strokeWidth={1.25}
+                  isAnimationActive={false}
+                />
+              ))}
           <Line
             yAxisId="right"
             type="monotone"

@@ -21,6 +21,10 @@ type DataTableProps<TData> = {
   scrollClassName?: string
   /** `card` (default) keeps bordered section shell; `plain` is borderless for flat analytics layouts. */
   variant?: 'card' | 'plain'
+  /** Compact grid (Supabase-style): 12px type, tighter rows, cell borders. */
+  density?: 'default' | 'compact'
+  /** Compact tables hug content by default; `full` stretches to the container. */
+  tableWidth?: 'content' | 'full'
   /** Renders above the table (outside the card), e.g. bulk selection. */
   toolbar?: ReactNode
   /** Renders in the toolbar row on the left (e.g. bulk selection summary). */
@@ -40,6 +44,8 @@ export function DataTable<TData>({
   skeletonRowCount = 10,
   scrollClassName = "max-h-[32rem] overflow-auto",
   variant = 'card',
+  density = 'default',
+  tableWidth = 'content',
   toolbar,
   selectionBanner,
   footer,
@@ -52,6 +58,8 @@ export function DataTable<TData>({
   const showOverlay = isFetching && hasEverLoaded
   const showEmpty = !isLoading && hasEverLoaded && rows.length === 0
   const isPlain = variant === 'plain'
+  const isCompact = density === 'compact'
+  const stretchTable = !isCompact || tableWidth === 'full'
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-3">
@@ -67,9 +75,14 @@ export function DataTable<TData>({
       <div
         className={cn(
           'relative',
-          isPlain
-            ? 'w-full overflow-x-auto'
-            : 'overflow-hidden rounded-md border border-border-subtle bg-bg-section',
+          isCompact
+            ? cn(
+                'overflow-x-auto rounded-md border border-border-subtle bg-background',
+                stretchTable ? 'w-full' : 'w-max max-w-full',
+              )
+            : isPlain
+              ? 'w-full overflow-x-auto'
+              : 'overflow-hidden rounded-md border border-border-subtle bg-bg-section',
         )}
       >
         <div className={cn('relative w-full', scrollClassName)}>
@@ -84,14 +97,20 @@ export function DataTable<TData>({
         {showEmpty && !showSkeleton ? (
           <div
             className={cn(
-              'flex min-h-[22rem] items-center justify-center',
-              isPlain ? 'bg-transparent' : 'bg-white',
+              'flex items-center justify-center',
+              isCompact ? 'min-h-[10rem]' : 'min-h-[22rem]',
+              isPlain && !isCompact ? 'bg-transparent' : 'bg-white',
             )}
           >
             {emptyContent}
           </div>
         ) : (
-        <table className="w-full caption-bottom border-separate border-spacing-0 text-sm">
+        <table
+          className={cn(
+            'caption-bottom border-separate border-spacing-0',
+            isCompact ? cn('text-xs', stretchTable ? 'w-full' : 'w-max min-w-0') : 'w-full text-sm',
+          )}
+        >
           <TableHeader className="[&_tr]:border-b">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
@@ -112,12 +131,22 @@ export function DataTable<TData>({
                           : undefined
                       }
                       className={cn(
-                        "sticky top-0 z-10 border-0 align-middle shadow-[0_1px_0_var(--border-subtle)] font-medium text-muted-foreground",
-                        isPlain ? "bg-transparent" : "bg-[var(--table-row-hover-bg)]",
+                        "sticky top-0 z-10 align-middle font-medium text-muted-foreground",
+                        isCompact
+                          ? "h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0 shadow-none bg-[var(--table-row-hover-bg)]"
+                          : cn(
+                              "border-0 shadow-[0_1px_0_var(--border-subtle)]",
+                              isPlain ? "bg-transparent" : "bg-[var(--table-row-hover-bg)]",
+                            ),
                         meta?.headerClassName,
                       )}
                     >
-                      <div className="flex min-h-10 w-full items-center text-xs font-medium leading-none text-muted-foreground">
+                      <div
+                        className={cn(
+                          "flex w-full items-center font-medium leading-none text-muted-foreground",
+                          isCompact ? "min-h-9 text-xs" : "min-h-10 text-xs",
+                        )}
+                      >
                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                       </div>
                     </TableHead>
@@ -137,8 +166,19 @@ export function DataTable<TData>({
                   )}
                 >
                   {table.getVisibleFlatColumns().map((col) => (
-                    <TableCell key={col.id}>
-                      <div className="flex min-h-10 items-center text-sm leading-normal">
+                    <TableCell
+                      key={col.id}
+                      className={cn(
+                        isCompact &&
+                          'h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0',
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          'flex items-center leading-normal',
+                          isCompact ? 'min-h-9 text-xs' : 'min-h-10 text-sm',
+                        )}
+                      >
                         <Skeleton className="h-[1.125rem] w-full max-w-48 rounded-md" />
                       </div>
                     </TableCell>
@@ -156,9 +196,11 @@ export function DataTable<TData>({
                       data-state={row.getIsSelected() ? "selected" : undefined}
                       className={cn(
                         "group",
-                        isPlain
-                          ? "bg-transparent hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
-                          : "bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]",
+                        isCompact
+                          ? "border-0 bg-background hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
+                          : isPlain
+                            ? "bg-transparent hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
+                            : "bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]",
                         onRowClick && "cursor-pointer",
                       )}
                       onClick={onRowClick ? () => onRowClick(row.original) : undefined}
@@ -166,8 +208,20 @@ export function DataTable<TData>({
                       {row.getVisibleCells().map((cell) => {
                         const meta = cell.column.columnDef.meta as ColumnMetaWithCellClass | undefined
                         return (
-                          <TableCell key={cell.id} className={meta?.cellClassName}>
-                            <div className="flex min-h-10 w-full items-center text-sm leading-normal [&:has([role=checkbox])]:[&_input]:self-center">
+                          <TableCell
+                            key={cell.id}
+                            className={cn(
+                              isCompact &&
+                                'h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0',
+                              meta?.cellClassName,
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                'flex w-full items-center leading-normal [&:has([role=checkbox])]:[&_input]:self-center',
+                                isCompact ? 'min-h-9 text-xs' : 'min-h-10 text-sm',
+                              )}
+                            >
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </div>
                           </TableCell>

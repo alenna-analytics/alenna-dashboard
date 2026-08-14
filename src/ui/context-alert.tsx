@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { ChevronDown } from 'lucide-react'
+import { useId, useState, type ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -53,7 +54,7 @@ function ContextAlertCard({
       <div className="min-w-0 flex-1">
         <p
           className={cn(
-            'text-sm font-semibold text-foreground',
+            'text-[13px] font-medium text-foreground',
             subtitle ? 'truncate' : 'leading-snug',
           )}
         >
@@ -81,13 +82,53 @@ function ContextAlertsGroup({
   children,
   className,
 }: ContextAlertsGroupProps) {
+  const [open, setOpen] = useState(true)
+  const panelId = useId()
+  const headingId = useId()
+
   return (
     <section
-      className={cn('flex w-full flex-col gap-2', className)}
-      aria-label={ariaLabel ?? title}
+      className={cn('flex w-full flex-col', className)}
+      aria-labelledby={headingId}
     >
-      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-      <div className="flex w-full flex-col gap-2">{children}</div>
+      <button
+        type="button"
+        className="inline-flex w-fit max-w-full items-center gap-1.5 rounded-md text-left outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <h2 id={headingId} className="text-sm font-semibold text-foreground">
+          {title}
+        </h2>
+        <ChevronDown
+          className={cn(
+            'size-4 shrink-0 text-text-secondary transition-transform duration-300 ease-out',
+            open ? 'rotate-0' : '-rotate-90',
+          )}
+          aria-hidden
+        />
+      </button>
+      <div
+        id={panelId}
+        role="region"
+        aria-label={ariaLabel ?? title}
+        className={cn(
+          'grid transition-[grid-template-rows] duration-300 ease-out',
+          open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+        )}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div
+            className={cn(
+              'flex w-full flex-col gap-2 pt-2 transition-opacity duration-300 ease-out',
+              open ? 'opacity-100' : 'opacity-0',
+            )}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
     </section>
   )
 }

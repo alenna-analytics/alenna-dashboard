@@ -7,7 +7,7 @@ import {
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { BenchmarkBand, BenchmarkMetricId, BenchmarkRow } from '@/pages/reports/reports-benchmarks'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { SectionSplit } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { EmptyState } from '@/ui/empty-state'
@@ -161,14 +161,15 @@ export function ReportsBenchmarksTable({ rows, t }: ReportsBenchmarksTableProps)
   })
 
   return (
-    <SectionContainer className="overflow-hidden">
-      <SectionHeader
-        title={t('reportsBenchmarksTitle')}
-        description={t('reportsBenchmarksSubtitle')}
-      />
+    <SectionSplit
+      title={t('reportsBenchmarksTitle')}
+      description={t('reportsBenchmarksSubtitle')}
+    >
       <DataTable
         table={table}
         variant="plain"
+        density="compact"
+        tableWidth="full"
         isLoading={false}
         isFetching={false}
         hasEverLoaded={true}
@@ -176,6 +177,6 @@ export function ReportsBenchmarksTable({ rows, t }: ReportsBenchmarksTableProps)
         emptyContent={<EmptyState icon="reports" title={t('reportsNoData')} />}
         skeletonRowCount={8}
       />
-    </SectionContainer>
+    </SectionSplit>
   )
 }

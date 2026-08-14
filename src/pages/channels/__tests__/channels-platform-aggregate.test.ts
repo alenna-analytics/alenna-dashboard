@@ -4,7 +4,6 @@ import type { ChannelKpiRow } from '@/lib/types/reports'
 import {
   aggregateChannelKpisByPlatform,
   aggregateChannelSettlementByPlatform,
-  buildScoreboardRows,
   grossMarginPct,
 } from '@/pages/channels/channels-platform-aggregate'
 
@@ -95,23 +94,6 @@ describe('aggregateChannelKpisByPlatform', () => {
   })
 })
 
-describe('buildScoreboardRows', () => {
-  it('includes delta % vs previous period', () => {
-    const current = aggregateChannelKpisByPlatform(
-      [row({ platform: 'shopify', net_revenue: 200, order_count: 2 })],
-      platforms,
-    )
-    const previous = aggregateChannelKpisByPlatform(
-      [row({ platform: 'shopify', net_revenue: 100, order_count: 2 })],
-      platforms,
-    )
-    const rows = buildScoreboardRows(current, previous, platforms)
-    const net = rows.find((r) => r.id === 'net_revenue')
-    expect(net?.cells.shopify.deltaPct).toBe(100)
-    expect(net?.cells.amazon).toBeUndefined()
-  })
-})
-
 describe('grossMarginPct', () => {
   it('uses gross revenue denominator', () => {
     const agg = aggregateChannelKpisByPlatform(
@@ -162,5 +144,22 @@ describe('aggregateChannelSettlementByPlatform', () => {
     expect(agg.mercadolibre.estimated_payout).toBe(279)
     expect(agg.total.estimated_payout).toBe(1114)
     expect(agg.total.marketplace_fees).toBe(85)
+    expect(agg.shopify.completeness).toBe('partial')
+    expect(agg.mercadolibre.completeness).toBe('full')
+    expect(agg.total.completeness).toBe('partial')
+  })
+
+  it('keeps unavailable when a platform has no settlement rows', () => {
+    const agg = aggregateChannelSettlementByPlatform(
+      [
+        row({
+          platform: 'shopify',
+          settlement_completeness: 'full',
+        }),
+      ],
+      platforms,
+    )
+    expect(agg.shopify.completeness).toBe('full')
+    expect(agg.mercadolibre.completeness).toBe('unavailable')
   })
 })

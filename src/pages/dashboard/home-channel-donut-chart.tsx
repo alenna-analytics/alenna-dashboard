@@ -28,6 +28,8 @@ export type HomeChannelDonutChartProps = {
   t: (key: ShellStringKey) => string
   minBodyHeightPx?: number
   isLoading?: boolean
+  valueKey?: 'gross_revenue' | 'net_revenue'
+  heightClassName?: string
 }
 
 type ChartRow = {
@@ -41,8 +43,13 @@ type TooltipPayload = {
 }
 
 function platformLabel(platform: string): string {
-  if (!platform) return ''
-  return platform[0].toUpperCase() + platform.slice(1)
+  const trimmed = platform.trim()
+  if (!trimmed) return ''
+  return trimmed
+    .split(/[_-]/g)
+    .filter(Boolean)
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join(' ')
 }
 
 function rowLabel(row: ChannelBreakdownRow): string {
@@ -75,24 +82,26 @@ export function HomeChannelDonutChart({
   t,
   minBodyHeightPx,
   isLoading = false,
+  valueKey = 'net_revenue',
+  heightClassName = 'h-40',
 }: HomeChannelDonutChartProps) {
   const chartRows = useMemo<ChartRow[]>(() => {
-    const sorted = [...rows].sort((a, b) => b.gross_revenue - a.gross_revenue)
+    const sorted = [...rows].sort((a, b) => b[valueKey] - a[valueKey])
     const head = sorted.slice(0, TOP_N).map((r) => ({
       key: r.connection_id,
       label: rowLabel(r),
-      value: convertValue(r.gross_revenue),
+      value: convertValue(r[valueKey]),
     }))
     const tail = sorted.slice(TOP_N)
     if (tail.length > 0) {
       head.push({
         key: '__overflow__',
         label: t('homeChannelDonutOther'),
-        value: tail.reduce((acc, r) => acc + convertValue(r.gross_revenue), 0),
+        value: tail.reduce((acc, r) => acc + convertValue(r[valueKey]), 0),
       })
     }
     return head.filter((s) => s.value > 0)
-  }, [rows, convertValue, t])
+  }, [rows, convertValue, t, valueKey])
 
   const total = useMemo(
     () => chartRows.reduce((acc, row) => acc + row.value, 0),
@@ -102,7 +111,7 @@ export function HomeChannelDonutChart({
   if (isLoading && chartRows.length === 0) {
     return (
       <Skeleton
-        className={cn('h-40 w-full', minBodyHeightPx !== undefined && TOP_PRODUCTS_PAIRED_MIN_HEIGHT_CLASS)}
+        className={cn('w-full', heightClassName, minBodyHeightPx !== undefined && TOP_PRODUCTS_PAIRED_MIN_HEIGHT_CLASS)}
         aria-hidden
       />
     )
@@ -115,7 +124,8 @@ export function HomeChannelDonutChart({
   return (
     <div
       className={cn(
-        'h-40 w-full min-w-0',
+        'w-full min-w-0',
+        heightClassName,
         minBodyHeightPx !== undefined && TOP_PRODUCTS_PAIRED_MIN_HEIGHT_CLASS,
       )}
     >

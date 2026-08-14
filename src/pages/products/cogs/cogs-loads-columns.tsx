@@ -122,7 +122,7 @@ export function createCogsLoadsColumns(
               >
                 <MoreVertical className="size-4 shrink-0" aria-hidden />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>{t('productsCogsLoadColActions')}</DropdownMenuLabel>
                 </DropdownMenuGroup>
@@ -130,21 +130,21 @@ export function createCogsLoadsColumns(
                 <DropdownMenuGroup>
                   {load.status !== 'applying' ? (
                     <DropdownMenuItem onClick={() => actions.onOpen(load)}>
-                      <OpenIcon className="size-4 shrink-0" aria-hidden />
-                      {openActionLabel(load.status, t)}
+                      <OpenIcon className="h-4 w-4" aria-hidden />
+                      <span>{openActionLabel(load.status, t)}</span>
                     </DropdownMenuItem>
                   ) : null}
                   <DropdownMenuItem onClick={() => actions.onClone(load)}>
-                    <Copy className="size-4 shrink-0" aria-hidden />
-                    {t('productsCogsLoadClone')}
+                    <Copy className="h-4 w-4" aria-hidden />
+                    <span>{t('productsCogsLoadClone')}</span>
                   </DropdownMenuItem>
                   {load.status === 'draft' ? (
                     <DropdownMenuItem
                       variant="destructive"
                       onClick={() => actions.onDelete(load)}
                     >
-                      <Trash2 className="size-4 shrink-0" aria-hidden />
-                      {t('productsCogsLoadDelete')}
+                      <Trash2 className="h-4 w-4" aria-hidden />
+                      <span>{t('productsCogsLoadDelete')}</span>
                     </DropdownMenuItem>
                   ) : null}
                 </DropdownMenuGroup>

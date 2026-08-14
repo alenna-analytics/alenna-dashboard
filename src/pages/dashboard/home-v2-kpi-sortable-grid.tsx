@@ -4,6 +4,7 @@ import { GripVertical } from 'lucide-react'
 import type { HomeV2KpiCardId } from '@/pages/dashboard/home-v2-kpi-card-order'
 import { isHomeV2KpiCardId, reorderHomeV2KpiCards } from '@/pages/dashboard/home-v2-kpi-card-order'
 import { cn } from '@/lib/utils'
+import { kpiCardGridClassName } from '@/ui/kpi-card'
 
 const KPI_DRAG_MIME = 'application/x-alenna-home-v2-kpi-id'
 
@@ -60,7 +61,7 @@ export function HomeV2KpiSortableGrid({
   return (
     <div
       className={cn(
-        'grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4',
+        kpiCardGridClassName,
         className,
       )}
       onDragOver={(event) => event.preventDefault()}
@@ -73,7 +74,7 @@ export function HomeV2KpiSortableGrid({
             role="button"
             tabIndex={0}
             aria-label={dragHandleAriaLabel}
-            className="inline-flex shrink-0 touch-none cursor-grab select-none items-center justify-center rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-text-secondary active:cursor-grabbing"
+            className="inline-flex size-7 shrink-0 touch-none cursor-grab select-none items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-[var(--sidebar-active-bg)] hover:text-text-secondary active:cursor-grabbing"
             onDragStart={(event) => {
               event.stopPropagation()
               event.dataTransfer.effectAllowed = 'move'
@@ -108,12 +109,12 @@ export function HomeV2KpiSortableGrid({
             onDragOver={handleDragOver(id)}
             onDrop={handleDrop(id)}
             className={cn(
-              'min-w-0 transition-shadow',
+              'min-w-0 w-full rounded-md transition-colors',
               draggingId === id && 'opacity-60',
               overId === id &&
                 draggingId &&
                 draggingId !== id &&
-                'rounded-md ring-2 ring-ring/45 ring-offset-2 ring-offset-white',
+                'bg-[var(--sidebar-active-bg)]',
             )}
           >
             {renderCard(id, dragHandle)}

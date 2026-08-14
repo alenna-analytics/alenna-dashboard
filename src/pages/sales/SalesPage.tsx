@@ -32,7 +32,7 @@ import { productToSalesKpiSource, toSalesKpiSource } from '@/pages/sales/sales-k
 import { SalesProductsTable } from '@/pages/sales/sales-products-table'
 import { SalesYoyChart } from '@/pages/sales/sales-yoy-chart'
 import { useSalesPageFilters } from '@/pages/sales/use-sales-page-filters'
-import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
@@ -59,7 +59,7 @@ function SalesLoadingSkeleton() {
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-4 w-72 max-w-full" />
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton key={i} className="h-24 w-full rounded-md" />
           ))}
@@ -367,7 +367,7 @@ export function SalesPage() {
             <h1 className={pageTitleClassName}>
               {t('salesPageTitle')}
             </h1>
-            <p className="mt-1 max-w-2xl text-sm text-text-secondary">
+            <p className={cn('mt-1', pageSubtitleClassName)}>
               {t('salesPageSubtitle')}
             </p>
           </div>

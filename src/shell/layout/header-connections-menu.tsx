@@ -73,7 +73,7 @@ function ConnectionHoverRow({
   return (
     <Link
       to={`/dashboard/integrations/${conn.platform}?tab=settings`}
-      className="flex items-center gap-2.5 rounded-md px-2 py-2 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
+      className="flex items-center gap-2.5 rounded-md px-2 py-2 transition-colors hover:bg-[var(--sidebar-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
     >
       {ui?.logoSrc ? (
         <img

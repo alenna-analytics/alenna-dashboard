@@ -9,6 +9,8 @@ import {
   YAxis,
 } from 'recharts'
 
+import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+
 import type { ProductWeeklyNetSalesPointApi } from '@/lib/types/catalog'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import {
@@ -52,16 +54,16 @@ function WeeklyNetSalesTooltip({
   const row = payload[0]?.payload
   if (!row) return null
   return (
-    <div className="rounded-md border border-border-subtle bg-popover px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
-      <p className="text-text-secondary">
-        <span className="font-medium text-text-primary">{tooltipLabels.week}:</span>{' '}
+    <ChartTooltipFrame>
+      <p className="text-white/70">
+        <span className="font-medium text-white">{tooltipLabels.week}:</span>{' '}
         {row.weekLabel}
       </p>
-      <p className="mt-1 font-numeric tabular-nums text-text-secondary">
-        <span className="font-medium text-text-primary">{tooltipLabels.sales}:</span>{' '}
+      <p className="mt-1 font-numeric tabular-nums text-white/70">
+        <span className="font-medium text-white">{tooltipLabels.sales}:</span>{' '}
         {formatValue(row.value)}
       </p>
-    </div>
+    </ChartTooltipFrame>
   )
 }
 

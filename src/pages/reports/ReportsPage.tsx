@@ -120,7 +120,7 @@ function platformDisplayName(platform: string): string {
 function ReportsLoadingSkeleton() {
   return (
     <div className="flex flex-col gap-12">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-28 w-full rounded-md" />
         ))}
@@ -557,10 +557,6 @@ export function ReportsPage() {
             t={t}
           />
 
-          {productMode ? (
-            <p className="text-sm text-text-secondary">{t('reportsProductModeHint')}</p>
-          ) : null}
-
           {pnlRows.length > 0 ? (
             <ReportsPnlTable
               rows={pnlRows}
@@ -594,7 +590,7 @@ export function ReportsPage() {
                   description={t('reportsWaterfallSubtitle')}
                 />
                 <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
-                  {productMode ? t('reportsProductModeHint') : t('reportsNoData')}
+                  {t('reportsNoData')}
                 </p>
               </SectionContainer>
             )}

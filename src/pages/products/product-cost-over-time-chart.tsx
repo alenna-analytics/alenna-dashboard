@@ -12,6 +12,7 @@ import {
 } from 'recharts'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import { ChartTooltipFrame } from '@/ui/chart-tooltip'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import {
   CHART_LINE_MAIN_MS,
@@ -19,6 +20,7 @@ import {
   rechartsEnterAnimationProps,
 } from '@/pages/dashboard/use-chart-line-load-animation'
 import { cn } from '@/lib/utils'
+import { EmptyState } from '@/ui/empty-state'
 import { fmtCurrency } from '@/pages/reports/reports-ui-helpers'
 
 import type {
@@ -53,8 +55,8 @@ function ChartTooltip({
   const row = (payload[0] as unknown as { payload?: ProductCostPriceChartPoint })?.payload
   if (!row) return null
   return (
-    <div className="rounded-md border border-border-subtle bg-popover px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
-      <div className="font-medium text-text-primary">
+    <ChartTooltipFrame>
+      <div className="font-medium text-white">
         {t('productsDetailChartTooltipDate')}:{' '}
         <span className="font-numeric tabular-nums">{row.dateKey}</span>
       </div>
@@ -64,17 +66,17 @@ function ChartTooltip({
           const series = seriesByKey[key]
           if (!series) return null
           return (
-            <div key={key} className="flex items-center gap-2 text-text-secondary">
+            <div key={key} className="flex items-center gap-2 text-white/70">
               <span className="inline-block size-2 rounded-full" style={{ background: p.stroke }} />
               <span>{series.label}:</span>
-              <span className="font-numeric tabular-nums">
+              <span className="font-numeric tabular-nums text-white">
                 {fmtCurrency(Number(p.value ?? 0), series.currency)}
               </span>
             </div>
           )
         })}
       </div>
-    </div>
+    </ChartTooltipFrame>
   )
 }
 
@@ -138,14 +140,12 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
 
   if (data.length === 0) {
     return (
-      <div
-        className={cn(
-          'flex min-h-[14rem] items-center justify-center rounded-md border border-dashed border-border-subtle bg-muted/30 px-4 text-center text-sm text-text-secondary',
-          className,
-        )}
-      >
-        {t('productsDetailChartEmpty')}
-      </div>
+      <EmptyState
+        size="sm"
+        icon="products"
+        title={t('productsDetailChartEmpty')}
+        className={cn('min-h-[14rem] justify-center', className)}
+      />
     )
   }
   const seriesByKey = Object.fromEntries(series.map((s) => [s.key, s]))

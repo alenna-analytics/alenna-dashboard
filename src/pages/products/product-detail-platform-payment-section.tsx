@@ -4,6 +4,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import type { DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Card, CardContent } from '@/ui/card'
+import { EmptyState } from '@/ui/empty-state'
 import { DateRangePicker } from '@/ui/date-range-picker'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import type { FilterOption } from '@/ui/filters/types'
@@ -16,8 +17,10 @@ import {
   platformSettlementFilterOptions,
   resolveProductPlatformSettlement,
 } from './product-detail-settlement-by-platform'
+import { ProductDetailWaterfallBlock } from './product-detail-waterfall-block'
 import { productPlatformLabel } from './product-platform-label'
 import { SettlementWaterfallList } from './settlement-waterfall-list'
+import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
 
 const ALL_CHANNELS = 'all'
 
@@ -26,6 +29,8 @@ type ProductDetailPlatformPaymentSectionProps = {
   isFetching: boolean
   t: (key: ShellStringKey) => string
   fmtBase: (value: number) => string
+  fmtCard: (value: number) => string
+  currencyCode: string
   insightStart: string
   insightEnd: string
   setInsightStart: (value: string) => void
@@ -38,6 +43,8 @@ export function ProductDetailPlatformPaymentSection({
   isFetching,
   t,
   fmtBase,
+  fmtCard,
+  currencyCode,
   insightStart,
   insightEnd,
   setInsightStart,
@@ -99,6 +106,11 @@ export function ProductDetailPlatformPaymentSection({
       ? detail.listings.filter((listing) => listing.period_settlement !== null).length
       : listingCountByPlatform(detail.listings, activeChannel)
 
+  const settlementSegments = useMemo(
+    () => (settlement ? buildSettlementWaterfallSegments(settlement, t) : []),
+    [settlement, t],
+  )
+
   const selectedPlatformSlug = activeChannel === ALL_CHANNELS ? null : activeChannel
   const selectedPlatformLabel =
     selectedPlatformSlug === null
@@ -158,6 +170,7 @@ export function ProductDetailPlatformPaymentSection({
               skeleton={<Skeleton className="mt-0.5 h-7 w-32 max-w-full" aria-hidden />}
             />
           </div>
+          <Skeleton className="h-72 w-full" aria-hidden />
           <Card size="sm" className="border-border-subtle">
             <CardContent className="space-y-3 py-4">
               {Array.from({ length: 6 }).map((_, index) => (
@@ -168,12 +181,14 @@ export function ProductDetailPlatformPaymentSection({
         </>
       ) : settlement ? (
         <>
+          <div className="flex flex-col gap-8">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:max-w-2xl">
             <ProductDetailInsightKpiTile
               label={t('productsDetailPlatformPaymentGrossSales')}
               helpText={t('productsDetailPlatformPaymentGrossSalesHelp')}
-              value={fmtBase(settlement.gross_revenue)}
+              value={fmtCard(settlement.gross_revenue)}
               numericValue={settlement.gross_revenue}
+              currencyCode={currencyCode}
               showValues
               isFetching={false}
               skeleton={<Skeleton className="mt-0.5 h-7 w-32 max-w-full" aria-hidden />}
@@ -181,12 +196,23 @@ export function ProductDetailPlatformPaymentSection({
             <ProductDetailInsightKpiTile
               label={t('productsDetailPlatformPaymentTotalPayout')}
               helpText={t('productsDetailPlatformPaymentTotalPayoutHelp')}
-              value={fmtBase(settlement.estimated_payout)}
+              value={fmtCard(settlement.estimated_payout)}
               numericValue={settlement.estimated_payout}
+              currencyCode={currencyCode}
               showValues
               isFetching={false}
               skeleton={<Skeleton className="mt-0.5 h-7 w-32 max-w-full" aria-hidden />}
             />
+          </div>
+          <ProductDetailWaterfallBlock
+            title={t('productsDetailSettlementTitle')}
+            description={t('reportsSectionSettlementSubtitle')}
+            segments={settlementSegments}
+            currency={detail.base_currency}
+            grossRevenue={settlement.gross_revenue}
+            t={t}
+            finalBarCaption={t('reportsSettlementFinalHint')}
+          />
           </div>
           <Card size="sm" className="border-border-subtle">
             <CardContent className="space-y-3 py-4">
@@ -222,9 +248,7 @@ export function ProductDetailPlatformPaymentSection({
           </Card>
         </>
       ) : (
-        <p className="py-8 text-center text-sm text-text-tertiary">
-          {t('productsDetailPlatformPaymentEmpty')}
-        </p>
+        <EmptyState size="sm" icon="products" title={t('productsDetailPlatformPaymentEmpty')} />
       )}
     </div>
   )

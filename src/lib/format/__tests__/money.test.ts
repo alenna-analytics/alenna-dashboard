@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { convertAmount, formatMoney } from '../money'
+import { convertAmount, formatKpiMoney, formatMoney } from '../money'
 
 const fxMxnToUsd = {
   rate: '0.05',
@@ -126,5 +126,38 @@ describe('formatMoney', () => {
     })
     expect(out).toContain('$')
     expect(out).toContain('50.00')
+  })
+
+  it('omits the currency symbol when currencyDisplay is none', () => {
+    const out = formatMoney(1234.5, {
+      nativeCurrency: 'MXN',
+      displayCurrency: null,
+      latestFx: null,
+      baseCurrency: 'MXN',
+      locale: 'en-US',
+      currencyDisplay: 'none',
+    })
+    expect(out).toBe('1,234.50')
+  })
+
+  it('uses a narrow currency symbol when currencyDisplay is narrowSymbol', () => {
+    const out = formatMoney(4129.87, {
+      nativeCurrency: 'MXN',
+      displayCurrency: null,
+      latestFx: null,
+      baseCurrency: 'MXN',
+      locale: 'es-MX',
+      currencyDisplay: 'narrowSymbol',
+    })
+    expect(out).toContain('4,129.87')
+    expect(out).toContain('$')
+  })
+})
+
+describe('formatKpiMoney', () => {
+  it('always includes a currency symbol for MXN in es-MX', () => {
+    const out = formatKpiMoney(4129.87, 'MXN', 'es-MX')
+    expect(out).toContain('4,129.87')
+    expect(out).toContain('$')
   })
 })

@@ -32,7 +32,7 @@ function BreakdownRow({
       <span className={cn('text-sm font-medium leading-tight', colorClass)}>{label}</span>
       <span
         className={cn(
-          'font-numeric text-lg font-semibold tabular-nums leading-none',
+          'font-numeric text-lg font-medium tabular-nums leading-none',
           colorClass,
         )}
       >

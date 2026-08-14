@@ -24,7 +24,7 @@ function SummaryMetricItem({
       <p className="text-xs font-medium text-text-secondary">{shellT(lang, labelKey)}</p>
       <p
         className={cn(
-          'mt-1 text-xl font-semibold tabular-nums tracking-tight',
+          'mt-1 text-xl font-medium tabular-nums tracking-tight',
           emphasize ? 'text-amber-800' : 'text-text-primary',
         )}
       >

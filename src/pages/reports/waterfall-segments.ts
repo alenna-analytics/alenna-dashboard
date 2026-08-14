@@ -15,6 +15,7 @@ export function buildWaterfallSegments(
       value: kpi.gross_revenue,
       isSubtotal: true,
       isNegative: false,
+      positiveTone: 'gross',
     },
     {
       name: t('reportsWfDiscountsReturns'),
@@ -31,6 +32,7 @@ export function buildWaterfallSegments(
       value: kpi.net_revenue,
       isSubtotal: true,
       isNegative: false,
+      positiveTone: 'net',
     },
     { name: labelForRow('cogs'), value: kpi.cogs, isSubtotal: false, isNegative: true },
     {
@@ -38,6 +40,7 @@ export function buildWaterfallSegments(
       value: kpi.gross_profit,
       isSubtotal: true,
       isNegative: false,
+      positiveTone: 'grossProfit',
     },
     {
       name: labelForRow('platform_fees'),
@@ -57,6 +60,7 @@ export function buildWaterfallSegments(
       value: kpi.contribution_margin,
       isSubtotal: true,
       isNegative: kpi.contribution_margin < 0,
+      positiveTone: 'contribution',
     },
     {
       name: labelForRow('fixed_opex'),
@@ -69,6 +73,7 @@ export function buildWaterfallSegments(
       value: kpi.ebitda,
       isSubtotal: true,
       isNegative: kpi.ebitda < 0,
+      positiveTone: 'ebitda',
     },
   ]
 }

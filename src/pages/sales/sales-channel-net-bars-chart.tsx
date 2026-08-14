@@ -15,6 +15,7 @@ import {
 } from 'recharts'
 
 import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
+import { ChartTooltipFrame } from '@/ui/chart-tooltip'
 
 const PALETTE = [
   'var(--chart-1)',
@@ -79,8 +80,8 @@ function ChannelBarsTooltip({
   if (!active || !payload?.length) return null
   const title = label !== undefined && label !== null ? String(label) : ''
   return (
-    <div className="rounded-md border border-border-default bg-background px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
-      {title ? <div className="mb-1.5 font-medium text-text-primary">{title}</div> : null}
+    <ChartTooltipFrame>
+      {title ? <div className="mb-1.5 font-medium text-white">{title}</div> : null}
       <div className="space-y-1 leading-snug">
         {payload.map((entry, i) => {
           const raw = entry.value
@@ -89,16 +90,16 @@ function ChannelBarsTooltip({
           const key = `${String(entry.dataKey ?? '')}-${String(entry.name ?? '')}-${i}`
           return (
             <div key={key} className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 tabular-nums">
-              <span className="inline-flex items-center gap-1.5 text-text-secondary">
+              <span className="inline-flex items-center gap-1.5 text-white/70">
                 <span className="size-2 shrink-0 rounded-full" style={{ background: swatch }} aria-hidden />
                 <span>{entry.name ?? ''}:</span>
               </span>
-              <span className="font-medium text-text-primary">{formatValue(n)}</span>
+              <span className="font-medium text-white">{formatValue(n)}</span>
             </div>
           )
         })}
       </div>
-    </div>
+    </ChartTooltipFrame>
   )
 }
 

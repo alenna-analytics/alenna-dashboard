@@ -12,7 +12,7 @@ export function IntegrationsAdsComingSoonPage() {
           <h1 className={pageTitleClassName}>
             {shellT(lang, 'integrationsNavAds')}
           </h1>
-          <p className="mt-1.5 text-sm text-text-secondary">
+          <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
             {shellT(lang, 'integrationsAdsComingSoonDescription')}
           </p>
         </div>

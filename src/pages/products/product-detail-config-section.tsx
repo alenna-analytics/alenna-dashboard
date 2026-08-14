@@ -21,7 +21,7 @@ type ProductDetailConfigSectionProps = {
   avgHistory: number | null
   chartData: ProductCostPriceChartData
   costAmountWithBaseCode: (formatted: string, baseCurrency: string, codeClassName: string) => ReactNode
-  fmtBase: (value: number) => string
+  fmtCard: (value: number) => string
   updatedAtIso: string
   onEditCost: () => void
   showSectionTitle?: boolean
@@ -36,7 +36,7 @@ export function ProductDetailConfigSection({
   avgHistory,
   chartData,
   costAmountWithBaseCode,
-  fmtBase,
+  fmtCard,
   updatedAtIso,
   onEditCost,
   showSectionTitle = true,
@@ -84,7 +84,7 @@ export function ProductDetailConfigSection({
               <CardContent className="space-y-2 pt-0">
                 <p className={cn('text-2xl font-semibold text-text-primary sm:text-3xl', NUM)}>
                   {costAmountWithBaseCode(
-                    avgHistory != null ? fmtBase(avgHistory) : '—',
+                    avgHistory != null ? fmtCard(avgHistory) : '—',
                     baseCurrency,
                     'text-sm sm:text-base',
                   )}

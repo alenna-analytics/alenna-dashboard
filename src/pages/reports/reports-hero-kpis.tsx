@@ -44,7 +44,7 @@ export function ReportsHeroKpis({
 
   if (mode === 'product' && productKpi) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           variant="hero"
           label={t('reportsNetRevenue')}
@@ -103,7 +103,7 @@ export function ReportsHeroKpis({
   if (!kpi) return null
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <KpiCard
         variant="hero"
         label={t('reportsNetRevenue')}

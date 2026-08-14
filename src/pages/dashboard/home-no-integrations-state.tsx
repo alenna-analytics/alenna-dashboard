@@ -35,7 +35,7 @@ export function HomeNoIntegrationsState({ lang }: HomeNoIntegrationsStateProps) 
       <section>
         <div className="max-w-2xl">
           <h1 className={pageTitleClassName}>{title}</h1>
-          <p className="mt-1.5 text-sm text-text-secondary">
+          <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
             {shellT(lang, 'homeNoIntegrationsDescription')}
           </p>
         </div>

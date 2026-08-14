@@ -37,7 +37,7 @@ export function ConfigurationEntryCard({
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-semibold text-text-primary">{shellT(lang, titleKey)}</h2>
-          <p className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-text-secondary">
+          <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-text-secondary">
             {shellT(lang, descriptionKey)}
           </p>
         </div>

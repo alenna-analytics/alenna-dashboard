@@ -4,12 +4,11 @@ import { Link } from 'react-router-dom'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 import type { ProductVariantSummaryApi, StockAlertLevel } from '@/lib/types/catalog'
-import { Badge } from '@/ui/badge'
+import { ChannelBadge } from '@/ui/channel-badge'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 
 import { ProductCostInlineCell } from './product-cost-inline-cell'
 import { ProductDetailColumnHeaderWithHelp } from './product-detail-column-header-with-help'
-import { productDetailChannelPillClassName } from './product-detail-platform-badges'
 import {
   formatListingInventoryDays,
   formatListingVelocityPerDay,
@@ -127,21 +126,9 @@ export function createProductDetailVariantsColumns(
               const slug = platform.trim().toLowerCase()
               const ui = slug ? INTEGRATION_UI[slug] : undefined
               return (
-                <Badge
-                  key={platform}
-                  variant="outline"
-                  className={productDetailChannelPillClassName}
-                >
-                  {ui?.logoSrc != null ? (
-                    <img
-                      src={ui.logoSrc}
-                      alt=""
-                      className="size-4 shrink-0 object-contain"
-                      aria-hidden
-                    />
-                  ) : null}
-                  <span>{productPlatformLabel(platform, t)}</span>
-                </Badge>
+                <ChannelBadge key={platform} logoSrc={ui?.logoSrc}>
+                  {productPlatformLabel(platform, t)}
+                </ChannelBadge>
               )
             })}
           </div>

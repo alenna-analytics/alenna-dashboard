@@ -17,6 +17,7 @@ import {
 import type { ChannelPlatform } from '@/pages/channels/channels-platform-aggregate'
 import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
 import { cn } from '@/lib/utils'
+import { ChartTooltipFrame } from '@/ui/chart-tooltip'
 
 const PLATFORM_COLORS = [
   'var(--chart-1)',
@@ -64,9 +65,9 @@ function CmTooltip({
 }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-md border border-border-default bg-background px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
+    <ChartTooltipFrame>
       {label != null ? (
-        <div className="mb-1.5 font-medium text-text-primary">{String(label)}</div>
+        <div className="mb-1.5 font-medium text-white">{String(label)}</div>
       ) : null}
       <div className="space-y-1">
         {payload.map((entry, i) => {
@@ -76,7 +77,7 @@ function CmTooltip({
               key={`${String(entry.dataKey)}-${i}`}
               className="flex flex-wrap items-baseline gap-x-2 tabular-nums"
             >
-              <span className="inline-flex items-center gap-1.5 text-text-secondary">
+              <span className="inline-flex items-center gap-1.5 text-white/70">
                 <span
                   className="size-2 shrink-0 rounded-full"
                   style={{ background: entry.color }}
@@ -84,12 +85,12 @@ function CmTooltip({
                 />
                 {entry.name}:
               </span>
-              <span className="font-medium text-text-primary">{formatValue(n)}</span>
+              <span className="font-medium text-white">{formatValue(n)}</span>
             </div>
           )
         })}
       </div>
-    </div>
+    </ChartTooltipFrame>
   )
 }
 

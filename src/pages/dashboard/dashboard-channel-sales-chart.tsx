@@ -21,6 +21,8 @@ import {
 } from 'recharts'
 
 import { cn } from '@/lib/utils'
+import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { EmptyState } from '@/ui/empty-state'
 import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
 
 import { DashboardZoomStrip } from './dashboard-zoom-strip'
@@ -81,8 +83,8 @@ function ChannelSalesTooltip({
   if (!active || !payload?.length) return null
   const title = label !== undefined && label !== null ? String(label) : ''
   return (
-    <div className="rounded-md border border-border-default bg-background px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
-      {title ? <div className="mb-1.5 font-medium text-text-primary">{title}</div> : null}
+    <ChartTooltipFrame>
+      {title ? <div className="mb-1.5 font-medium text-white">{title}</div> : null}
       <div className="space-y-1 leading-snug">
         {payload.map((entry, i) => {
           const raw = entry.value
@@ -91,16 +93,16 @@ function ChannelSalesTooltip({
           const key = `${String(entry.dataKey ?? '')}-${String(entry.name ?? '')}-${i}`
           return (
             <div key={key} className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 tabular-nums">
-              <span className="inline-flex items-center gap-1.5 text-text-secondary">
+              <span className="inline-flex items-center gap-1.5 text-white/70">
                 <span className="size-2 shrink-0 rounded-full" style={{ background: swatch }} aria-hidden />
                 <span>{entry.name ?? ''}:</span>
               </span>
-              <span className="font-medium text-text-primary">{formatValue(n)}</span>
+              <span className="font-medium text-white">{formatValue(n)}</span>
             </div>
           )
         })}
       </div>
-    </div>
+    </ChartTooltipFrame>
   )
 }
 
@@ -234,11 +236,7 @@ export function DashboardChannelSalesChart({
   const miniAnimProps = rechartsEnterAnimationProps(CHART_LINE_MINI_MS)
 
   if (channelsOrdered.length === 0) {
-    return (
-      <p className="rounded-md px-2 py-10 text-center text-sm text-text-secondary">
-        {t('dashboardChannelSalesEmpty')}
-      </p>
-    )
+    return <EmptyState size="sm" icon="home" title={t('dashboardChannelSalesEmpty')} />
   }
 
   const lines = channelsOrdered.flatMap((ch, i) => {

@@ -99,6 +99,17 @@ export type BillingInvoice = {
   hosted_invoice_url: string | null
 }
 
+export type BillingOrdersDailyPoint = {
+  date: string
+  orders: number
+}
+
+export type BillingOrdersDaily = {
+  period_start: string
+  period_end: string
+  points: BillingOrdersDailyPoint[]
+}
+
 export type BillingOverview = {
   current_period_start: string | null
   current_period_end: string | null
@@ -118,4 +129,15 @@ export async function fetchBillingOverview(
     throw new Error('Unable to load billing overview.')
   }
   return (await res.json()) as BillingOverview
+}
+
+export async function fetchBillingOrdersDaily(
+  getToken: GetTokenFn,
+  tenantId: string,
+): Promise<BillingOrdersDaily> {
+  const res = await apiFetch('/billing/orders-daily', getToken, {}, tenantId)
+  if (!res.ok) {
+    throw new Error('Unable to load daily order usage.')
+  }
+  return (await res.json()) as BillingOrdersDaily
 }

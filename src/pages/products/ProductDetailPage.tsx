@@ -239,8 +239,9 @@ function ProductDetailBody({ productId }: { productId: string }) {
 
   const detail = detailQuery.data
   const baseCurrency = detail?.base_currency ?? 'USD'
-  const { format: formatMoney } = useMoney()
+  const { format: formatMoney, formatKpi, effectiveDisplayCurrency } = useMoney()
   const fmtBase = (v: number) => formatMoney(v, { nativeCurrency: baseCurrency })
+  const fmtCard = (v: number) => formatKpi(v, { nativeCurrency: baseCurrency })
 
   const [costEditorOpen, setCostEditorOpen] = useState(false)
   const [costEditorProductId, setCostEditorProductId] = useState<string | null>(null)
@@ -370,7 +371,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
     return <div className="p-8 text-sm text-text-secondary">Failed to load product.</div>
   }
 
-  const bigCostFormatted = detail.cost != null ? fmtBase(detail.cost) : '—'
+  const bigCostFormatted = detail.cost != null ? fmtCard(detail.cost) : '—'
   const updatedDays = daysSinceUpdated(detail.updated_at)
   const updatedBadge =
     updatedDays <= 0
@@ -422,7 +423,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
         lang={lang}
         detail={detail}
         t={t}
-        baseCurrency={baseCurrency}
+        baseCurrency={effectiveDisplayCurrency}
         bigCostFormatted={bigCostFormatted}
         updatedBadge={updatedBadge}
         effectiveSinceLabel={effectiveSinceLabel}
@@ -430,6 +431,8 @@ function ProductDetailBody({ productId }: { productId: string }) {
         chartData={chartData}
         costAmountWithBaseCode={costAmountWithBaseCode}
         fmtBase={fmtBase}
+        fmtCard={fmtCard}
+        displayCurrency={effectiveDisplayCurrency}
         insightStart={insightStart}
         insightEnd={insightEnd}
         setInsightStart={setInsightStart}

@@ -10,6 +10,7 @@ import type { BenchmarkBand, BenchmarkMetricId, BenchmarkRow } from '@/pages/rep
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
+import { EmptyState } from '@/ui/empty-state'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 
 const METRIC_LABELS: Record<BenchmarkMetricId, ShellStringKey> = {
@@ -172,11 +173,7 @@ export function ReportsBenchmarksTable({ rows, t }: ReportsBenchmarksTableProps)
         isFetching={false}
         hasEverLoaded={true}
         scrollClassName=""
-        emptyContent={
-          <p className="px-4 py-8 text-center text-sm text-text-secondary">
-            {t('reportsNoData')}
-          </p>
-        }
+        emptyContent={<EmptyState icon="reports" title={t('reportsNoData')} />}
         skeletonRowCount={8}
       />
     </SectionContainer>

@@ -44,8 +44,10 @@ export function PageBreadcrumb({ items, className, ariaLabel = 'Breadcrumb' }: P
               ) : (
                 <span
                   className={cn(
-                    'min-w-0 truncate font-medium',
-                    isLast ? 'text-text-primary' : 'text-text-secondary',
+                    'min-w-0 truncate rounded-md px-1.5 py-0.5 font-medium',
+                    isLast
+                      ? 'bg-[var(--sidebar-active-bg)] text-text-primary'
+                      : 'text-text-secondary',
                   )}
                   title={item.label}
                   aria-current={isLast ? 'page' : undefined}

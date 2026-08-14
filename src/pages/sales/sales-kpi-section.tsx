@@ -2,6 +2,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 
 import { useMoney } from '@/hooks/use-money'
 import { KpiCard, SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { kpiCardGridClassName } from '@/ui/kpi-card'
 import { formatGrowthPctDisplay } from '@/pages/reports/reports-ui-helpers'
 
 import type { SalesKpiSource } from './sales-kpi-source'
@@ -35,8 +36,8 @@ export function SalesKpiSection({
   showDeductions,
   t,
 }: SalesKpiSectionProps) {
-  const { format: formatMoney } = useMoney()
-  const fmt = (v: number) => formatMoney(v, { nativeCurrency: currency })
+  const { formatKpi } = useMoney()
+  const fmt = (v: number) => formatKpi(v, { nativeCurrency: currency })
   const orders = kpi.order_count || 0
   const units = kpi.units_sold
   const prevOrders = kpiPrev?.order_count
@@ -66,7 +67,7 @@ export function SalesKpiSection({
   return (
     <SectionContainer>
       <SectionHeader title={t('reportsSectionVentas')} />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={kpiCardGridClassName}>
         <KpiCard
           label={t('reportsGrossRevenue')}
           helpText={t('reportsKpiHelpGrossRevenue')}

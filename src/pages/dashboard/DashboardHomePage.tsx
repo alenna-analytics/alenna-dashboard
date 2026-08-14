@@ -16,6 +16,7 @@ import { presetDateRangeYmd } from '@/ui/date-range-picker'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { revenueTrendSubtitleForGranularity } from '@/pages/dashboard/revenue-trend-subtitle'
 import { cn } from '@/lib/utils'
+import { formatCompactNumber } from '@/lib/format/compact-number'
 import { useModule } from '@/lib/modules/use-modules'
 import { useSalesMetricBasis } from '@/hooks/use-sales-metric-basis'
 import {
@@ -150,21 +151,8 @@ function fmtCompact(value: number, currency: string, lang: Language): string {
   const abs = Math.abs(value)
   const narrow = lang === 'es' ? 'es-MX' : 'en-US'
 
-  if (abs >= 1_000_000) {
-    const m = value / 1_000_000
-    const part = m.toLocaleString(narrow, {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    })
-    return `${part}M`
-  }
   if (abs >= 1_000) {
-    const k = value / 1_000
-    const part = k.toLocaleString(narrow, {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    })
-    return lang === 'es' ? `${part} mil` : `${part} K`
+    return formatCompactNumber(value, 1)
   }
   return new Intl.NumberFormat(narrow, {
     style: 'currency',
@@ -459,8 +447,13 @@ export function DashboardHomePage() {
     enabled: activeConnectionIds.length > 0,
   })
 
-  const { format: formatMoney, convert: convertMoney, effectiveDisplayCurrency, baseCurrency } =
-    useMoney()
+  const {
+    format: formatMoney,
+    formatKpi,
+    convert: convertMoney,
+    effectiveDisplayCurrency,
+    baseCurrency,
+  } = useMoney()
 
   const displayKpi = useMemo((): KpiResponse | null => {
     if (productMode) return null
@@ -548,7 +541,7 @@ export function DashboardHomePage() {
       priorUnavailable || previous === undefined
         ? null
         : fmt === 'currency'
-          ? formatMoney(previous, { nativeCurrency: currency })
+          ? formatKpi(previous, { nativeCurrency: currency })
           : fmt === 'percent'
             ? `${previous.toFixed(1)}%`
             : previous.toLocaleString()
@@ -718,8 +711,9 @@ export function DashboardHomePage() {
                       bare
                       label={t(salesLabelKey(salesMetricBasis))}
                       helpText={t(homeSalesHelpKey(salesMetricBasis))}
-                      value={formatMoney(salesCurrent, { nativeCurrency: currency })}
+                      value={formatKpi(salesCurrent, { nativeCurrency: currency })}
                       numericValue={salesCurrent}
+                      currencyCode={effectiveDisplayCurrency}
                       vsPriorLabel={vsPrior}
                       priorValueDisplay={salesDelta!.priorDisplay}
                       pct={salesDelta!.pct}
@@ -787,8 +781,9 @@ export function DashboardHomePage() {
                       compact
                       label={t(profitLabelKey(salesMetricBasis))}
                       helpText={t(profitHelpKey(salesMetricBasis))}
-                      value={formatMoney(profitCurrent, { nativeCurrency: currency })}
+                      value={formatKpi(profitCurrent, { nativeCurrency: currency })}
                       numericValue={profitCurrent}
+                      currencyCode={effectiveDisplayCurrency}
                       vsPriorLabel={vsPrior}
                       priorValueDisplay={profitDelta!.priorDisplay}
                       pct={profitDelta!.pct}
@@ -805,9 +800,10 @@ export function DashboardHomePage() {
                       value={
                         productMode
                           ? '—'
-                          : formatMoney(displayKpi?.ebitda ?? 0, { nativeCurrency: currency })
+                          : formatKpi(displayKpi?.ebitda ?? 0, { nativeCurrency: currency })
                       }
                       numericValue={productMode ? null : (displayKpi?.ebitda ?? 0)}
+                      currencyCode={productMode ? undefined : effectiveDisplayCurrency}
                       vsPriorLabel={vsPrior}
                       priorValueDisplay={productMode ? null : ebitda!.priorDisplay}
                       pct={productMode ? null : ebitda!.pct}
@@ -860,9 +856,10 @@ export function DashboardHomePage() {
                       label={t('reportsKpiAov')}
                       helpText={t('reportsKpiHelpAov')}
                       value={
-                        aov === null ? '—' : formatMoney(aov, { nativeCurrency: currency })
+                        aov === null ? '—' : formatKpi(aov, { nativeCurrency: currency })
                       }
                       numericValue={aov}
+                      currencyCode={aov === null ? undefined : effectiveDisplayCurrency}
                       vsPriorLabel={vsPrior}
                       priorValueDisplay={aovDelta?.priorDisplay ?? null}
                       pct={aovDelta?.pct ?? null}
@@ -894,6 +891,7 @@ export function DashboardHomePage() {
                     rows={channelBreakdown?.items ?? []}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}
+                    formatCompact={formatCompactInDisplay}
                     t={t}
                     minBodyHeightPx={showTopProducts ? pairedChartBodyPx : undefined}
                     isLoading={channelDonutPending}

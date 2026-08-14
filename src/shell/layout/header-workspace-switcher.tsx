@@ -52,7 +52,7 @@ export function HeaderWorkspaceSwitcher({ companyName, me }: HeaderWorkspaceSwit
     <>
     <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
       <div className="flex h-8 min-w-0 max-w-[min(100%,14rem)] items-center gap-1.5">
-        <span className="hidden min-w-0 flex-1 truncate text-subtitle font-semibold text-text-primary sm:block">
+        <span className="hidden min-w-0 flex-1 truncate text-sm font-semibold text-text-primary sm:block">
           {companyName}
         </span>
         {pillLabel ? (

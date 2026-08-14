@@ -397,8 +397,8 @@ export function createProductDetailChannelsColumns(
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => options?.onViewSettlement?.(listing)}>
-                <Wallet className="size-4 shrink-0" aria-hidden />
-                {t('productsDetailListingViewSettlement')}
+                <Wallet className="h-4 w-4" aria-hidden />
+                <span>{t('productsDetailListingViewSettlement')}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

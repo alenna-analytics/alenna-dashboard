@@ -16,6 +16,8 @@ import {
   YAxis,
 } from 'recharts'
 
+import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+
 const SEGMENTS = [
   { key: 'cogs', color: 'var(--chart-2)', labelKey: 'reportsWfCogs' as const },
   {
@@ -69,9 +71,9 @@ function CostTooltip({
 }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-md border border-border-default bg-background px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
+    <ChartTooltipFrame>
       {label != null ? (
-        <div className="mb-1.5 font-medium text-text-primary">{String(label)}</div>
+        <div className="mb-1.5 font-medium text-white">{String(label)}</div>
       ) : null}
       <div className="space-y-1">
         {payload.map((entry, i) => {
@@ -81,7 +83,7 @@ function CostTooltip({
               key={`${String(entry.dataKey)}-${i}`}
               className="flex flex-wrap items-baseline gap-x-2 tabular-nums"
             >
-              <span className="inline-flex items-center gap-1.5 text-text-secondary">
+              <span className="inline-flex items-center gap-1.5 text-white/70">
                 <span
                   className="size-2 shrink-0 rounded-full"
                   style={{ background: entry.color }}
@@ -89,12 +91,12 @@ function CostTooltip({
                 />
                 {entry.name}:
               </span>
-              <span className="font-medium text-text-primary">{n.toFixed(1)}%</span>
+              <span className="font-medium text-white">{n.toFixed(1)}%</span>
             </div>
           )
         })}
       </div>
-    </div>
+    </ChartTooltipFrame>
   )
 }
 

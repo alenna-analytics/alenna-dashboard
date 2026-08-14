@@ -15,6 +15,8 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
+import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { EmptyState } from '@/ui/empty-state'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import {
   CHART_LINE_MAIN_MS,
@@ -89,19 +91,19 @@ function MultiTrendTooltip({
   const row = payload[0]?.payload
   if (!row) return null
   return (
-    <div className="rounded-md border border-border-default bg-white px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
-      <p className="mb-1.5 font-medium text-text-primary">{String(row.label)}</p>
+    <ChartTooltipFrame>
+      <p className="mb-1.5 font-medium text-white">{String(row.label)}</p>
       <div className="space-y-1 leading-snug">
         {selectedMetrics.map((id) => (
           <p key={id} className="tabular-nums">
-            <span className="text-text-tertiary">{productDetailTrendMetricLabel(id, t)}:</span>{' '}
-            <span className="font-medium text-text-primary">
+            <span className="text-white/55">{productDetailTrendMetricLabel(id, t)}:</span>{' '}
+            <span className="font-medium text-white">
               {formatProductDetailTrendMetricValue(id, Number(row[id] ?? 0), formatMoney)}
             </span>
           </p>
         ))}
       </div>
-    </div>
+    </ChartTooltipFrame>
   )
 }
 
@@ -182,11 +184,7 @@ export function ProductDetailTrendChart({
   const dense = visibleData.length > 18
 
   if (chartMetrics.length === 0) {
-    return (
-      <p className="py-8 text-center text-sm text-text-secondary">
-        {t('productsDetailMetricsTrendSelectHint')}
-      </p>
-    )
+    return <EmptyState size="sm" icon="products" title={t('productsDetailMetricsTrendSelectHint')} />
   }
 
   return (

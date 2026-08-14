@@ -43,7 +43,7 @@ type ProductDetailAnalyticsSectionProps = {
   t: (key: ShellStringKey) => string
   baseCurrency: string
   fmtBase: (value: number) => string
-  costAmountWithBaseCode: (formatted: string, baseCurrency: string, codeClassName: string) => ReactNode
+  fmtCard: (value: number) => string
   insightStart: string
   insightEnd: string
   setInsightStart: (value: string) => void
@@ -81,7 +81,7 @@ export function ProductDetailAnalyticsSection({
   t,
   baseCurrency,
   fmtBase,
-  costAmountWithBaseCode,
+  fmtCard,
   insightStart,
   insightEnd,
   setInsightStart,
@@ -146,6 +146,11 @@ export function ProductDetailAnalyticsSection({
     () =>
       PRODUCT_DETAIL_TREND_METRIC_IDS.map((id) => {
         const numericValue = productDetailTrendPeriodValueFromFiltered(periodView, id)
+        const isMoney =
+          id !== 'inventory-days' &&
+          id !== 'contribution-margin-pct' &&
+          id !== 'units' &&
+          id !== 'orders'
         let value: ReactNode
         if (id === 'inventory-days') {
           value = insightKpi(formatInventoryDays(detail, t))
@@ -156,9 +161,7 @@ export function ProductDetailAnalyticsSection({
         } else if (id === 'units' || id === 'orders') {
           value = insightKpi((numericValue ?? 0).toLocaleString())
         } else {
-          value = insightKpi(
-            costAmountWithBaseCode(fmtBase(numericValue ?? 0), baseCurrency, 'text-xs'),
-          )
+          value = insightKpi(fmtCard(numericValue ?? 0))
         }
         return {
           id,
@@ -167,6 +170,7 @@ export function ProductDetailAnalyticsSection({
           footer: id === 'inventory-days' ? t('productsDetailKpiInventoryDaysWindow') : undefined,
           numericValue,
           value,
+          currencyCode: isMoney ? baseCurrency : undefined,
           selectable: isProductDetailTrendMetricChartable(id),
           accentColor: PRODUCT_DETAIL_METRIC_COLORS[id],
           selected: selectedMetrics.includes(id),
@@ -176,9 +180,8 @@ export function ProductDetailAnalyticsSection({
       periodView,
       detail,
       t,
-      fmtBase,
+      fmtCard,
       insightKpi,
-      costAmountWithBaseCode,
       baseCurrency,
       selectedMetrics,
     ],
@@ -246,6 +249,7 @@ export function ProductDetailAnalyticsSection({
               isFetching={insightsFetching}
               skeleton={kpiSkeleton}
               numericValue={kpi.numericValue}
+              currencyCode={kpi.currencyCode}
               value={kpi.value}
               selectable={kpi.selectable}
               selected={kpi.selected}

@@ -14,7 +14,7 @@ export function AlarmsConfigurationListPage() {
           <h1 className={pageTitleClassName}>
             {shellT(lang, 'navAlarms')}
           </h1>
-          <p className="mt-1.5 text-sm text-text-secondary">
+          <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
             {shellT(lang, 'alarmsListSubtitle')}
           </p>
         </div>

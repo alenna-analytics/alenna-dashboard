@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { MAX_PNL_LABEL_LENGTH, PNL_ROW_IDS, PNL_ROW_LABEL_KEYS } from '@/lib/pnl/pnl-label-keys'
 import { normalizePnlLabelOverrides, serializePnlLabelOverrides } from '@/lib/pnl/resolve-pnl-label'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { can } from '@/lib/permissions/can'
 import type { PnlLabelLocale, PnlLabelOverridesApi } from '@/lib/types/pnl-labels'
 import { ProductDetailUnsavedBar } from '@/pages/products/product-detail-unsaved-bar'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
@@ -42,7 +43,7 @@ export function PnlTermsConfigurationPage() {
     [lang],
   )
   const { me } = useWorkspace()
-  const isWorkspaceAdmin = me?.role === 'admin' || me?.role === 'owner'
+  const isWorkspaceAdmin = can(me, 'pnl_labels.manage')
 
   const { data, isPending, isError } = usePnlLabelsQuery()
   const termsLoading = isPending && !isError

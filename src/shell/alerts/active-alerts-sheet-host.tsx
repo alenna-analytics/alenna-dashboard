@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch } from '@/lib/api'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { can } from '@/lib/permissions/can'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import {
   invalidateAlertsQueries,
@@ -23,7 +24,7 @@ export function ActiveAlertsSheetHost() {
   const queryClient = useQueryClient()
   const { open, setOpen } = useAlertsSheet()
   const { me } = useAppBootstrap()
-  const isAdmin = me?.role === 'admin' || me?.role === 'owner'
+  const isAdmin = can(me, 'alerts.manage')
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],

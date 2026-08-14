@@ -21,6 +21,11 @@ function normalizeMeResponse(raw: MeResponse): MeResponse {
     signup_intent: raw.signup_intent === 'growth' ? 'growth' : 'trial',
     payment_required: Boolean(raw.payment_required),
     has_stripe_customer: Boolean(raw.has_stripe_customer),
+    permissions: Array.isArray(raw.permissions) ? raw.permissions : [],
+    is_owner: Boolean(raw.is_owner),
+    can_manage_roles: Boolean(raw.can_manage_roles),
+    roles_used: raw.roles_used ?? 0,
+    roles_limit: raw.roles_limit ?? null,
   }
 }
 

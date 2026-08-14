@@ -19,6 +19,7 @@ import {
 } from '@/lib/types/connectors'
 import { formatShopifyLastSync, normalizeShopifySubdomainInput } from '@/lib/integrations/shopify-format'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { can } from '@/lib/permissions/can'
 import {
   GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
   useGlobalActivity,
@@ -109,7 +110,7 @@ export function useShopifyIntegration() {
   const queryClient = useQueryClient()
   const { upsertActivity, removeActivity } = useGlobalActivity()
 
-  const isAdmin = me?.role === 'admin' || me?.role === 'owner'
+  const isAdmin = can(me, 'integrations.manage')
 
   const [shopInput, setShopInput] = useState('')
 

@@ -1,5 +1,5 @@
  
-import type { ComponentProps, CSSProperties, ReactNode } from 'react'
+import { useId, type ComponentProps, type CSSProperties, type ReactNode } from 'react'
 import { HelpCircle } from 'lucide-react'
 import { Area, AreaChart, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
 
@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { kpiValueToneClass } from '@/lib/kpi-value-tone'
 import { Badge } from '@/ui/badge'
 import {
+  surfaceCardClassName,
   surfaceKpiClassName,
   surfaceKpiCompactClassName,
 } from '@/ui/surface'
@@ -133,12 +134,19 @@ function KpiSparkline({
   metricLabel: string
   formatValue: (value: number) => string
 }) {
+  const fillId = useId().replace(/:/g, '')
   if (points.length <= 1) {
-    return <div className="h-full w-full rounded-sm bg-muted/20" aria-hidden />
+    return <div className="h-full w-full bg-muted/20" aria-hidden />
   }
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={points} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
+      <AreaChart data={points} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+        <defs>
+          <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={SPARKLINE_STROKE} stopOpacity={0.28} />
+            <stop offset="100%" stopColor={SPARKLINE_STROKE} stopOpacity={0.04} />
+          </linearGradient>
+        </defs>
         <RechartsTooltip
           content={<SparklineTooltip metricLabel={metricLabel} formatValue={formatValue} />}
           wrapperStyle={{ outline: 'none' }}
@@ -156,7 +164,7 @@ function KpiSparkline({
           type="monotone"
           dataKey="value"
           stroke={SPARKLINE_STROKE}
-          fill="none"
+          fill={`url(#${fillId})`}
           strokeWidth={2}
           dot={false}
           activeDot={{ r: 3, fill: SPARKLINE_STROKE, stroke: 'white', strokeWidth: 1 }}
@@ -266,65 +274,80 @@ export function KpiCard({
       ? { borderTopWidth: 3, borderTopColor: accentColor, borderTopStyle: 'solid' }
       : undefined
 
+  const deltaEl = showInlineDelta ? (
+    deltaTooltip ? (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex w-fit cursor-default">{deltaPill}</span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-[260px] text-left text-xs font-normal leading-snug">
+          {deltaTooltip}
+        </TooltipContent>
+      </Tooltip>
+    ) : (
+      <div className="w-fit">{deltaPill}</div>
+    )
+  ) : null
+
   const body = (
     <>
-      <div className="flex w-full min-w-0 items-center gap-1">
-        <div className="flex min-w-0 flex-1 items-center gap-0.5">
-          <span className="min-w-0 truncate text-xs font-medium leading-tight text-text-primary">
-            {label}
-          </span>
-          {helpText ? <KpiHelpButton helpText={helpText} stopClick={selectable} /> : null}
+      <div className={cn('flex min-w-0 flex-col gap-1.5', showSparkline && !bare && 'p-3 pb-2')}>
+        <div className="flex w-full min-w-0 items-center gap-1">
+          <div className="flex min-w-0 flex-1 items-center gap-0.5">
+            <span className="min-w-0 truncate text-xs font-medium leading-tight text-text-primary">
+              {label}
+            </span>
+            {helpText ? <KpiHelpButton helpText={helpText} stopClick={selectable} /> : null}
+          </div>
+          {dragHandle}
         </div>
-        {dragHandle}
-      </div>
 
-      <div className="flex min-w-0 items-baseline justify-between gap-2">
-        <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-          <span
+        <div className="flex min-w-0 flex-col items-start gap-1.5">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+            <span
+              className={cn(
+                'font-numeric min-w-0 text-lg font-medium leading-none tracking-tight',
+                placeholder
+                  ? 'text-text-secondary'
+                  : kpiValueToneClass(numericValue, 'text-text-primary'),
+                valueClassName,
+              )}
+            >
+              {placeholder ? placeholderLabel : value}
+            </span>
+            {!placeholder && currencyCode ? (
+              <span className="text-sm font-medium text-text-secondary">{currencyCode}</span>
+            ) : null}
+          </div>
+          {deltaEl}
+        </div>
+
+        {showDeltaRow ? (
+          <div
+            className="flex min-w-0 flex-wrap items-center gap-1.5"
+            aria-label={`${vsPriorLabel}: ${priorValueDisplay ?? '—'}`}
+          >
+            <span className="font-numeric min-w-0 text-xs tabular-nums text-text-secondary">
+              {priorValueDisplay ?? '—'}
+            </span>
+            {deltaPill}
+          </div>
+        ) : null}
+
+        {footer ? (
+          <div
             className={cn(
-              'font-numeric min-w-0 text-lg font-medium leading-none tracking-tight',
-              placeholder
-                ? 'text-text-secondary'
-                : kpiValueToneClass(numericValue, 'text-text-primary'),
-              valueClassName,
+              'pt-1 text-[0.65rem] leading-tight text-text-tertiary',
+              footerClassName,
             )}
           >
-            {placeholder ? placeholderLabel : value}
-          </span>
-          {!placeholder && currencyCode ? (
-            <span className="text-sm font-medium text-text-secondary">{currencyCode}</span>
-          ) : null}
-        </div>
-        {showInlineDelta ? (
-          deltaTooltip ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="inline-flex shrink-0 cursor-default">{deltaPill}</span>
-              </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-[260px] text-left text-xs font-normal leading-snug">
-                {deltaTooltip}
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            deltaPill
-          )
+            {footer}
+          </div>
         ) : null}
       </div>
 
-      {showDeltaRow ? (
-        <div
-          className="flex min-w-0 flex-wrap items-center gap-1.5"
-          aria-label={`${vsPriorLabel}: ${priorValueDisplay ?? '—'}`}
-        >
-          <span className="font-numeric min-w-0 text-xs tabular-nums text-text-secondary">
-            {priorValueDisplay ?? '—'}
-          </span>
-          {deltaPill}
-        </div>
-      ) : null}
-
       {showSparkline ? (
-        <div className="mt-auto h-14 w-full min-w-0 pt-1.5">
+        <div className="mt-auto h-14 w-full min-w-0">
           <KpiSparkline
             points={sparkData}
             metricLabel={sparklineMetricLabel ?? label}
@@ -332,28 +355,19 @@ export function KpiCard({
           />
         </div>
       ) : null}
-
-      {footer ? (
-        <div
-          className={cn(
-            'mt-auto pt-1 text-[0.65rem] leading-tight text-text-tertiary',
-            footerClassName,
-          )}
-        >
-          {footer}
-        </div>
-      ) : null}
     </>
   )
 
   const shellClassName = cn(
     'flex min-w-0 flex-col text-left',
-    showSparkline && 'min-h-[148px]',
+    showSparkline && 'min-h-[148px] overflow-hidden',
     bare
       ? 'gap-1.5'
-      : compact
-        ? cn(surfaceKpiCompactClassName, 'gap-1.5')
-        : cn(surfaceKpiClassName, 'gap-1.5'),
+      : showSparkline
+        ? cn(surfaceCardClassName, 'p-0')
+        : compact
+          ? cn(surfaceKpiCompactClassName, 'gap-1.5')
+          : cn(surfaceKpiClassName, 'gap-1.5'),
     placeholder && 'opacity-80',
     selectable && 'cursor-pointer transition-colors hover:bg-muted/35',
     selected && 'bg-muted/30',

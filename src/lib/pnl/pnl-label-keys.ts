@@ -37,7 +37,6 @@ const PNL_SHELL_KEY_ALIASES: Record<PnlRowId, ShellStringKey[]> = {
   gross_revenue: [
     'reportsGrossRevenue',
     'settlementWfGross',
-    'salesDeductionsGross',
     'productsDetailPlatformPaymentGrossSales',
   ],
   discounts: ['settlementWfDiscounts'],
@@ -45,7 +44,6 @@ const PNL_SHELL_KEY_ALIASES: Record<PnlRowId, ShellStringKey[]> = {
   net_revenue: [
     'reportsNetRevenue',
     'settlementWfNetSales',
-    'salesDeductionsNet',
     'productsDetailKpiNetSales',
   ],
   cogs: ['reportsKpiCogsLabel', 'productsDetailKpiCogsTotal'],

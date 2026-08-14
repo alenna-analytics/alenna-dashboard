@@ -102,6 +102,14 @@ export function SalesKpiSection({
             vsPriorLabel={vsPrior}
             comparisonUnavailable={comparisonUnavailable}
             negative
+            footer={
+              kpi.discounts !== undefined && kpi.returns !== undefined ? (
+                <p className="text-xs text-text-tertiary">
+                  {t('reportsWfDiscounts')} {fmt(-kpi.discounts)} · {t('reportsWfReturns')}{' '}
+                  {fmt(-kpi.returns)}
+                </p>
+              ) : null
+            }
           />
         ) : null}
         <KpiCard

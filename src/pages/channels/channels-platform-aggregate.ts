@@ -1,5 +1,4 @@
 import type { ChannelKpiRow } from '@/lib/types/reports'
-import { pctVersusPrevious } from '@/pages/reports/reports-ui-helpers'
 
 export type ChannelPlatform = {
   slug: string
@@ -48,18 +47,19 @@ function emptySettlementMetrics(platform: string): PlatformSettlementMetrics {
     shipping_charges: 0,
     tax_withholdings: 0,
     estimated_payout: 0,
-    completeness: 'unavailable',
+    completeness: '',
   }
 }
 
-function mergeCompleteness(a: string, b: string): string {
+function mergeCompleteness(current: string, incoming: string): string {
+  if (!current) return incoming || 'unavailable'
   const rank = (c: string) => {
     const x = c.trim().toLowerCase()
     if (x === 'unavailable') return 0
     if (x === 'partial') return 1
     return 2
   }
-  return rank(a) <= rank(b) ? a : b
+  return rank(current) <= rank(incoming) ? current : incoming
 }
 
 function addSettlementRow(target: PlatformSettlementMetrics, row: ChannelKpiRow): void {
@@ -93,10 +93,14 @@ export function aggregateChannelSettlementByPlatform(
   }
 
   const result: Record<string, PlatformSettlementMetrics> = {
-    total,
+    total: { ...total, completeness: total.completeness || 'unavailable' },
   }
   for (const platform of platforms) {
-    result[platform.slug] = byPlatform[platform.slug]
+    const metrics = byPlatform[platform.slug]
+    result[platform.slug] = {
+      ...metrics,
+      completeness: metrics.completeness || 'unavailable',
+    }
   }
   return result
 }
@@ -167,62 +171,6 @@ export function aggregateChannelKpisByPlatform(
     result[platform.slug] = finishMetrics(byPlatform[platform.slug])
   }
   return result
-}
-
-export type ScoreboardMetricId =
-  | 'gross_revenue'
-  | 'discounts'
-  | 'returns'
-  | 'net_revenue'
-  | 'order_count'
-  | 'aov'
-  | 'contribution_margin'
-  | 'contribution_margin_pct'
-
-export type ScoreboardCell = {
-  value: number
-  deltaPct: number | null
-}
-
-export type ScoreboardRow = {
-  id: ScoreboardMetricId
-  cells: Record<string, ScoreboardCell>
-}
-
-function metricValue(m: PlatformMetrics, id: ScoreboardMetricId): number {
-  return m[id]
-}
-
-export function buildScoreboardRows(
-  current: Record<string, PlatformMetrics>,
-  previous: Record<string, PlatformMetrics> | null,
-  platforms: ChannelPlatform[],
-): ScoreboardRow[] {
-  const ids: ScoreboardMetricId[] = [
-    'gross_revenue',
-    'discounts',
-    'returns',
-    'net_revenue',
-    'order_count',
-    'aov',
-    'contribution_margin',
-    'contribution_margin_pct',
-  ]
-  const cols = [...platforms.map((platform) => platform.slug), 'total']
-
-  return ids.map((id) => {
-    const cells: Record<string, ScoreboardCell> = {}
-    for (const col of cols) {
-      const value = metricValue(current[col], id)
-      const prevVal = previous ? metricValue(previous[col], id) : null
-      cells[col] = {
-        value,
-        deltaPct:
-          prevVal === null ? null : (pctVersusPrevious(value, prevVal)?.pct ?? null),
-      }
-    }
-    return { id, cells }
-  })
 }
 
 export function grossMarginPct(m: PlatformMetrics): number {

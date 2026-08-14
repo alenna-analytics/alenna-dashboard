@@ -16,8 +16,11 @@ import { createContext, useContext, useId, type ReactElement } from 'react'
 import { ChartTooltipFrame } from '@/ui/chart-tooltip'
 import { formatCompactNumber } from '@/lib/format/compact-number'
 import { cn } from '@/lib/utils'
+import { CHART_NARROW_MQ } from '@/pages/dashboard/chart-x-axis-layout'
+import { useMediaQuery } from '@/hooks/use-media-query'
 
 const WaterfallHatchIdContext = createContext('wfUnfilledHatch')
+const WaterfallNarrowContext = createContext(false)
 
 export type WaterfallSegmentPart = {
   name: string
@@ -156,21 +159,25 @@ function WaterfallXAxisTick(
   const y = Number(props.y ?? 0)
   const text = String(props.payload?.value ?? '')
   const { line1, line2 } = xAxisLabelLines(text)
+  const angled = useContext(WaterfallNarrowContext)
   return (
-    <g transform={`translate(${x},${y})`} className="recharts-cartesian-axis-tick">
+    <g
+      transform={`translate(${x},${y})${angled ? ' rotate(-42)' : ''}`}
+      className="recharts-cartesian-axis-tick"
+    >
       <text
         x={0}
         y={0}
-        textAnchor="middle"
+        textAnchor={angled ? 'end' : 'middle'}
         fill="var(--color-text-secondary)"
         fontSize={9.5}
         className="select-none"
         style={{ textRendering: 'geometricPrecision' }}
       >
-        <tspan x={0} dy={10} fontWeight={500}>
+        <tspan x={0} dy={angled ? 4 : 10} fontWeight={500}>
           {line1}
         </tspan>
-        {line2 ? (
+        {!angled && line2 ? (
           <tspan x={0} dy={12.5} fontWeight={500}>
             {line2}
           </tspan>
@@ -637,9 +644,11 @@ export function WaterfallChart({
   const bars = buildBars(segments, grossRevenue)
   const rawMax = bars[0]?.domainMax ?? 1
   const { domainMax, ticks } = buildAxisTicks(rawMax, 4)
+  const isNarrow = useMediaQuery(CHART_NARROW_MQ)
 
   return (
     <WaterfallHatchIdContext.Provider value={hatchId}>
+    <WaterfallNarrowContext.Provider value={isNarrow}>
     <div className="w-full min-w-0">
       <div
         className={cn(
@@ -647,11 +656,16 @@ export function WaterfallChart({
           className,
         )}
       >
-        <div className="relative z-[1] min-w-[min(100%,44rem)]">
-          <ResponsiveContainer width="100%" height={288}>
+        <div className="relative z-[1] w-full min-w-[44rem]">
+          <ResponsiveContainer width="100%" height={isNarrow ? 320 : 288}>
             <ComposedChart
               data={bars}
-              margin={{ top: 28, right: 8, bottom: 6, left: 4 }}
+              margin={{
+                top: 28,
+                right: 8,
+                bottom: isNarrow ? 28 : 6,
+                left: isNarrow ? 12 : 4,
+              }}
               maxBarSize={WF_MAX_BAR_SIZE}
               barCategoryGap="7%"
             >
@@ -681,9 +695,9 @@ export function WaterfallChart({
                 axisLine={false}
                 tickLine={false}
                 interval={0}
-                height={56}
+                height={isNarrow ? 80 : 56}
                 tick={WaterfallXAxisTick}
-                tickMargin={4}
+                tickMargin={isNarrow ? 8 : 4}
               />
               <YAxis
                 domain={[0, domainMax]}
@@ -749,6 +763,7 @@ export function WaterfallChart({
         </div>
       </div>
     </div>
+    </WaterfallNarrowContext.Provider>
     </WaterfallHatchIdContext.Provider>
   )
 }

@@ -148,9 +148,9 @@ function ProductDetailSkeleton() {
         <Skeleton className="h-5 w-16 lg:hidden" />
 
         <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-          <div className="flex min-w-0 gap-4 sm:block sm:flex-1 sm:space-y-3">
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-1 sm:gap-0 sm:space-y-3">
             <Skeleton className="size-20 shrink-0 rounded-md sm:hidden" />
-            <div className="min-w-0 flex-1 space-y-3">
+            <div className="min-w-0 space-y-3">
               <Skeleton className="h-8 w-full max-w-lg sm:h-9" />
               <Skeleton className="h-7 w-24 rounded-md" />
               <div className="hidden sm:block">

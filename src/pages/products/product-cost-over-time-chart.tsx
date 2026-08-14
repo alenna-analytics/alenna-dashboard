@@ -14,6 +14,8 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { ChartTooltipFrame } from '@/ui/chart-tooltip'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
+import { CHART_NARROW_MQ, lineChartXAxisLayout } from '@/pages/dashboard/chart-x-axis-layout'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import {
   CHART_LINE_MAIN_MS,
   CHART_LINE_MINI_MS,
@@ -88,6 +90,8 @@ export type ProductCostOverTimeChartProps = {
 }
 
 export function ProductCostOverTimeChart({ data, series, className, t }: ProductCostOverTimeChartProps) {
+  const isNarrow = useMediaQuery(CHART_NARROW_MQ)
+  const xAxis = lineChartXAxisLayout(isNarrow)
   const [hiddenKeys, setHiddenKeys] = useState<Record<string, boolean>>({})
   const [zoomStart, setZoomStart] = useState(0)
   const [zoomEnd, setZoomEnd] = useState(Math.max(0, data.length - 1))
@@ -207,11 +211,11 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
           +
         </button>
       </div>
-      <ResponsiveContainer width="100%" height={280}>
+      <ResponsiveContainer width="100%" height={isNarrow ? 320 : 280}>
         <LineChart
           key={chartResetKey}
           data={visibleData}
-          margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+          margin={{ top: 8, right: 8, left: 0, bottom: isNarrow ? 8 : 0 }}
         >
           <CartesianGrid stroke={GRID} strokeDasharray="3 6" vertical={false} />
           <XAxis
@@ -219,7 +223,12 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
             tick={TICK_STYLE}
             tickLine={false}
             axisLine={{ stroke: 'var(--color-border-subtle)' }}
-            interval="preserveStartEnd"
+            interval={xAxis.interval}
+            minTickGap={xAxis.minTickGap}
+            angle={xAxis.angle}
+            textAnchor={xAxis.textAnchor}
+            height={xAxis.height}
+            tickMargin={xAxis.tickMargin}
           />
           <YAxis
             width={56}

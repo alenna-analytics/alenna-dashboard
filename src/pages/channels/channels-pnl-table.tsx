@@ -11,7 +11,7 @@ import {
   grossMarginPct,
   type PlatformMetrics,
 } from '@/pages/channels/channels-platform-aggregate'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { SectionSplit } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { EmptyState } from '@/ui/empty-state'
@@ -19,12 +19,15 @@ import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 
 import type { PnlRowId } from '@/pages/reports/reports-pnl-rows'
 
+type ChannelsPnlLineId = PnlRowId | 'order_count' | 'aov'
+
 type PnlLine = {
-  id: PnlRowId
+  id: ChannelsPnlLineId
   labelKey: ShellStringKey
   kind: 'line' | 'subtotal' | 'total'
   isDeduction?: boolean
   isNoData?: boolean
+  format: 'money' | 'count'
   value: (m: PlatformMetrics) => number
   marginPct?: (m: PlatformMetrics) => number | null
 }
@@ -34,6 +37,7 @@ const LINES: PnlLine[] = [
     id: 'gross_revenue',
     labelKey: 'reportsWfGrossRevenue',
     kind: 'line',
+    format: 'money',
     value: (m) => m.gross_revenue,
   },
   {
@@ -41,6 +45,7 @@ const LINES: PnlLine[] = [
     labelKey: 'reportsWfDiscounts',
     kind: 'line',
     isDeduction: true,
+    format: 'money',
     value: (m) => m.discounts,
   },
   {
@@ -48,12 +53,14 @@ const LINES: PnlLine[] = [
     labelKey: 'reportsWfReturns',
     kind: 'line',
     isDeduction: true,
+    format: 'money',
     value: (m) => m.returns,
   },
   {
     id: 'net_revenue',
     labelKey: 'reportsWfNetRevenue',
     kind: 'subtotal',
+    format: 'money',
     value: (m) => m.net_revenue,
   },
   {
@@ -61,12 +68,14 @@ const LINES: PnlLine[] = [
     labelKey: 'reportsWfCogs',
     kind: 'line',
     isDeduction: true,
+    format: 'money',
     value: (m) => m.cogs,
   },
   {
     id: 'gross_profit',
     labelKey: 'reportsWfGrossProfit',
     kind: 'subtotal',
+    format: 'money',
     value: (m) => m.gross_profit,
     marginPct: (m) => grossMarginPct(m),
   },
@@ -75,6 +84,7 @@ const LINES: PnlLine[] = [
     labelKey: 'reportsKpiPlatformFees',
     kind: 'line',
     isDeduction: true,
+    format: 'money',
     value: (m) => m.platform_fees_total,
   },
   {
@@ -82,6 +92,7 @@ const LINES: PnlLine[] = [
     labelKey: 'reportsKpiFulfillmentCost',
     kind: 'line',
     isDeduction: true,
+    format: 'money',
     value: (m) => m.merchant_shipping_cost,
   },
   {
@@ -89,14 +100,30 @@ const LINES: PnlLine[] = [
     labelKey: 'reportsWfAdsSpend',
     kind: 'line',
     isDeduction: true,
+    format: 'money',
     value: (m) => m.ads_spend,
   },
   {
     id: 'contribution_margin',
     labelKey: 'reportsWfContributionMargin',
     kind: 'total',
+    format: 'money',
     value: (m) => m.contribution_margin,
     marginPct: (m) => m.contribution_margin_pct,
+  },
+  {
+    id: 'order_count',
+    labelKey: 'channelsMetricOrders',
+    kind: 'line',
+    format: 'count',
+    value: (m) => m.order_count,
+  },
+  {
+    id: 'aov',
+    labelKey: 'channelsMetricAov',
+    kind: 'line',
+    format: 'money',
+    value: (m) => m.aov,
   },
 ]
 
@@ -140,7 +167,9 @@ export function ChannelsPnlTable({
           const label =
             line.id === 'contribution_margin' && cmIncomplete
               ? t('channelsCmProductScopeLabel')
-              : labelForRow(line.id)
+              : line.id === 'order_count' || line.id === 'aov'
+                ? t(line.labelKey)
+                : labelForRow(line.id)
           return (
             <span className={cn('text-text-primary', emphasisClass(line.kind))}>
               {line.isDeduction
@@ -150,6 +179,10 @@ export function ChannelsPnlTable({
                   : label}
             </span>
           )
+        },
+        meta: {
+          cellClassName: 'align-middle whitespace-nowrap pr-6',
+          headerClassName: 'whitespace-nowrap',
         },
       }),
       ...cols.map((col) =>
@@ -178,6 +211,8 @@ export function ChannelsPnlTable({
               cmIncomplete && line.id === 'contribution_margin'
                 ? null
                 : line.marginPct?.(m)
+            const formatted =
+              line.format === 'count' ? String(Math.round(display)) : formatMoney(display)
             return (
               <span
                 className={cn(
@@ -191,14 +226,17 @@ export function ChannelsPnlTable({
                   emphasisClass(line.kind),
                 )}
               >
-                {formatMoney(display)}
+                {formatted}
                 {margin !== null && margin !== undefined
                   ? ` (${margin.toFixed(1)}%)`
                   : ''}
               </span>
             )
           },
-          meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
+          meta: {
+            headerClassName: 'text-right whitespace-nowrap',
+            cellClassName: 'text-right whitespace-nowrap',
+          },
         }),
       ),
     ],
@@ -214,16 +252,17 @@ export function ChannelsPnlTable({
   })
 
   return (
-    <SectionContainer>
-      <SectionHeader
-        title={t('channelsPnlTitle')}
-        description={
-          cmIncomplete ? t('channelsPnlSubtitleProductScope') : t('channelsPnlSubtitle')
-        }
-      />
+    <SectionSplit
+      title={t('channelsPnlTitle')}
+      description={
+        cmIncomplete ? t('channelsPnlSubtitleProductScope') : t('channelsPnlSubtitle')
+      }
+    >
       <DataTable
         table={table}
         variant="plain"
+        density="compact"
+        tableWidth="full"
         isLoading={false}
         isFetching={false}
         hasEverLoaded={true}
@@ -231,6 +270,6 @@ export function ChannelsPnlTable({
         emptyContent={<EmptyState icon="channels" title={t('reportsNoData')} />}
         skeletonRowCount={8}
       />
-    </SectionContainer>
+    </SectionSplit>
   )
 }

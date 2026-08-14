@@ -7,7 +7,7 @@ import {
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { PnlRow, PnlRowId } from '@/pages/reports/reports-pnl-rows'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { SectionSplit } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { EmptyState } from '@/ui/empty-state'
@@ -66,7 +66,8 @@ export function ReportsPnlTable({
           )
         },
         meta: {
-          cellClassName: 'align-middle',
+          cellClassName: 'align-middle whitespace-nowrap pr-6',
+          headerClassName: 'whitespace-nowrap',
         },
       }),
       columnHelper.display({
@@ -94,7 +95,10 @@ export function ReportsPnlTable({
             </span>
           )
         },
-        meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
+        meta: {
+          headerClassName: 'text-right whitespace-nowrap',
+          cellClassName: 'text-right whitespace-nowrap',
+        },
       }),
       columnHelper.display({
         id: 'previous',
@@ -115,7 +119,10 @@ export function ReportsPnlTable({
             </span>
           )
         },
-        meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
+        meta: {
+          headerClassName: 'text-right whitespace-nowrap',
+          cellClassName: 'text-right whitespace-nowrap',
+        },
       }),
       columnHelper.display({
         id: 'deltaAbs',
@@ -140,7 +147,10 @@ export function ReportsPnlTable({
             </span>
           )
         },
-        meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
+        meta: {
+          headerClassName: 'text-right whitespace-nowrap',
+          cellClassName: 'text-right whitespace-nowrap',
+        },
       }),
       columnHelper.display({
         id: 'deltaPct',
@@ -165,7 +175,10 @@ export function ReportsPnlTable({
             </span>
           )
         },
-        meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
+        meta: {
+          headerClassName: 'text-right whitespace-nowrap',
+          cellClassName: 'text-right whitespace-nowrap',
+        },
       }),
       columnHelper.display({
         id: 'yoyPct',
@@ -190,7 +203,10 @@ export function ReportsPnlTable({
             </span>
           )
         },
-        meta: { headerClassName: 'text-right', cellClassName: 'text-right' },
+        meta: {
+          headerClassName: 'text-right whitespace-nowrap',
+          cellClassName: 'text-right whitespace-nowrap',
+        },
       }),
     ],
     [formatMoney, t, labelForRow],
@@ -205,14 +221,15 @@ export function ReportsPnlTable({
   })
 
   return (
-    <SectionContainer className="overflow-hidden">
-      <SectionHeader
-        title={t('reportsPnlTableTitle')}
-        description={t('reportsPnlTableSubtitle')}
-      />
+    <SectionSplit
+      title={t('reportsPnlTableTitle')}
+      description={t('reportsPnlTableSubtitle')}
+    >
       <DataTable
         table={table}
         variant="plain"
+        density="compact"
+        tableWidth="full"
         isLoading={false}
         isFetching={false}
         hasEverLoaded={true}
@@ -220,6 +237,6 @@ export function ReportsPnlTable({
         emptyContent={<EmptyState icon="reports" title={t('reportsNoData')} />}
         skeletonRowCount={8}
       />
-    </SectionContainer>
+    </SectionSplit>
   )
 }

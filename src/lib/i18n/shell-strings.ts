@@ -437,11 +437,13 @@ const SHELL_STRINGS = {
     billingCurrentPlanDescription:
       'Cada espacio de trabajo tiene su propio plan, ciclo de facturación y límites de uso.',
     billingOrdersLimitLabel: 'Pedidos sincronizados este mes',
-    billingOrdersLimitDescription: 'Pedidos importados de tus canales conectados en el periodo actual.',
+    billingOrdersLimitDescription:
+      'Pedidos importados de tus canales conectados en el mes calendario actual.',
     billingOrdersDailyLabel: 'Pedidos sincronizados por día',
     billingOrdersDailyDescription:
       'Pedidos importados de tus canales conectados, agrupados por día en el mes calendario actual.',
     billingOrdersDailyEmpty: 'Aún no hay pedidos sincronizados este mes.',
+    billingOrdersDailyError: 'No se pudo cargar el desglose diario de pedidos.',
     billingOrdersDailyTooltip: 'Pedidos',
     billingSkusLimitLabel: 'Productos activos',
     billingSkusLimitDescription: 'SKUs activos en tu catálogo de productos.',
@@ -2098,11 +2100,13 @@ const SHELL_STRINGS = {
     billingCurrentPlanDescription:
       'Each workspace has its own subscription plan, billing cycle, and usage quotas.',
     billingOrdersLimitLabel: 'Orders synced this month',
-    billingOrdersLimitDescription: 'Orders imported from connected channels in the current billing period.',
+    billingOrdersLimitDescription:
+      'Orders imported from connected channels in the current calendar month.',
     billingOrdersDailyLabel: 'Orders synced per day',
     billingOrdersDailyDescription:
       'Orders imported from your connected channels, grouped by day in the current calendar month.',
     billingOrdersDailyEmpty: 'No orders synced this month yet.',
+    billingOrdersDailyError: 'Could not load the daily order breakdown.',
     billingOrdersDailyTooltip: 'Orders',
     billingSkusLimitLabel: 'Active products',
     billingSkusLimitDescription: 'Active SKUs in your product catalog.',

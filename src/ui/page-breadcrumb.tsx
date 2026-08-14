@@ -19,7 +19,7 @@ export function PageBreadcrumb({ items, className, ariaLabel = 'Breadcrumb' }: P
 
   return (
     <nav aria-label={ariaLabel} className={cn('min-w-0', className)}>
-      <ol className="flex min-w-0 flex-nowrap items-center gap-1.5 overflow-hidden text-sm">
+      <ol className="flex min-w-0 flex-nowrap items-center gap-1.5 overflow-hidden text-xs">
         {items.map((item, i) => {
           const isLast = i === items.length - 1
           return (
@@ -31,7 +31,7 @@ export function PageBreadcrumb({ items, className, ariaLabel = 'Breadcrumb' }: P
               )}
             >
               {i > 0 ? (
-                <ChevronRight className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+                <ChevronRight className="size-3 shrink-0 text-text-tertiary" aria-hidden />
               ) : null}
               {item.to && !isLast ? (
                 <Link
@@ -45,9 +45,7 @@ export function PageBreadcrumb({ items, className, ariaLabel = 'Breadcrumb' }: P
                 <span
                   className={cn(
                     'min-w-0 truncate rounded-md px-1.5 py-0.5 font-medium',
-                    isLast
-                      ? 'bg-[var(--sidebar-active-bg)] text-text-primary'
-                      : 'text-text-secondary',
+                    isLast ? 'text-text-primary' : 'text-text-secondary',
                   )}
                   title={item.label}
                   aria-current={isLast ? 'page' : undefined}

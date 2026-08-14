@@ -1,4 +1,3 @@
-import { Plug } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -16,7 +15,7 @@ import type { PlatformConnection } from '@/lib/types/connectors'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { usePlatformConnectionsQuery } from '@/hooks/use-platform-connections-query'
 import { useLanguage } from '@/shell/providers/language-provider'
-import { LoadingIcon } from '@/ui/app-icon'
+import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 import { StatusPill } from '@/ui/status-pill'
 import { cn } from '@/lib/utils'
 import { chromeTextButtonClassName } from '@/ui/surface'
@@ -146,7 +145,7 @@ export function HeaderConnectionsMenu({ className }: { className?: string }) {
         aria-haspopup="true"
         aria-label={shellT(lang, 'headerConnectionsLabel')}
       >
-        <Plug className="size-3.5 shrink-0" aria-hidden />
+        <AppIcon name="integrations" colorize className="size-3.5 shrink-0" />
         <span>{shellT(lang, 'headerConnectionsLabel')}</span>
       </button>
 

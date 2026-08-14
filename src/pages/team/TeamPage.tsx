@@ -36,6 +36,7 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Badge } from '@/ui/badge'
 import { Button, buttonVariants } from '@/ui/button'
+import { EmptyState } from '@/ui/empty-state'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,6 +48,7 @@ import {
 } from '@/ui/dropdown-menu'
 import { Input } from '@/ui/input'
 import { Skeleton } from '@/ui/skeleton'
+import { DisabledTooltip } from '@/ui/tooltip'
 
 function memberDisplayName(member: TeamMember): string {
   const parts = [member.first_name, member.last_name].filter(Boolean)
@@ -94,6 +96,7 @@ export function TeamPage() {
 
   const tenantId = me?.tenant_id ?? null
   const canManage = canManageTeam(me?.role)
+  const invitesEnabled = me?.team_invites_enabled !== false && !me?.is_fixture
 
   const teamQuery = useQuery({
     queryKey: ['team-members', tenantId],
@@ -237,17 +240,21 @@ export function TeamPage() {
           <h1 className={pageTitleClassName}>{t('navTeam')}</h1>
           <div className="flex flex-wrap items-center gap-2">
             {canManage ? (
-              <Button
-                type="button"
-                variant="accent"
-                size="default"
-                className="shrink-0"
-                disabled={atSeatLimit}
-                onClick={() => setInviteOpen(true)}
+              <DisabledTooltip
+                reason={!invitesEnabled ? t('teamInviteDisabledTooltip') : null}
               >
-                <UserPlus aria-hidden />
-                {t('teamInviteMembers')}
-              </Button>
+                <Button
+                  type="button"
+                  variant="accent"
+                  size="default"
+                  className="shrink-0"
+                  disabled={atSeatLimit || !invitesEnabled}
+                  onClick={() => setInviteOpen(true)}
+                >
+                  <UserPlus aria-hidden />
+                  {t('teamInviteMembers')}
+                </Button>
+              </DisabledTooltip>
             ) : null}
           </div>
         </div>
@@ -279,7 +286,7 @@ export function TeamPage() {
             onChange={(e) => setFilter(e.target.value)}
             placeholder={t('teamFilterPlaceholder')}
             aria-label={t('teamFilterPlaceholder')}
-            className="h-[33px] border-border-default bg-white pl-8 text-xs placeholder:text-xs focus-visible:border-border-emphasis focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="h-7 border-border-default bg-white pl-8 text-xs placeholder:text-xs focus-visible:border-border-emphasis focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           {filter.trim() ? (
             <Button
@@ -297,6 +304,7 @@ export function TeamPage() {
 
         <div className="overflow-x-auto rounded-md border border-border-subtle">
           <table className="w-full min-w-lg text-left text-sm">
+            {showSkeleton || filtered.length > 0 ? (
             <thead>
               <tr className="border-b border-border-subtle text-[11px] font-medium uppercase tracking-wide text-text-tertiary">
                 <th className="px-4 py-3">{t('teamColumnMember')}</th>
@@ -305,6 +313,7 @@ export function TeamPage() {
                 <th className="px-4 py-3" />
               </tr>
             </thead>
+            ) : null}
             <tbody>
               {showSkeleton
                 ? Array.from({ length: 4 }).map((_, i) => (
@@ -366,7 +375,7 @@ export function TeamPage() {
                               >
                                 <MoreVertical className="size-4 shrink-0" aria-hidden />
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuContent align="end" className="w-56">
                                 <DropdownMenuGroup>
                                   <DropdownMenuLabel>{t('teamActions')}</DropdownMenuLabel>
                                 </DropdownMenuGroup>
@@ -380,8 +389,8 @@ export function TeamPage() {
                                         variant={action.destructive ? 'destructive' : 'default'}
                                         onClick={action.onSelect}
                                       >
-                                        <Icon className="size-4 shrink-0" aria-hidden />
-                                        {action.label}
+                                        <Icon className="h-4 w-4" aria-hidden />
+                                        <span>{action.label}</span>
                                       </DropdownMenuItem>
                                     )
                                   })}
@@ -397,8 +406,8 @@ export function TeamPage() {
 
               {!showSkeleton && filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-4 py-10 text-center text-sm text-text-tertiary">
-                    {t('teamEmpty')}
+                  <td colSpan={4}>
+                    <EmptyState icon="orgs" title={t('teamEmpty')} />
                   </td>
                 </tr>
               ) : null}
@@ -425,6 +434,7 @@ export function TeamPage() {
           onOpenChange={setInviteOpen}
           tenantId={tenantId}
           actorRole={me.role}
+          invitesEnabled={invitesEnabled}
           onSuccess={invalidate}
         />
       ) : null}

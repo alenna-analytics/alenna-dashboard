@@ -10,6 +10,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { TopProductRow } from '@/lib/types/reports'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { EmptyState } from '@/ui/empty-state'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 
 const columnHelper = createColumnHelper<TopProductRow>()
@@ -39,11 +40,16 @@ export function SalesProductsTable({
         cell: ({ row }) => (
           <Link
             to={`/dashboard/products/${row.original.product_id}`}
-            className="block min-w-0 truncate font-medium text-text-primary underline-offset-2 hover:text-[var(--country-green-base)] hover:underline"
+            className="block min-w-0 max-w-full truncate font-medium text-text-primary underline-offset-2 hover:text-[var(--country-green-base)] hover:underline"
+            title={row.original.title}
           >
             {row.original.title}
           </Link>
         ),
+        meta: {
+          headerClassName: 'w-56 min-w-40 max-w-56',
+          cellClassName: 'w-56 min-w-40 max-w-56 overflow-hidden',
+        },
       }),
       columnHelper.accessor('internal_sku', {
         id: 'sku',
@@ -62,38 +68,70 @@ export function SalesProductsTable({
       columnHelper.accessor('gross_revenue', {
         id: 'gross',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('reportsGrossRevenue')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('reportsGrossRevenue')}
+            className="justify-end"
+          />
         ),
         cell: ({ getValue }) => (
           <span className="font-numeric tabular-nums">{formatMoney(getValue())}</span>
         ),
+        meta: {
+          headerClassName: '[&>div]:justify-end',
+          cellClassName: '[&>div]:justify-end',
+        },
       }),
       columnHelper.accessor('net_revenue', {
         id: 'net',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('reportsNetRevenue')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('reportsNetRevenue')}
+            className="justify-end"
+          />
         ),
         cell: ({ getValue }) => (
           <span className="font-numeric tabular-nums">{formatMoney(getValue() ?? 0)}</span>
         ),
+        meta: {
+          headerClassName: '[&>div]:justify-end',
+          cellClassName: '[&>div]:justify-end',
+        },
       }),
       columnHelper.accessor('units_sold', {
         id: 'units',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('salesUnitsColumn')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('salesUnitsColumn')}
+            className="justify-end"
+          />
         ),
         cell: ({ getValue }) => (
           <span className="font-numeric tabular-nums">{getValue().toLocaleString()}</span>
         ),
+        meta: {
+          headerClassName: '[&>div]:justify-end',
+          cellClassName: '[&>div]:justify-end',
+        },
       }),
       columnHelper.accessor('gross_margin_pct', {
         id: 'margin',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('reportsKpiMargenBrutoPct')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('reportsKpiMargenBrutoPct')}
+            className="justify-end"
+          />
         ),
         cell: ({ getValue }) => (
           <span className="font-numeric tabular-nums">{getValue().toFixed(1)}%</span>
         ),
+        meta: {
+          headerClassName: '[&>div]:justify-end',
+          cellClassName: '[&>div]:justify-end',
+        },
       }),
     ],
     [formatMoney, t],
@@ -117,11 +155,7 @@ export function SalesProductsTable({
         isLoading={isLoading}
         isFetching={isFetching}
         hasEverLoaded={!isLoading || rows.length > 0}
-        emptyContent={
-          <p className="px-4 py-8 text-center text-sm text-text-secondary">
-            {t('homeTopProductsEmpty')}
-          </p>
-        }
+        emptyContent={<EmptyState icon="sales" title={t('homeTopProductsEmpty')} />}
         skeletonRowCount={8}
         scrollClassName="max-h-[28rem] overflow-auto"
       />

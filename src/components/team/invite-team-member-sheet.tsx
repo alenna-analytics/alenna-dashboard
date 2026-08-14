@@ -1,7 +1,8 @@
 import { useAuth } from '@clerk/react'
 import { useMutation } from '@tanstack/react-query'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
+import { EMAIL_MAX_LENGTH, isValidEmail } from '@/lib/email'
 import { inviteTeamMember } from '@/lib/team/team-api'
 import {
   selectableTeamRoles,
@@ -23,12 +24,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/ui/sheet'
+import { DisabledTooltip } from '@/ui/tooltip'
 
 type InviteTeamMemberSheetProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   tenantId: string
   actorRole: string
+  invitesEnabled: boolean
   onSuccess: () => void
 }
 
@@ -37,6 +40,7 @@ export function InviteTeamMemberSheet({
   onOpenChange,
   tenantId,
   actorRole,
+  invitesEnabled,
   onSuccess,
 }: InviteTeamMemberSheetProps) {
   const { getToken } = useAuth()
@@ -64,6 +68,15 @@ export function InviteTeamMemberSheet({
     },
   })
 
+  const emailValid = isValidEmail(email)
+  const emailInvalid = email.trim().length > 0 && !emailValid
+  const invitesLocked = !invitesEnabled
+  const canSubmit = emailValid && invitesEnabled && !inviteMutation.isPending
+  const lockedReason = useMemo(
+    () => (invitesLocked ? t('teamInviteDisabledTooltip') : null),
+    [invitesLocked, t],
+  )
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right">
@@ -81,11 +94,22 @@ export function InviteTeamMemberSheet({
                 id="team-invite-email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                maxLength={EMAIL_MAX_LENGTH}
+                onChange={(e) => {
+                  setEmail(e.target.value.slice(0, EMAIL_MAX_LENGTH))
+                  setError(null)
+                }}
                 placeholder={t('teamInviteEmailPlaceholder')}
                 autoComplete="off"
-                disabled={inviteMutation.isPending}
+                disabled={inviteMutation.isPending || invitesLocked}
+                aria-invalid={emailInvalid}
+                aria-describedby={emailInvalid ? 'team-invite-email-error' : undefined}
               />
+              {emailInvalid ? (
+                <p id="team-invite-email-error" className="text-xs text-destructive" role="status">
+                  {t('teamInviteEmailInvalid')}
+                </p>
+              ) : null}
             </div>
 
             <div className="space-y-2">
@@ -97,7 +121,7 @@ export function InviteTeamMemberSheet({
                     <button
                       key={opt.id}
                       type="button"
-                      disabled={inviteMutation.isPending}
+                      disabled={inviteMutation.isPending || invitesLocked}
                       onClick={() => setRole(opt.id)}
                       className={cn(
                         'w-full rounded-md border px-3 py-3 text-left transition-colors',
@@ -128,15 +152,17 @@ export function InviteTeamMemberSheet({
             >
               {t('teamInviteCancel')}
             </Button>
-            <Button
-              type="button"
-              variant="accent"
-              disabled={!email.trim()}
-              loading={inviteMutation.isPending}
-              onClick={() => inviteMutation.mutate()}
-            >
-              {t('teamInviteSubmit')}
-            </Button>
+            <DisabledTooltip reason={lockedReason}>
+              <Button
+                type="button"
+                variant="accent"
+                disabled={!canSubmit}
+                loading={inviteMutation.isPending}
+                onClick={() => inviteMutation.mutate()}
+              >
+                {t('teamInviteSubmit')}
+              </Button>
+            </DisabledTooltip>
           </SheetFooter>
         </div>
       </SheetContent>

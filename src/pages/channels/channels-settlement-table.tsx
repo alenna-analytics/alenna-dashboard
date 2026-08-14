@@ -12,6 +12,7 @@ import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 import { SettlementCompletenessBadge } from '@/pages/products/settlement-completeness-badge'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
+import { EmptyState } from '@/ui/empty-state'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 
 type SettlementLineId =
@@ -204,11 +205,7 @@ export function ChannelsSettlementTable({
         isFetching={false}
         hasEverLoaded={true}
         scrollClassName=""
-        emptyContent={
-          <p className="px-4 py-8 text-center text-sm text-text-secondary">
-            {t('reportsNoData')}
-          </p>
-        }
+        emptyContent={<EmptyState icon="channels" title={t('reportsNoData')} />}
         skeletonRowCount={8}
       />
     </SectionContainer>

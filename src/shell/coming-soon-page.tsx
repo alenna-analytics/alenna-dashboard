@@ -18,7 +18,7 @@ export function ComingSoonPage({ titleKey, descriptionKey }: ComingSoonPageProps
         {t('comingSoonBadge')}
       </p>
       <h1 className={cn('mt-2', pageTitleClassName)}>{t(titleKey)}</h1>
-      <p className="mt-3 max-w-md text-sm text-text-secondary">
+      <p className="mt-3 max-w-md text-xs leading-relaxed text-text-secondary">
         {t(descriptionKey ?? 'comingSoonPageBody')}
       </p>
     </div>

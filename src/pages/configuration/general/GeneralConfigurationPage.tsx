@@ -115,7 +115,7 @@ export function GeneralConfigurationPage() {
           <h1 className={pageTitleClassName}>
             {t('navGeneral')}
           </h1>
-          <p className="mt-1.5 text-sm text-text-secondary">
+          <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
             {t('workspaceConfigGeneralPageSubtitle')}
           </p>
         </div>

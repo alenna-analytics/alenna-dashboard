@@ -49,7 +49,7 @@ export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageP
             <h1 className={pageTitleClassName}>
             {shellT(lang, 'integrationsHeroTitle')}
           </h1>
-          <p className="mt-1.5 text-sm text-text-secondary">
+          <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
             {shellT(lang, 'integrationsHeroSubtitle')}
           </p>
         </div>

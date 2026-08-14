@@ -6,12 +6,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 
 import { AdjustPlanSheet } from '@/components/billing/adjust-plan-sheet'
+import { UsageProgressRing } from '@/components/billing/usage-progress-ring'
 import { CancelSubscriptionButton } from '@/components/billing/cancel-subscription-button'
 import {
   StripeCheckoutButton,
   StripePortalButton,
 } from '@/components/billing/stripe-checkout-button'
 import {
+  fetchBillingOrdersDaily,
   fetchBillingOverview,
   type BillingInvoice,
   type BillingOverview,
@@ -31,6 +33,7 @@ import {
   isBillingOwner,
   isPlanLimitSyncPaused,
   UPGRADE_ENTERPRISE_MAILTO,
+  usageProgressRatio,
 } from '@/lib/plan/plan-limit-ui'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MeResponse } from '@/lib/types/me-types'
@@ -41,6 +44,8 @@ import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Badge } from '@/ui/badge'
 import { Button, buttonVariants } from '@/ui/button'
 import { ContextAlertCard } from '@/ui/context-alert'
+import { EmptyState } from '@/ui/empty-state'
+import { BillingOrdersDailyChart } from './billing-orders-daily-chart'
 
 function BillingSection({
   label,
@@ -146,48 +151,65 @@ function InvoiceStatusBadge({ status, lang }: { status: string; lang: Language }
   )
 }
 
+function UsageRow({
+  label,
+  description,
+  used,
+  limit,
+  lang,
+}: {
+  label: string
+  description: string
+  used: number | null | undefined
+  limit: number | null | undefined
+  lang: Language
+}) {
+  const ratio = usageProgressRatio(used, limit)
+  const pctLabel = ratio == null ? null : `${Math.round(ratio * 100)}%`
+
+  return (
+    <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-text-primary">{label}</p>
+        <p className="mt-0.5 text-xs text-text-tertiary">{description}</p>
+      </div>
+      <div className="flex shrink-0 items-center gap-3">
+        <p className="text-sm font-medium text-text-primary">
+          {formatPlanLimit(used, lang)} / {formatPlanLimit(limit, lang)}
+          {pctLabel ? (
+            <span className="font-normal text-text-tertiary"> ({pctLabel})</span>
+          ) : null}
+        </p>
+        <UsageProgressRing ratio={ratio} label={label} />
+      </div>
+    </div>
+  )
+}
+
 function UsageRows({ me, lang }: { me: MeResponse | null; lang: Language }) {
   return (
     <div className="divide-y divide-border-subtle">
-      <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-text-primary">
-            {shellT(lang, 'billingOrdersLimitLabel')}
-          </p>
-          <p className="mt-0.5 text-xs text-text-tertiary">
-            {shellT(lang, 'billingOrdersLimitDescription')}
-          </p>
-        </div>
-        <p className="shrink-0 text-sm font-medium text-text-primary">
-          {formatPlanLimit(me?.orders_used, lang)} / {formatPlanLimit(me?.orders_limit, lang)}
-        </p>
-      </div>
-      <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-text-primary">
-            {shellT(lang, 'billingSkusLimitLabel')}
-          </p>
-          <p className="mt-0.5 text-xs text-text-tertiary">
-            {shellT(lang, 'billingSkusLimitDescription')}
-          </p>
-        </div>
-        <p className="shrink-0 text-sm font-medium text-text-primary">
-          {formatPlanLimit(me?.skus_used, lang)} / {formatPlanLimit(me?.skus_limit, lang)}
-        </p>
-      </div>
-      <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-text-primary">
-            {shellT(lang, 'billingUsersLimitLabel')}
-          </p>
-          <p className="mt-0.5 text-xs text-text-tertiary">
-            {shellT(lang, 'billingUsersLimitDescription')}
-          </p>
-        </div>
-        <p className="shrink-0 text-sm font-medium text-text-primary">
-          {formatPlanLimit(me?.users_used, lang)} / {formatPlanLimit(me?.users_limit, lang)}
-        </p>
-      </div>
+      <UsageRow
+        lang={lang}
+        label={shellT(lang, 'billingOrdersLimitLabel')}
+        description={shellT(lang, 'billingOrdersLimitDescription')}
+        used={me?.orders_used}
+        limit={me?.orders_limit}
+      />
+      <UsageRow
+        lang={lang}
+        label={shellT(lang, 'billingSkusLimitLabel')}
+        description={shellT(lang, 'billingSkusLimitDescription')}
+        used={me?.skus_used}
+        limit={me?.skus_limit}
+      />
+      <UsageRow
+        lang={lang}
+        label={shellT(lang, 'billingUsersLimitLabel')}
+        description={shellT(lang, 'billingUsersLimitDescription')}
+        used={me?.users_used}
+        limit={me?.users_limit}
+      />
     </div>
   )
 }
@@ -201,8 +223,8 @@ function PastInvoicesTable({
 }) {
   if (invoices.length === 0) {
     return (
-      <div className="rounded-md border border-border-subtle px-3 py-8 text-center text-sm text-text-tertiary">
-        {shellT(lang, 'billingInvoicesEmpty')}
+      <div className="rounded-md border border-border-subtle">
+        <EmptyState icon="billing" title={shellT(lang, 'billingInvoicesEmpty')} />
       </div>
     )
   }
@@ -298,6 +320,14 @@ export function BillingConfigurationPage() {
     },
   })
   const overview = overviewQuery.data
+  const ordersDailyQuery = useQuery({
+    queryKey: ['billing', 'orders-daily', me?.tenant_id],
+    enabled: isOwner && Boolean(me?.tenant_id),
+    queryFn: async () => {
+      if (!me) throw new Error('missing workspace')
+      return fetchBillingOrdersDaily((args) => getToken(args), me.tenant_id)
+    },
+  })
 
   const trialHeadline = me ? billingPlanHeadline(me, lang) : '—'
   const trialDetail = me ? billingPlanDetailLine(me, lang) : null
@@ -377,7 +407,7 @@ export function BillingConfigurationPage() {
                     ) : null}
                   </p>
                   {subscribedDescription ? (
-                    <p className="mt-1 text-sm text-text-secondary">{subscribedDescription}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-text-secondary">{subscribedDescription}</p>
                   ) : null}
                   {renewDate ? (
                     <p className="mt-1 text-sm text-text-tertiary">
@@ -474,6 +504,17 @@ export function BillingConfigurationPage() {
             <UsageRows me={me} lang={lang} />
           </BillingSection>
         )}
+
+        <BillingSection
+          label={t('billingOrdersDailyLabel')}
+          description={t('billingOrdersDailyDescription')}
+        >
+          <BillingOrdersDailyChart
+            points={ordersDailyQuery.data?.points ?? []}
+            lang={lang}
+            isLoading={ordersDailyQuery.isPending}
+          />
+        </BillingSection>
 
         {subscribed ? (
           <BillingSection

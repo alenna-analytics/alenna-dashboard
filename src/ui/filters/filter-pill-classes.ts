@@ -6,7 +6,7 @@ const filterPillTypographyClassName =
 /** Empty / default: dotted pill, compact height (inactive state). */
 export function filterPillInactiveClassName(className?: string): string {
   return cn(
-    'inline-flex h-8 shrink-0 items-center rounded-md border border-dotted border-[color:var(--filter-pill-border)]',
+    'inline-flex h-7 shrink-0 items-center rounded-md border border-dotted border-[color:var(--filter-pill-border)]',
     'bg-white px-2.5 text-text-primary shadow-none transition-[background-color,border-color]',
     filterPillTypographyClassName,
     'hover:bg-muted/50 hover:border-[color:var(--filter-pill-border-hover)]',
@@ -19,7 +19,7 @@ export function filterPillInactiveClassName(className?: string): string {
 /** Outer wrap when a value is selected: solid white pill. */
 export function filterPillActiveShellClassName(className?: string): string {
   return cn(
-    'inline-flex h-8 max-w-full shrink-0 items-stretch overflow-hidden rounded-md border border-border-default',
+    'inline-flex h-7 max-w-full shrink-0 items-stretch overflow-hidden rounded-md border border-border-default',
     'bg-white leading-none shadow-none',
     filterPillTypographyClassName,
     className,

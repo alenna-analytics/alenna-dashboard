@@ -2,7 +2,6 @@ import {
   Bar,
   CartesianGrid,
   ComposedChart,
-  Customized,
   LabelList,
   ResponsiveContainer,
   Tooltip,
@@ -12,13 +11,27 @@ import {
   YAxis,
 } from 'recharts'
 import type { BarShapeProps } from 'recharts'
-import type { ReactElement } from 'react'
+import { createContext, useContext, useId, type ReactElement } from 'react'
+
+import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { formatCompactNumber } from '@/lib/format/compact-number'
+import { cn } from '@/lib/utils'
+
+const WaterfallHatchIdContext = createContext('wfUnfilledHatch')
 
 export type WaterfallSegmentPart = {
   name: string
   value: number
   isNegative: boolean
 }
+
+export type WaterfallPositiveTone =
+  | 'gross'
+  | 'net'
+  | 'grossProfit'
+  | 'contribution'
+  | 'ebitda'
+  | 'payout'
 
 export type Segment = {
   name: string
@@ -27,6 +40,7 @@ export type Segment = {
   isNegative: boolean
   /** Renders as one stacked column (e.g. gross → net adjustments). */
   stackedParts?: WaterfallSegmentPart[]
+  positiveTone?: WaterfallPositiveTone
 }
 
 type WaterfallStackSlice = {
@@ -50,6 +64,7 @@ type WaterfallBar = {
   pctOfGross: number | null
   isLast: boolean
   stackedParts?: WaterfallStackSlice[]
+  positiveTone?: WaterfallPositiveTone
 }
 
 type WaterfallChartProps = {
@@ -58,6 +73,7 @@ type WaterfallChartProps = {
   grossRevenue: number
   formatPctOfGross: (pct: number) => string
   finalBarCaption?: string
+  className?: string
 }
 
 type BarLabelProps = {
@@ -91,23 +107,11 @@ function formatMoney(value: number, currency: string): string {
 }
 
 function fmt(value: number): string {
-  if (Math.abs(value) >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(1)}M`
-  }
-  if (Math.abs(value) >= 1_000) {
-    return `${(value / 1_000).toFixed(0)}K`
-  }
-  return value.toFixed(0)
+  return formatCompactNumber(value, Math.abs(value) >= 1_000_000 ? 1 : 0)
 }
 
 function fmtChip(value: number): string {
-  if (Math.abs(value) >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(2)}M`
-  }
-  if (Math.abs(value) >= 1_000) {
-    return `${(value / 1_000).toFixed(2)}K`
-  }
-  return value.toFixed(2)
+  return formatCompactNumber(value, 2)
 }
 
 function niceStep(rawStep: number): number {
@@ -209,6 +213,7 @@ function buildBars(segments: Segment[], grossRevenue: number): WaterfallBar[] {
         pctOfGross: null,
         isLast: false,
         stackedParts,
+        positiveTone: seg.positiveTone,
       }
       return bar
     }
@@ -226,6 +231,7 @@ function buildBars(segments: Segment[], grossRevenue: number): WaterfallBar[] {
         rawValue: seg.value,
         pctOfGross: null,
         isLast: false,
+        positiveTone: seg.positiveTone,
       }
       return bar
     }
@@ -249,6 +255,7 @@ function buildBars(segments: Segment[], grossRevenue: number): WaterfallBar[] {
       rawValue: seg.value,
       pctOfGross: null,
       isLast: false,
+      positiveTone: seg.positiveTone,
     }
     return bar
   })
@@ -271,14 +278,14 @@ const WF_NEG_TEXT = 'var(--ink)'
 /** Gray only for floating spacer above the bridge (not the bar itself). */
 const WF_GAP_FILL = 'var(--chart-wf-negative-neutral-fill)'
 
+const WF_POS_FILL = 'var(--country-green-base)'
+const WF_MAX_BAR_SIZE = 76
+
 function barFillSolid(payload: WaterfallBar): string {
-  if (payload.isSubtotal) {
-    return 'var(--country-green-base)'
-  }
-  if (payload.isNegative) {
+  if (payload.isNegative && !payload.isSubtotal) {
     return WF_NEG_BG
   }
-  return 'var(--country-green-base)'
+  return WF_POS_FILL
 }
 
 function labelFillForBar(row: WaterfallBar | undefined): string {
@@ -295,6 +302,7 @@ function isNegativeSegmentPayload(payload: WaterfallBar | undefined): boolean {
 
 /** Hatched gap below floating bars (spacer segment only); one column with the solid bar. */
 function SpacerHatchShape(props: BarShapeProps) {
+  const hatchId = useContext(WaterfallHatchIdContext)
   const payload = props.payload as WaterfallBar | undefined
   const x = props.x ?? 0
   const y = props.y ?? 0
@@ -309,7 +317,7 @@ function SpacerHatchShape(props: BarShapeProps) {
       y={y}
       width={w}
       height={h}
-      fill={neg ? WF_GAP_FILL : 'url(#wfUnfilledHatch)'}
+      fill={neg ? WF_GAP_FILL : `url(#${hatchId})`}
       rx={rx}
       ry={rx}
     />
@@ -507,10 +515,27 @@ function WaterfallConnectorsLayer({ bars }: { bars: WaterfallBar[] }) {
     const right = bars[i + 1]
     if (!left || !right) continue
 
-    const x1 = xScale(left.name, { position: 'end' })
-    const x2 = xScale(right.name, { position: 'start' })
+    const leftStart = xScale(left.name, { position: 'start' })
+    const leftEnd = xScale(left.name, { position: 'end' })
+    const rightStart = xScale(right.name, { position: 'start' })
+    const rightEnd = xScale(right.name, { position: 'end' })
     const y = yScale(left.runningAfter)
-    if (x1 == null || x2 == null || y == null) continue
+    if (
+      leftStart == null ||
+      leftEnd == null ||
+      rightStart == null ||
+      rightEnd == null ||
+      y == null
+    ) {
+      continue
+    }
+
+    const leftBand = leftEnd - leftStart
+    const rightBand = rightEnd - rightStart
+    const leftBarW = Math.min(WF_MAX_BAR_SIZE, leftBand)
+    const rightBarW = Math.min(WF_MAX_BAR_SIZE, rightBand)
+    const x1 = leftStart + (leftBand - leftBarW) / 2 + leftBarW
+    const x2 = rightStart + (rightBand - rightBarW) / 2
     if (Math.abs(x2 - x1) < 0.5) continue
 
     lines.push(
@@ -520,10 +545,10 @@ function WaterfallConnectorsLayer({ bars }: { bars: WaterfallBar[] }) {
         y1={y}
         x2={x2}
         y2={y}
-        stroke="var(--chart-wf-bridge-stroke)"
-        strokeWidth={1.5}
-        strokeDasharray="3 3"
-        strokeLinecap="round"
+        stroke="color-mix(in srgb, var(--ink) 28%, transparent)"
+        strokeWidth={1.25}
+        strokeDasharray="5 4"
+        strokeLinecap="square"
         vectorEffect="non-scaling-stroke"
       />,
     )
@@ -556,47 +581,47 @@ function CustomTooltip({
 
   if (d.stackedParts && d.stackedParts.length > 0) {
     return (
-      <div className="rounded-md border border-border-default bg-background px-3.5 py-3 text-xs shadow-[var(--shadow-popover)]">
-        <p className="font-medium text-text-primary">{d.name}</p>
-        <p className="mt-0.5 text-text-secondary">
+      <ChartTooltipFrame>
+        <p className="font-medium text-white">{d.name}</p>
+        <p className="mt-0.5 text-white/70">
           {sign}
           {val}
         </p>
         {impact ? (
-          <p className="mt-1 border-t border-border-subtle pt-1.5 text-[11px] text-text-tertiary">
+          <p className="mt-1 border-t border-white/15 pt-1.5 text-[11px] text-white/55">
             {impact}
           </p>
         ) : null}
-        <ul className="mt-2 max-h-52 space-y-1.5 overflow-y-auto border-t border-border-subtle pt-2">
+        <ul className="mt-2 max-h-52 space-y-1.5 overflow-y-auto border-t border-white/15 pt-2">
           {d.stackedParts.map((line) => (
             <li key={line.name} className="flex justify-between gap-6 text-[11px]">
-              <span className="min-w-0 shrink text-text-tertiary">{line.name}</span>
-              <span className="shrink-0 tabular-nums text-text-primary">
+              <span className="min-w-0 shrink text-white/55">{line.name}</span>
+              <span className="shrink-0 tabular-nums text-white">
                 {formatMoney(line.rawValue, currency)}
               </span>
             </li>
           ))}
         </ul>
-      </div>
+      </ChartTooltipFrame>
     )
   }
 
   return (
-    <div className="rounded-md border border-border-default bg-background px-3.5 py-3 text-xs shadow-[var(--shadow-popover)]">
-      <p className="font-medium text-text-primary">{d.name}</p>
-      <p className="mt-0.5 text-text-secondary">
+    <ChartTooltipFrame>
+      <p className="font-medium text-white">{d.name}</p>
+      <p className="mt-0.5 text-white/70">
         {sign}
         {val}
       </p>
       {impact ? (
-        <p className="mt-1 border-t border-border-subtle pt-1.5 text-[11px] text-text-tertiary">
+        <p className="mt-1 border-t border-white/15 pt-1.5 text-[11px] text-white/55">
           {impact}
         </p>
       ) : null}
       {d.isLast && d.isSubtotal && finalBarCaption ? (
         <p className="mt-1 text-[11px] font-medium text-brand">{finalBarCaption}</p>
       ) : null}
-    </div>
+    </ChartTooltipFrame>
   )
 }
 
@@ -606,25 +631,33 @@ export function WaterfallChart({
   grossRevenue,
   formatPctOfGross,
   finalBarCaption,
+  className,
 }: WaterfallChartProps) {
+  const hatchId = useId().replace(/:/g, '')
   const bars = buildBars(segments, grossRevenue)
   const rawMax = bars[0]?.domainMax ?? 1
   const { domainMax, ticks } = buildAxisTicks(rawMax, 4)
 
   return (
+    <WaterfallHatchIdContext.Provider value={hatchId}>
     <div className="w-full min-w-0">
-      <div className="relative overflow-x-auto overflow-y-visible rounded-md p-5 pb-7 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
+      <div
+        className={cn(
+          'relative overflow-x-auto overflow-y-visible rounded-md p-5 pb-7 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500',
+          className,
+        )}
+      >
         <div className="relative z-[1] min-w-[min(100%,44rem)]">
           <ResponsiveContainer width="100%" height={288}>
             <ComposedChart
               data={bars}
               margin={{ top: 28, right: 8, bottom: 6, left: 4 }}
-              maxBarSize={76}
+              maxBarSize={WF_MAX_BAR_SIZE}
               barCategoryGap="7%"
             >
               <defs>
                 <pattern
-                  id="wfUnfilledHatch"
+                  id={hatchId}
                   width={7}
                   height={7}
                   patternUnits="userSpaceOnUse"
@@ -710,11 +743,12 @@ export function WaterfallChart({
                 />
               </Bar>
 
-              <Customized component={() => <WaterfallConnectorsLayer bars={bars} />} />
+              <WaterfallConnectorsLayer bars={bars} />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
       </div>
     </div>
+    </WaterfallHatchIdContext.Provider>
   )
 }

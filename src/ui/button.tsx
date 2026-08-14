@@ -38,7 +38,7 @@ const buttonVariants = cva(
         "icon-xs": "size-6 rounded [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-6 rounded [&_svg:not([class*='size-'])]:size-3.5",
         "icon-lg": "size-9 rounded-md",
-        xs: "h-8 gap-1 px-3 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        xs: "h-7 gap-1 px-3 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
       },
     },
     defaultVariants: {

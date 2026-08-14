@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- types + date helpers + hook + picker component */
 import * as React from 'react'
 import type { DateRange } from 'react-day-picker'
-import { Check, ChevronDown, Clock } from 'lucide-react'
+import { Calendar as CalendarIcon, Check, ChevronDown } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { filterPillInactiveClassName } from '@/ui/filters/filter-pill-classes'
@@ -294,7 +294,7 @@ export function DateRangePickerTrigger({
       )}
       aria-expanded={open}
     >
-      <Clock className="size-4 shrink-0 text-text-secondary" aria-hidden />
+      <CalendarIcon className="size-4 shrink-0 text-text-secondary" aria-hidden />
       <span className="min-w-0 truncate">{label}</span>
       <ChevronDown className="ml-auto size-4 shrink-0 text-text-secondary" aria-hidden />
     </PopoverTrigger>

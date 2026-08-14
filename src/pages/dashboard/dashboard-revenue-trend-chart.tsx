@@ -23,6 +23,7 @@ import {
 } from 'recharts'
 
 import { cn } from '@/lib/utils'
+import { ChartTooltipFrame } from '@/ui/chart-tooltip'
 import { mergeRevenueSeriesRows } from '@/pages/reports/monthly-revenue-chart'
 
 export type DashboardRevenueTrendChartProps = {
@@ -118,24 +119,24 @@ function TrendTooltip({
   const row = payload[0]?.payload as TrendRow | undefined
   if (!row) return null
   return (
-    <div className="rounded-md border border-border-default bg-background px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
+    <ChartTooltipFrame>
       <div className="space-y-1.5 leading-snug">
         <p className="tabular-nums">
-          <span className="text-text-tertiary">
+          <span className="text-white/55">
             {t('dashboardRevenueSeriesCurrent')} ({row.label}):
           </span>{' '}
-          <span className="font-medium text-text-primary">{formatValue(row.current)}</span>
+          <span className="font-medium text-white">{formatValue(row.current)}</span>
         </p>
         {comparePrevious && row.previous !== null && row.previousBucketLabel ? (
           <p className="tabular-nums">
-            <span className="text-text-tertiary">
+            <span className="text-white/55">
               {t('dashboardRevenueSeriesPrevious')} ({row.previousBucketLabel}):
             </span>{' '}
-            <span className="font-medium text-text-primary">{formatValue(row.previous)}</span>
+            <span className="font-medium text-white">{formatValue(row.previous)}</span>
           </p>
         ) : null}
       </div>
-    </div>
+    </ChartTooltipFrame>
   )
 }
 

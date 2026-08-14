@@ -24,6 +24,7 @@ export function FilterPillTrigger({ label, summary, className }: FilterPillTrigg
       {summary ? (
         <span className="max-w-[10rem] truncate text-xs font-normal text-text-secondary">{summary}</span>
       ) : null}
+      <ChevronDown className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
     </span>
   )
 }
@@ -54,7 +55,7 @@ export type FilterPillTriggerAreaProps = {
 }
 
 /**
- * Inactive: label only. Active: optional clear | label · value · chevron; shorter height.
+ * Inactive: label + chevron. Active: optional clear | label · value · chevron.
  * PopoverTrigger keeps a stable parent wrapper so the popover anchor does not jump
  * when the pill switches from inactive to active while open.
  */
@@ -95,14 +96,19 @@ export function FilterPillTriggerArea({
       <PopoverTrigger
         type="button"
         className={cn(
-          active ? filterPillActiveTriggerClassName() : filterPillInactiveClassName(),
+          active
+            ? filterPillActiveTriggerClassName()
+            : cn(filterPillInactiveClassName(), 'gap-1.5'),
         )}
         aria-expanded={ariaExpanded}
       >
         {active ? (
           <FilterPillActiveContents label={label} valueSummary={summaryText} />
         ) : (
-          <span className="max-w-[12rem] truncate">{label}</span>
+          <>
+            <span className="max-w-[12rem] truncate">{label}</span>
+            <ChevronDown className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+          </>
         )}
       </PopoverTrigger>
     </div>

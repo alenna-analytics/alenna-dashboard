@@ -16,12 +16,13 @@ import {
   GLOBAL_ACTIVITY_COGS_BULK_BACKFILL_ID,
   useGlobalActivity,
 } from '@/shell/providers/global-activity-provider'
-import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
 import { Checkbox } from '@/ui/checkbox'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTablePagination } from '@/ui/data-table/data-table-pagination'
+import { EmptyState } from '@/ui/empty-state'
 import { Label } from '@/ui/label'
 import {
   Select,
@@ -354,7 +355,7 @@ export function CogsPlatformSyncPage() {
       <header className="space-y-2">
         <CogsPageBreadcrumb />
         <h1 className={pageTitleClassName}>{t('productsCogsSyncTitle')}</h1>
-        <p className="max-w-2xl text-sm text-text-secondary">{t('productsCogsSyncSubtitle')}</p>
+        <p className={pageSubtitleClassName}>{t('productsCogsSyncSubtitle')}</p>
       </header>
 
       {scopeError ? (
@@ -413,7 +414,7 @@ export function CogsPlatformSyncPage() {
             isLoading={false}
             isFetching={previewMutation.isPending}
             hasEverLoaded
-            emptyContent={t('productsCogsSyncPreviewEmpty')}
+            emptyContent={<EmptyState size="sm" icon="products" title={t('productsCogsSyncPreviewEmpty')} />}
             scrollClassName="max-h-[calc(100dvh-16rem)] overflow-auto"
             toolbar={
               selectedCount > 0 ? (

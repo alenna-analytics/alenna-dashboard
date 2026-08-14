@@ -15,6 +15,7 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
+import { ChartTooltipFrame } from '@/ui/chart-tooltip'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import {
   CHART_LINE_MAIN_MS,
@@ -92,23 +93,23 @@ function TrendTooltip({
   const row = payload[0]?.payload as TrendRow | undefined
   if (!row) return null
   return (
-    <div className="rounded-md border border-border-default bg-white px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
-      <p className="mb-1.5 font-medium text-text-primary">{row.label}</p>
+    <ChartTooltipFrame>
+      <p className="mb-1.5 font-medium text-white">{row.label}</p>
       <div className="space-y-1 leading-snug">
         <p className="tabular-nums">
-          <span className="text-text-tertiary">{primaryLabel}:</span>{' '}
-          <span className="font-medium text-text-primary">
+          <span className="text-white/55">{primaryLabel}:</span>{' '}
+          <span className="font-medium text-white">
             {formatHomeV2TrendMetricValue(primaryMetric, row.primary, formatValue)}
           </span>
         </p>
         <p className="tabular-nums">
-          <span className="text-text-tertiary">{secondaryLabel}:</span>{' '}
-          <span className="font-medium text-text-primary">
+          <span className="text-white/55">{secondaryLabel}:</span>{' '}
+          <span className="font-medium text-white">
             {formatHomeV2TrendMetricValue(secondaryMetric, row.secondary, formatValue)}
           </span>
         </p>
       </div>
-    </div>
+    </ChartTooltipFrame>
   )
 }
 

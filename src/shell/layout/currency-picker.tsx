@@ -60,7 +60,7 @@ export function CurrencyPicker({ className }: { className?: string }) {
         <span>{displayUpper}</span>
         <ChevronDownIcon className="size-3" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" sideOffset={6}>
+      <DropdownMenuContent align="end" sideOffset={6} className="w-auto min-w-32">
         <DropdownMenuItem
           aria-checked={displayCurrency === null}
           onClick={() => void setDisplayCurrency(null)}

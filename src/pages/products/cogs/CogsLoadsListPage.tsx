@@ -1,14 +1,16 @@
 import { useCallback, useMemo } from 'react'
+import { Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { toast } from 'sonner'
 
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { CogsBulkLoadSummaryApi } from '@/lib/types/cogs-load'
-import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
 import { DataTable } from '@/ui/data-table/data-table'
+import { EmptyState } from '@/ui/empty-state'
 
 import { CogsPageBreadcrumb } from './cogs-page-breadcrumb'
 import { cogsLoadOpenPath, createCogsLoadsColumns } from './cogs-loads-columns'
@@ -90,9 +92,10 @@ export function CogsLoadsListPage() {
         <div className="space-y-2">
           <CogsPageBreadcrumb />
           <h1 className={pageTitleClassName}>{t('productsCogsLoadsTitle')}</h1>
-          <p className="max-w-2xl text-sm text-text-secondary">{t('productsCogsLoadsSubtitle')}</p>
+          <p className={pageSubtitleClassName}>{t('productsCogsLoadsSubtitle')}</p>
         </div>
         <Button type="button" variant="accent" size="default" className="shrink-0" loading={createMutation.isPending} onClick={() => void onNewLoad()}>
+          <Plus aria-hidden />
           {t('productsCogsLoadNew')}
         </Button>
       </header>
@@ -105,7 +108,24 @@ export function CogsLoadsListPage() {
           isLoading={loadsQuery.isLoading}
           isFetching={loadsQuery.isFetching}
           hasEverLoaded={loadsQuery.data !== undefined}
-          emptyContent={t('productsCogsLoadsEmpty')}
+          emptyContent={
+            <EmptyState
+              icon="products"
+              title={t('productsCogsLoadsEmpty')}
+              action={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="xs"
+                  loading={createMutation.isPending}
+                  onClick={() => void onNewLoad()}
+                >
+                  <Plus aria-hidden />
+                  {t('productsCogsLoadNew')}
+                </Button>
+              }
+            />
+          }
           skeletonRowCount={5}
           scrollClassName="overflow-auto"
           onRowClick={onOpenLoad}

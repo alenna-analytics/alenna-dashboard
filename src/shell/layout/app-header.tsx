@@ -84,7 +84,7 @@ export function AppHeader({
         <div className="flex min-w-0 shrink-0 items-center gap-1.5 overflow-visible sm:gap-2">
           <HeaderConnectionsMenu />
           <CurrencyPicker className="hidden h-8 sm:inline-flex" />
-          <HeaderChromeButton className="bg-[var(--platinum-blonde-300)]">
+          <HeaderChromeButton className="bg-[var(--chrome-muted)]">
             <AlertsHeaderButton />
           </HeaderChromeButton>
           <UserButton

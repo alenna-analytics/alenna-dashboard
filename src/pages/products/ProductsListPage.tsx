@@ -1,10 +1,12 @@
+import { Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useState } from "react"
 
 import { shellT } from "@/lib/i18n/shell-strings"
 import { useLanguage } from "@/shell/providers/language-provider"
-import { DashboardPage, pageTitleClassName } from "@/shell/layout/dashboard-page"
+import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from "@/shell/layout/dashboard-page"
 import { Button } from "@/ui/button"
+import { EmptyState } from "@/ui/empty-state"
 import { ProductsDataTable } from "./ProductsDataTable"
 import { EMPTY_PRODUCTS_LIST_FILTERS, type ProductsListFiltersState } from "./products-list-filter-state"
 import { ProductsListFilters } from "./products-list-filters"
@@ -18,7 +20,15 @@ export function ProductsListPage() {
   const [q, setQ] = useState("")
   const [filters, setFilters] = useState<ProductsListFiltersState>(EMPTY_PRODUCTS_LIST_FILTERS)
 
-  const empty = <p className="text-sm text-text-secondary">{t("productsCatalogEmptyTitle")}</p>
+  const empty = (
+    <EmptyState
+      icon="products"
+      title={t('productsCatalogEmptyTitle')}
+      description={
+        q.trim() ? t('productsCatalogEmptySearchHint') : t('productsCatalogEmptyHint')
+      }
+    />
+  )
 
   const errorContent = <p className="text-destructive">{t("productsCatalogLoadError")}</p>
 
@@ -30,7 +40,7 @@ export function ProductsListPage() {
             <h1 className={pageTitleClassName}>
               {t("productsPageTitle")}
             </h1>
-            <p className="max-w-2xl text-sm text-text-secondary">{t("productsPageSubtitle")}</p>
+            <p className={pageSubtitleClassName}>{t("productsPageSubtitle")}</p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             <Button type="button" variant="default" size="default" onClick={() => void navigate('/dashboard/products/cogs')}>
@@ -48,6 +58,7 @@ export function ProductsListPage() {
                 })
               }}
             >
+              <Plus aria-hidden />
               {t('productsCogsLoadNew')}
             </Button>
           </div>

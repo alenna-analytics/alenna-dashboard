@@ -5,6 +5,9 @@ import { cn } from '@/lib/utils'
 export const pageTitleClassName =
   'text-2xl font-semibold tracking-[-0.02em] text-text-primary'
 
+export const pageSubtitleClassName =
+  'max-w-2xl text-xs leading-relaxed text-text-secondary'
+
 type DashboardPageProps = {
   children: ReactNode
   className?: string

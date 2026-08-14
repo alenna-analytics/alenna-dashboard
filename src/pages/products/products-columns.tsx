@@ -303,15 +303,15 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
             >
               <MoreVertical className="size-4 shrink-0" aria-hidden />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuGroup>
                 <DropdownMenuLabel>{t("productsTableActions")}</DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem onClick={() => onGoDetail(p.id)}>
-                  <Eye className="size-4 shrink-0" aria-hidden />
-                  {t("productsTableViewDetail")}
+                  <Eye className="h-4 w-4" aria-hidden />
+                  <span>{t("productsTableViewDetail")}</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>

@@ -319,6 +319,13 @@
   --chart-3: #6e8f40;
   --chart-4: #c2bea8;
   --chart-5: var(--danger);
+  /** Waterfall subtotals — greens distinct from country-green, chart-3, status-green. */
+  --chart-wf-gross: #1a4f3c;
+  --chart-wf-net: #2a7d56;
+  --chart-wf-gross-profit: #3d9a68;
+  --chart-wf-contribution: #157a4b;
+  --chart-wf-ebitda: #0c5c3d;
+  --chart-wf-payout: #256b4a;
   --chart-grid: rgba(var(--ink-rgb), 0.09);
   --chart-wf-unfilled-bg: rgba(225, 219, 201, 0.75);
   --chart-wf-unfilled-line: rgba(var(--ink-rgb), 0.1);
@@ -390,7 +397,11 @@
   /** Plan-limit shell banner: same height as activity bar, softer warning surface. */
   --plan-limit-banner-bg: #fff8eb;
   --plan-limit-banner-fg: var(--firefly-100);
-  --plan-limit-banner-border: color-mix(in srgb, var(--stock-alert-warning) 22%, transparent);
+  --plan-limit-banner-border: color-mix(
+    in srgb,
+    var(--stock-alert-warning) 22%,
+    transparent
+  );
   --plan-limit-banner-icon: var(--stock-alert-warning);
 
   --kpi-pill-positive-bg: var(--pill-success-bg);
@@ -433,9 +444,10 @@
   --sidebar-primary: var(--firefly-base);
   --sidebar-primary-foreground: var(--platinum-blonde-400);
   --table-row-hover-bg: #f5f5f5;
-  --sidebar-active-bg: #ebebeb;
+  --chrome-muted: #f1f1f1;
+  --sidebar-active-bg: var(--chrome-muted);
   --sidebar-active-foreground: var(--firefly-base);
-  --sidebar-accent: #ebebeb;
+  --sidebar-accent: var(--chrome-muted);
   --sidebar-accent-foreground: var(--firefly-base);
   --sidebar-border: transparent;
   --sidebar-ring: var(--firefly-base);
@@ -1066,67 +1078,52 @@
   animation: connector-sync-indeterminate 1.25s ease-in-out infinite;
 }
 
-/* Sonner (alenna): viewport-centered bottom toast */
-[data-sonner-toaster].alenna-sonner {
-  position: fixed !important;
-  left: 50% !important;
-  right: auto !important;
-  transform: translateX(-50%) !important;
-}
-
+/* Sonner: bottom-right card with title, description, and action */
 [data-sonner-toaster].alenna-sonner [data-sonner-toast][data-styled='true'] {
-  display: inline-flex !important;
-  width: max-content !important;
-  max-width: calc(100vw - 2rem) !important;
-  left: 0 !important;
-  right: 0 !important;
-  margin-inline: auto !important;
-  padding: 0.5rem 0.875rem !important;
-  border: 0 !important;
-  border-radius: 0.75rem !important;
-  background: #1f1f1f !important;
-  color: #fff !important;
-  box-shadow: 0 4px 12px rgb(0 0 0 / 15%) !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  align-items: center !important;
-  justify-content: center !important;
+  width: 356px;
+  max-width: calc(100vw - 2rem);
+  padding: 0.75rem 1rem;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 0.5rem;
+  background: #171717;
+  color: #fff;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 24%);
+  gap: 0.75rem;
+  align-items: center;
 }
 
 [data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-content] {
-  display: block !important;
-  flex: 0 1 auto !important;
-  width: max-content !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-}
-
-[data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-icon] {
-  display: none !important;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 [data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-title] {
-  font-size: 0.875rem !important;
-  font-weight: 400 !important;
-  line-height: 1.25rem !important;
-  color: #fff !important;
-  text-align: center !important;
-  white-space: normal !important;
-  overflow-wrap: anywhere !important;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: #fff;
+  text-align: left;
 }
 
 [data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-description] {
-  font-size: 0.875rem !important;
-  color: rgb(255 255 255 / 80%) !important;
-  text-align: center !important;
-  overflow-wrap: break-word !important;
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  color: rgb(255 255 255 / 55%);
+  text-align: left;
 }
 
-@media (max-width: 600px) {
-  [data-sonner-toaster].alenna-sonner [data-sonner-toast][data-styled='true'] {
-    width: max-content !important;
-    max-width: calc(100vw - 2rem) !important;
-  }
+[data-sonner-toaster].alenna-sonner [data-sonner-toast] [data-button],
+[data-sonner-toaster].alenna-sonner [data-sonner-toast] .alenna-toast-action,
+[data-sonner-toaster].alenna-sonner [data-sonner-toast] .alenna-toast-cancel {
+  height: 1.75rem;
+  padding: 0 0.625rem;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 0.375rem;
+  background: #262626;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 /* Calendar range highlight: pill bar aligned with circular start/end caps */

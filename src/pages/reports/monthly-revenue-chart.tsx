@@ -26,6 +26,7 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
+import { ChartTooltipFrame } from '@/ui/chart-tooltip'
 
 import { parseLocalYmd } from './reports-ui-helpers'
 
@@ -253,29 +254,29 @@ function ChartTooltip({
   const net = toNum(row.net_revenue)
   const profit = toNum(row.gross_profit)
   return (
-    <div className="rounded-md border border-border-default bg-background px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
-      <p className="mb-2 font-medium text-text-primary">{row.label}</p>
-      <div className="space-y-1 tabular-nums text-text-secondary">
+    <ChartTooltipFrame>
+      <p className="mb-2 font-medium text-white">{row.label}</p>
+      <div className="space-y-1 tabular-nums text-white/70">
         <div className="flex justify-between gap-6">
           <span>{t('reportsGrossRevenue')}</span>
-          <span className="font-medium text-text-primary">{fmtMoneyCompact(gross, currency)}</span>
+          <span className="font-medium text-white">{fmtMoneyCompact(gross, currency)}</span>
         </div>
         <div className="flex justify-between gap-6">
           <span>{t('reportsNetRevenue')}</span>
-          <span className="font-medium text-text-primary">{fmtMoneyCompact(net, currency)}</span>
+          <span className="font-medium text-white">{fmtMoneyCompact(net, currency)}</span>
         </div>
-        <div className="flex justify-between gap-6 border-t border-border-default/60 pt-1">
+        <div className="flex justify-between gap-6 border-t border-white/15 pt-1">
           <span>{t('reportsGrossProfit')}</span>
-          <span className="font-medium text-text-primary">{fmtMoneyCompact(profit, currency)}</span>
+          <span className="font-medium text-white">{fmtMoneyCompact(profit, currency)}</span>
         </div>
         <div className="flex justify-between gap-6">
           <span>{t('reportsMonthlyLegendGrossMarginPct')}</span>
-          <span className="font-medium text-text-primary">
+          <span className="font-medium text-white">
             {toNum(row.gross_margin_pct).toFixed(1)}%
           </span>
         </div>
       </div>
-    </div>
+    </ChartTooltipFrame>
   )
 }
 

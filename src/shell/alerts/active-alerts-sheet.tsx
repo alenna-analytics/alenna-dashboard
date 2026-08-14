@@ -18,6 +18,7 @@ import type { AlertItemApi, AlertPostponeDuration } from '@/lib/types/alerts'
 import { cn } from '@/lib/utils'
 import { StatusPill } from '@/ui/status-pill'
 import { Button, buttonVariants } from '@/ui/button'
+import { EmptyState } from '@/ui/empty-state'
 import { LoadingIcon } from '@/ui/app-icon'
 import { EmbeddedShellPanel } from '@/ui/embedded-shell-panel'
 import { Skeleton } from '@/ui/skeleton'
@@ -389,7 +390,7 @@ function AlertListView({
         {loading ? (
           <AlertListSkeleton />
         ) : filteredItems.length === 0 ? (
-          <p className="px-6 py-8 text-sm text-muted-foreground">{listEmptyLabel}</p>
+          <EmptyState size="sm" icon="notifications" title={listEmptyLabel} />
         ) : (
           filteredItems.map((item) => (
             <AlertListRow

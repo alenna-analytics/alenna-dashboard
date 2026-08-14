@@ -23,6 +23,7 @@ type BillingOrdersDailyChartProps = {
   points: BillingOrdersDailyPoint[]
   lang: Language
   isLoading?: boolean
+  isError?: boolean
 }
 
 type ChartRow = {
@@ -60,6 +61,7 @@ export function BillingOrdersDailyChart({
   points,
   lang,
   isLoading = false,
+  isError = false,
 }: BillingOrdersDailyChartProps) {
   const dateLocale = lang === 'en' ? enUS : esLocale
   const t = (key: ShellStringKey) => shellT(lang, key)
@@ -79,6 +81,14 @@ export function BillingOrdersDailyChart({
 
   if (isLoading) {
     return <Skeleton className="h-40 w-full" aria-hidden />
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-md border border-border-subtle">
+        <EmptyState size="sm" icon="billing" title={t('billingOrdersDailyError')} />
+      </div>
+    )
   }
 
   if (!hasOrders) {

@@ -8,6 +8,7 @@ import {
 } from '@/pages/dashboard/use-chart-line-load-animation'
 
 import type { Locale } from 'date-fns'
+import type { ReactNode } from 'react'
 import type { ChannelTimeSeriesRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
@@ -98,6 +99,7 @@ export type DashboardProfitMarginChartProps = {
   formatValue: (value: number) => string
   dateLocale: Locale
   t: (key: ShellStringKey) => string
+  granularityFilter?: ReactNode
 }
 
 type ProfitMarginView = 'bars' | 'area'
@@ -106,8 +108,6 @@ type IndexedRow = {
   label: string
   __idx: number
   stkProfit: number
-  stkMid: number
-  stkTop: number
   marginPct: number
   ovTotGross: number
   ovTotNet: number
@@ -123,6 +123,7 @@ export function DashboardProfitMarginChart({
   formatValue,
   dateLocale,
   t,
+  granularityFilter,
 }: DashboardProfitMarginChartProps) {
   const fullRows: IndexedRow[] = useMemo(() => {
     const buckets = eachRevenueBucketMeta(startDate, endDate, granularity, dateLocale)
@@ -146,15 +147,11 @@ export function DashboardProfitMarginChart({
       const profit = convertValue(agg.profit)
       const netClamped = Math.min(net, gross)
       const profitClamped = Math.min(profit, netClamped)
-      const mid = Math.max(0, netClamped - profitClamped)
-      const top = Math.max(0, gross - netClamped)
       const marginPct = netClamped > 0 ? (profitClamped / netClamped) * 100 : 0
       return {
         label: b.label,
         __idx,
         stkProfit: profitClamped,
-        stkMid: mid,
-        stkTop: top,
         marginPct,
         ovTotGross: gross,
         ovTotNet: netClamped,
@@ -201,30 +198,31 @@ export function DashboardProfitMarginChart({
       visibleData.map((row) => ({
         ...row,
         stkProfit: hiddenKeys.stkProfit ? 0 : row.stkProfit,
-        stkMid: hiddenKeys.stkMid ? 0 : row.stkMid,
-        stkTop: hiddenKeys.stkTop ? 0 : row.stkTop,
+        ovTotNet: hiddenKeys.ovTotNet ? 0 : row.ovTotNet,
+        ovTotGross: hiddenKeys.ovTotGross ? 0 : row.ovTotGross,
       })),
     [hiddenKeys, visibleData],
   )
 
   const denseMain = visibleData.length > 18
-  const stackLayers = [
+  const seriesLayers = [
     {
-      dataKey: 'stkProfit' as const,
-      name: t('reportsGrossProfit'),
-      fill: 'var(--chart-4)',
+      dataKey: 'ovTotGross' as const,
+      name: t('reportsGrossRevenue'),
+      fill: 'var(--chart-1)',
     },
     {
-      dataKey: 'stkMid' as const,
-      name: t('dashboardProfitStackNetMinusProfit'),
+      dataKey: 'ovTotNet' as const,
+      name: t('reportsNetRevenue'),
       fill: 'var(--chart-3)',
     },
     {
-      dataKey: 'stkTop' as const,
-      name: t('dashboardProfitStackMerchAdj'),
-      fill: 'var(--chart-1)',
+      dataKey: 'stkProfit' as const,
+      name: t('reportsGrossProfit'),
+      fill: 'var(--chart-2)',
     },
   ]
+  const barRadius: [number, number, number, number] = [6, 6, 0, 0]
 
   return (
     <div
@@ -232,12 +230,13 @@ export function DashboardProfitMarginChart({
         'w-full min-w-0 [&_.recharts-surface:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-wrapper:focus]:outline-none [&_.recharts-brush-traveller:focus]:outline-none',
       )}
     >
-      <div
-        className="mb-2 flex justify-end"
-        role="group"
-        aria-label={t('dashboardProfitViewLabel')}
-      >
-        <div className="inline-flex overflow-hidden rounded-md border border-border-subtle">
+      <div className="mb-2 flex flex-wrap items-center justify-end gap-1">
+        {granularityFilter}
+        <div
+          className="inline-flex overflow-hidden rounded-md border border-border-subtle"
+          role="group"
+          aria-label={t('dashboardProfitViewLabel')}
+        >
           {(['bars', 'area'] as const).map((option) => (
             <button
               key={option}
@@ -261,8 +260,8 @@ export function DashboardProfitMarginChart({
           key={`${zoomResetKey}:${view}`}
           data={composedChartData}
           margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
-          barCategoryGap={denseMain ? 1 : '10%'}
-          barGap={1}
+          barCategoryGap={denseMain ? '18%' : '28%'}
+          barGap={denseMain ? -14 : -28}
         >
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
@@ -311,29 +310,28 @@ export function DashboardProfitMarginChart({
             }}
           />
           {view === 'bars'
-            ? stackLayers.map((layer) => (
+            ? seriesLayers.map((layer) => (
                 <Bar
                   key={layer.dataKey}
                   yAxisId="left"
                   dataKey={layer.dataKey}
                   name={layer.name}
-                  stackId="tot"
                   fill={layer.fill}
-                  radius={0}
+                  radius={barRadius}
+                  maxBarSize={denseMain ? 14 : 22}
                   isAnimationActive={false}
                 />
               ))
-            : stackLayers.map((layer) => (
+            : seriesLayers.map((layer) => (
                 <Area
                   key={layer.dataKey}
                   yAxisId="left"
                   type="stepAfter"
                   dataKey={layer.dataKey}
                   name={layer.name}
-                  stackId="tot"
                   stroke={layer.fill}
                   fill={layer.fill}
-                  fillOpacity={0.42}
+                  fillOpacity={0.38}
                   strokeWidth={1.25}
                   isAnimationActive={false}
                 />
@@ -386,39 +384,24 @@ export function DashboardProfitMarginChart({
       />
 
       <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
-        <button
-          type="button"
-          onClick={() => toggleLegendKey('stkProfit')}
-          className={cn(
-            'inline-flex items-center gap-1.5 text-text-secondary outline-none transition-opacity focus:outline-none',
-            hiddenKeys.stkProfit ? 'opacity-40' : 'opacity-100',
-          )}
-        >
-          <span className="inline-block h-2 w-4 shrink-0 rounded-sm bg-[var(--chart-4)]" aria-hidden />
-          <span>{t('reportsGrossProfit')}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => toggleLegendKey('stkMid')}
-          className={cn(
-            'inline-flex items-center gap-1.5 text-text-secondary outline-none transition-opacity focus:outline-none',
-            hiddenKeys.stkMid ? 'opacity-40' : 'opacity-100',
-          )}
-        >
-          <span className="inline-block h-2 w-4 shrink-0 rounded-sm bg-[var(--chart-3)]" aria-hidden />
-          <span>{t('dashboardProfitStackNetMinusProfit')}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => toggleLegendKey('stkTop')}
-          className={cn(
-            'inline-flex items-center gap-1.5 text-text-secondary outline-none transition-opacity focus:outline-none',
-            hiddenKeys.stkTop ? 'opacity-40' : 'opacity-100',
-          )}
-        >
-          <span className="inline-block h-2 w-4 shrink-0 rounded-sm bg-[var(--chart-1)]" aria-hidden />
-          <span>{t('dashboardProfitStackMerchAdj')}</span>
-        </button>
+        {seriesLayers.map((layer) => (
+          <button
+            key={layer.dataKey}
+            type="button"
+            onClick={() => toggleLegendKey(layer.dataKey)}
+            className={cn(
+              'inline-flex items-center gap-1.5 text-text-secondary outline-none transition-opacity focus:outline-none',
+              hiddenKeys[layer.dataKey] ? 'opacity-40' : 'opacity-100',
+            )}
+          >
+            <span
+              className="inline-block h-2 w-4 shrink-0 rounded-sm"
+              style={{ background: layer.fill }}
+              aria-hidden
+            />
+            <span>{layer.name}</span>
+          </button>
+        ))}
         <button
           type="button"
           onClick={() => toggleLegendKey('marginPct')}

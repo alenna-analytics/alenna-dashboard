@@ -422,7 +422,7 @@ const SHELL_STRINGS = {
     dashboardChannelSalesEmpty: 'No hay datos de canal en el periodo.',
     dashboardProfitMarginTitle: 'Utilidad bruta y margen %',
     dashboardProfitMarginSubtitle:
-      'Barras apiladas (utilidad, diferencia neto−utilidad, bruto−neto) y margen bruto % sobre ventas netas.',
+      'Ventas brutas, ventas netas y utilidad bruta sobre la misma base, con margen bruto % sobre ventas netas.',
     dashboardProfitViewBars: 'Barras',
     dashboardProfitViewArea: 'Área',
     dashboardProfitViewLabel: 'Vista del gráfico',
@@ -1054,6 +1054,7 @@ const SHELL_STRINGS = {
     settlementCompletenessUnavailable: 'No disponible',
     reportsWaterfallSubtitle: 'De ventas brutas a EBITDA, paso a paso.',
     reportsWaterfallTitle: 'Cascada P&L',
+    reportsWaterfallViewLabel: 'Vista de cascada',
     reportsWfGrossRevenue: 'Ventas brutas',
     reportsWfAdjustmentsToNet: 'Deducciones',
     reportsWfDiscounts: 'Descuentos',
@@ -2095,7 +2096,7 @@ const SHELL_STRINGS = {
     dashboardChannelSalesEmpty: 'No channel data for this period.',
     dashboardProfitMarginTitle: 'Gross profit and margin %',
     dashboardProfitMarginSubtitle:
-      'Stacked bars (profit, net−profit, gross−net) and gross margin % of net sales.',
+      'Gross sales, net sales, and gross profit from the same baseline, with gross margin % of net sales.',
     dashboardProfitViewBars: 'Bars',
     dashboardProfitViewArea: 'Area',
     dashboardProfitViewLabel: 'Chart view',
@@ -2720,6 +2721,7 @@ const SHELL_STRINGS = {
     settlementCompletenessUnavailable: 'Unavailable',
     reportsWaterfallSubtitle: 'From gross sales to EBITDA, step by step.',
     reportsWaterfallTitle: 'P&L waterfall',
+    reportsWaterfallViewLabel: 'Waterfall view',
     reportsWfGrossRevenue: 'Gross Rev',
     reportsWfAdjustmentsToNet: 'Deductions',
     reportsWfDiscounts: 'Discounts',

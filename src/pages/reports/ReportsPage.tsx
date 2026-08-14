@@ -170,7 +170,8 @@ export function ReportsPage() {
   const { startDate, endDate, connectionIds, productIds } = filters
   const productMode = productIds.length > 0
   const [profitMarginGranularity, setProfitMarginGranularity] =
-    useState<RevenueSeriesGranularity>('month')
+    useState<RevenueSeriesGranularity>('day')
+  const [waterfallTab, setWaterfallTab] = useState<'pnl' | 'settlement'>('pnl')
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -400,6 +401,10 @@ export function ReportsPage() {
     }))
   }, [settlementSource, t, convertFromBase])
 
+  const hasSettlementWaterfall = settlementWaterfallSegments.length > 0
+  const showSettlementWaterfall = hasSettlementWaterfall && waterfallTab === 'settlement'
+  const pnlWaterfallReady = !productMode && Boolean(displayKpi)
+
   const previousReady = Boolean(prevPeriod) && (productMode ? !pkpiPrevLoading : !kpiPrevLoading)
 
   const momReady = productMode
@@ -567,40 +572,58 @@ export function ReportsPage() {
           ) : null}
 
           <div className="flex flex-col gap-12">
-            {!productMode && displayKpi ? (
-              <SectionContainer>
-                <SectionHeader
-                  title={t('reportsSectionRevenueBreakdown')}
-                  description={t('reportsWaterfallSubtitle')}
-                />
-                <WaterfallChart
-                  segments={waterfallSegments}
-                  currency={effectiveDisplayCurrency}
-                  grossRevenue={convertFromBase(displayKpi.gross_revenue)}
-                  formatPctOfGross={(pct) =>
-                    t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))
-                  }
-                  finalBarCaption={t('reportsWaterfallFinalHint')}
-                />
-              </SectionContainer>
-            ) : (
-              <SectionContainer>
-                <SectionHeader
-                  title={t('reportsSectionRevenueBreakdown')}
-                  description={t('reportsWaterfallSubtitle')}
-                />
-                <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
-                  {t('reportsNoData')}
-                </p>
-              </SectionContainer>
-            )}
-
-            {settlementWaterfallSegments.length > 0 ? (
-              <SectionContainer>
-                <SectionHeader
-                  title={t('reportsSectionSettlementTitle')}
-                  description={t('reportsSectionSettlementSubtitle')}
-                />
+            <SectionContainer>
+              <SectionHeader
+                title={
+                  showSettlementWaterfall
+                    ? t('reportsSectionSettlementTitle')
+                    : t('reportsSectionRevenueBreakdown')
+                }
+                description={
+                  showSettlementWaterfall
+                    ? t('reportsSectionSettlementSubtitle')
+                    : t('reportsWaterfallSubtitle')
+                }
+                aside={
+                  hasSettlementWaterfall ? (
+                    <div
+                      className="inline-flex overflow-hidden rounded-md border border-border-subtle"
+                      role="tablist"
+                      aria-label={t('reportsWaterfallViewLabel')}
+                    >
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={!showSettlementWaterfall}
+                        onClick={() => setWaterfallTab('pnl')}
+                        className={cn(
+                          'px-2.5 py-1 text-xs font-medium outline-none transition-colors',
+                          !showSettlementWaterfall
+                            ? 'bg-muted text-text-primary'
+                            : 'bg-background text-text-secondary hover:bg-muted/50',
+                        )}
+                      >
+                        {t('reportsSectionRevenueBreakdown')}
+                      </button>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={showSettlementWaterfall}
+                        onClick={() => setWaterfallTab('settlement')}
+                        className={cn(
+                          'px-2.5 py-1 text-xs font-medium outline-none transition-colors',
+                          showSettlementWaterfall
+                            ? 'bg-muted text-text-primary'
+                            : 'bg-background text-text-secondary hover:bg-muted/50',
+                        )}
+                      >
+                        {t('reportsSectionSettlementTitle')}
+                      </button>
+                    </div>
+                  ) : null
+                }
+              />
+              {showSettlementWaterfall ? (
                 <WaterfallChart
                   segments={settlementWaterfallSegments}
                   currency={effectiveDisplayCurrency}
@@ -610,8 +633,22 @@ export function ReportsPage() {
                   }
                   finalBarCaption={t('reportsSettlementFinalHint')}
                 />
-              </SectionContainer>
-            ) : null}
+              ) : pnlWaterfallReady && displayKpi ? (
+                <WaterfallChart
+                  segments={waterfallSegments}
+                  currency={effectiveDisplayCurrency}
+                  grossRevenue={convertFromBase(displayKpi.gross_revenue)}
+                  formatPctOfGross={(pct) =>
+                    t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))
+                  }
+                  finalBarCaption={t('reportsWaterfallFinalHint')}
+                />
+              ) : (
+                <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
+                  {t('reportsNoData')}
+                </p>
+              )}
+            </SectionContainer>
 
             {!productMode && benchmarkRows.length > 0 ? (
               <ReportsBenchmarksTable rows={benchmarkRows} t={t} />
@@ -621,13 +658,6 @@ export function ReportsPage() {
               <SectionHeader
                 title={t('dashboardProfitMarginTitle')}
                 description={t('dashboardProfitMarginSubtitle')}
-                aside={
-                  <ChartGranularityFilter
-                    value={profitMarginGranularity}
-                    onChange={setProfitMarginGranularity}
-                    t={t}
-                  />
-                }
               />
               {profitMarginTimeSeriesError ? (
                 <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
@@ -644,6 +674,13 @@ export function ReportsPage() {
                   formatValue={formatInDisplay}
                   dateLocale={dateLocale}
                   t={t}
+                  granularityFilter={
+                    <ChartGranularityFilter
+                      value={profitMarginGranularity}
+                      onChange={setProfitMarginGranularity}
+                      t={t}
+                    />
+                  }
                 />
               )}
             </SectionContainer>

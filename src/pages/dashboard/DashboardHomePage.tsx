@@ -997,13 +997,6 @@ export function DashboardHomePage() {
                 <SectionHeader
                   title={t('dashboardProfitMarginTitle')}
                   description={t('dashboardProfitMarginSubtitle')}
-                  aside={
-                    <ChartGranularityFilter
-                      value={profitMarginGranularity}
-                      onChange={setProfitMarginGranularity}
-                      t={t}
-                    />
-                  }
                 />
                 {profitMarginTimeSeriesError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
@@ -1020,6 +1013,13 @@ export function DashboardHomePage() {
                     formatValue={formatInDisplay}
                     dateLocale={dateLocale}
                     t={t}
+                    granularityFilter={
+                      <ChartGranularityFilter
+                        value={profitMarginGranularity}
+                        onChange={setProfitMarginGranularity}
+                        t={t}
+                      />
+                    }
                   />
                 )}
               </SectionContainer>

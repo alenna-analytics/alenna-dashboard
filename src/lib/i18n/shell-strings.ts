@@ -507,7 +507,7 @@ const SHELL_STRINGS = {
     billingPlanDescriptionBasic:
       'Hasta 1,000 pedidos y 500 productos. Todos los módulos e integraciones ilimitadas.',
     billingPlanDescriptionGrowth:
-      'Hasta 5,000 pedidos y 2,000 productos. Todos los módulos e integraciones ilimitadas.',
+      'Hasta 5,000 pedidos, 2,000 productos y creación de roles. Todos los módulos e integraciones ilimitadas.',
     billingPlanDescriptionEnterprise: 'Límites y precio a medida para tu operación.',
     billingSubscriptionRenewsOn: 'Tu suscripción se renovará el {date}.',
     billingUpcomingInvoiceLabel: 'Próxima factura',
@@ -539,10 +539,19 @@ const SHELL_STRINGS = {
     billingPlanFeatureBasicOrders: 'Hasta 1,000 pedidos al mes',
     billingPlanFeatureBasicSkus: '500 productos activos',
     billingPlanFeatureBasicUsers: 'Hasta 3 usuarios',
+    billingPlanFeatureBasicRoles:
+      '3 roles de acceso predefinidos para asignar a tus usuarios',
     billingPlanFeatureGrowthOrders: 'Hasta 5,000 pedidos al mes',
     billingPlanFeatureGrowthSkus: '2,000 productos activos',
     billingPlanFeatureGrowthUsers: 'Hasta 5 usuarios',
+    billingPlanFeatureGrowthRoles:
+      '5 roles de acceso (4 configurables y 1 propietario) para asignar a tus usuarios',
     billingPlanFeatureCore: 'Todos los módulos e integraciones ilimitadas',
+    billingPlanFeatureModules: 'Todos los módulos',
+    billingPlanFeatureIntegrations: 'Integraciones ilimitadas',
+    billingPlanFeatureReports: 'Reportes de rentabilidad multicanal',
+    billingPlanFeatureSync: 'Sincronización de pedidos y catálogo',
+    billingPlanFeatureSupport: 'Soporte por email',
     billingPlanFeatureEnterprise: 'Volúmenes y requisitos personalizados',
     billingUsageLabel: 'Uso incluido',
     billingUsageDescription: 'Consumo del periodo de facturación actual respecto a los límites de tu plan.',
@@ -648,13 +657,11 @@ const SHELL_STRINGS = {
     onboardingCompanySubtitle: 'Será el nombre de tu workspace en alenna.',
     onboardingCompanyName: 'Empresa',
     onboardingTrialTitle: 'Prueba alenna por {days} días sin costo',
-    onboardingTrialIntro: 'Después, USD ${price}/mes.',
-    onboardingTrialBulletReports: 'Reportes y panel consolidado',
-    onboardingTrialBulletCogs: 'Productos y costos (COGS)',
-    onboardingTrialBulletChannels: 'Canales Shopify y Mercado Libre',
-    onboardingTrialBulletAlerts: 'Alertas y configuración del workspace',
+    onboardingTrialIntro:
+      'Durante la prueba tienes acceso al plan Basic completo, con todos los módulos e integraciones sin límite. Después de los {days} días: USD ${price}/mes.',
+    onboardingTrialBulletCore: 'Todos los módulos e integraciones, sin límite',
     onboardingTrialNoCard:
-      'Sin tarjeta hoy. Tras {days} días: USD ${price}/mes para seguir.',
+      'Sin tarjeta hoy. Cancela cuando quieras antes de que termine la prueba.',
     onboardingGrowthTitle: 'Plan Growth',
     onboardingGrowthIntro:
       'Tras crear tu espacio, completarás el pago de Growth en Stripe.',
@@ -2204,7 +2211,7 @@ const SHELL_STRINGS = {
     billingPlanDescriptionBasic:
       'Up to 1,000 orders and 500 products. All modules and unlimited integrations.',
     billingPlanDescriptionGrowth:
-      'Up to 5,000 orders and 2,000 products. All modules and unlimited integrations.',
+      'Up to 5,000 orders, 2,000 products, and role creation. All modules and unlimited integrations.',
     billingPlanDescriptionEnterprise: 'Custom limits and pricing for your operation.',
     billingSubscriptionRenewsOn: 'Your subscription will auto renew on {date}.',
     billingUpcomingInvoiceLabel: 'Upcoming invoice',
@@ -2236,10 +2243,18 @@ const SHELL_STRINGS = {
     billingPlanFeatureBasicOrders: 'Up to 1,000 orders per month',
     billingPlanFeatureBasicSkus: '500 active products',
     billingPlanFeatureBasicUsers: 'Up to 3 users',
+    billingPlanFeatureBasicRoles: '3 predefined access roles to assign to your users',
     billingPlanFeatureGrowthOrders: 'Up to 5,000 orders per month',
     billingPlanFeatureGrowthSkus: '2,000 active products',
     billingPlanFeatureGrowthUsers: 'Up to 5 users',
+    billingPlanFeatureGrowthRoles:
+      '5 access roles (4 configurable and 1 owner) to assign to your users',
     billingPlanFeatureCore: 'All modules and unlimited integrations',
+    billingPlanFeatureModules: 'All modules',
+    billingPlanFeatureIntegrations: 'Unlimited integrations',
+    billingPlanFeatureReports: 'Multi-channel profitability reports',
+    billingPlanFeatureSync: 'Order and catalog sync',
+    billingPlanFeatureSupport: 'Email support',
     billingPlanFeatureEnterprise: 'Custom volumes and requirements',
     billingUsageLabel: 'Included usage',
     billingUsageDescription: 'Current billing period usage against your plan limits.',
@@ -2343,13 +2358,10 @@ const SHELL_STRINGS = {
     onboardingCompanySubtitle: 'This becomes your alenna workspace name.',
     onboardingCompanyName: 'Company',
     onboardingTrialTitle: 'Try alenna free for {days} days',
-    onboardingTrialIntro: 'Then, USD ${price}/month.',
-    onboardingTrialBulletReports: 'Reports and consolidated dashboard',
-    onboardingTrialBulletCogs: 'Products and COGS',
-    onboardingTrialBulletChannels: 'Shopify and Mercado Libre channels',
-    onboardingTrialBulletAlerts: 'Alerts and workspace settings',
-    onboardingTrialNoCard:
-      'No card today. After {days} days: USD ${price}/month to continue.',
+    onboardingTrialIntro:
+      'During the trial you get the full Basic plan, with all modules and unlimited integrations. After {days} days: USD ${price}/month.',
+    onboardingTrialBulletCore: 'All modules and integrations, unlimited',
+    onboardingTrialNoCard: 'No card today. Cancel anytime before the trial ends.',
     onboardingGrowthTitle: 'Growth plan',
     onboardingGrowthIntro:
       'After creating your workspace, you will complete Growth payment in Stripe.',

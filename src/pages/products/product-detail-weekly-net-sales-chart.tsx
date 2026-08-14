@@ -13,6 +13,8 @@ import { ChartTooltipFrame } from '@/ui/chart-tooltip'
 
 import type { ProductWeeklyNetSalesPointApi } from '@/lib/types/catalog'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
+import { CHART_NARROW_MQ, lineChartXAxisLayout } from '@/pages/dashboard/chart-x-axis-layout'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import {
   CHART_LINE_MINI_MS,
   rechartsEnterAnimationProps,
@@ -89,6 +91,8 @@ export function ProductDetailWeeklyNetSalesChart({
     () => buildWeeklyNetSalesChartPoints(points, weekLabelFor),
     [points, weekLabelFor],
   )
+  const isNarrow = useMediaQuery(CHART_NARROW_MQ)
+  const xAxis = lineChartXAxisLayout(isNarrow)
 
   const chartRevealKey = useMemo(
     () => chartData.map((p) => `${p.weekStart}:${p.value}`).join('|'),
@@ -105,7 +109,11 @@ export function ProductDetailWeeklyNetSalesChart({
 
   return (
     <div
-      className="h-40 w-full min-w-0 [&_.recharts-surface:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-wrapper:focus]:outline-none"
+      className={
+        isNarrow
+          ? 'h-52 w-full min-w-0 [&_.recharts-surface:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-wrapper:focus]:outline-none'
+          : 'h-40 w-full min-w-0 [&_.recharts-surface:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-wrapper:focus]:outline-none'
+      }
       role="img"
       aria-label={ariaLabel}
     >
@@ -113,7 +121,7 @@ export function ProductDetailWeeklyNetSalesChart({
         <LineChart
           key={chartRevealKey}
           data={chartData}
-          margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+          margin={{ top: 8, right: 8, left: 0, bottom: isNarrow ? 8 : 0 }}
         >
           <CartesianGrid
             stroke="var(--border-subtle)"
@@ -125,8 +133,12 @@ export function ProductDetailWeeklyNetSalesChart({
             tick={AXIS_TICK}
             axisLine={{ stroke: 'var(--border-subtle)' }}
             tickLine={false}
-            interval="preserveStartEnd"
-            dy={4}
+            interval={xAxis.interval}
+            minTickGap={xAxis.minTickGap}
+            angle={xAxis.angle}
+            textAnchor={xAxis.textAnchor}
+            height={xAxis.height}
+            tickMargin={xAxis.tickMargin}
           />
           <YAxis
             tick={AXIS_TICK}

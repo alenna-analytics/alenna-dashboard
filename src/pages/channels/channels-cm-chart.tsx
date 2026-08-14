@@ -1,11 +1,10 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 import type { Locale } from 'date-fns'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ChannelTimeSeriesRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import {
   CartesianGrid,
-  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -27,6 +26,17 @@ const PLATFORM_COLORS = [
   'var(--chart-5)',
 ]
 
+function fmtMoneyCompact(value: number, currency: string): string {
+  const abs = Math.abs(value)
+  if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
+  if (abs >= 1_000) return `${(value / 1_000).toFixed(0)}K`
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
 type ChannelsCmChartProps = {
   startDate: string
   endDate: string
@@ -34,6 +44,7 @@ type ChannelsCmChartProps = {
   rows: ChannelTimeSeriesRow[]
   formatValue: (value: number) => string
   convertValue: (value: number) => number
+  currency: string
   dateLocale: Locale
   platforms: ChannelPlatform[]
   t: (key: ShellStringKey) => string
@@ -57,20 +68,27 @@ function CmTooltip({
   label,
   payload,
   formatValue,
+  hiddenKeys,
 }: {
   active?: boolean
   label?: string | number
   payload?: readonly TooltipItem[]
   formatValue: (value: number) => string
+  hiddenKeys: Record<string, boolean>
 }) {
   if (!active || !payload?.length) return null
+  const visible = payload.filter((entry) => {
+    const key = String(entry.dataKey ?? '')
+    return key && !hiddenKeys[key]
+  })
+  if (visible.length === 0) return null
   return (
     <ChartTooltipFrame>
       {label != null ? (
         <div className="mb-1.5 font-medium text-white">{String(label)}</div>
       ) : null}
       <div className="space-y-1">
-        {payload.map((entry, i) => {
+        {visible.map((entry, i) => {
           const n = typeof entry.value === 'number' ? entry.value : Number(entry.value ?? 0)
           return (
             <div
@@ -101,11 +119,14 @@ export function ChannelsCmChart({
   rows,
   formatValue,
   convertValue,
+  currency,
   dateLocale,
   platforms,
   t,
   cmIncomplete = false,
 }: ChannelsCmChartProps) {
+  const [hiddenKeys, setHiddenKeys] = useState<Record<string, boolean>>({})
+
   const data = useMemo((): ChartRow[] => {
     const buckets = eachRevenueBucketMeta(startDate, endDate, granularity, dateLocale)
     const byBucketPlatform = new Map<string, number>()
@@ -140,39 +161,63 @@ export function ChannelsCmChart({
   }
 
   return (
-    <div className={cn('h-80 w-full', cmIncomplete && 'opacity-80')}>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default)" />
-          <XAxis
-            dataKey="label"
-            tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
-            tickLine={false}
-            axisLine={false}
-          />
-          <YAxis
-            tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
-            tickLine={false}
-            axisLine={false}
-            tickFormatter={(v: number) => formatValue(v)}
-            width={72}
-          />
-          <Tooltip content={<CmTooltip formatValue={formatValue} />} />
-          <Legend />
-          {platforms.map((platform, index) => (
-            <Line
-              key={platform.slug}
-              type="monotone"
-              dataKey={platform.slug}
-              name={platform.label}
-              stroke={PLATFORM_COLORS[index % PLATFORM_COLORS.length]}
-              strokeWidth={2}
-              dot={false}
-              isAnimationActive={false}
+    <div className={cn('flex h-80 w-full min-w-0 flex-col', cmIncomplete && 'opacity-80')}>
+      <div className="min-h-0 min-w-0 flex-1 [&_.recharts-cartesian-axis-tick-value]:text-[12px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default)" />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
+              tickLine={false}
+              axisLine={false}
             />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
+            <YAxis
+              tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(v: number) => fmtMoneyCompact(v, currency)}
+              width={44}
+            />
+            <Tooltip content={<CmTooltip formatValue={formatValue} hiddenKeys={hiddenKeys} />} />
+            {platforms.map((platform, index) => (
+              <Line
+                key={platform.slug}
+                type="monotone"
+                dataKey={platform.slug}
+                name={platform.label}
+                stroke={PLATFORM_COLORS[index % PLATFORM_COLORS.length]}
+                strokeWidth={2}
+                dot={false}
+                hide={Boolean(hiddenKeys[platform.slug])}
+                isAnimationActive={false}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
+        {platforms.map((platform, index) => {
+          const hidden = Boolean(hiddenKeys[platform.slug])
+          const color = PLATFORM_COLORS[index % PLATFORM_COLORS.length]
+          return (
+            <button
+              key={platform.slug}
+              type="button"
+              onClick={() =>
+                setHiddenKeys((prev) => ({ ...prev, [platform.slug]: !prev[platform.slug] }))
+              }
+              className={cn(
+                'inline-flex items-center gap-1.5 text-text-secondary outline-none transition-opacity focus:outline-none',
+                hidden ? 'opacity-40' : 'opacity-100',
+              )}
+            >
+              <span className="inline-block h-0.5 w-4 rounded" style={{ background: color }} aria-hidden />
+              <span>{platform.label}</span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }

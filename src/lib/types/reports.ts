@@ -77,6 +77,7 @@ export type TopProductRow = {
   gross_revenue: number
   net_revenue: number
   units_sold: number
+  order_count: number
   cogs: number
   gross_profit: number
   gross_margin_pct: number

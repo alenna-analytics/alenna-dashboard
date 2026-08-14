@@ -8,9 +8,13 @@ import {
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { TopProductRow } from '@/lib/types/reports'
+import { truncateListingLabel } from '@/pages/products/product-detail-listing-channel-format'
+import { ProductTableThumb } from '@/pages/products/product-table-thumb'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { CopyTextButton } from '@/ui/copy-text-button'
 import { EmptyState } from '@/ui/empty-state'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
 
 const columnHelper = createColumnHelper<TopProductRow>()
@@ -32,6 +36,17 @@ export function SalesProductsTable({
 }: SalesProductsTableProps) {
   const columns = useMemo(
     () => [
+      columnHelper.display({
+        id: 'image',
+        header: () => t('productsColImage'),
+        cell: ({ row }) => (
+          <ProductTableThumb url={row.original.image_url} alt={row.original.title} />
+        ),
+        meta: {
+          headerClassName: 'w-12 min-w-12 max-w-12',
+          cellClassName: 'w-12 min-w-12 max-w-12',
+        },
+      }),
       columnHelper.accessor('title', {
         id: 'product',
         header: ({ column }) => (
@@ -40,15 +55,16 @@ export function SalesProductsTable({
         cell: ({ row }) => (
           <Link
             to={`/dashboard/products/${row.original.product_id}`}
-            className="block min-w-0 max-w-full truncate font-medium text-text-primary underline-offset-2 hover:text-[var(--country-green-base)] hover:underline"
+            className="line-clamp-2 max-w-full break-words text-sm font-normal text-primary hover:underline"
             title={row.original.title}
           >
             {row.original.title}
           </Link>
         ),
         meta: {
-          headerClassName: 'w-56 min-w-40 max-w-56',
-          cellClassName: 'w-56 min-w-40 max-w-56 overflow-hidden',
+          headerClassName: 'min-w-[17rem] max-w-[min(30rem,42vw)]',
+          cellClassName:
+            'min-w-[17rem] max-w-[min(30rem,42vw)] overflow-hidden align-middle whitespace-normal',
         },
       }),
       columnHelper.accessor('internal_sku', {
@@ -58,11 +74,36 @@ export function SalesProductsTable({
         ),
         cell: ({ getValue }) => {
           const sku = getValue()?.trim()
+          if (!sku) {
+            return <span className="text-text-tertiary">—</span>
+          }
           return (
-            <span className="font-numeric text-sm tabular-nums text-text-secondary">
-              {sku || '—'}
-            </span>
+            <div className="flex min-w-0 items-center gap-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="min-w-0 truncate font-mono text-sm leading-normal text-text-secondary">
+                    {truncateListingLabel(sku)}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className="max-w-[min(20rem,calc(100vw-2rem))] break-all font-mono text-xs leading-snug"
+                >
+                  {sku}
+                </TooltipContent>
+              </Tooltip>
+              <CopyTextButton
+                text={sku}
+                copiedLabel={t('productsCopyFeedback')}
+                failedLabel={t('productsCopyFailed')}
+                copyAriaLabel={t('productsTableCopySku')}
+              />
+            </div>
           )
+        },
+        meta: {
+          headerClassName: 'w-24 min-w-24 max-w-24',
+          cellClassName: 'w-24 min-w-24 max-w-24 overflow-hidden align-middle whitespace-normal',
         },
       }),
       columnHelper.accessor('gross_revenue', {
@@ -110,6 +151,23 @@ export function SalesProductsTable({
         ),
         cell: ({ getValue }) => (
           <span className="font-numeric tabular-nums">{getValue().toLocaleString()}</span>
+        ),
+        meta: {
+          headerClassName: '[&>div]:justify-end',
+          cellClassName: '[&>div]:justify-end',
+        },
+      }),
+      columnHelper.accessor('order_count', {
+        id: 'orders',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('channelsMetricOrders')}
+            className="justify-end"
+          />
+        ),
+        cell: ({ getValue }) => (
+          <span className="font-numeric tabular-nums">{(getValue() ?? 0).toLocaleString()}</span>
         ),
         meta: {
           headerClassName: '[&>div]:justify-end',

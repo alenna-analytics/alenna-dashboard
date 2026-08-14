@@ -34,7 +34,7 @@ function FilterPillActiveContents({ label, valueSummary }: { label: string; valu
     <>
       {label.trim().length > 0 ? (
         <>
-          <span className="max-w-[min(40%,9rem)] shrink truncate text-text-primary">{label}</span>
+          <span className="shrink-0 whitespace-nowrap text-text-primary">{label}</span>
           <span className="h-3 w-px shrink-0 bg-border-default" aria-hidden />
         </>
       ) : null}

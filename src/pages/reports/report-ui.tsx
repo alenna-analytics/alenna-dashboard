@@ -17,6 +17,36 @@ export function SectionContainer({
   return <section className={cn('space-y-4', className)}>{children}</section>
 }
 
+/** Billing-style: title + description left, content right. */
+export function SectionSplit({
+  title,
+  description,
+  children,
+  className,
+}: {
+  title: string
+  description?: string
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <section
+      className={cn(
+        'grid gap-4 sm:grid-cols-[3fr_7fr] sm:items-start sm:gap-10',
+        className,
+      )}
+    >
+      <div className="min-w-0">
+        <h2 className="text-base font-medium text-text-primary">{title}</h2>
+        {description ? (
+          <p className="mt-1 text-xs leading-snug text-text-secondary">{description}</p>
+        ) : null}
+      </div>
+      <div className="min-w-0">{children}</div>
+    </section>
+  )
+}
+
 export function SectionHeader({
   title,
   description,

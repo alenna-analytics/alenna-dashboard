@@ -21,7 +21,7 @@ export function ChartGranularityFilter({ value, onChange, t }: ChartGranularityF
   )
 
   return (
-    <div className="min-w-[10.5rem] shrink-0">
+    <div className="w-max shrink-0">
       <FilterComboboxSingle
         label={t('dashboardRevenueGranularityLabel')}
         options={options}

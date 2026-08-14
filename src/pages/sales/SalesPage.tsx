@@ -11,6 +11,7 @@ import { usePnlAwareT } from '@/pages/configuration/pnl-terms/use-pnl-labels-que
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
+import { HomeChannelDonutChart } from '@/pages/dashboard/home-channel-donut-chart'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
 import { HomeProductFilter } from '@/pages/dashboard/home-product-filter'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
@@ -20,13 +21,12 @@ import {
   computeYoyPeriod,
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
-import { useChannelTimeSeries } from '@/pages/reports/use-channel-time-series'
+import { useChannelBreakdown } from '@/pages/reports/use-channel-breakdown'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 import { useProductReports } from '@/pages/reports/use-product-reports'
 import { useReports } from '@/pages/reports/use-reports'
 import { useTopProducts } from '@/pages/reports/use-top-products'
-import { SalesChannelNetBarsChart } from '@/pages/sales/sales-channel-net-bars-chart'
-import { SalesDeductionsBlock } from '@/pages/sales/sales-deductions-block'
+import { SalesQualityBlock } from '@/pages/sales/sales-quality-block'
 import { SalesKpiSection } from '@/pages/sales/sales-kpi-section'
 import { productToSalesKpiSource, toSalesKpiSource } from '@/pages/sales/sales-kpi-source'
 import { SalesProductsTable } from '@/pages/sales/sales-products-table'
@@ -88,10 +88,8 @@ export function SalesPage() {
   const { startDate, endDate, connectionIds, productIds } = filters
   const productMode = productIds.length > 0
 
-  const [channelGranularity, setChannelGranularity] =
-    useState<RevenueSeriesGranularity>('month')
   const [yoyGranularity, setYoyGranularity] =
-    useState<RevenueSeriesGranularity>('month')
+    useState<RevenueSeriesGranularity>('day')
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -229,16 +227,11 @@ export function SalesPage() {
       enabled: queriesEnabled && productMode && Boolean(yoyPeriod) && pkpiReady,
     })
 
-  const {
-    data: channelTimeSeries,
-    isError: channelTimeSeriesError,
-    isLoading: channelTimeSeriesLoading,
-  } = useChannelTimeSeries({
+  const { data: channelBreakdown, isPending: channelBreakdownPending } = useChannelBreakdown({
     connectionIds: activeConnectionIds,
     productIds,
     startDate,
     endDate,
-    granularity: channelGranularity,
     enabled: queriesEnabled,
   })
 
@@ -435,12 +428,21 @@ export function SalesPage() {
           ) : null}
 
           {!productMode && kpi ? (
-            <SalesDeductionsBlock
+            <SalesQualityBlock
               grossRevenue={kpi.gross_revenue}
               discounts={kpi.discounts}
               returns={kpi.returns}
-              netRevenue={kpi.net_revenue}
+              unitsSold={kpi.units_sold}
+              orderCount={kpi.order_count}
+              prevGrossRevenue={kpiPrev?.gross_revenue}
+              prevDiscounts={kpiPrev?.discounts}
+              prevReturns={kpiPrev?.returns}
+              prevUnitsSold={kpiPrev?.units_sold}
+              prevOrderCount={kpiPrev?.order_count}
               currency={currency}
+              previousReady={previousReady}
+              vsPrior={vsPrior}
+              comparisonUnavailable={comparisonUnavailable}
               t={t}
             />
           ) : null}
@@ -450,33 +452,15 @@ export function SalesPage() {
               <SectionHeader
                 title={t('salesChannelNetBarsTitle')}
                 description={t('salesChannelNetBarsSubtitle')}
-                aside={
-                  <ChartGranularityFilter
-                    value={channelGranularity}
-                    onChange={setChannelGranularity}
-                    t={t}
-                  />
-                }
               />
-              {channelTimeSeriesError ? (
-                <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
-                  {t('reportsMonthlyLoadError')}
-                </p>
-              ) : channelTimeSeriesLoading && !channelTimeSeries ? (
-                <Skeleton className="h-80 w-full rounded-md" />
-              ) : (
-                <SalesChannelNetBarsChart
-                  startDate={startDate}
-                  endDate={endDate}
-                  granularity={channelGranularity}
-                  rows={channelTimeSeries?.rows ?? []}
-                  currency={effectiveDisplayCurrency}
-                  convertValue={convertFromBase}
-                  formatValue={formatInDisplay}
-                  dateLocale={dateLocale}
-                  t={t}
-                />
-              )}
+              <HomeChannelDonutChart
+                rows={channelBreakdown?.items ?? []}
+                convertValue={convertFromBase}
+                formatValue={formatInDisplay}
+                t={t}
+                heightClassName="h-64"
+                isLoading={channelBreakdownPending}
+              />
             </SectionContainer>
 
             <SectionContainer>

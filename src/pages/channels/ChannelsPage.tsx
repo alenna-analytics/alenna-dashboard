@@ -19,16 +19,13 @@ import { ChannelsSettlementTable } from '@/pages/channels/channels-settlement-ta
 import {
   aggregateChannelKpisByPlatform,
   aggregateChannelSettlementByPlatform,
-  buildScoreboardRows,
   type ChannelPlatform,
 } from '@/pages/channels/channels-platform-aggregate'
-import { ChannelsScoreboard } from '@/pages/channels/channels-scoreboard'
 import { useChannelsPageFilters } from '@/pages/channels/use-channels-page-filters'
 import { includesAmazonWithUnavailableFees } from '@/lib/integrations/amazon-fees-notice'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
-import { computeShiftedPreviousPeriod } from '@/pages/reports/reports-ui-helpers'
 import { useChannelTimeSeries } from '@/pages/reports/use-channel-time-series'
 import { useKpisByChannel } from '@/pages/reports/use-kpis-by-channel'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
@@ -78,7 +75,7 @@ export function ChannelsPage() {
 
   const [filters, setFilters] = useChannelsPageFilters(tenantId)
   const { startDate, endDate, connectionIds } = filters
-  const [cmGranularity, setCmGranularity] = useState<RevenueSeriesGranularity>('month')
+  const [cmGranularity, setCmGranularity] = useState<RevenueSeriesGranularity>('day')
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -141,27 +138,15 @@ export function ChannelsPage() {
   }, [activeConnectionIds, connections, t])
 
   const queriesEnabled = activeConnectionIds.length > 0
-  const prevPeriod = useMemo(
-    () => computeShiftedPreviousPeriod(startDate, endDate),
-    [startDate, endDate],
-  )
 
   const {
     data: kpis,
     isLoading: kpisLoading,
-    isSuccess: kpisReady,
   } = useKpisByChannel({
     connectionIds: activeConnectionIds,
     startDate,
     endDate,
     enabled: queriesEnabled,
-  })
-
-  const { data: kpisPrev } = useKpisByChannel({
-    connectionIds: activeConnectionIds,
-    startDate: prevPeriod?.start ?? '',
-    endDate: prevPeriod?.end ?? '',
-    enabled: queriesEnabled && Boolean(prevPeriod) && kpisReady,
   })
 
   const {
@@ -202,16 +187,6 @@ export function ChannelsPage() {
   const settlementAgg = useMemo(
     () => aggregateChannelSettlementByPlatform(kpis?.items ?? [], displayedPlatforms),
     [kpis, displayedPlatforms],
-  )
-  const previousAgg = useMemo(() => {
-    if (!kpisPrev) return null
-    const agg = aggregateChannelKpisByPlatform(kpisPrev.items, displayedPlatforms)
-    agg.total.ads_spend = Number(kpisPrev.tenant_ads_spend ?? 0)
-    return agg
-  }, [kpisPrev, displayedPlatforms])
-  const scoreboardRows = useMemo(
-    () => buildScoreboardRows(currentAgg, previousAgg, displayedPlatforms),
-    [currentAgg, previousAgg, displayedPlatforms],
   )
   const cmIncomplete = Boolean(kpis?.cm_incomplete)
   const showAmazonFeesNotice = includesAmazonWithUnavailableFees(
@@ -321,14 +296,6 @@ export function ChannelsPage() {
               ))}
             </ContextAlertsGroup>
           ) : null}
-          <ChannelsScoreboard
-            rows={scoreboardRows}
-            platforms={displayedPlatforms}
-            formatMoney={formatConverted}
-            t={t}
-            cmIncomplete={cmIncomplete}
-          />
-
           <ChannelsPnlTable
             metrics={currentAgg}
             platforms={displayedPlatforms}
@@ -338,66 +305,69 @@ export function ChannelsPage() {
             cmIncomplete={cmIncomplete}
           />
 
+          <div className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
+            <SectionContainer>
+              <SectionHeader
+                title={
+                  cmIncomplete
+                    ? t('channelsCmChartTitleProductScope')
+                    : t('channelsCmChartTitle')
+                }
+                description={
+                  cmIncomplete
+                    ? t('channelsCmChartSubtitleProductScope')
+                    : t('channelsCmChartSubtitle')
+                }
+                aside={
+                  <ChartGranularityFilter
+                    value={cmGranularity}
+                    onChange={setCmGranularity}
+                    t={t}
+                  />
+                }
+              />
+              {channelTimeSeriesError ? (
+                <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
+                  {t('reportsMonthlyLoadError')}
+                </p>
+              ) : channelTimeSeriesLoading && !channelTimeSeries ? (
+                <Skeleton className="h-80 w-full rounded-md" />
+              ) : (
+                <ChannelsCmChart
+                  startDate={startDate}
+                  endDate={endDate}
+                  granularity={cmGranularity}
+                  rows={channelTimeSeries?.rows ?? []}
+                  formatValue={formatInDisplay}
+                  convertValue={convertFromBase}
+                  currency={effectiveDisplayCurrency}
+                  dateLocale={dateLocale}
+                  platforms={displayedPlatforms}
+                  t={t}
+                  cmIncomplete={cmIncomplete}
+                />
+              )}
+            </SectionContainer>
+
+            <SectionContainer>
+              <SectionHeader
+                title={t('channelsCostStructureTitle')}
+                description={t('channelsCostStructureSubtitle')}
+              />
+              <ChannelsCostStructureChart
+                metrics={currentAgg}
+                platforms={displayedPlatforms}
+                t={t}
+              />
+            </SectionContainer>
+          </div>
+
           <ChannelsSettlementTable
             metrics={settlementAgg}
             platforms={displayedPlatforms}
             formatMoney={formatConverted}
             t={t}
           />
-
-          <SectionContainer>
-            <SectionHeader
-              title={
-                cmIncomplete
-                  ? t('channelsCmChartTitleProductScope')
-                  : t('channelsCmChartTitle')
-              }
-              description={
-                cmIncomplete
-                  ? t('channelsCmChartSubtitleProductScope')
-                  : t('channelsCmChartSubtitle')
-              }
-              aside={
-                <ChartGranularityFilter
-                  value={cmGranularity}
-                  onChange={setCmGranularity}
-                  t={t}
-                />
-              }
-            />
-            {channelTimeSeriesError ? (
-              <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
-                {t('reportsMonthlyLoadError')}
-              </p>
-            ) : channelTimeSeriesLoading && !channelTimeSeries ? (
-              <Skeleton className="h-80 w-full rounded-md" />
-            ) : (
-              <ChannelsCmChart
-                startDate={startDate}
-                endDate={endDate}
-                granularity={cmGranularity}
-                rows={channelTimeSeries?.rows ?? []}
-                formatValue={formatInDisplay}
-                convertValue={convertFromBase}
-                dateLocale={dateLocale}
-                platforms={displayedPlatforms}
-                t={t}
-                cmIncomplete={cmIncomplete}
-              />
-            )}
-          </SectionContainer>
-
-          <SectionContainer>
-            <SectionHeader
-              title={t('channelsCostStructureTitle')}
-              description={t('channelsCostStructureSubtitle')}
-            />
-            <ChannelsCostStructureChart
-              metrics={currentAgg}
-              platforms={displayedPlatforms}
-              t={t}
-            />
-          </SectionContainer>
         </div>
       )}
     </DashboardPage>

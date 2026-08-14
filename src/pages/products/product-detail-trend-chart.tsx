@@ -18,6 +18,8 @@ import { cn } from '@/lib/utils'
 import { ChartTooltipFrame } from '@/ui/chart-tooltip'
 import { EmptyState } from '@/ui/empty-state'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
+import { CHART_NARROW_MQ, lineChartXAxisLayout } from '@/pages/dashboard/chart-x-axis-layout'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import {
   CHART_LINE_MAIN_MS,
   CHART_LINE_MINI_MS,
@@ -182,6 +184,8 @@ export function ProductDetailTrendChart({
   const mainAnimProps = rechartsEnterAnimationProps(CHART_LINE_MAIN_MS)
   const miniAnimProps = rechartsEnterAnimationProps(CHART_LINE_MINI_MS)
   const dense = visibleData.length > 18
+  const isNarrow = useMediaQuery(CHART_NARROW_MQ)
+  const xAxis = lineChartXAxisLayout(isNarrow)
 
   if (chartMetrics.length === 0) {
     return <EmptyState size="sm" icon="products" title={t('productsDetailMetricsTrendSelectHint')} />
@@ -189,11 +193,11 @@ export function ProductDetailTrendChart({
 
   return (
     <div className="w-full min-w-0 py-3 [&_.recharts-brush-traveller:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-surface:focus]:outline-none [&_.recharts-wrapper:focus]:outline-none">
-      <ResponsiveContainer width="100%" height={220}>
+      <ResponsiveContainer width="100%" height={isNarrow ? 260 : 220}>
         <LineChart
           key={zoomResetKey}
           data={visibleData}
-          margin={{ top: 8, right: useDualAxis ? 8 : 8, left: 4, bottom: 4 }}
+          margin={{ top: 8, right: useDualAxis ? 8 : 8, left: 4, bottom: isNarrow ? 8 : 4 }}
         >
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
@@ -201,7 +205,12 @@ export function ProductDetailTrendChart({
             tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
             axisLine={{ stroke: 'var(--border-default)' }}
             tickLine={false}
-            interval={dense ? 'preserveStartEnd' : 0}
+            interval={isNarrow || dense ? xAxis.interval : 0}
+            minTickGap={xAxis.minTickGap}
+            angle={xAxis.angle}
+            textAnchor={xAxis.textAnchor}
+            height={xAxis.height}
+            tickMargin={xAxis.tickMargin}
           />
           <YAxis
             yAxisId="left"

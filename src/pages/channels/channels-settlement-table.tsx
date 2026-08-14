@@ -8,8 +8,7 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ChannelPlatform } from '@/pages/channels/channels-platform-aggregate'
 import type { PlatformSettlementMetrics } from '@/pages/channels/channels-platform-aggregate'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
-import { SettlementCompletenessBadge } from '@/pages/products/settlement-completeness-badge'
+import { SectionSplit } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { EmptyState } from '@/ui/empty-state'
@@ -132,31 +131,20 @@ export function ChannelsSettlementTable({
             </span>
           )
         },
+        meta: {
+          cellClassName: 'align-middle whitespace-nowrap pr-6',
+          headerClassName: 'whitespace-nowrap',
+        },
       }),
       ...cols.map((col) =>
         columnHelper.display({
           id: col.slug,
           header: ({ column }) => (
-            <div className="flex w-full flex-col items-end gap-1">
-              <DataTableColumnHeader
-                column={column}
-                title={col.label}
-                className="justify-end"
-              />
-              {col.slug !== 'total' ? (
-                <SettlementCompletenessBadge
-                  completeness={metrics[col.slug]?.completeness ?? 'unavailable'}
-                  t={t}
-                  className="normal-case"
-                />
-              ) : (
-                <SettlementCompletenessBadge
-                  completeness={metrics.total?.completeness ?? 'unavailable'}
-                  t={t}
-                  className="normal-case"
-                />
-              )}
-            </div>
+            <DataTableColumnHeader
+              column={column}
+              title={col.label}
+              className="justify-end"
+            />
           ),
           cell: ({ row }) => {
             const line = row.original
@@ -177,7 +165,10 @@ export function ChannelsSettlementTable({
               </span>
             )
           },
-          meta: { headerClassName: 'text-right align-top', cellClassName: 'text-right' },
+          meta: {
+            headerClassName: 'text-right whitespace-nowrap',
+            cellClassName: 'text-right whitespace-nowrap',
+          },
         }),
       ),
     ],
@@ -193,14 +184,15 @@ export function ChannelsSettlementTable({
   })
 
   return (
-    <SectionContainer>
-      <SectionHeader
-        title={t('channelsSettlementTitle')}
-        description={t('channelsSettlementSubtitle')}
-      />
+    <SectionSplit
+      title={t('channelsSettlementTitle')}
+      description={t('channelsSettlementSubtitle')}
+    >
       <DataTable
         table={table}
         variant="plain"
+        density="compact"
+        tableWidth="full"
         isLoading={false}
         isFetching={false}
         hasEverLoaded={true}
@@ -208,6 +200,6 @@ export function ChannelsSettlementTable({
         emptyContent={<EmptyState icon="channels" title={t('reportsNoData')} />}
         skeletonRowCount={8}
       />
-    </SectionContainer>
+    </SectionSplit>
   )
 }

@@ -5,18 +5,6 @@ import {
   type ChannelPlatform,
   type PlatformMetrics,
 } from '@/pages/channels/channels-platform-aggregate'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
-
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
 
 const SEGMENTS = [
   { key: 'cogs', color: 'var(--chart-2)', labelKey: 'reportsWfCogs' as const },
@@ -30,7 +18,6 @@ const SEGMENTS = [
     color: 'var(--chart-4)',
     labelKey: 'reportsKpiFulfillmentCost' as const,
   },
-  { key: 'ads', color: 'var(--chart-5)', labelKey: 'reportsWfAdsSpend' as const },
   {
     key: 'cm',
     color: 'var(--chart-1)',
@@ -38,77 +25,57 @@ const SEGMENTS = [
   },
 ] as const
 
+type CostSegmentKey = (typeof SEGMENTS)[number]['key']
+
 type ChannelsCostStructureChartProps = {
   metrics: Record<string, PlatformMetrics>
   platforms: ChannelPlatform[]
   t: (key: ShellStringKey) => string
 }
 
+type ChartSegment = {
+  key: CostSegmentKey
+  color: string
+  label: string
+  pct: number
+}
+
 type ChartRow = {
   label: string
-  cogs: number
-  fees: number
-  shipping: number
-  ads: number
-  cm: number
+  segments: ChartSegment[]
 }
 
-type TooltipItem = {
-  name?: string
-  value?: number | string
-  color?: string
-  dataKey?: string | number
+function toPct(value: number, netRevenue: number): number {
+  if (netRevenue === 0) return 0
+  return (value / netRevenue) * 100
 }
 
-function CostTooltip({
-  active,
-  label,
-  payload,
-}: {
-  active?: boolean
-  label?: string | number
-  payload?: readonly TooltipItem[]
-}) {
-  if (!active || !payload?.length) return null
-  return (
-    <ChartTooltipFrame>
-      {label != null ? (
-        <div className="mb-1.5 font-medium text-white">{String(label)}</div>
-      ) : null}
-      <div className="space-y-1">
-        {payload.map((entry, i) => {
-          const n = typeof entry.value === 'number' ? entry.value : Number(entry.value ?? 0)
-          return (
-            <div
-              key={`${String(entry.dataKey)}-${i}`}
-              className="flex flex-wrap items-baseline gap-x-2 tabular-nums"
-            >
-              <span className="inline-flex items-center gap-1.5 text-white/70">
-                <span
-                  className="size-2 shrink-0 rounded-full"
-                  style={{ background: entry.color }}
-                  aria-hidden
-                />
-                {entry.name}:
-              </span>
-              <span className="font-medium text-white">{n.toFixed(1)}%</span>
-            </div>
-          )
-        })}
-      </div>
-    </ChartTooltipFrame>
-  )
+function buildRow(label: string, m: PlatformMetrics, t: (key: ShellStringKey) => string): ChartRow | null {
+  if (m.net_revenue === 0) return null
+  const values: Record<CostSegmentKey, number> = {
+    cogs: toPct(m.cogs, m.net_revenue),
+    fees: toPct(m.platform_fees_total, m.net_revenue),
+    shipping: toPct(m.merchant_shipping_cost, m.net_revenue),
+    cm: toPct(m.contribution_margin, m.net_revenue),
+  }
+  const segments = SEGMENTS.flatMap((seg) => {
+    const pct = values[seg.key]
+    if (pct <= 0.05) return []
+    return [
+      {
+        key: seg.key,
+        color: seg.color,
+        label: t(seg.labelKey),
+        pct,
+      },
+    ]
+  })
+  if (segments.length === 0) return null
+  return { label, segments }
 }
 
-function toPctParts(m: PlatformMetrics): Omit<ChartRow, 'label'> | null {
-  const vn = m.net_revenue
-  if (vn === 0) return null
-  const cogs = (m.cogs / vn) * 100
-  const fees = (m.platform_fees_total / vn) * 100
-  const shipping = (m.merchant_shipping_cost / vn) * 100
-  const ads = (m.ads_spend / vn) * 100
-  const cm = (m.contribution_margin / vn) * 100
-  return { cogs, fees, shipping, ads, cm }
+function formatPct(pct: number): string {
+  return `${pct.toFixed(pct >= 10 ? 0 : 1)}%`
 }
 
 export function ChannelsCostStructureChart({
@@ -119,14 +86,11 @@ export function ChannelsCostStructureChart({
   const data = useMemo((): ChartRow[] => {
     const out: ChartRow[] = []
     for (const platform of platforms) {
-      const parts = toPctParts(metrics[platform.slug])
-      if (!parts) continue
-      out.push({ label: platform.label, ...parts })
+      const row = buildRow(platform.label, metrics[platform.slug], t)
+      if (row) out.push(row)
     }
-    const totalParts = toPctParts(metrics.total)
-    if (totalParts) {
-      out.push({ label: t('channelsColTotal'), ...totalParts })
-    }
+    const totalRow = buildRow(t('channelsColTotal'), metrics.total, t)
+    if (totalRow) out.push(totalRow)
     return out
   }, [metrics, platforms, t])
 
@@ -137,38 +101,45 @@ export function ChannelsCostStructureChart({
   }
 
   return (
-    <div className="h-80 w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default)" />
-          <XAxis
-            dataKey="label"
-            tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
-            tickLine={false}
-            axisLine={false}
-          />
-          <YAxis
-            domain={[0, 100]}
-            tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
-            tickLine={false}
-            axisLine={false}
-            tickFormatter={(v: number) => `${v}%`}
-            width={48}
-          />
-          <Tooltip content={<CostTooltip />} />
-          <Legend />
-          {SEGMENTS.map((seg) => (
-            <Bar
-              key={seg.key}
-              dataKey={seg.key}
-              name={t(seg.labelKey)}
-              stackId="cost"
-              fill={seg.color}
-              isAnimationActive={false}
-            />
-          ))}
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="flex flex-col gap-6">
+      <ul className="flex flex-col gap-5">
+        {data.map((row) => {
+          const stackTotal = row.segments.reduce((sum, seg) => sum + seg.pct, 0)
+          return (
+            <li key={row.label} className="flex flex-col gap-2">
+              <p className="text-sm font-medium text-text-primary">{row.label}</p>
+              <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted/55">
+                {row.segments.map((seg) => (
+                  <div
+                    key={seg.key}
+                    className="h-full min-w-0"
+                    style={{
+                      width: `${stackTotal > 0 ? (seg.pct / stackTotal) * 100 : 0}%`,
+                      background: seg.color,
+                    }}
+                    title={`${seg.label}: ${formatPct(seg.pct)}`}
+                  />
+                ))}
+              </div>
+              <ul className="flex flex-wrap gap-x-3 gap-y-1">
+                {row.segments.map((seg) => (
+                  <li
+                    key={`${row.label}-${seg.key}`}
+                    className="inline-flex items-center gap-1.5 text-xs tabular-nums text-text-secondary"
+                  >
+                    <span
+                      className="size-1.5 shrink-0 rounded-full"
+                      style={{ background: seg.color }}
+                      aria-hidden
+                    />
+                    {seg.label} {formatPct(seg.pct)}
+                  </li>
+                ))}
+              </ul>
+            </li>
+          )
+        })}
+      </ul>
     </div>
   )
 }

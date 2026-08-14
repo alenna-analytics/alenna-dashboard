@@ -37,7 +37,22 @@ export type FormatMoneyOptions = {
   /** Locale override; defaults to the runtime locale. */
   locale?: string
   /** When `none`, formats the converted amount without a currency symbol. */
-  currencyDisplay?: 'symbol' | 'none'
+  currencyDisplay?: 'symbol' | 'none' | 'narrowSymbol'
+}
+
+export function kpiMoneyLocale(lang: string): string {
+  return lang.toLowerCase().startsWith('es') ? 'es-MX' : 'en-US'
+}
+
+export function formatKpiMoney(amount: number, currency: string, locale: string): string {
+  const code = _normalize(currency) || 'USD'
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: code,
+    currencyDisplay: 'narrowSymbol',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
 }
 
 const _normalize = (code: string): string => code.trim().toUpperCase()
@@ -106,9 +121,13 @@ export function formatMoney(amount: MoneyAmount, opts: FormatMoneyOptions): stri
       maximumFractionDigits: opts.maximumFractionDigits ?? 2,
     }).format(value)
   }
+  if (opts.currencyDisplay === 'narrowSymbol') {
+    return formatKpiMoney(value, currency, opts.locale ?? kpiMoneyLocale('es'))
+  }
   return new Intl.NumberFormat(opts.locale, {
     style: 'currency',
     currency,
+    currencyDisplay: 'symbol',
     minimumFractionDigits: opts.minimumFractionDigits ?? 2,
     maximumFractionDigits: opts.maximumFractionDigits ?? 2,
   }).format(value)

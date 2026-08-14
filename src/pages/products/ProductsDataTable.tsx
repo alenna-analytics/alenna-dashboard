@@ -8,22 +8,12 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table"
-import { Columns3 } from "lucide-react"
 
 import type { ShellStringKey } from "@/lib/i18n/shell-strings"
 import type { ProductSummaryApi } from "@/lib/types/catalog"
 import { Button } from "@/ui/button"
 import { DataTable } from "@/ui/data-table/data-table"
 import { DataTablePagination } from "@/ui/data-table/data-table-pagination"
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/ui/dropdown-menu"
 import { useMoney } from "@/hooks/use-money"
 import { useLanguage } from "@/shell/providers/language-provider"
 
@@ -36,17 +26,6 @@ import {
 import { useProductListQuery } from "./use-catalog-queries"
 
 const PAGE_SIZE = 10
-const COLUMN_LABEL_KEY_BY_ID = {
-  image: "productsColImage",
-  title: "productsColProduct",
-  status: "productsColStatus",
-  platforms: "productsColChannels",
-  brand: "productsColBrand",
-  internal_sku: "productsColSku",
-  cost: "productsColCost",
-  listing_count: "productsColListings",
-  created_at: "productsTableColCreated",
-} as const
 
 const EMPTY_ITEMS: ProductSummaryApi[] = []
 
@@ -303,14 +282,6 @@ export function ProductsDataTable({
 
   const hasSelection = effectiveSelectedCount > 0
 
-  const getColumnLabel = useCallback(
-    (columnId: string) => {
-      const key = COLUMN_LABEL_KEY_BY_ID[columnId as keyof typeof COLUMN_LABEL_KEY_BY_ID]
-      return key ? t(key) : columnId
-    },
-    [t],
-  )
-
   if (listQuery.isError) {
     return <div className="rounded-md border border-border-subtle bg-bg-section px-4 py-10 text-sm">{errorContent}</div>
   }
@@ -356,38 +327,7 @@ export function ProductsDataTable({
             <Button type="button" variant="outline" size="sm" onClick={clearSelection}>
               {t("productsTableCancelSelection")}
             </Button>
-          ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                type="button"
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-transparent text-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30"
-                aria-label={t("productsTableColumns")}
-              >
-                <Columns3 className="size-4 shrink-0" aria-hidden />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel>{t("productsTableColumns")}</DropdownMenuLabel>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  {table
-                    .getAllColumns()
-                    .filter((col) => col.getCanHide())
-                    .map((column) => (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize"
-                        checked={column.getIsVisible()}
-                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                      >
-                        {getColumnLabel(column.id)}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )
+          ) : null
         }
         footer={
           <DataTablePagination

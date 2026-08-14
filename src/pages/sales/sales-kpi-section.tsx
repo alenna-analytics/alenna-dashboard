@@ -36,8 +36,8 @@ export function SalesKpiSection({
   showDeductions,
   t,
 }: SalesKpiSectionProps) {
-  const { format: formatMoney } = useMoney()
-  const fmt = (v: number) => formatMoney(v, { nativeCurrency: currency })
+  const { formatKpi } = useMoney()
+  const fmt = (v: number) => formatKpi(v, { nativeCurrency: currency })
   const orders = kpi.order_count || 0
   const units = kpi.units_sold
   const prevOrders = kpiPrev?.order_count

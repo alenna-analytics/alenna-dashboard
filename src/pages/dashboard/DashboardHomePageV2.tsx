@@ -2,12 +2,13 @@ import { useCallback, useMemo, useState, type ReactNode } from 'react'
 
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
-import { differenceInCalendarDays } from 'date-fns'
+import { ChevronsDown, ChevronsUp, ListRestart } from 'lucide-react'
 import { enUS, es as esLocale } from 'date-fns/locale'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
 import { useMoney } from '@/hooks/use-money'
+import { formatCompactNumber } from '@/lib/format/compact-number'
 import { useSalesMetricBasis } from '@/hooks/use-sales-metric-basis'
 import { apiFetch } from '@/lib/api'
 import { usePnlAwareT } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
@@ -34,6 +35,7 @@ import {
   HOME_V2_KPI_DEFAULT_ORDER,
   HOME_V2_KPI_ORDER_KEY,
   HOME_V2_KPI_ORDER_VERSION,
+  homeV2KpiSparklineExpandable,
   parseHomeV2KpiOrderState,
   type HomeV2KpiCardId,
   type HomeV2KpiOrderState,
@@ -52,7 +54,6 @@ import {
 import { mergeRevenueSeriesRows } from '@/pages/reports/monthly-revenue-chart'
 import {
   computePreviousPeriod,
-  parseLocalYmd,
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
@@ -70,7 +71,8 @@ import { FilterDates } from '@/ui/filters/filter-dates'
 import { presetDateRangeYmd } from '@/ui/date-range-picker'
 import { Skeleton } from '@/ui/skeleton'
 import { SalesMetricBasisToggle } from '@/ui/sales-metric-basis-toggle'
-import { Button } from '@/ui/button'
+import { chromeIconButtonClassName } from '@/ui/surface'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 type HomeV2FiltersState = {
@@ -159,43 +161,12 @@ function platformDisplayName(platform: string): string {
     .join(' ')
 }
 
-function sparklineGranularity(startDate: string, endDate: string): RevenueSeriesGranularity {
-  const lo = parseLocalYmd(startDate)
-  const hi = parseLocalYmd(endDate)
-  const days = differenceInCalendarDays(hi, lo) + 1
-  return days < 7 ? 'day' : 'week'
-}
-
-function formatKpiAmount(amount: number, currency: string, lang: Language): string {
-  const locale = lang === 'es' ? 'es-MX' : 'en-US'
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    currencyDisplay: 'narrowSymbol',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount)
-}
-
 function fmtCompact(value: number, currency: string, lang: Language): string {
   const abs = Math.abs(value)
   const narrow = lang === 'es' ? 'es-MX' : 'en-US'
 
-  if (abs >= 1_000_000) {
-    const m = value / 1_000_000
-    const part = m.toLocaleString(narrow, {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    })
-    return `${part}M`
-  }
   if (abs >= 1_000) {
-    const k = value / 1_000
-    const part = k.toLocaleString(narrow, {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    })
-    return lang === 'es' ? `${part} mil` : `${part} K`
+    return formatCompactNumber(value, 1)
   }
   return new Intl.NumberFormat(narrow, {
     style: 'currency',
@@ -340,10 +311,7 @@ export function DashboardHomePageV2() {
   )
 
   const prevPeriod = useMemo(() => computePreviousPeriod(startDate, endDate), [startDate, endDate])
-  const sparkGranularity = useMemo(
-    () => sparklineGranularity(startDate, endDate),
-    [startDate, endDate],
-  )
+  const sparkGranularity: RevenueSeriesGranularity = 'day'
 
   const { data: kpi, isLoading: kpiLoading, isSuccess: kpiReady } = useReports({
     connectionIds: activeConnectionIds,
@@ -410,8 +378,13 @@ export function DashboardHomePageV2() {
 
   const pairedChartBodyPx = useMemo(() => getTopProductsChartHeightPx(), [])
 
-  const { format: formatMoney, convert: convertMoney, effectiveDisplayCurrency, baseCurrency } =
-    useMoney()
+  const {
+    format: formatMoney,
+    formatKpi,
+    convert: convertMoney,
+    effectiveDisplayCurrency,
+    baseCurrency,
+  } = useMoney()
 
   const displayKpi = useMemo((): KpiResponse | null => {
     if (productMode) return null
@@ -446,8 +419,8 @@ export function DashboardHomePageV2() {
   )
 
   const formatCardAmount = useCallback(
-    (n: number) => formatKpiAmount(convertFromBase(n), effectiveDisplayCurrency, lang),
-    [convertFromBase, effectiveDisplayCurrency, lang],
+    (n: number) => formatKpi(n, { nativeCurrency: currency }),
+    [formatKpi, currency],
   )
 
   const settlementSource = productMode ? displayProductKpi?.settlement : displayKpi?.settlement
@@ -650,15 +623,40 @@ export function DashboardHomePageV2() {
     })
   }, [setKpiLayout])
 
+  const [sparklineOpenById, setSparklineOpenById] = useState<
+    Partial<Record<HomeV2KpiCardId, boolean>>
+  >({})
+
+  const expandableKpiIds = useMemo(
+    () => HOME_V2_KPI_DEFAULT_ORDER.filter((id) => homeV2KpiSparklineExpandable(id, productMode)),
+    [productMode],
+  )
+  const allSparklinesOpen =
+    expandableKpiIds.length > 0 && expandableKpiIds.every((id) => sparklineOpenById[id])
+
+  const toggleAllSparklines = useCallback(() => {
+    const nextOpen = !allSparklinesOpen
+    const next: Partial<Record<HomeV2KpiCardId, boolean>> = {}
+    for (const id of expandableKpiIds) next[id] = nextOpen
+    setSparklineOpenById(next)
+  }, [allSparklinesOpen, expandableKpiIds])
+
   const kpiDeltaTooltip = t('homeKpiDeltaTooltip')
 
   const renderKpiCard = useCallback(
     (id: HomeV2KpiCardId, dragHandle: ReactNode) => {
+      const sparklineControl = {
+        sparklineOpen: Boolean(sparklineOpenById[id]),
+        onSparklineOpenChange: (open: boolean) => {
+          setSparklineOpenById((prev) => ({ ...prev, [id]: open }))
+        },
+      }
       switch (id) {
         case 'net-sales':
           return (
             <HomeV2KpiSparklineCard
               dragHandle={dragHandle}
+              {...sparklineControl}
               label={t(salesLabelKey(salesMetricBasis))}
               helpText={t(homeSalesHelpKey(salesMetricBasis))}
               value={formatCardAmount(salesCurrent)}
@@ -677,6 +675,7 @@ export function DashboardHomePageV2() {
           return (
             <HomeV2KpiSparklineCard
               dragHandle={dragHandle}
+              {...sparklineControl}
               label={t(profitLabelKey(salesMetricBasis))}
               helpText={t(profitHelpKey(salesMetricBasis))}
               value={formatCardAmount(profitCurrent)}
@@ -695,6 +694,7 @@ export function DashboardHomePageV2() {
           return (
             <HomeV2KpiSparklineCard
               dragHandle={dragHandle}
+              {...sparklineControl}
               label={t('homeKpiRoasGlobal')}
               helpText={t('homeKpiRoasGlobalHelp')}
               value="—"
@@ -710,6 +710,7 @@ export function DashboardHomePageV2() {
           return (
             <HomeV2KpiSparklineCard
               dragHandle={dragHandle}
+              {...sparklineControl}
               label={t('reportsContributionMargin')}
               helpText={t('reportsKpiHelpContributionMargin')}
               value={formatCardAmount(contributionCurrent)}
@@ -728,6 +729,7 @@ export function DashboardHomePageV2() {
           return (
             <HomeV2KpiSparklineCard
               dragHandle={dragHandle}
+              {...sparklineControl}
               label={t('reportsEbitda')}
               helpText={t('reportsKpiHelpEbitda')}
               value={productMode ? '—' : formatCardAmount(ebitdaCurrent ?? 0)}
@@ -748,6 +750,7 @@ export function DashboardHomePageV2() {
           return (
             <HomeV2KpiSparklineCard
               dragHandle={dragHandle}
+              {...sparklineControl}
               label={t('reportsUnits')}
               helpText={t('reportsKpiHelpUnits')}
               value={unitsCurrent.toLocaleString()}
@@ -765,6 +768,7 @@ export function DashboardHomePageV2() {
           return (
             <HomeV2KpiSparklineCard
               dragHandle={dragHandle}
+              {...sparklineControl}
               label={t('reportsOrders')}
               helpText={t('reportsKpiHelpOrders')}
               value={orders.toLocaleString()}
@@ -781,6 +785,7 @@ export function DashboardHomePageV2() {
           return (
             <HomeV2KpiSparklineCard
               dragHandle={dragHandle}
+              {...sparklineControl}
               label={t('reportsKpiAov')}
               helpText={t('reportsKpiHelpAov')}
               value={aov === null ? '—' : formatCardAmount(aov)}
@@ -823,6 +828,7 @@ export function DashboardHomePageV2() {
       ordersDelta,
       aov,
       aovDelta,
+      sparklineOpenById,
     ],
   )
 
@@ -886,16 +892,56 @@ export function DashboardHomePageV2() {
                   onBasisChange={setSalesMetricBasis}
                   t={t}
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 shrink-0 text-text-secondary"
-                  onClick={restoreDefaultKpiOrder}
-                  disabled={isDefaultKpiOrder}
-                >
-                  {t('homeKpiRestoreDefaultOrder')}
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Tooltip>
+                    <TooltipTrigger
+                      type="button"
+                      className={cn(
+                        chromeIconButtonClassName,
+                        'cursor-pointer hover:bg-[var(--sidebar-accent)]',
+                      )}
+                      onClick={toggleAllSparklines}
+                      aria-expanded={allSparklinesOpen}
+                      aria-label={
+                        allSparklinesOpen
+                          ? t('homeKpiSparklineCollapseAll')
+                          : t('homeKpiSparklineExpandAll')
+                      }
+                    >
+                      {allSparklinesOpen ? (
+                        <ChevronsUp className="size-4" aria-hidden />
+                      ) : (
+                        <ChevronsDown className="size-4" aria-hidden />
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      {allSparklinesOpen
+                        ? t('homeKpiSparklineCollapseAll')
+                        : t('homeKpiSparklineExpandAll')}
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex">
+                        <button
+                          type="button"
+                          className={cn(
+                            chromeIconButtonClassName,
+                            'cursor-pointer hover:bg-[var(--sidebar-accent)] disabled:cursor-not-allowed disabled:opacity-60',
+                          )}
+                          onClick={restoreDefaultKpiOrder}
+                          disabled={isDefaultKpiOrder}
+                          aria-label={t('homeKpiRestoreDefaultOrder')}
+                        >
+                          <ListRestart className="size-4" aria-hidden />
+                        </button>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      {t('homeKpiRestoreDefaultOrder')}
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
               <HomeV2KpiSortableGrid
                 order={kpiLayout.order}
@@ -959,6 +1005,7 @@ export function DashboardHomePageV2() {
                     rows={channelBreakdown?.items ?? []}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}
+                    formatCompact={formatCompactInDisplay}
                     t={t}
                     minBodyHeightPx={pairedChartBodyPx}
                     isLoading={channelDonutPending}

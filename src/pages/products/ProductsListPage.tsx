@@ -4,7 +4,7 @@ import { useState } from "react"
 
 import { shellT } from "@/lib/i18n/shell-strings"
 import { useLanguage } from "@/shell/providers/language-provider"
-import { DashboardPage, pageTitleClassName } from "@/shell/layout/dashboard-page"
+import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from "@/shell/layout/dashboard-page"
 import { Button } from "@/ui/button"
 import { EmptyState } from "@/ui/empty-state"
 import { ProductsDataTable } from "./ProductsDataTable"
@@ -23,7 +23,10 @@ export function ProductsListPage() {
   const empty = (
     <EmptyState
       icon="products"
-      title={q.trim() ? t('productsCatalogEmptySearchHint') : t('productsCatalogEmptyTitle')}
+      title={t('productsCatalogEmptyTitle')}
+      description={
+        q.trim() ? t('productsCatalogEmptySearchHint') : t('productsCatalogEmptyHint')
+      }
     />
   )
 
@@ -37,7 +40,7 @@ export function ProductsListPage() {
             <h1 className={pageTitleClassName}>
               {t("productsPageTitle")}
             </h1>
-            <p className="max-w-2xl text-sm text-text-secondary">{t("productsPageSubtitle")}</p>
+            <p className={pageSubtitleClassName}>{t("productsPageSubtitle")}</p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             <Button type="button" variant="default" size="default" onClick={() => void navigate('/dashboard/products/cogs')}>

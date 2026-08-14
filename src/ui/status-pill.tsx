@@ -6,7 +6,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const statusPillVariants = cva(
-  'inline-flex w-fit shrink-0 items-center justify-center rounded-full px-2.5 py-1 text-[length:var(--text-micro)] font-medium leading-none whitespace-nowrap',
+  'inline-flex w-fit shrink-0 items-center justify-center gap-1 rounded-full px-2.5 py-1 text-[length:var(--text-micro)] font-medium leading-none whitespace-nowrap [&>img]:size-3.5 [&>img]:shrink-0 [&>img]:object-contain [&>svg]:size-3.5 [&>svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -18,7 +18,7 @@ const statusPillVariants = cva(
           'bg-[var(--pill-warning-bg)] text-[var(--pill-warning-text)]',
         info: 'bg-[var(--info-dim)] text-[var(--info)]',
         neutral:
-          'bg-[var(--platinum-blonde-300)] text-text-secondary',
+          'bg-[var(--chrome-muted)] text-text-secondary',
       },
     },
     defaultVariants: {

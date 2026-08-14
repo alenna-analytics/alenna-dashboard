@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { CogsBulkLoadSummaryApi } from '@/lib/types/cogs-load'
-import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
 import { DataTable } from '@/ui/data-table/data-table'
@@ -92,7 +92,7 @@ export function CogsLoadsListPage() {
         <div className="space-y-2">
           <CogsPageBreadcrumb />
           <h1 className={pageTitleClassName}>{t('productsCogsLoadsTitle')}</h1>
-          <p className="max-w-2xl text-sm text-text-secondary">{t('productsCogsLoadsSubtitle')}</p>
+          <p className={pageSubtitleClassName}>{t('productsCogsLoadsSubtitle')}</p>
         </div>
         <Button type="button" variant="accent" size="default" className="shrink-0" loading={createMutation.isPending} onClick={() => void onNewLoad()}>
           <Plus aria-hidden />

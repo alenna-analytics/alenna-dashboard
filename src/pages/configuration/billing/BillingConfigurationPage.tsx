@@ -13,6 +13,7 @@ import {
   StripePortalButton,
 } from '@/components/billing/stripe-checkout-button'
 import {
+  fetchBillingOrdersDaily,
   fetchBillingOverview,
   type BillingInvoice,
   type BillingOverview,
@@ -44,6 +45,7 @@ import { Badge } from '@/ui/badge'
 import { Button, buttonVariants } from '@/ui/button'
 import { ContextAlertCard } from '@/ui/context-alert'
 import { EmptyState } from '@/ui/empty-state'
+import { BillingOrdersDailyChart } from './billing-orders-daily-chart'
 
 function BillingSection({
   label,
@@ -318,6 +320,14 @@ export function BillingConfigurationPage() {
     },
   })
   const overview = overviewQuery.data
+  const ordersDailyQuery = useQuery({
+    queryKey: ['billing', 'orders-daily', me?.tenant_id],
+    enabled: isOwner && Boolean(me?.tenant_id),
+    queryFn: async () => {
+      if (!me) throw new Error('missing workspace')
+      return fetchBillingOrdersDaily((args) => getToken(args), me.tenant_id)
+    },
+  })
 
   const trialHeadline = me ? billingPlanHeadline(me, lang) : '—'
   const trialDetail = me ? billingPlanDetailLine(me, lang) : null
@@ -397,7 +407,7 @@ export function BillingConfigurationPage() {
                     ) : null}
                   </p>
                   {subscribedDescription ? (
-                    <p className="mt-1 text-sm text-text-secondary">{subscribedDescription}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-text-secondary">{subscribedDescription}</p>
                   ) : null}
                   {renewDate ? (
                     <p className="mt-1 text-sm text-text-tertiary">
@@ -494,6 +504,17 @@ export function BillingConfigurationPage() {
             <UsageRows me={me} lang={lang} />
           </BillingSection>
         )}
+
+        <BillingSection
+          label={t('billingOrdersDailyLabel')}
+          description={t('billingOrdersDailyDescription')}
+        >
+          <BillingOrdersDailyChart
+            points={ordersDailyQuery.data?.points ?? []}
+            lang={lang}
+            isLoading={ordersDailyQuery.isPending}
+          />
+        </BillingSection>
 
         {subscribed ? (
           <BillingSection

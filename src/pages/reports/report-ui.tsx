@@ -37,7 +37,7 @@ export function SectionHeader({
         {aside}
       </div>
       {description ? (
-        <p className="max-w-2xl text-sm leading-relaxed text-[var(--color-text-muted)]">{description}</p>
+        <p className="max-w-2xl text-xs leading-relaxed text-[var(--color-text-muted)]">{description}</p>
       ) : null}
     </div>
   )
@@ -47,7 +47,7 @@ export function InsightText({ children, className }: { children: ReactNode; clas
   return (
     <p
       className={cn(
-        'mb-4 max-w-2xl text-sm leading-relaxed text-[var(--color-text-muted)]',
+        'mb-4 max-w-2xl text-xs leading-relaxed text-[var(--color-text-muted)]',
         className,
       )}
     >
@@ -91,10 +91,10 @@ export function KpiCard({
   footer?: ReactNode
   variant?: KpiVariant
 }) {
-  const { format: formatMoney } = useMoney()
+  const { formatKpi } = useMoney()
   const computedDisplay =
     format === 'currency'
-      ? formatMoney(value, { nativeCurrency: currency })
+      ? formatKpi(value, { nativeCurrency: currency })
       : format === 'percent'
         ? `${value.toFixed(1)}%`
         : value.toLocaleString()
@@ -106,7 +106,7 @@ export function KpiCard({
     priorUnavailable || previous === undefined
       ? null
       : format === 'currency'
-        ? formatMoney(previous, { nativeCurrency: currency })
+        ? formatKpi(previous, { nativeCurrency: currency })
         : format === 'percent'
           ? `${previous.toFixed(1)}%`
           : previous.toLocaleString()
@@ -125,6 +125,7 @@ export function KpiCard({
       variant={variant === 'hero' ? 'featured' : 'default'}
       value={display}
       numericValue={value}
+      currencyCode={format === 'currency' ? currency : undefined}
       vsPriorLabel={vsPriorLabel}
       priorValueDisplay={priorDisplay}
       pct={delta?.pct ?? null}

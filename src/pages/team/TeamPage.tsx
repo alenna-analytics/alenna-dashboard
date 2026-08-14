@@ -375,7 +375,7 @@ export function TeamPage() {
                               >
                                 <MoreVertical className="size-4 shrink-0" aria-hidden />
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuContent align="end" className="w-56">
                                 <DropdownMenuGroup>
                                   <DropdownMenuLabel>{t('teamActions')}</DropdownMenuLabel>
                                 </DropdownMenuGroup>
@@ -389,8 +389,8 @@ export function TeamPage() {
                                         variant={action.destructive ? 'destructive' : 'default'}
                                         onClick={action.onSelect}
                                       >
-                                        <Icon className="size-4 shrink-0" aria-hidden />
-                                        {action.label}
+                                        <Icon className="h-4 w-4" aria-hidden />
+                                        <span>{action.label}</span>
                                       </DropdownMenuItem>
                                     )
                                   })}

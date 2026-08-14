@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/ui/card'
 import { EmptyState } from '@/ui/empty-state'
 import type { DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs'
@@ -11,6 +11,11 @@ import { ProductDetailChannelsTable } from './product-detail-channels-table'
 import { ProductDetailPlatformPaymentSection } from './product-detail-platform-payment-section'
 import { ProductDetailVariantsTable } from './product-detail-variants-table'
 import { ProductDetailConfigSection } from './product-detail-config-section'
+import {
+  buildProductPnlWaterfallSegments,
+  productPnlWaterfallSourceFromDetail,
+} from './product-detail-pnl-waterfall-segments'
+import { ProductDetailWaterfallBlock } from './product-detail-waterfall-block'
 import type { ProductCostPriceChartData } from './product-cost-chart-points'
 
 type ProductDetailSectionsProps = {
@@ -26,7 +31,8 @@ type ProductDetailSectionsProps = {
   chartData: ProductCostPriceChartData
   costAmountWithBaseCode: (formatted: string, baseCurrency: string, codeClassName: string) => ReactNode
   fmtBase: (value: number) => string
-  fmtPlain: (value: number) => string
+  fmtCard: (value: number) => string
+  displayCurrency: string
   insightStart: string
   insightEnd: string
   setInsightStart: (value: string) => void
@@ -52,7 +58,8 @@ export function ProductDetailSections({
   chartData,
   costAmountWithBaseCode,
   fmtBase,
-  fmtPlain,
+  fmtCard,
+  displayCurrency,
   insightStart,
   insightEnd,
   setInsightStart,
@@ -66,11 +73,17 @@ export function ProductDetailSections({
 }: ProductDetailSectionsProps) {
   const hasVariants = (detail.variants?.length ?? 0) > 0
   const showVariantsTab = hasVariants
+  const showChannelsTab = !hasVariants
   const showCogsTab = !hasVariants
   const periodLabel =
     detail.period_start && detail.period_end
       ? `${detail.period_start} — ${detail.period_end}`
       : null
+  const pnlSegments = useMemo(
+    () =>
+      buildProductPnlWaterfallSegments(productPnlWaterfallSourceFromDetail(detail), t),
+    [detail, t],
+  )
 
   return (
     <div className="flex flex-col gap-4">
@@ -88,6 +101,9 @@ export function ProductDetailSections({
           {showVariantsTab ? (
             <TabsTrigger value="variants">{t('productsDetailTabVariants')}</TabsTrigger>
           ) : null}
+          {showChannelsTab ? (
+            <TabsTrigger value="channels">{t('productsDetailTabChannels')}</TabsTrigger>
+          ) : null}
           {showCogsTab ? (
             <TabsTrigger value="cogs">{t('productsDetailTabCogs')}</TabsTrigger>
           ) : null}
@@ -104,8 +120,7 @@ export function ProductDetailSections({
               t={t}
               baseCurrency={baseCurrency}
               fmtBase={fmtBase}
-              fmtPlain={fmtPlain}
-              costAmountWithBaseCode={costAmountWithBaseCode}
+              fmtCard={fmtCard}
               insightStart={insightStart}
               insightEnd={insightEnd}
               setInsightStart={setInsightStart}
@@ -117,34 +132,16 @@ export function ProductDetailSections({
               showSectionTitle={false}
             />
 
-            {!hasVariants ? (
-              <Card
-                id="product-channels-table"
-                className="scroll-mt-24 rounded-none border-none p-0 shadow-none hover:shadow-none"
-              >
-                <CardHeader className="p-0">
-                  <CardTitle className="text-xl">{t('productsDetailSectionChannelsTitle')}</CardTitle>
-                  <CardDescription className="text-xs">
-                    {t('productsDetailSectionChannelsDescription')}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0 pt-4">
-                  <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-                    <ProductDetailChannelsTable
-                      listings={detail.listings}
-                      isLoading={false}
-                      isFetching={insightsFetching}
-                      t={t}
-                      fmtBase={fmtBase}
-                      periodLabel={periodLabel}
-                      emptyContent={
-                        <EmptyState size="sm" icon="products" title={t('productsDetailChannelsEmpty')} />
-                      }
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            ) : null}
+            <ProductDetailWaterfallBlock
+              title={t('productsDetailPnlAnalyticsTitle')}
+              description={t('productsDetailPnlAnalyticsDescription')}
+              segments={pnlSegments}
+              currency={baseCurrency}
+              grossRevenue={detail.period_gross_sales}
+              t={t}
+              finalBarCaption={t('productsDetailPnlFinalHint')}
+              isLoading={insightsFetching}
+            />
           </div>
         </TabsContent>
 
@@ -160,6 +157,36 @@ export function ProductDetailSections({
           </TabsContent>
         ) : null}
 
+        {showChannelsTab ? (
+          <TabsContent value="channels">
+            <Card
+              id="product-channels-table"
+              className="scroll-mt-24 rounded-none border-none p-0 shadow-none hover:shadow-none"
+            >
+              <CardHeader className="p-0">
+                <CardDescription className="text-xs">
+                  {t('productsDetailSectionChannelsDescription')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 pt-4">
+                <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+                  <ProductDetailChannelsTable
+                    listings={detail.listings}
+                    isLoading={false}
+                    isFetching={insightsFetching}
+                    t={t}
+                    fmtBase={fmtBase}
+                    periodLabel={periodLabel}
+                    emptyContent={
+                      <EmptyState size="sm" icon="products" title={t('productsDetailChannelsEmpty')} />
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        ) : null}
+
         {showCogsTab ? (
           <TabsContent value="cogs">
             <ProductDetailConfigSection
@@ -171,7 +198,7 @@ export function ProductDetailSections({
               avgHistory={avgHistory}
               chartData={chartData}
               costAmountWithBaseCode={costAmountWithBaseCode}
-              fmtPlain={fmtPlain}
+              fmtCard={fmtCard}
               updatedAtIso={detail.updated_at}
               onEditCost={onEditCost}
               showSectionTitle={false}
@@ -185,6 +212,8 @@ export function ProductDetailSections({
             isFetching={insightsFetching}
             t={t}
             fmtBase={fmtBase}
+            fmtCard={fmtCard}
+            currencyCode={displayCurrency}
             insightStart={insightStart}
             insightEnd={insightEnd}
             setInsightStart={setInsightStart}

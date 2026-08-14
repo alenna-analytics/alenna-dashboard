@@ -230,7 +230,7 @@ export function StockAlarmConfigurationPage() {
         <h1 className={pageTitleClassName}>
           {shellT(lang, 'alarmsStockTypeTitle')}
         </h1>
-        <p className="mt-1.5 text-sm text-text-secondary">
+        <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
           {shellT(lang, 'alarmsStockTypeDescription')}
         </p>
       </section>

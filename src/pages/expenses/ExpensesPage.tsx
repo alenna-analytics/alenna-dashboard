@@ -7,6 +7,7 @@ import { Plus, Search, X } from 'lucide-react'
 import { useCurrentTenant } from '@/auth/hooks'
 import { useMoney } from '@/hooks/use-money'
 import { apiFetch } from '@/lib/api'
+import { formatKpiMoney } from '@/lib/format/money'
 import { shellT, type ShellStringKey, type ShellStringVars } from '@/lib/i18n/shell-strings'
 import type { IntegrationPlatformRow } from '@/lib/types/connectors'
 import type { Expense } from '@/lib/types/expenses'
@@ -22,7 +23,7 @@ import { ExpensesDeleteDialog } from '@/pages/expenses/expenses-delete-dialog'
 import { ExpensesSheet } from '@/pages/expenses/expenses-sheet'
 import { ExpensesTable } from '@/pages/expenses/expenses-table'
 import { useExpenses } from '@/pages/expenses/use-expenses'
-import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useDisplayCurrency } from '@/shell/providers/display-currency-provider'
 import { Button } from '@/ui/button'
@@ -31,17 +32,8 @@ import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import type { FilterOption } from '@/ui/filters/types'
 import { KpiCard } from '@/ui/kpi-card'
+import { cn } from '@/lib/utils'
 import { Skeleton } from '@/ui/skeleton'
-
-function formatNativeCurrency(amount: number, currency: string): string {
-  const code = currency.trim().toUpperCase() || 'MXN'
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency: code,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount)
-}
 
 function defaultFilters(): ExpensesFilters {
   return {
@@ -60,11 +52,13 @@ function SummaryKpi({
   value,
   helpText,
   loading,
+  currencyCode,
 }: {
   label: string
   value: string
   helpText?: string
   loading: boolean
+  currencyCode?: string
 }) {
   if (loading) {
     return (
@@ -80,6 +74,7 @@ function SummaryKpi({
       label={label}
       helpText={helpText}
       value={value}
+      currencyCode={currencyCode}
       vsPriorLabel=""
       priorValueDisplay={null}
       pct={null}
@@ -100,7 +95,7 @@ export function ExpensesPage() {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const expenses = useExpenses()
-  const { format: formatMoney, baseCurrency, effectiveDisplayCurrency } = useMoney()
+  const { formatKpi, baseCurrency, effectiveDisplayCurrency } = useMoney()
   const { latestFx } = useDisplayCurrency()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<Expense | null>(null)
@@ -212,15 +207,16 @@ export function ExpensesPage() {
     setSheetOpen(true)
   }
 
+  const moneyLocale = lang === 'es' ? 'es-MX' : 'en-US'
   const formatAmount = useCallback(
-    (amount: number, currency: string) => formatNativeCurrency(amount, currency),
-    [],
+    (amount: number, currency: string) => formatKpiMoney(amount, currency, moneyLocale),
+    [moneyLocale],
   )
 
   const combinedValue =
     summary.combinedDisplay === null
       ? '—'
-      : formatMoney(summary.combinedDisplay, {
+      : formatKpi(summary.combinedDisplay, {
           nativeCurrency: effectiveDisplayCurrency,
         })
 
@@ -232,7 +228,7 @@ export function ExpensesPage() {
             <h1 className={pageTitleClassName}>
               {t('navExpenses')}
             </h1>
-            <p className="mt-1 max-w-2xl text-sm text-text-secondary">
+            <p className={cn('mt-1', pageSubtitleClassName)}>
               {t('expensesPageSubtitle')}
             </p>
           </div>
@@ -348,17 +344,20 @@ export function ExpensesPage() {
         />
         <SummaryKpi
           label={t('expensesSummaryMxn')}
-          value={formatNativeCurrency(summary.mxnTotal, 'MXN')}
+          value={formatKpiMoney(summary.mxnTotal, 'MXN', moneyLocale)}
+          currencyCode="MXN"
           loading={isLoading}
         />
         <SummaryKpi
           label={t('expensesSummaryUsd')}
-          value={formatNativeCurrency(summary.usdTotal, 'USD')}
+          value={formatKpiMoney(summary.usdTotal, 'USD', moneyLocale)}
+          currencyCode="USD"
           loading={isLoading}
         />
         <SummaryKpi
           label={t('expensesSummaryCombined', { currency: effectiveDisplayCurrency })}
           value={combinedValue}
+          currencyCode={summary.combinedDisplay === null ? undefined : effectiveDisplayCurrency}
           helpText={t('expensesSummaryWindowHint')}
           loading={isLoading}
         />

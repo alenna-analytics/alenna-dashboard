@@ -12,6 +12,7 @@ import {
 } from 'recharts'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import { ChartTooltipFrame } from '@/ui/chart-tooltip'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import {
   CHART_LINE_MAIN_MS,
@@ -54,8 +55,8 @@ function ChartTooltip({
   const row = (payload[0] as unknown as { payload?: ProductCostPriceChartPoint })?.payload
   if (!row) return null
   return (
-    <div className="rounded-md border border-border-subtle bg-popover px-3 py-2 text-xs shadow-[var(--shadow-popover)]">
-      <div className="font-medium text-text-primary">
+    <ChartTooltipFrame>
+      <div className="font-medium text-white">
         {t('productsDetailChartTooltipDate')}:{' '}
         <span className="font-numeric tabular-nums">{row.dateKey}</span>
       </div>
@@ -65,17 +66,17 @@ function ChartTooltip({
           const series = seriesByKey[key]
           if (!series) return null
           return (
-            <div key={key} className="flex items-center gap-2 text-text-secondary">
+            <div key={key} className="flex items-center gap-2 text-white/70">
               <span className="inline-block size-2 rounded-full" style={{ background: p.stroke }} />
               <span>{series.label}:</span>
-              <span className="font-numeric tabular-nums">
+              <span className="font-numeric tabular-nums text-white">
                 {fmtCurrency(Number(p.value ?? 0), series.currency)}
               </span>
             </div>
           )
         })}
       </div>
-    </div>
+    </ChartTooltipFrame>
   )
 }
 

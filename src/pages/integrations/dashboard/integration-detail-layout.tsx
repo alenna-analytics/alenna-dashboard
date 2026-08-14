@@ -31,7 +31,7 @@ export function IntegrationDetailLayout({
             {titleBadges}
           </div>
           {description ? (
-            <p className="mt-1 max-w-3xl text-sm leading-relaxed text-text-secondary">{description}</p>
+            <p className="mt-1 max-w-3xl text-xs leading-relaxed text-text-secondary">{description}</p>
           ) : null}
         </div>
       </div>

@@ -27,4 +27,4 @@ export const chromeBareIconButtonClassName =
 
 /** Muted toolbar text control (currency, language). */
 export const chromeTextButtonClassName =
-  'inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs font-semibold text-text-secondary transition-colors hover:bg-muted hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45 disabled:cursor-not-allowed disabled:opacity-60'
+  'inline-flex h-8 cursor-pointer items-center gap-1 rounded-md px-2 text-xs font-semibold text-text-secondary transition-colors hover:bg-[var(--sidebar-accent)] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45 disabled:cursor-not-allowed disabled:opacity-60'

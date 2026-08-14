@@ -21,7 +21,7 @@ type DataTableProps<TData> = {
   scrollClassName?: string
   /** `card` (default) keeps bordered section shell; `plain` is borderless for flat analytics layouts. */
   variant?: 'card' | 'plain'
-  /** Renders inside the card above the scroll area (e.g. toolbar with column visibility). */
+  /** Renders above the table (outside the card), e.g. bulk selection. */
   toolbar?: ReactNode
   /** Renders in the toolbar row on the left (e.g. bulk selection summary). */
   selectionBanner?: ReactNode
@@ -54,28 +54,9 @@ export function DataTable<TData>({
   const isPlain = variant === 'plain'
 
   return (
-    <div
-      className={cn(
-        'relative',
-        isPlain
-          ? 'w-full overflow-x-auto'
-          : 'overflow-hidden rounded-md border border-border-subtle bg-bg-section',
-      )}
-    >
+    <div className="flex w-full min-w-0 flex-col gap-3">
       {toolbar || selectionBanner ? (
-        <div
-          className={cn(
-            'flex h-10 items-center justify-between gap-2 border-b border-border-subtle px-3',
-            isPlain
-              ? 'bg-transparent'
-              : cn(
-                  'rounded-t-md',
-                  selectionBanner
-                    ? 'bg-[color-mix(in_srgb,var(--zara-base)_22%,white)]'
-                    : 'bg-white',
-                ),
-          )}
-        >
+        <div className="flex min-h-8 items-center justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {selectionBanner}
           </div>
@@ -83,8 +64,15 @@ export function DataTable<TData>({
         </div>
       ) : null}
 
-      {/* Single scrollport so thead `position: sticky` stays fixed while tbody scrolls. */}
-      <div className={cn("relative w-full", scrollClassName)}>
+      <div
+        className={cn(
+          'relative',
+          isPlain
+            ? 'w-full overflow-x-auto'
+            : 'overflow-hidden rounded-md border border-border-subtle bg-bg-section',
+        )}
+      >
+        <div className={cn('relative w-full', scrollClassName)}>
         {showOverlay ? (
           <div
             className="pointer-events-none sticky top-0 z-30 h-[3px] overflow-hidden bg-[color-mix(in_srgb,var(--color-accent-forest)_18%,var(--border-subtle))]"
@@ -109,10 +97,20 @@ export function DataTable<TData>({
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta as ColumnMetaWithCellClass | undefined
+                  const sort = header.column.getIsSorted()
                   return (
                     <TableHead
                       key={header.id}
                       colSpan={header.colSpan}
+                      aria-sort={
+                        header.column.getCanSort()
+                          ? sort === 'asc'
+                            ? 'ascending'
+                            : sort === 'desc'
+                              ? 'descending'
+                              : 'none'
+                          : undefined
+                      }
                       className={cn(
                         "sticky top-0 z-10 border-0 align-middle shadow-[0_1px_0_var(--border-subtle)] font-medium text-muted-foreground",
                         isPlain ? "bg-transparent" : "bg-[var(--table-row-hover-bg)]",
@@ -196,7 +194,10 @@ export function DataTable<TData>({
         </table>
         )}
       </div>
-      <div className={cn(showOverlay && "pointer-events-none opacity-55")}>{footer}</div>
+      </div>
+      {footer ? (
+        <div className={cn(showOverlay && 'pointer-events-none opacity-55')}>{footer}</div>
+      ) : null}
     </div>
   )
 }

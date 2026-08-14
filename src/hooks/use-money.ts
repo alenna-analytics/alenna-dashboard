@@ -2,11 +2,14 @@ import { useCallback, useMemo } from 'react'
 
 import {
   convertAmount,
+  formatKpiMoney,
   formatMoney,
+  kpiMoneyLocale,
   type FormatMoneyOptions,
   type MoneyAmount,
 } from '@/lib/format/money'
 import { useDisplayCurrency } from '@/shell/providers/display-currency-provider'
+import { useLanguage } from '@/shell/providers/language-provider'
 
 type FormatOptions = Omit<
   FormatMoneyOptions,
@@ -24,6 +27,7 @@ type FormatOptions = Omit<
  */
 export function useMoney(): {
   format: (amount: MoneyAmount, options?: FormatOptions) => string
+  formatKpi: (amount: MoneyAmount, options?: FormatOptions) => string
   convert: (
     amount: MoneyAmount,
     options?: FormatOptions,
@@ -36,6 +40,7 @@ export function useMoney(): {
   fxToCurrency: string | null
 } {
   const ctx = useDisplayCurrency()
+  const { lang } = useLanguage()
 
   const buildOpts = useCallback(
     (options?: FormatOptions): FormatMoneyOptions => ({
@@ -57,6 +62,14 @@ export function useMoney(): {
     [buildOpts],
   )
 
+  const formatKpi = useCallback(
+    (amount: MoneyAmount, options?: FormatOptions) => {
+      const resolved = convertAmount(amount, buildOpts(options))
+      return formatKpiMoney(resolved.amount, resolved.currency, kpiMoneyLocale(lang))
+    },
+    [buildOpts, lang],
+  )
+
   const convert = useCallback(
     (amount: MoneyAmount, options?: FormatOptions) => convertAmount(amount, buildOpts(options)),
     [buildOpts],
@@ -65,6 +78,7 @@ export function useMoney(): {
   return useMemo(
     () => ({
       format,
+      formatKpi,
       convert,
       baseCurrency: ctx.baseCurrency,
       displayCurrency: ctx.displayCurrency,
@@ -75,6 +89,7 @@ export function useMoney(): {
     }),
     [
       format,
+      formatKpi,
       convert,
       ctx.baseCurrency,
       ctx.displayCurrency,

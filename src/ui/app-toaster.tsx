@@ -8,7 +8,7 @@ export function AppToaster() {
   return createPortal(
     <Toaster
       className="alenna-sonner"
-      position="bottom-center"
+      position="bottom-right"
       theme="dark"
       offset={16}
       mobileOffset={16}
@@ -17,6 +17,8 @@ export function AppToaster() {
           toast: 'alenna-toast',
           title: 'alenna-toast-title',
           description: 'alenna-toast-description',
+          actionButton: 'alenna-toast-action',
+          cancelButton: 'alenna-toast-cancel',
           default: '',
           success: '',
           error: '',

@@ -1,8 +1,9 @@
 import { useEnabledWorkspaceConfigSubmodules } from '@/lib/modules/use-workspace-config'
-import { ConfigurationEntryCard } from '@/pages/configuration/configuration-entry-card'
-import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
-import { useLanguage } from '@/shell/providers/language-provider'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { ConfigurationEntryCard } from '@/pages/configuration/configuration-entry-card'
+import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { useLanguage } from '@/shell/providers/language-provider'
+import { cn } from '@/lib/utils'
 
 export function ConfigurationHomePage() {
   const { lang } = useLanguage()
@@ -15,7 +16,7 @@ export function ConfigurationHomePage() {
           <h1 className={pageTitleClassName}>
             {shellT(lang, 'navWorkspaceConfiguration')}
           </h1>
-          <p className="mt-1.5 text-sm text-text-secondary">
+          <p className={cn('mt-1.5', pageSubtitleClassName)}>
             {shellT(lang, 'workspaceConfigHeroSubtitle')}
           </p>
         </div>

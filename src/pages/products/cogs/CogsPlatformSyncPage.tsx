@@ -16,7 +16,7 @@ import {
   GLOBAL_ACTIVITY_COGS_BULK_BACKFILL_ID,
   useGlobalActivity,
 } from '@/shell/providers/global-activity-provider'
-import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
 import { Checkbox } from '@/ui/checkbox'
@@ -355,7 +355,7 @@ export function CogsPlatformSyncPage() {
       <header className="space-y-2">
         <CogsPageBreadcrumb />
         <h1 className={pageTitleClassName}>{t('productsCogsSyncTitle')}</h1>
-        <p className="max-w-2xl text-sm text-text-secondary">{t('productsCogsSyncSubtitle')}</p>
+        <p className={pageSubtitleClassName}>{t('productsCogsSyncSubtitle')}</p>
       </header>
 
       {scopeError ? (

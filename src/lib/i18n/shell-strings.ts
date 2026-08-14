@@ -99,6 +99,10 @@ const SHELL_STRINGS = {
     homeKpiDeltaTooltip:
       'Variación porcentual frente al periodo anterior de la misma duración (p. ej. los 30 días previos al rango seleccionado).',
     homeKpiDragHandleAria: 'Arrastrar para reordenar tarjeta',
+    homeKpiSparklineExpand: 'Mostrar tendencia',
+    homeKpiSparklineCollapse: 'Ocultar tendencia',
+    homeKpiSparklineExpandAll: 'Expandir todas',
+    homeKpiSparklineCollapseAll: 'Colapsar todas',
     homeKpiRestoreDefaultOrder: 'Restaurar orden predeterminado',
     settingsLanguageLabel: 'Idioma',
     settingsLanguageEs: 'Español',
@@ -434,6 +438,11 @@ const SHELL_STRINGS = {
       'Cada espacio de trabajo tiene su propio plan, ciclo de facturación y límites de uso.',
     billingOrdersLimitLabel: 'Pedidos sincronizados este mes',
     billingOrdersLimitDescription: 'Pedidos importados de tus canales conectados en el periodo actual.',
+    billingOrdersDailyLabel: 'Pedidos sincronizados por día',
+    billingOrdersDailyDescription:
+      'Pedidos importados de tus canales conectados, agrupados por día en el mes calendario actual.',
+    billingOrdersDailyEmpty: 'Aún no hay pedidos sincronizados este mes.',
+    billingOrdersDailyTooltip: 'Pedidos',
     billingSkusLimitLabel: 'Productos activos',
     billingSkusLimitDescription: 'SKUs activos en tu catálogo de productos.',
     billingUsersLimitLabel: 'Miembros del equipo',
@@ -1304,6 +1313,7 @@ const SHELL_STRINGS = {
     productsDetailSectionInsightsDescription:
       'Métricas del rango seleccionado. Haz clic en hasta 4 cards para verlas en la gráfica.',
     productsDetailTabAnalytics: 'Analítica',
+    productsDetailTabChannels: 'Canales',
     productsDetailTabPlatformPayment: 'Pago de plataforma',
     productsDetailTabVariants: 'Variantes',
     productsDetailTabCogs: 'COGS',
@@ -1327,6 +1337,12 @@ const SHELL_STRINGS = {
     productsDetailWeeklyNetSalesTooltipSales: 'Ventas netas',
     productsDetailSectionChannelsTitle: 'Canales',
     productsDetailSectionChannelsDescription: 'Publicaciones por canal del producto',
+    productsDetailPnlTitle: 'P&L del producto',
+    productsDetailPnlAnalyticsTitle: 'Análisis de métricas',
+    productsDetailPnlAnalyticsDescription: 'Desglose de ventas y métricas del producto',
+    productsDetailPnlDescription:
+      'De ventas brutas a utilidad neta. Sin publicidad, gastos fijos ni EBITDA.',
+    productsDetailPnlFinalHint: 'Utilidad neta del periodo',
     productsDetailListingColChannel: 'Canal',
     productsDetailListingColVelocityPerDay: 'Velocidad/día',
     productsDetailListingColVelocityPerDayHelp:
@@ -1749,6 +1765,10 @@ const SHELL_STRINGS = {
     homeKpiDeltaTooltip:
       'Percent change versus the previous period of the same length (e.g. the 30 days before your selected range).',
     homeKpiDragHandleAria: 'Drag to reorder card',
+    homeKpiSparklineExpand: 'Show trend',
+    homeKpiSparklineCollapse: 'Hide trend',
+    homeKpiSparklineExpandAll: 'Expand all',
+    homeKpiSparklineCollapseAll: 'Collapse all',
     homeKpiRestoreDefaultOrder: 'Restore default order',
     settingsLanguageLabel: 'Language',
     settingsLanguageEs: 'Spanish',
@@ -2079,6 +2099,11 @@ const SHELL_STRINGS = {
       'Each workspace has its own subscription plan, billing cycle, and usage quotas.',
     billingOrdersLimitLabel: 'Orders synced this month',
     billingOrdersLimitDescription: 'Orders imported from connected channels in the current billing period.',
+    billingOrdersDailyLabel: 'Orders synced per day',
+    billingOrdersDailyDescription:
+      'Orders imported from your connected channels, grouped by day in the current calendar month.',
+    billingOrdersDailyEmpty: 'No orders synced this month yet.',
+    billingOrdersDailyTooltip: 'Orders',
     billingSkusLimitLabel: 'Active products',
     billingSkusLimitDescription: 'Active SKUs in your product catalog.',
     billingUsersLimitLabel: 'Team members',
@@ -2941,6 +2966,7 @@ const SHELL_STRINGS = {
     productsDetailSectionInsightsDescription:
       'Metrics for the selected range. Click up to 4 cards to plot them on the chart.',
     productsDetailTabAnalytics: 'Analytics',
+    productsDetailTabChannels: 'Channels',
     productsDetailTabPlatformPayment: 'Platform payout',
     productsDetailTabVariants: 'Variants',
     productsDetailTabCogs: 'COGS',
@@ -2964,6 +2990,12 @@ const SHELL_STRINGS = {
     productsDetailWeeklyNetSalesTooltipSales: 'Net sales',
     productsDetailSectionChannelsTitle: 'Channels',
     productsDetailSectionChannelsDescription: 'Product listings by channel',
+    productsDetailPnlTitle: 'Product P&L',
+    productsDetailPnlAnalyticsTitle: 'Metrics analysis',
+    productsDetailPnlAnalyticsDescription: 'Product sales and metrics breakdown',
+    productsDetailPnlDescription:
+      'From gross sales to net profit. Ads, fixed opex, and EBITDA are not included.',
+    productsDetailPnlFinalHint: 'Net profit for the period',
     productsDetailListingColChannel: 'Channel',
     productsDetailListingColVelocityPerDay: 'Velocity/day',
     productsDetailListingColVelocityPerDayHelp:

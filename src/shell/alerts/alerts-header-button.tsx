@@ -25,8 +25,13 @@ export function AlertsHeaderButton({ className }: { className?: string }) {
     >
       <AppIcon name="notifications" tone="muted" className="size-4" />
       {count > 0 ? (
-        <span className="pointer-events-none absolute top-0 right-0 z-10 flex min-w-[1rem] translate-x-1/3 -translate-y-1/3 items-center justify-center rounded-full bg-[var(--stock-alert-critical)] px-1 py-px text-[0.625rem] font-semibold leading-none text-white">
-          {count > 99 ? '99+' : count}
+        <span
+          className={cn(
+            'pointer-events-none absolute -top-px -right-px z-10 flex size-3.5 min-h-3.5 min-w-3.5 max-w-3.5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--stock-alert-critical)] p-0 text-white tabular-nums',
+            count >= 100 ? 'text-[7px] leading-none font-semibold' : 'text-[8px] leading-none font-semibold',
+          )}
+        >
+          {count >= 100 ? '99+' : count}
         </span>
       ) : null}
     </button>

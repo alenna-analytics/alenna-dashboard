@@ -9,7 +9,9 @@ type EmptyStateSize = 'sm' | 'md'
 type EmptyStateProps = {
   icon?: AppIconName
   title: string
+  description?: string
   action?: ReactNode
+  children?: ReactNode
   size?: EmptyStateSize
   className?: string
 }
@@ -17,11 +19,15 @@ type EmptyStateProps = {
 export function EmptyState({
   icon,
   title,
+  description,
   action,
+  children,
   size = 'md',
   className,
 }: EmptyStateProps) {
   const compact = size === 'sm'
+  const cta = children ?? action
+
   return (
     <div
       role="status"
@@ -32,10 +38,22 @@ export function EmptyState({
       )}
     >
       {icon ? (
-        <AppIcon name={icon} colorize className="size-5 text-text-tertiary" />
+        <div
+          className={cn(
+            'flex shrink-0 items-center justify-center rounded-md bg-muted text-text-tertiary',
+            compact ? 'size-8' : 'size-10',
+          )}
+        >
+          <AppIcon name={icon} colorize className={compact ? 'size-4' : 'size-5'} />
+        </div>
       ) : null}
-      <p className="text-sm text-text-secondary">{title}</p>
-      {action}
+      <div className={cn('flex max-w-sm flex-col', compact ? 'gap-1' : 'gap-1.5')}>
+        <p className="text-sm font-medium text-text-primary">{title}</p>
+        {description ? (
+          <p className="text-sm leading-snug text-text-tertiary">{description}</p>
+        ) : null}
+      </div>
+      {cta ? <div className="mt-1">{cta}</div> : null}
     </div>
   )
 }

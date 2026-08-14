@@ -19,6 +19,15 @@ export function isHomeV2KpiCardId(value: string): value is HomeV2KpiCardId {
 
 export const HOME_V2_KPI_DEFAULT_ORDER: HomeV2KpiCardId[] = [...HOME_V2_KPI_CARD_IDS]
 
+export function homeV2KpiSparklineExpandable(
+  id: HomeV2KpiCardId,
+  productMode: boolean,
+): boolean {
+  if (id === 'roas' || id === 'aov') return false
+  if (id === 'ebitda' && productMode) return false
+  return true
+}
+
 export type HomeV2KpiOrderState = {
   order: HomeV2KpiCardId[]
   v: number

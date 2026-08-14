@@ -54,7 +54,7 @@ function TopProductChartRow({
         <p className="mb-1 min-w-0 truncate text-xs text-text-secondary" title={row.title}>
           <Link
             to={`/dashboard/products/${row.productId}`}
-            className="block min-w-0 truncate text-text-secondary underline-offset-2 hover:text-[var(--country-green-base)] hover:underline"
+            className="block min-w-0 truncate text-text-secondary underline-offset-2 hover:text-[var(--chart-3)] hover:underline"
           >
             {row.title}
           </Link>
@@ -62,7 +62,7 @@ function TopProductChartRow({
         <div className="flex min-h-4.5 min-w-0 items-center gap-1.5 sm:gap-2.5">
           <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted/55">
             <div
-              className="h-full w-full origin-left rounded-r-full bg-[var(--country-green-base)] will-change-transform motion-reduce:transition-none"
+              className="h-full w-full origin-left rounded-r-full bg-[var(--chart-3)] will-change-transform motion-reduce:transition-none"
               style={{
                 transform: `scaleX(${scale})`,
                 transitionProperty: 'transform',

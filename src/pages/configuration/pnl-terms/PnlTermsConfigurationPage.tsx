@@ -100,7 +100,7 @@ export function PnlTermsConfigurationPage() {
     <DashboardPage className="space-y-8">
       <section>
         <h1 className={pageTitleClassName}>{t('workspaceConfigPnlTermsTitle')}</h1>
-        <p className="mt-1.5 text-sm text-text-secondary">
+        <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
           {t('workspaceConfigPnlTermsSubtitle')}
         </p>
       </section>

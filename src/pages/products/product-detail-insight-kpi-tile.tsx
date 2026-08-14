@@ -7,6 +7,7 @@ type ProductDetailInsightKpiTileProps = {
   helpText?: string
   value: ReactNode
   numericValue?: number | null
+  currencyCode?: string
   breakdown?: ReactNode
   footer?: ReactNode
   showValues: boolean
@@ -23,6 +24,7 @@ export function ProductDetailInsightKpiTile({
   helpText,
   value,
   numericValue,
+  currencyCode,
   breakdown,
   footer,
   showValues,
@@ -40,6 +42,7 @@ export function ProductDetailInsightKpiTile({
       helpText={helpText}
       value={isFetching ? skeleton : value}
       numericValue={showValues ? numericValue : null}
+      currencyCode={showValues && !isFetching ? currencyCode : undefined}
       showComparison={false}
       placeholder={!showValues && !isFetching}
       footer={

@@ -13,6 +13,7 @@ export function buildSettlementWaterfallSegments(
       value: settlement.gross_revenue,
       isSubtotal: true,
       isNegative: false,
+      positiveTone: 'gross',
     },
     {
       name: t('settlementWfDiscountsReturns'),
@@ -29,6 +30,7 @@ export function buildSettlementWaterfallSegments(
       value: settlement.net_revenue,
       isSubtotal: true,
       isNegative: false,
+      positiveTone: 'net',
     },
     {
       name: t('settlementWfMarketplaceFees'),
@@ -53,6 +55,7 @@ export function buildSettlementWaterfallSegments(
       value: settlement.estimated_payout,
       isSubtotal: true,
       isNegative: settlement.estimated_payout < 0,
+      positiveTone: 'payout',
     },
   ]
 }

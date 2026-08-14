@@ -32,7 +32,7 @@ import { productToSalesKpiSource, toSalesKpiSource } from '@/pages/sales/sales-k
 import { SalesProductsTable } from '@/pages/sales/sales-products-table'
 import { SalesYoyChart } from '@/pages/sales/sales-yoy-chart'
 import { useSalesPageFilters } from '@/pages/sales/use-sales-page-filters'
-import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
@@ -367,7 +367,7 @@ export function SalesPage() {
             <h1 className={pageTitleClassName}>
               {t('salesPageTitle')}
             </h1>
-            <p className="mt-1 max-w-2xl text-sm text-text-secondary">
+            <p className={cn('mt-1', pageSubtitleClassName)}>
               {t('salesPageSubtitle')}
             </p>
           </div>

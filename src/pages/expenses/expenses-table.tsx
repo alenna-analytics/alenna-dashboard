@@ -149,23 +149,23 @@ export function ExpensesTable({
               >
                 <MoreVertical className="size-4 shrink-0" aria-hidden />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>{t('expensesActionsColumn')}</DropdownMenuLabel>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem onClick={() => onEdit(row.original)}>
-                    <Pencil className="size-4 shrink-0" aria-hidden />
-                    {t('expensesEditBtn')}
+                    <Pencil className="h-4 w-4" aria-hidden />
+                    <span>{t('expensesEditBtn')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={isBusy}
                     variant="destructive"
                     onClick={() => onDelete(row.original.id)}
                   >
-                    <Trash2 className="size-4 shrink-0" aria-hidden />
-                    {t('expensesDeleteBtn')}
+                    <Trash2 className="h-4 w-4" aria-hidden />
+                    <span>{t('expensesDeleteBtn')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
@@ -211,6 +211,7 @@ export function ExpensesTable({
         <EmptyState
           icon="billing"
           title={t('expensesEmptyTitle')}
+          description={t('expensesEmptyDescription')}
           action={
             <Button type="button" variant="outline" size="xs" onClick={onCreate}>
               <Plus aria-hidden />

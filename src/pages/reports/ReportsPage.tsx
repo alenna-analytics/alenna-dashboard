@@ -557,10 +557,6 @@ export function ReportsPage() {
             t={t}
           />
 
-          {productMode ? (
-            <p className="text-sm text-text-secondary">{t('reportsProductModeHint')}</p>
-          ) : null}
-
           {pnlRows.length > 0 ? (
             <ReportsPnlTable
               rows={pnlRows}
@@ -594,7 +590,7 @@ export function ReportsPage() {
                   description={t('reportsWaterfallSubtitle')}
                 />
                 <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
-                  {productMode ? t('reportsProductModeHint') : t('reportsNoData')}
+                  {t('reportsNoData')}
                 </p>
               </SectionContainer>
             )}

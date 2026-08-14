@@ -163,9 +163,7 @@ function sparklineGranularity(startDate: string, endDate: string): RevenueSeries
   const lo = parseLocalYmd(startDate)
   const hi = parseLocalYmd(endDate)
   const days = differenceInCalendarDays(hi, lo) + 1
-  if (days <= 45) return 'day'
-  if (days <= 120) return 'week'
-  return 'month'
+  return days < 7 ? 'day' : 'week'
 }
 
 function formatKpiAmount(amount: number, currency: string, lang: Language): string {
@@ -228,11 +226,11 @@ function PageSection({
 function HomeV2LoadingSkeleton() {
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="flex min-h-[148px] flex-col rounded-md border border-border-default bg-white p-4"
+            className="flex min-h-[148px] flex-col rounded-md border border-border-default bg-white p-3"
             aria-hidden
           >
             <Skeleton className="h-4 w-24" />
@@ -660,7 +658,6 @@ export function DashboardHomePageV2() {
         case 'net-sales':
           return (
             <HomeV2KpiSparklineCard
-              sparklineId="net-sales"
               dragHandle={dragHandle}
               label={t(salesLabelKey(salesMetricBasis))}
               helpText={t(homeSalesHelpKey(salesMetricBasis))}
@@ -679,7 +676,6 @@ export function DashboardHomePageV2() {
         case 'net-profit':
           return (
             <HomeV2KpiSparklineCard
-              sparklineId="net-profit"
               dragHandle={dragHandle}
               label={t(profitLabelKey(salesMetricBasis))}
               helpText={t(profitHelpKey(salesMetricBasis))}
@@ -698,7 +694,6 @@ export function DashboardHomePageV2() {
         case 'roas':
           return (
             <HomeV2KpiSparklineCard
-              sparklineId="roas"
               dragHandle={dragHandle}
               label={t('homeKpiRoasGlobal')}
               helpText={t('homeKpiRoasGlobalHelp')}
@@ -714,7 +709,6 @@ export function DashboardHomePageV2() {
         case 'contribution':
           return (
             <HomeV2KpiSparklineCard
-              sparklineId="contribution"
               dragHandle={dragHandle}
               label={t('reportsContributionMargin')}
               helpText={t('reportsKpiHelpContributionMargin')}
@@ -733,7 +727,6 @@ export function DashboardHomePageV2() {
         case 'ebitda':
           return (
             <HomeV2KpiSparklineCard
-              sparklineId="ebitda"
               dragHandle={dragHandle}
               label={t('reportsEbitda')}
               helpText={t('reportsKpiHelpEbitda')}
@@ -754,7 +747,6 @@ export function DashboardHomePageV2() {
         case 'units':
           return (
             <HomeV2KpiSparklineCard
-              sparklineId="units"
               dragHandle={dragHandle}
               label={t('reportsUnits')}
               helpText={t('reportsKpiHelpUnits')}
@@ -772,7 +764,6 @@ export function DashboardHomePageV2() {
         case 'orders':
           return (
             <HomeV2KpiSparklineCard
-              sparklineId="orders"
               dragHandle={dragHandle}
               label={t('reportsOrders')}
               helpText={t('reportsKpiHelpOrders')}
@@ -789,7 +780,6 @@ export function DashboardHomePageV2() {
         case 'aov':
           return (
             <HomeV2KpiSparklineCard
-              sparklineId="aov"
               dragHandle={dragHandle}
               label={t('reportsKpiAov')}
               helpText={t('reportsKpiHelpAov')}
@@ -818,8 +808,8 @@ export function DashboardHomePageV2() {
       salesDelta,
       kpiDeltaTooltip,
       buildSparklinePoints,
-      trendMetricContext,
       formatSparklineForMetric,
+      trendMetricContext,
       profitCurrent,
       profitDelta,
       contributionCurrent,

@@ -12,10 +12,10 @@ export const surfaceCardInteractiveClassName =
 export const surfaceSectionClassName = cn(surfaceCardClassName, 'p-4 sm:p-5')
 
 /** Compact KPI row cards. */
-export const surfaceKpiCompactClassName = cn(surfaceCardClassName, 'p-3 sm:p-3.5')
+export const surfaceKpiCompactClassName = cn(surfaceCardClassName, 'p-3')
 
 /** Primary KPI cards. */
-export const surfaceKpiClassName = cn(surfaceCardClassName, 'p-4 sm:p-4')
+export const surfaceKpiClassName = cn(surfaceCardClassName, 'p-3')
 
 /** Header / toolbar icon control with border (sidebar toggle, etc.). */
 export const chromeIconButtonClassName =

@@ -73,7 +73,7 @@ export function SalesDeductionsBlock({
             </div>
             <p
               className={cn(
-                'font-numeric text-lg font-semibold tabular-nums',
+                'font-numeric text-lg font-medium tabular-nums',
                 step.tone === 'deduction' ? 'text-destructive' : 'text-text-primary',
               )}
             >

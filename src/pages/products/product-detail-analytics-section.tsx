@@ -43,6 +43,7 @@ type ProductDetailAnalyticsSectionProps = {
   t: (key: ShellStringKey) => string
   baseCurrency: string
   fmtBase: (value: number) => string
+  fmtPlain: (value: number) => string
   costAmountWithBaseCode: (formatted: string, baseCurrency: string, codeClassName: string) => ReactNode
   insightStart: string
   insightEnd: string
@@ -81,6 +82,7 @@ export function ProductDetailAnalyticsSection({
   t,
   baseCurrency,
   fmtBase,
+  fmtPlain,
   costAmountWithBaseCode,
   insightStart,
   insightEnd,
@@ -157,7 +159,7 @@ export function ProductDetailAnalyticsSection({
           value = insightKpi((numericValue ?? 0).toLocaleString())
         } else {
           value = insightKpi(
-            costAmountWithBaseCode(fmtBase(numericValue ?? 0), baseCurrency, 'text-xs'),
+            costAmountWithBaseCode(fmtPlain(numericValue ?? 0), baseCurrency, 'text-xs'),
           )
         }
         return {
@@ -176,7 +178,7 @@ export function ProductDetailAnalyticsSection({
       periodView,
       detail,
       t,
-      fmtBase,
+      fmtPlain,
       insightKpi,
       costAmountWithBaseCode,
       baseCurrency,

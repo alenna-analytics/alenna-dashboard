@@ -89,16 +89,7 @@ function NavItem({
     >
       <AppIcon name={icon} colorize className={sidebarNavIconClassName} />
       {!collapsed ? (
-        <>
-          <span className={cn(sidebarNavLabelClassName, 'text-sm')}>{label}</span>
-          {comingSoon && comingSoonLabel ? (
-            <span
-              className="ml-auto size-2 shrink-0 rounded-full bg-[var(--status-blue-200)]"
-              aria-label={comingSoonLabel}
-              title={comingSoonLabel}
-            />
-          ) : null}
-        </>
+        <span className={cn(sidebarNavLabelClassName, 'text-sm')}>{label}</span>
       ) : null}
     </NavLink>
   )

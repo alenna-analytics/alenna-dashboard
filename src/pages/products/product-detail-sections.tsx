@@ -26,6 +26,7 @@ type ProductDetailSectionsProps = {
   chartData: ProductCostPriceChartData
   costAmountWithBaseCode: (formatted: string, baseCurrency: string, codeClassName: string) => ReactNode
   fmtBase: (value: number) => string
+  fmtPlain: (value: number) => string
   insightStart: string
   insightEnd: string
   setInsightStart: (value: string) => void
@@ -51,6 +52,7 @@ export function ProductDetailSections({
   chartData,
   costAmountWithBaseCode,
   fmtBase,
+  fmtPlain,
   insightStart,
   insightEnd,
   setInsightStart,
@@ -102,6 +104,7 @@ export function ProductDetailSections({
               t={t}
               baseCurrency={baseCurrency}
               fmtBase={fmtBase}
+              fmtPlain={fmtPlain}
               costAmountWithBaseCode={costAmountWithBaseCode}
               insightStart={insightStart}
               insightEnd={insightEnd}
@@ -168,7 +171,7 @@ export function ProductDetailSections({
               avgHistory={avgHistory}
               chartData={chartData}
               costAmountWithBaseCode={costAmountWithBaseCode}
-              fmtBase={fmtBase}
+              fmtPlain={fmtPlain}
               updatedAtIso={detail.updated_at}
               onEditCost={onEditCost}
               showSectionTitle={false}

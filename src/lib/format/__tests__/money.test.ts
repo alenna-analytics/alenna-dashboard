@@ -127,4 +127,16 @@ describe('formatMoney', () => {
     expect(out).toContain('$')
     expect(out).toContain('50.00')
   })
+
+  it('omits the currency symbol when currencyDisplay is none', () => {
+    const out = formatMoney(1234.5, {
+      nativeCurrency: 'MXN',
+      displayCurrency: null,
+      latestFx: null,
+      baseCurrency: 'MXN',
+      locale: 'en-US',
+      currencyDisplay: 'none',
+    })
+    expect(out).toBe('1,234.50')
+  })
 })

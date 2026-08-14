@@ -47,6 +47,7 @@ export function useMoney(): {
       minimumFractionDigits: options?.minimumFractionDigits,
       maximumFractionDigits: options?.maximumFractionDigits,
       locale: options?.locale,
+      currencyDisplay: options?.currencyDisplay,
     }),
     [ctx.baseCurrency, ctx.effectiveDisplayCurrency, ctx.latestFx],
   )

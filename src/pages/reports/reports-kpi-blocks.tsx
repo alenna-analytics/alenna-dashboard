@@ -103,7 +103,7 @@ export function ReportsSummaryCards({
 
   return (
     <div className="space-y-12">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <KpiCard
           variant="hero"
           label={t('reportsNetRevenue')}
@@ -172,7 +172,7 @@ export function ReportsSummaryCards({
 
       <SectionContainer>
         <SectionHeader title={t('reportsSectionVentas')} />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <KpiCard
             label={t('reportsGrossRevenue')}
             helpText={t('reportsKpiHelpGrossRevenue')}
@@ -264,7 +264,7 @@ export function ReportsSummaryCards({
 
       <SectionContainer>
         <SectionHeader title={t('reportsSectionCostos')} />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <KpiCard
             label={t('reportsKpiCogsLabel')}
             helpText={t('reportsKpiHelpCogs')}
@@ -318,7 +318,7 @@ export function ReportsSummaryCards({
 
       <SectionContainer>
         <SectionHeader title={t('reportsSectionRentabilidad')} />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <KpiCard
             label={t('reportsGrossProfit')}
             helpText={t('reportsKpiHelpGrossProfit')}
@@ -366,7 +366,7 @@ export function ReportsSummaryCards({
             negative={kpi.ebitda < 0}
           />
         </div>
-        <div className="mt-4 grid grid-cols-1 gap-4 border-t border-border-default/30 pt-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-3 grid grid-cols-1 gap-3 border-t border-border-default/30 pt-3 sm:grid-cols-2 xl:grid-cols-4">
           <KpiCard
             label={t('reportsKpiContributionMarginPctLabel')}
             helpText={t('reportsKpiHelpContributionMarginPct')}

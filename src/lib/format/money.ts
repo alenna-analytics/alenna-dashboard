@@ -36,6 +36,8 @@ export type FormatMoneyOptions = {
   maximumFractionDigits?: number
   /** Locale override; defaults to the runtime locale. */
   locale?: string
+  /** When `none`, formats the converted amount without a currency symbol. */
+  currencyDisplay?: 'symbol' | 'none'
 }
 
 const _normalize = (code: string): string => code.trim().toUpperCase()
@@ -97,6 +99,13 @@ export function convertAmount(amount: MoneyAmount, opts: FormatMoneyOptions): {
  */
 export function formatMoney(amount: MoneyAmount, opts: FormatMoneyOptions): string {
   const { amount: value, currency } = convertAmount(amount, opts)
+  if (opts.currencyDisplay === 'none') {
+    return new Intl.NumberFormat(opts.locale, {
+      style: 'decimal',
+      minimumFractionDigits: opts.minimumFractionDigits ?? 2,
+      maximumFractionDigits: opts.maximumFractionDigits ?? 2,
+    }).format(value)
+  }
   return new Intl.NumberFormat(opts.locale, {
     style: 'currency',
     currency,

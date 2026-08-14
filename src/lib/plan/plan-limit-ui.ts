@@ -132,6 +132,14 @@ export function formatPlanLimit(value: number | null | undefined, lang: Language
   return new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'es-MX').format(value)
 }
 
+export function usageProgressRatio(
+  used: number | null | undefined,
+  limit: number | null | undefined,
+): number | null {
+  if (limit == null || limit <= 0) return null
+  return Math.min(1, Math.max(0, (used ?? 0) / limit))
+}
+
 export function normalizedPlanSlug(plan: string): string {
   return plan.trim().toLowerCase()
 }

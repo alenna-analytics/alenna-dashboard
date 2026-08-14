@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 
 import { AdjustPlanSheet } from '@/components/billing/adjust-plan-sheet'
+import { UsageProgressRing } from '@/components/billing/usage-progress-ring'
 import { CancelSubscriptionButton } from '@/components/billing/cancel-subscription-button'
 import {
   StripeCheckoutButton,
@@ -31,6 +32,7 @@ import {
   isBillingOwner,
   isPlanLimitSyncPaused,
   UPGRADE_ENTERPRISE_MAILTO,
+  usageProgressRatio,
 } from '@/lib/plan/plan-limit-ui'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MeResponse } from '@/lib/types/me-types'
@@ -147,48 +149,65 @@ function InvoiceStatusBadge({ status, lang }: { status: string; lang: Language }
   )
 }
 
+function UsageRow({
+  label,
+  description,
+  used,
+  limit,
+  lang,
+}: {
+  label: string
+  description: string
+  used: number | null | undefined
+  limit: number | null | undefined
+  lang: Language
+}) {
+  const ratio = usageProgressRatio(used, limit)
+  const pctLabel = ratio == null ? null : `${Math.round(ratio * 100)}%`
+
+  return (
+    <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-text-primary">{label}</p>
+        <p className="mt-0.5 text-xs text-text-tertiary">{description}</p>
+      </div>
+      <div className="flex shrink-0 items-center gap-3">
+        <p className="text-sm font-medium text-text-primary">
+          {formatPlanLimit(used, lang)} / {formatPlanLimit(limit, lang)}
+          {pctLabel ? (
+            <span className="font-normal text-text-tertiary"> ({pctLabel})</span>
+          ) : null}
+        </p>
+        <UsageProgressRing ratio={ratio} label={label} />
+      </div>
+    </div>
+  )
+}
+
 function UsageRows({ me, lang }: { me: MeResponse | null; lang: Language }) {
   return (
     <div className="divide-y divide-border-subtle">
-      <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-text-primary">
-            {shellT(lang, 'billingOrdersLimitLabel')}
-          </p>
-          <p className="mt-0.5 text-xs text-text-tertiary">
-            {shellT(lang, 'billingOrdersLimitDescription')}
-          </p>
-        </div>
-        <p className="shrink-0 text-sm font-medium text-text-primary">
-          {formatPlanLimit(me?.orders_used, lang)} / {formatPlanLimit(me?.orders_limit, lang)}
-        </p>
-      </div>
-      <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-text-primary">
-            {shellT(lang, 'billingSkusLimitLabel')}
-          </p>
-          <p className="mt-0.5 text-xs text-text-tertiary">
-            {shellT(lang, 'billingSkusLimitDescription')}
-          </p>
-        </div>
-        <p className="shrink-0 text-sm font-medium text-text-primary">
-          {formatPlanLimit(me?.skus_used, lang)} / {formatPlanLimit(me?.skus_limit, lang)}
-        </p>
-      </div>
-      <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-text-primary">
-            {shellT(lang, 'billingUsersLimitLabel')}
-          </p>
-          <p className="mt-0.5 text-xs text-text-tertiary">
-            {shellT(lang, 'billingUsersLimitDescription')}
-          </p>
-        </div>
-        <p className="shrink-0 text-sm font-medium text-text-primary">
-          {formatPlanLimit(me?.users_used, lang)} / {formatPlanLimit(me?.users_limit, lang)}
-        </p>
-      </div>
+      <UsageRow
+        lang={lang}
+        label={shellT(lang, 'billingOrdersLimitLabel')}
+        description={shellT(lang, 'billingOrdersLimitDescription')}
+        used={me?.orders_used}
+        limit={me?.orders_limit}
+      />
+      <UsageRow
+        lang={lang}
+        label={shellT(lang, 'billingSkusLimitLabel')}
+        description={shellT(lang, 'billingSkusLimitDescription')}
+        used={me?.skus_used}
+        limit={me?.skus_limit}
+      />
+      <UsageRow
+        lang={lang}
+        label={shellT(lang, 'billingUsersLimitLabel')}
+        description={shellT(lang, 'billingUsersLimitDescription')}
+        used={me?.users_used}
+        limit={me?.users_limit}
+      />
     </div>
   )
 }

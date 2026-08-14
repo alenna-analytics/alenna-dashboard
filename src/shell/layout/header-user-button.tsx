@@ -19,7 +19,7 @@ export function HeaderUserButton({ me = null }: HeaderUserButtonProps) {
   })
 
   return (
-    <div className="relative size-8 shrink-0">
+    <div className="relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
       <div
         className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-full text-[11px] font-semibold tracking-wide"
         style={{ backgroundColor: CLERK_INITIALS_BG, color: CLERK_INITIALS_FG }}
@@ -30,6 +30,10 @@ export function HeaderUserButton({ me = null }: HeaderUserButtonProps) {
       <UserButton
         appearance={{
           elements: {
+            rootBox: 'flex size-8 items-center justify-center',
+            userButtonBox: 'flex size-8 items-center justify-center',
+            userButtonTrigger:
+              'flex size-8 items-center justify-center rounded-full p-0 hover:bg-transparent',
             avatarBox: 'size-8 rounded-full',
             userButtonAvatarImage: 'opacity-0',
             userPreviewAvatarImage: 'opacity-0',

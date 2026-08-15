@@ -24,13 +24,14 @@ const SHELL_STRINGS = {
     teamInviteDisabledTooltip: 'Las invitaciones están desactivadas en este entorno.',
     teamRoleOwnerTitle: 'Owner',
     teamRoleOwnerDescription:
-      'Acceso total: miembros, facturación, integraciones, ajustes y eliminar el workspace.',
+      'Acceso total: facturación, roles, integraciones, ajustes y borrar el workspace.',
     teamRoleAdminTitle: 'Admin',
     teamRoleAdminDescription:
-      'Gestiona miembros (excepto owners), integraciones, alertas y ajustes. Sin facturación.',
+      'Ve y edita módulos, invita miembros y gestiona integraciones. Sin facturación ni crear roles.',
     teamRoleStaffTitle: 'Staff',
     teamRoleStaffDescription:
-      'Ve y edita datos de negocio. No conecta integraciones ni gestiona el equipo.',
+      'Ve productos, ventas, reportes y gastos. No edita datos ni ve Equipo o Billing.',
+    teamRoleCustomDescription: 'Permisos definidos para este workspace.',
     teamFilterPlaceholder: 'Filtrar miembros',
     teamColumnMember: 'Miembro',
     teamColumnRole: 'Rol',
@@ -1809,13 +1810,14 @@ const SHELL_STRINGS = {
     teamInviteDisabledTooltip: 'Invitations are disabled in this environment.',
     teamRoleOwnerTitle: 'Owner',
     teamRoleOwnerDescription:
-      'Full access: members, billing, integrations, settings, and workspace deletion.',
+      'Full access: billing, roles, integrations, settings, and workspace deletion.',
     teamRoleAdminTitle: 'Admin',
     teamRoleAdminDescription:
-      'Manage members (except owners), integrations, alerts, and settings. No billing.',
+      'View and edit modules, invite members, and manage integrations. No billing or custom roles.',
     teamRoleStaffTitle: 'Staff',
     teamRoleStaffDescription:
-      'View and edit business data. Cannot connect integrations or manage the team.',
+      'View products, sales, reports, and expenses. Cannot edit data or see Team or Billing.',
+    teamRoleCustomDescription: 'Permissions defined for this workspace.',
     teamFilterPlaceholder: 'Filter members',
     teamColumnMember: 'Member',
     teamColumnRole: 'Role',

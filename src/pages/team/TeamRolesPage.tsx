@@ -4,10 +4,8 @@ import { MoreVertical, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
 import { CreateWorkspaceRoleWizard } from '@/components/team/create-workspace-role-wizard'
+import { CustomRolesUpgradeDialog } from '@/components/team/custom-roles-upgrade-dialog'
 import { EditWorkspaceRoleSheet } from '@/components/team/edit-workspace-role-sheet'
-import { PermissionGroupToggles } from '@/components/team/permission-group-toggles'
-import { FeatureDisabledState } from '@/components/plan/feature-disabled-state'
-import { PlanUpgradeCta } from '@/components/billing/plan-upgrade-cta'
 import {
   deleteWorkspaceRole,
   fetchTeamMembers,
@@ -48,6 +46,7 @@ export function TeamRolesPage() {
   const tenantId = me?.tenant_id ?? null
   const actorIsOwner = isOwner(me)
   const [createOpen, setCreateOpen] = useState(false)
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [editRole, setEditRole] = useState<WorkspaceRole | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -87,6 +86,8 @@ export function TeamRolesPage() {
     rolesQuery.data.roles_used >= rolesQuery.data.roles_limit
   const showSkeleton = rolesQuery.isLoading && rolesQuery.data === undefined
 
+  const showUpgrade = shouldShowCustomRolesUpgrade(actorIsOwner, canManageRoles)
+
   return (
     <DashboardPage>
       <div className="flex flex-col gap-6">
@@ -106,35 +107,24 @@ export function TeamRolesPage() {
               </p>
             ) : null}
           </div>
-          {actorIsOwner && canManageRoles ? (
+          {actorIsOwner ? (
             <Button
               type="button"
               variant="accent"
-              disabled={atLimit}
-              onClick={() => setCreateOpen(true)}
+              disabled={!showUpgrade && atLimit}
+              onClick={() => {
+                if (showUpgrade) {
+                  setUpgradeOpen(true)
+                  return
+                }
+                setCreateOpen(true)
+              }}
             >
               <Plus aria-hidden />
               {t('teamRolesCreate')}
             </Button>
           ) : null}
         </div>
-
-        {shouldShowCustomRolesUpgrade(actorIsOwner, canManageRoles) && me ? (
-          <FeatureDisabledState
-            badge="Growth"
-            title={t('teamRolesUpgradeTitle')}
-            description={t('teamRolesUpgradeCopy')}
-            action={<PlanUpgradeCta me={me} lang={lang} variant="primary" />}
-          >
-            <PermissionGroupToggles
-              lang={lang}
-              permissions={[]}
-              onChange={() => undefined}
-              enabledModuleIds={me.modules}
-              preview
-            />
-          </FeatureDisabledState>
-        ) : null}
 
         {canManageRoles && atLimit ? (
           <p className="text-sm text-text-secondary">{t('teamRolesLimitReached')}</p>
@@ -245,6 +235,18 @@ export function TeamRolesPage() {
           </table>
         </div>
       </div>
+
+      {me && actorIsOwner ? (
+        <CustomRolesUpgradeDialog
+          open={upgradeOpen}
+          onOpenChange={setUpgradeOpen}
+          me={me}
+          lang={lang}
+          badge="Growth"
+          title={t('teamRolesUpgradeTitle')}
+          description={t('teamRolesUpgradeCopy')}
+        />
+      ) : null}
 
       {tenantId && actorIsOwner && canManageRoles ? (
         <CreateWorkspaceRoleWizard

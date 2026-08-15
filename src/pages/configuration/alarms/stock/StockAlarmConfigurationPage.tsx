@@ -6,6 +6,7 @@ import { useCurrentTenant } from '@/auth/hooks'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { apiFetch } from '@/lib/api'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { can } from '@/lib/permissions/can'
 import type { StockOverrideApi } from '@/lib/types/alert-rules'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import {
@@ -42,7 +43,7 @@ export function StockAlarmConfigurationPage() {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const { me } = useAppBootstrap()
-  const isAdmin = me?.role === 'admin' || me?.role === 'owner'
+  const isAdmin = can(me, 'alerts.manage')
 
   const stockRuleQuery = useStockRuleQuery()
   const overridesQuery = useStockOverridesQuery()

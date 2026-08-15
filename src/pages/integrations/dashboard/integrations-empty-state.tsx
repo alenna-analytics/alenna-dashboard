@@ -20,7 +20,7 @@ export function IntegrationsEmptyState({ lang }: IntegrationsEmptyStateProps) {
       action={
         <Button
           variant="outline"
-          size="xs"
+          size="tiny"
           onClick={() => navigate('/dashboard/integrations/shopify')}
         >
           {shellT(lang, 'integrationsExploreCta')}

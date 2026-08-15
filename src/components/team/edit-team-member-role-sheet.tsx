@@ -2,14 +2,11 @@ import { useAuth } from '@clerk/react'
 import { useMutation } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
 
+import { TeamRoleOptionList } from '@/components/team/team-role-option-list'
 import { updateTeamMemberRole } from '@/lib/team/team-api'
-import {
-  selectableTeamRoles,
-  TEAM_ROLE_OPTIONS,
-} from '@/lib/team/team-role-options'
+import { selectableWorkspaceRoles } from '@/lib/team/team-role-options'
 import { shellT } from '@/lib/i18n/shell-strings'
-import type { TeamMember, TeamRoleSlug } from '@/lib/types/team-types'
-import { cn } from '@/lib/utils'
+import type { TeamMember, WorkspaceRole } from '@/lib/types/team-types'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
 import { Label } from '@/ui/label'
@@ -27,26 +24,19 @@ type EditTeamMemberRoleSheetProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   tenantId: string
-  actorRole: string
+  isOwner: boolean
+  roles: WorkspaceRole[]
   member: TeamMember
-  /** When true, demoting the last owner is blocked by filtering roles. */
   isLastOwner: boolean
   onSuccess: () => void
-}
-
-function initialRoleForMember(
-  member: TeamMember,
-  allowed: TeamRoleSlug[],
-): TeamRoleSlug {
-  if (allowed.includes(member.role)) return member.role
-  return allowed[0] ?? 'staff'
 }
 
 export function EditTeamMemberRoleSheet({
   open,
   onOpenChange,
   tenantId,
-  actorRole,
+  isOwner,
+  roles,
   member,
   isLastOwner,
   onSuccess,
@@ -58,23 +48,22 @@ export function EditTeamMemberRoleSheet({
     [lang],
   )
 
-  const allowed = useMemo(() => {
-    const base = selectableTeamRoles(actorRole)
-    if (isLastOwner && member.role === 'owner') {
-      return base.filter((role) => role === 'owner')
-    }
-    return base
-  }, [actorRole, isLastOwner, member.role])
-
-  const [role, setRole] = useState<TeamRoleSlug>(() =>
-    initialRoleForMember(member, allowed),
+  const allowed = useMemo(
+    () =>
+      selectableWorkspaceRoles(roles, {
+        isOwner,
+        lockToOwner: isLastOwner && member.role === 'owner',
+      }),
+    [roles, isOwner, isLastOwner, member.role],
   )
+
+  const [roleId, setRoleId] = useState(() => member.role_id)
   const [error, setError] = useState<string | null>(null)
 
   const updateMutation = useMutation({
     mutationFn: () => {
       if (!member.user_id) throw new Error('missing member')
-      return updateTeamMemberRole(getToken, tenantId, member.user_id, role, lang)
+      return updateTeamMemberRole(getToken, tenantId, member.user_id, roleId, lang)
     },
     onSuccess: () => {
       setError(null)
@@ -88,7 +77,7 @@ export function EditTeamMemberRoleSheet({
 
   const memberLabel =
     [member.first_name, member.last_name].filter(Boolean).join(' ') || member.email
-  const unchanged = role === member.role
+  const unchanged = roleId === member.role_id
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -105,30 +94,13 @@ export function EditTeamMemberRoleSheet({
 
             <div className="space-y-2">
               <Label>{t('teamInviteRoleLabel')}</Label>
-              <div className="space-y-2">
-                {TEAM_ROLE_OPTIONS.filter((opt) => allowed.includes(opt.id)).map((opt) => {
-                  const selected = role === opt.id
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      disabled={updateMutation.isPending}
-                      onClick={() => setRole(opt.id)}
-                      className={cn(
-                        'w-full rounded-md border px-3 py-3 text-left transition-colors',
-                        selected
-                          ? 'border-[var(--firefly-base)] bg-muted/40'
-                          : 'border-border-subtle hover:bg-muted/20',
-                      )}
-                    >
-                      <p className="text-sm font-medium text-text-primary">{t(opt.titleKey)}</p>
-                      <p className="mt-1 text-xs leading-snug text-text-secondary">
-                        {t(opt.descriptionKey)}
-                      </p>
-                    </button>
-                  )
-                })}
-              </div>
+              <TeamRoleOptionList
+                roles={allowed}
+                selectedRoleId={roleId}
+                disabled={updateMutation.isPending}
+                onSelect={setRoleId}
+                t={t}
+              />
             </div>
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}

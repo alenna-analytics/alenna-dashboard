@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useState } from "react"
 
 import { shellT } from "@/lib/i18n/shell-strings"
+import { can } from "@/lib/permissions/can"
 import { useLanguage } from "@/shell/providers/language-provider"
+import { useWorkspace } from "@/shell/providers/workspace-context"
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from "@/shell/layout/dashboard-page"
 import { Button } from "@/ui/button"
 import { EmptyState } from "@/ui/empty-state"
@@ -15,6 +17,8 @@ import { useCreateCogsLoadMutation } from "./cogs/use-cogs-load-queries"
 export function ProductsListPage() {
   const navigate = useNavigate()
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
+  const canEditProducts = can(me, 'products.edit')
   const t = (k: Parameters<typeof shellT>[1]) => shellT(lang, k)
   const createLoadMutation = useCreateCogsLoadMutation()
   const [q, setQ] = useState("")
@@ -43,13 +47,14 @@ export function ProductsListPage() {
             <p className={pageSubtitleClassName}>{t("productsPageSubtitle")}</p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <Button type="button" variant="default" size="default" onClick={() => void navigate('/dashboard/products/cogs')}>
+            <Button type="button" variant="default" size="tiny" onClick={() => void navigate('/dashboard/products/cogs')}>
               {t('productsGoToCogs')}
             </Button>
+            {canEditProducts ? (
             <Button
               type="button"
               variant="accent"
-              size="default"
+              size="tiny"
               className="shrink-0"
               loading={createLoadMutation.isPending}
               onClick={() => {
@@ -61,6 +66,7 @@ export function ProductsListPage() {
               <Plus aria-hidden />
               {t('productsCogsLoadNew')}
             </Button>
+            ) : null}
           </div>
         </div>
         <div className="w-full overflow-x-auto">

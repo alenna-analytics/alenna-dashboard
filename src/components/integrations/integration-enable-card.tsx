@@ -64,7 +64,7 @@ export function IntegrationEnableCard({
           <Button
             type="button"
             variant="destructive"
-            size="sm"
+            size="tiny"
             loading={disconnectPending}
             onClick={onDisconnect}
           >

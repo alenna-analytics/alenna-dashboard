@@ -95,7 +95,7 @@ export function StockAlertTypeCard({
       <Button
         type="button"
         variant="accent"
-        size="sm"
+        size="tiny"
         disabled={disabled}
         onClick={onConfigure}
       >

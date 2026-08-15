@@ -38,6 +38,8 @@ import { IntegrationsInternalSidebar } from '@/pages/integrations/dashboard/inte
 import { isIntegrationsRoute } from '@/pages/integrations/dashboard/integrations-inner-nav'
 import { ProductsInternalSidebar } from '@/pages/products/products-internal-sidebar'
 import { isProductsRoute } from '@/pages/products/products-inner-nav'
+import { TeamInternalSidebar } from '@/pages/team/team-internal-sidebar'
+import { isTeamRoute } from '@/pages/team/team-inner-nav'
 import { cn } from '@/lib/utils'
 import {
   isSidebarVisuallyCollapsed,
@@ -151,6 +153,7 @@ export function AppShellLayout() {
   const showConfigurationInnerSidebar = isConfigurationRoute(location.pathname)
   const showIntegrationsInnerSidebar = isIntegrationsRoute(location.pathname)
   const showProductsInnerSidebar = isProductsRoute(location.pathname)
+  const showTeamInnerSidebar = isTeamRoute(location.pathname)
 
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
@@ -247,6 +250,7 @@ export function AppShellLayout() {
                     {showConfigurationInnerSidebar ? <ConfigurationInternalSidebar /> : null}
                     {showIntegrationsInnerSidebar ? <IntegrationsInternalSidebar /> : null}
                     {showProductsInnerSidebar ? <ProductsInternalSidebar /> : null}
+                    {showTeamInnerSidebar ? <TeamInternalSidebar /> : null}
                     <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
                       <main
                         ref={mainRef}

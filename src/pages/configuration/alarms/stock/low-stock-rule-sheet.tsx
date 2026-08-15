@@ -397,7 +397,7 @@ function LowStockRuleSheetForm({
             <Button
               type="button"
               variant="destructive"
-              size="sm"
+              size="tiny"
               className="mt-3"
               disabled={saving || deleting}
               onClick={() => setDeleteDialogOpen(true)}

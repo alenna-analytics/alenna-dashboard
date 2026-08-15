@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom'
 import { readSidebarControlMode } from '@/lib/shell/sidebar-control-prefs'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { isConfigurationRoute } from '@/pages/configuration/configuration-inner-nav'
+import { isTeamRoute } from '@/pages/team/team-inner-nav'
 import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
 import {
   shellChromeHeaderRowClassName,
@@ -124,6 +125,7 @@ export function AppShellBootSkeleton() {
   const { lang } = useLanguage()
   const { pathname } = useLocation()
   const showConfigurationInnerSidebar = isConfigurationRoute(pathname)
+  const showTeamInnerSidebar = isTeamRoute(pathname)
   const sidebarCollapsed = useMemo(() => {
     const mode = readSidebarControlMode()
     return mode === 'collapsed' || mode === 'expand_on_hover'
@@ -142,7 +144,9 @@ export function AppShellBootSkeleton() {
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
         <ShellSidebarSkeleton collapsed={sidebarCollapsed} />
         <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-          {showConfigurationInnerSidebar ? <ShellConfigurationInnerSidebarSkeleton /> : null}
+          {showConfigurationInnerSidebar || showTeamInnerSidebar ? (
+            <ShellConfigurationInnerSidebarSkeleton />
+          ) : null}
           <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
             <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
               <div className={cn(WORKSPACE_SHELL_COLUMN_CLASS, 'min-h-full py-3 lg:py-4')}>

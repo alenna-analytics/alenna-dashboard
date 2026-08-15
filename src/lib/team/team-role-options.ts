@@ -1,33 +1,23 @@
-import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { TeamRoleSlug } from '@/lib/types/team-types'
+import type { WorkspaceRole } from '@/lib/types/team-types'
 
-export type TeamRoleOption = {
-  id: TeamRoleSlug
-  titleKey: ShellStringKey
-  descriptionKey: ShellStringKey
+export function selectableWorkspaceRoles(
+  roles: WorkspaceRole[],
+  options: { isOwner: boolean; lockToOwner: boolean },
+): WorkspaceRole[] {
+  if (options.lockToOwner) {
+    return roles.filter((role) => role.system_key === 'owner')
+  }
+  return roles.filter((role) => {
+    if (role.system_key === 'owner' && !options.isOwner) return false
+    return true
+  })
 }
 
-export const TEAM_ROLE_OPTIONS: TeamRoleOption[] = [
-  {
-    id: 'owner',
-    titleKey: 'teamRoleOwnerTitle',
-    descriptionKey: 'teamRoleOwnerDescription',
-  },
-  {
-    id: 'admin',
-    titleKey: 'teamRoleAdminTitle',
-    descriptionKey: 'teamRoleAdminDescription',
-  },
-  {
-    id: 'staff',
-    titleKey: 'teamRoleStaffTitle',
-    descriptionKey: 'teamRoleStaffDescription',
-  },
-]
-
-export function selectableTeamRoles(actorRole: string): TeamRoleSlug[] {
-  const normalized = actorRole.trim().toLowerCase()
-  if (normalized === 'owner') return ['owner', 'admin', 'staff']
-  if (normalized === 'admin') return ['admin', 'staff']
-  return ['staff']
+export function defaultInviteRoleId(roles: WorkspaceRole[], isOwner: boolean): string {
+  const allowed = selectableWorkspaceRoles(roles, { isOwner, lockToOwner: false })
+  const admin = allowed.find((role) => role.system_key === 'admin')
+  if (admin) return admin.id
+  const staff = allowed.find((role) => role.system_key === 'staff')
+  if (staff) return staff.id
+  return allowed[0]?.id ?? ''
 }

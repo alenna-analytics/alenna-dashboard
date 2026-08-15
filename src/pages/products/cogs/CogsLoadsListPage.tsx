@@ -5,9 +5,11 @@ import { getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { toast } from 'sonner'
 
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
+import { can } from '@/lib/permissions/can'
 import type { CogsBulkLoadSummaryApi } from '@/lib/types/cogs-load'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Button } from '@/ui/button'
 import { DataTable } from '@/ui/data-table/data-table'
 import { EmptyState } from '@/ui/empty-state'
@@ -24,6 +26,8 @@ import {
 export function CogsLoadsListPage() {
   const navigate = useNavigate()
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
+  const canEditProducts = can(me, 'products.edit')
   const t = useCallback((k: ShellStringKey) => shellT(lang, k), [lang])
   const loadsQuery = useCogsLoadsQuery()
   const createMutation = useCreateCogsLoadMutation()
@@ -74,8 +78,9 @@ export function CogsLoadsListPage() {
         onOpen: onOpenLoad,
         onClone: onCloneLoad,
         onDelete: onDeleteLoad,
+        canEdit: canEditProducts,
       }),
-    [lang, onCloneLoad, onDeleteLoad, onOpenLoad, t],
+    [canEditProducts, lang, onCloneLoad, onDeleteLoad, onOpenLoad, t],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
@@ -94,10 +99,12 @@ export function CogsLoadsListPage() {
           <h1 className={pageTitleClassName}>{t('productsCogsLoadsTitle')}</h1>
           <p className={pageSubtitleClassName}>{t('productsCogsLoadsSubtitle')}</p>
         </div>
-        <Button type="button" variant="accent" size="default" className="shrink-0" loading={createMutation.isPending} onClick={() => void onNewLoad()}>
+        {canEditProducts ? (
+        <Button type="button" variant="accent" size="tiny" className="shrink-0" loading={createMutation.isPending} onClick={() => void onNewLoad()}>
           <Plus aria-hidden />
           {t('productsCogsLoadNew')}
         </Button>
+        ) : null}
       </header>
 
       {loadsQuery.isError ? (
@@ -113,16 +120,18 @@ export function CogsLoadsListPage() {
               icon="products"
               title={t('productsCogsLoadsEmpty')}
               action={
+                canEditProducts ? (
                 <Button
                   type="button"
                   variant="outline"
-                  size="xs"
+                  size="tiny"
                   loading={createMutation.isPending}
                   onClick={() => void onNewLoad()}
                 >
                   <Plus aria-hidden />
                   {t('productsCogsLoadNew')}
                 </Button>
+                ) : undefined
               }
             />
           }

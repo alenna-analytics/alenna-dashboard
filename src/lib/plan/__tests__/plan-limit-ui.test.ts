@@ -115,9 +115,10 @@ describe('plan-limit-ui', () => {
     expect(billingPlanDetailLine(trialMe, 'es')).toMatch(/días restantes\. Termina el/)
   })
 
-  it('isBillingOwner true for owner role', () => {
-    expect(isBillingOwner(baseMe)).toBe(true)
-    expect(isBillingOwner({ ...baseMe, role: 'admin' })).toBe(false)
+  it('isBillingOwner true for is_owner', () => {
+    expect(isBillingOwner(baseMe)).toBe(false)
+    expect(isBillingOwner({ ...baseMe, is_owner: true })).toBe(true)
+    expect(isBillingOwner({ ...baseMe, role: 'admin', is_owner: false })).toBe(false)
   })
 
 

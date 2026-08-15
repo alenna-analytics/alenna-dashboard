@@ -7,7 +7,10 @@ import type {
   TeamInviteResponse,
   TeamListResponse,
   TeamMemberRolePayload,
-  TeamRoleSlug,
+  WorkspaceRole,
+  WorkspaceRoleCreatePayload,
+  WorkspaceRolePatchPayload,
+  WorkspaceRolesListResponse,
 } from '@/lib/types/team-types'
 
 type ApiErrorDetailObject = {
@@ -36,6 +39,10 @@ const TEAM_ERROR_KEYS: Record<string, ShellStringKey> = {
   member_not_found: 'teamErrorMemberNotFound',
   invalid_payload: 'teamErrorInvalidPayload',
   forbidden: 'teamErrorGeneric',
+  roles_limit_reached: 'teamErrorRolesLimitReached',
+  custom_roles_not_on_plan: 'teamErrorCustomRolesNotOnPlan',
+  unassignable_permission: 'teamErrorUnassignablePermission',
+  system_role_locked: 'teamErrorSystemRoleLocked',
 }
 
 function messageForCode(lang: Language, code: string | undefined, fallback: string): string {
@@ -91,6 +98,66 @@ export async function fetchTeamMembers(
   return (await res.json()) as TeamListResponse
 }
 
+export async function fetchWorkspaceRoles(
+  getToken: GetTokenFn,
+  tenantId: string,
+  lang: Language = 'es',
+): Promise<WorkspaceRolesListResponse> {
+  const res = await apiFetch('/team/roles', getToken, {}, tenantId)
+  if (!res.ok) {
+    throw await parseApiError(res, lang, 'teamErrorGeneric')
+  }
+  return (await res.json()) as WorkspaceRolesListResponse
+}
+
+export async function createWorkspaceRole(
+  getToken: GetTokenFn,
+  tenantId: string,
+  payload: WorkspaceRoleCreatePayload,
+  lang: Language = 'es',
+): Promise<WorkspaceRole> {
+  const res = await apiPostJson('/team/roles', getToken, payload, {}, tenantId)
+  if (!res.ok) {
+    throw await parseApiError(res, lang, 'teamErrorGeneric')
+  }
+  return (await res.json()) as WorkspaceRole
+}
+
+export async function updateWorkspaceRole(
+  getToken: GetTokenFn,
+  tenantId: string,
+  roleId: string,
+  payload: WorkspaceRolePatchPayload,
+  lang: Language = 'es',
+): Promise<void> {
+  const res = await apiPatchJson(`/team/roles/${roleId}`, getToken, payload, {}, tenantId)
+  if (!res.ok) {
+    throw await parseApiError(res, lang, 'teamErrorGeneric')
+  }
+}
+
+export async function deleteWorkspaceRole(
+  getToken: GetTokenFn,
+  tenantId: string,
+  roleId: string,
+  reassignRoleId: string | null,
+  lang: Language = 'es',
+): Promise<void> {
+  const res = await apiFetch(
+    `/team/roles/${roleId}`,
+    getToken,
+    {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reassign_role_id: reassignRoleId }),
+    },
+    tenantId,
+  )
+  if (!res.ok) {
+    throw await parseApiError(res, lang, 'teamErrorGeneric')
+  }
+}
+
 export async function inviteTeamMember(
   getToken: GetTokenFn,
   tenantId: string,
@@ -125,10 +192,10 @@ export async function updateTeamMemberRole(
   getToken: GetTokenFn,
   tenantId: string,
   userId: string,
-  role: TeamRoleSlug,
+  roleId: string,
   lang: Language = 'es',
 ): Promise<void> {
-  const body: TeamMemberRolePayload = { role }
+  const body: TeamMemberRolePayload = { role_id: roleId }
   const res = await apiPatchJson(`/team/members/${userId}`, getToken, body, {}, tenantId)
   if (!res.ok) {
     throw await parseApiError(res, lang, 'teamErrorGeneric')

@@ -41,8 +41,8 @@ type ProductDetailSectionsProps = {
   showInsightValues: boolean
   insightKpi: (value: ReactNode) => ReactNode
   insightsFetching: boolean
-  onEditCost: () => void
-  onOpenVariantCostEditor: (productId: string) => void
+  onEditCost?: () => void
+  onOpenVariantCostEditor?: (productId: string) => void
 }
 
 export function ProductDetailSections({

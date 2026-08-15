@@ -13,6 +13,7 @@ import { formatMercadoLibreSyncUserError } from '@/lib/integrations/mercadolibre
 import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
 import type { PlatformConnection, SyncPlan } from '@/lib/types/connectors'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { can } from '@/lib/permissions/can'
 import { invalidateAlertsQueries } from '@/pages/dashboard/use-alerts-queries'
 import { useCatalogJobQuery, useRetryCatalogJobMutation } from '@/pages/products/use-catalog-queries'
 import {
@@ -116,7 +117,7 @@ export function useMercadoLibreIntegration() {
     parseMercadoLibreSyncPanel,
   )
 
-  const isAdmin = me?.role === 'admin' || me?.role === 'owner'
+  const isAdmin = can(me, 'integrations.manage')
 
   const {
     data: connections,

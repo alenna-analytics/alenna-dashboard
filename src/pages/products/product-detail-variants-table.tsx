@@ -16,7 +16,7 @@ type ProductDetailVariantsTableProps = {
   variants: ProductVariantSummaryApi[]
   t: (key: ShellStringKey) => string
   fmtBase: (value: number) => string
-  onOpenCostEditor: (productId: string) => void
+  onOpenCostEditor?: (productId: string) => void
   showSectionTitle?: boolean
 }
 
@@ -29,7 +29,7 @@ export function ProductDetailVariantsTable({
 }: ProductDetailVariantsTableProps) {
   const onOpenVariantCostEditor = useCallback(
     (productId: string) => {
-      onOpenCostEditor(productId)
+      onOpenCostEditor?.(productId)
     },
     [onOpenCostEditor],
   )

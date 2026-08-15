@@ -27,11 +27,19 @@ import { LoadingIcon } from '@/ui/app-icon'
 type Step = 1 | 2 | 3
 type StepDirection = 'forward' | 'back'
 
-const TRIAL_BULLETS = [
-  'onboardingTrialBulletReports',
-  'onboardingTrialBulletCogs',
-  'onboardingTrialBulletChannels',
-  'onboardingTrialBulletAlerts',
+const TRIAL_PLAN_BULLETS = [
+  'billingPlanFeatureBasicOrders',
+  'billingPlanFeatureBasicSkus',
+  'billingPlanFeatureBasicUsers',
+  'onboardingTrialBulletCore',
+] as const satisfies readonly ShellStringKey[]
+
+const GROWTH_PLAN_BULLETS = [
+  'billingPlanFeatureGrowthOrders',
+  'billingPlanFeatureGrowthSkus',
+  'billingPlanFeatureGrowthUsers',
+  'billingPlanFeatureGrowthRoles',
+  'billingPlanFeatureCore',
 ] as const satisfies readonly ShellStringKey[]
 
 export function OnboardingPage() {
@@ -288,10 +296,10 @@ function OnboardingWizard() {
               <p className="text-sm text-neutral-600">
                 {signupIntent === 'growth'
                   ? t('onboardingGrowthIntro')
-                  : t('onboardingTrialIntro', { price: TRIAL_PRICE_USD })}
+                  : t('onboardingTrialIntro', { days: TRIAL_DAYS, price: TRIAL_PRICE_USD })}
               </p>
               <ul className="flex flex-col gap-2 text-sm text-text-primary">
-                {TRIAL_BULLETS.map((key) => (
+                {(signupIntent === 'growth' ? GROWTH_PLAN_BULLETS : TRIAL_PLAN_BULLETS).map((key) => (
                   <li key={key} className="flex items-start gap-2">
                     <CheckCircle2
                       className="mt-0.5 size-4 shrink-0 text-success"
@@ -305,7 +313,7 @@ function OnboardingWizard() {
               <p className="rounded-md bg-(--platinum-blonde-300) px-3 py-2.5 text-sm text-neutral-700">
                 {signupIntent === 'growth'
                   ? t('onboardingGrowthPaymentNote')
-                  : t('onboardingTrialNoCard', { days: TRIAL_DAYS, price: TRIAL_PRICE_USD })}
+                  : t('onboardingTrialNoCard')}
               </p>
               {error ? <p className="text-sm text-danger">{error}</p> : null}
               <div className="flex items-center gap-2">

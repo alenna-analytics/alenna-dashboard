@@ -28,5 +28,5 @@ export function useModule(id: ModuleId): ModuleState | undefined {
 }
 
 export function useEnabledModules(): ModuleState[] {
-  return useModules().filter((m) => m.enabled)
+  return useModules().filter((m) => m.enabled && !m.comingSoon)
 }

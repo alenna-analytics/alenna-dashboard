@@ -16,6 +16,7 @@ import {
 } from '@/shell/providers/global-activity-provider'
 import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { can } from '@/lib/permissions/can'
 import { Button } from '@/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -67,7 +68,7 @@ function ActivityRow({ item }: { item: GlobalActivityItem }) {
   const { me } = useAppBootstrap()
   const { minimizeActivity, dismissTerminalActivity } = useGlobalActivity()
   const cancelSyncMutation = useCancelPlatformSyncJob()
-  const isAdmin = me?.role === 'admin' || me?.role === 'owner'
+  const isAdmin = can(me, 'integrations.manage')
   const canCancelSync =
     item.phase === 'loading' &&
     Boolean(item.jobId) &&

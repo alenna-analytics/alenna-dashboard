@@ -52,7 +52,7 @@ export function DeleteAccountDangerZone({
               </p>
             </div>
 
-            <Button type="button" variant="destructive" size="sm" onClick={onRequestDelete}>
+            <Button type="button" variant="destructive" size="tiny" onClick={onRequestDelete}>
               {shellT(lang, 'settingsDeleteAccountRequestButton')}
             </Button>
           </div>

@@ -91,8 +91,8 @@ function PlanChangeActions({
   if (normalized === 'trial') {
     return (
       <div className="flex shrink-0 flex-row flex-nowrap items-center gap-2">
-        <StripeCheckoutButton plan="basic" label={t('billingSubscribeBasic')} variant="primary" />
-        <StripeCheckoutButton plan="growth" label={t('billingUpgradeGrowth')} variant="accent" />
+        <StripeCheckoutButton plan="basic" label={t('billingSubscribeBasic')} variant="primary" size="tiny" />
+        <StripeCheckoutButton plan="growth" label={t('billingUpgradeGrowth')} variant="accent" size="tiny" />
       </div>
     )
   }
@@ -100,7 +100,7 @@ function PlanChangeActions({
   if (me.has_stripe_subscription) {
     return (
       <div className="flex shrink-0 flex-row flex-nowrap items-center gap-2">
-        <Button type="button" variant="success" size="sm" onClick={onChangePlan}>
+        <Button type="button" variant="success" size="tiny" onClick={onChangePlan}>
           {t('billingChangePlan')}
         </Button>
         <CancelSubscriptionButton />
@@ -111,7 +111,7 @@ function PlanChangeActions({
   if (normalized === 'basic') {
     return (
       <div className="flex shrink-0 flex-row flex-nowrap items-center gap-2">
-        <StripeCheckoutButton plan="growth" label={t('billingUpgradeGrowth')} variant="accent" />
+        <StripeCheckoutButton plan="growth" label={t('billingUpgradeGrowth')} variant="accent" size="tiny" />
       </div>
     )
   }
@@ -121,7 +121,7 @@ function PlanChangeActions({
       <div className="flex shrink-0 flex-row flex-nowrap items-center gap-2">
         <a
           href={UPGRADE_ENTERPRISE_MAILTO}
-          className={buttonVariants({ variant: 'accent', size: 'sm' })}
+          className={buttonVariants({ variant: 'accent', size: 'tiny' })}
         >
           {t('planUpgradeToEnterprise')}
         </a>
@@ -381,7 +381,7 @@ export function BillingConfigurationPage() {
           subtitle={t(planLimitAlertSubtitleKey)}
           action={
             isOwner && me ? (
-              <Button type="button" variant="accent" size="sm" onClick={() => setAdjustOpen(true)}>
+              <Button type="button" variant="accent" size="tiny" onClick={() => setAdjustOpen(true)}>
                 {t('billingChangePlan')}
               </Button>
             ) : null

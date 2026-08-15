@@ -23,7 +23,7 @@ type ProductDetailConfigSectionProps = {
   costAmountWithBaseCode: (formatted: string, baseCurrency: string, codeClassName: string) => ReactNode
   fmtCard: (value: number) => string
   updatedAtIso: string
-  onEditCost: () => void
+  onEditCost?: () => void
   showSectionTitle?: boolean
 }
 
@@ -57,10 +57,12 @@ export function ProductDetailConfigSection({
                 <CardTitle className="text-xs font-medium text-text-secondary">
                   {t('productsDetailKpiCurrentCost')}
                 </CardTitle>
+                {onEditCost ? (
                 <Button type="button" variant="accent" size="sm" onClick={onEditCost}>
                   <Pencil className="size-3.5" />
                   {t('productsDetailEditAria')}
                 </Button>
+                ) : null}
               </CardHeader>
               <CardContent className="space-y-2 p-0">
                 <p className={cn('text-2xl font-semibold text-text-primary sm:text-3xl', NUM)}>

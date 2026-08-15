@@ -4,6 +4,7 @@ import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 
 import { cn } from "@/lib/utils"
+import { ButtonSizeProvider } from "@/ui/button"
 
 const sheetHeaderClassName =
   "flex h-[var(--shell-chrome-header-height)] min-h-[var(--shell-chrome-header-height)] max-h-[var(--shell-chrome-header-height)] shrink-0 items-center border-[var(--shell-divider)] bg-white px-4"
@@ -63,7 +64,9 @@ function SheetContent({
         )}
         {...props}
       >
-        <div className="flex h-full min-h-0 flex-col">{children}</div>
+        <div className="flex h-full min-h-0 flex-col">
+          <ButtonSizeProvider size="tiny">{children}</ButtonSizeProvider>
+        </div>
       </DialogPrimitive.Popup>
     </SheetPortal>
   )

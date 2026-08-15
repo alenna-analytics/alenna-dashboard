@@ -31,6 +31,11 @@ export type MeResponse = {
   last_name: string | null
   role: string
   role_name: string
+  permissions?: string[]
+  is_owner?: boolean
+  can_manage_roles?: boolean
+  roles_used?: number
+  roles_limit?: number | null
   base_currency: string
   display_currency: string | null
   /** See `LatestFxForDisplay` — may be set even when display equals base (USD↔MXN). */

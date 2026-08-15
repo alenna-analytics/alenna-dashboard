@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 
 import { shellT } from '@/lib/i18n/shell-strings'
+import { can } from '@/lib/permissions/can'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 
 import { CogsEntryCard } from './cogs-entry-card'
 import { useCogsLoadsQuery } from './use-cogs-load-queries'
@@ -10,6 +12,8 @@ import { useCogsLoadsQuery } from './use-cogs-load-queries'
 export function CogsHubPage() {
   const navigate = useNavigate()
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
+  const canEditProducts = can(me, 'products.edit')
   const t = (key: Parameters<typeof shellT>[1]) => shellT(lang, key)
   const loadsQuery = useCogsLoadsQuery()
   const loadCount = loadsQuery.data?.items.length ?? 0
@@ -36,6 +40,7 @@ export function CogsHubPage() {
           meta={bulkMeta}
           onAction={() => void navigate('/dashboard/products/cogs/loads')}
         />
+        {canEditProducts ? (
         <CogsEntryCard
           lang={lang}
           icon="integrations"
@@ -44,6 +49,7 @@ export function CogsHubPage() {
           actionKey="productsCogsHubOpen"
           onAction={() => void navigate('/dashboard/products/cogs/sync')}
         />
+        ) : null}
       </section>
     </DashboardPage>
   )

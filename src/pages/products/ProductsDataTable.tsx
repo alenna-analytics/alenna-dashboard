@@ -15,7 +15,9 @@ import { Button } from "@/ui/button"
 import { DataTable } from "@/ui/data-table/data-table"
 import { DataTablePagination } from "@/ui/data-table/data-table-pagination"
 import { useMoney } from "@/hooks/use-money"
+import { can } from "@/lib/permissions/can"
 import { useLanguage } from "@/shell/providers/language-provider"
+import { useWorkspace } from "@/shell/providers/workspace-context"
 
 import { createProductColumns, type ProductTableSelectionBinding } from "./products-columns"
 import { ProductCostEditorSheet } from "./product-cost-editor-sheet"
@@ -46,6 +48,8 @@ export function ProductsDataTable({
 }: ProductsDataTableProps) {
   const navigate = useNavigate()
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
+  const canEditProducts = can(me, 'products.edit')
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: PAGE_SIZE })
   const [sorting, setSorting] = useState<SortingState>([{ id: "title", desc: false }])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
@@ -116,9 +120,10 @@ export function ProductsDataTable({
   )
 
   const onOpenCostEditor = useCallback((productId: string) => {
+    if (!canEditProducts) return
     setCostEditorProductId(productId)
     setCostEditorOpen(true)
-  }, [])
+  }, [canEditProducts])
 
   const pageIds = useMemo(() => items.map((i) => i.id), [items])
 
@@ -246,13 +251,14 @@ export function ProductsDataTable({
         formatBaseMoney,
         onGoDetail,
         selection: selectionBinding,
-        onOpenCostEditor,
+        onOpenCostEditor: canEditProducts ? onOpenCostEditor : undefined,
       }),
     [
       t,
       formatBaseMoney,
       onGoDetail,
       selectionBinding,
+      canEditProducts,
       onOpenCostEditor,
     ],
   )
@@ -288,12 +294,14 @@ export function ProductsDataTable({
 
   return (
     <div className="flex flex-col gap-3">
+      {canEditProducts ? (
       <ProductCostEditorSheet
         lang={lang}
         open={costEditorOpen}
         productId={costEditorProductId}
         onOpenChange={setCostEditorOpen}
       />
+      ) : null}
       <DataTable
         table={table}
         isLoading={listQuery.isLoading}

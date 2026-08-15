@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
+import { can } from '@/lib/permissions/can'
 import { useCurrentTenant } from '@/auth/hooks'
 import type { AlertPostponeDuration } from '@/lib/types/alerts'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -171,7 +172,7 @@ export function ProductDetailStockAlert({ detail, productId, t }: ProductDetailS
   const { me } = useAppBootstrap()
   const { tenantId } = useCurrentTenant()
   const queryClient = useQueryClient()
-  const isAdmin = me?.role === 'admin' || me?.role === 'owner'
+  const isAdmin = can(me, 'alerts.manage')
   const postponeAlertMutation = usePostponeAlertMutation()
   const [pendingAlertIds, setPendingAlertIds] = useState<ReadonlySet<string>>(() => new Set())
 

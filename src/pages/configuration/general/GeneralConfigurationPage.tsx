@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 
 import { shellT } from '@/lib/i18n/shell-strings'
+import { isOwner } from '@/lib/permissions/can'
 import { cn } from '@/lib/utils'
 import { DeleteAccountDangerZone } from '@/pages/configuration/general/delete-account-danger-zone'
 import { DeleteAccountDialog } from '@/pages/configuration/general/delete-account-dialog'
@@ -81,7 +82,7 @@ export function GeneralConfigurationPage() {
     return t('shellSidebarWorkspaceFallback')
   }, [me?.tenant_name, t])
 
-  const isWorkspaceAdmin = me?.role === 'admin' || me?.role === 'owner'
+  const isWorkspaceAdmin = isOwner(me)
   const isPending = me?.account_deletion_status === 'pending'
   const previewScheduledLabel = formatDeletionDate(null, lang)
   const memberCount = me?.member_count ?? 0

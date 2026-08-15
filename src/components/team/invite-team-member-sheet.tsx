@@ -3,14 +3,11 @@ import { useMutation } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
 
 import { EMAIL_MAX_LENGTH, isValidEmail } from '@/lib/email'
+import { TeamRoleOptionList } from '@/components/team/team-role-option-list'
 import { inviteTeamMember } from '@/lib/team/team-api'
-import {
-  selectableTeamRoles,
-  TEAM_ROLE_OPTIONS,
-} from '@/lib/team/team-role-options'
+import { defaultInviteRoleId, selectableWorkspaceRoles } from '@/lib/team/team-role-options'
 import { shellT } from '@/lib/i18n/shell-strings'
-import type { TeamRoleSlug } from '@/lib/types/team-types'
-import { cn } from '@/lib/utils'
+import type { WorkspaceRole } from '@/lib/types/team-types'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
@@ -30,7 +27,8 @@ type InviteTeamMemberSheetProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   tenantId: string
-  actorRole: string
+  isOwner: boolean
+  roles: WorkspaceRole[]
   invitesEnabled: boolean
   onSuccess: () => void
 }
@@ -39,7 +37,8 @@ export function InviteTeamMemberSheet({
   open,
   onOpenChange,
   tenantId,
-  actorRole,
+  isOwner,
+  roles,
   invitesEnabled,
   onSuccess,
 }: InviteTeamMemberSheetProps) {
@@ -50,15 +49,28 @@ export function InviteTeamMemberSheet({
     [lang],
   )
 
-  const allowed = selectableTeamRoles(actorRole)
+  const allowed = useMemo(
+    () => selectableWorkspaceRoles(roles, { isOwner, lockToOwner: false }),
+    [roles, isOwner],
+  )
+  const fallbackRoleId = defaultInviteRoleId(roles, isOwner)
   const [email, setEmail] = useState('')
-  const [role, setRole] = useState<TeamRoleSlug>(allowed.includes('admin') ? 'admin' : 'staff')
+  const [roleId, setRoleId] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const selectedRoleId =
+    roleId && allowed.some((role) => role.id === roleId) ? roleId : fallbackRoleId
 
   const inviteMutation = useMutation({
-    mutationFn: () => inviteTeamMember(getToken, tenantId, { email: email.trim(), role }, lang),
+    mutationFn: () =>
+      inviteTeamMember(
+        getToken,
+        tenantId,
+        { email: email.trim(), role_id: selectedRoleId },
+        lang,
+      ),
     onSuccess: () => {
       setEmail('')
+      setRoleId('')
       setError(null)
       onSuccess()
       onOpenChange(false)
@@ -71,7 +83,8 @@ export function InviteTeamMemberSheet({
   const emailValid = isValidEmail(email)
   const emailInvalid = email.trim().length > 0 && !emailValid
   const invitesLocked = !invitesEnabled
-  const canSubmit = emailValid && invitesEnabled && !inviteMutation.isPending
+  const canSubmit =
+    emailValid && invitesEnabled && Boolean(selectedRoleId) && !inviteMutation.isPending
   const lockedReason = useMemo(
     () => (invitesLocked ? t('teamInviteDisabledTooltip') : null),
     [invitesLocked, t],
@@ -114,30 +127,13 @@ export function InviteTeamMemberSheet({
 
             <div className="space-y-2">
               <Label>{t('teamInviteRoleLabel')}</Label>
-              <div className="space-y-2">
-                {TEAM_ROLE_OPTIONS.filter((opt) => allowed.includes(opt.id)).map((opt) => {
-                  const selected = role === opt.id
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      disabled={inviteMutation.isPending || invitesLocked}
-                      onClick={() => setRole(opt.id)}
-                      className={cn(
-                        'w-full rounded-md border px-3 py-3 text-left transition-colors',
-                        selected
-                          ? 'border-[var(--firefly-base)] bg-muted/40'
-                          : 'border-border-subtle hover:bg-muted/20',
-                      )}
-                    >
-                      <p className="text-sm font-medium text-text-primary">{t(opt.titleKey)}</p>
-                      <p className="mt-1 text-xs leading-snug text-text-secondary">
-                        {t(opt.descriptionKey)}
-                      </p>
-                    </button>
-                  )
-                })}
-              </div>
+              <TeamRoleOptionList
+                roles={allowed}
+                selectedRoleId={selectedRoleId}
+                disabled={inviteMutation.isPending || invitesLocked}
+                onSelect={setRoleId}
+                t={t}
+              />
             </div>
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { ChevronLeft, Info } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
+import { can } from '@/lib/permissions/can'
 import { BulkCogsApplyStep } from '@/pages/products/bulk-cogs/bulk-cogs-apply-step'
 import { BulkCogsUnsavedLeaveDialog } from '@/pages/products/bulk-cogs/bulk-cogs-unsaved-leave-dialog'
 import {
@@ -22,6 +23,7 @@ import {
   useGlobalActivity,
 } from '@/shell/providers/global-activity-provider'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Button } from '@/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
@@ -66,6 +68,7 @@ export function CogsLoadEditorPage() {
   const { loadId } = useParams<{ loadId: string }>()
   const navigate = useNavigate()
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
   const t = useCallback((key: ShellStringKey) => shellT(lang, key), [lang])
   const { upsertActivity, registerCogsBulkBackfillJobs } = useGlobalActivity()
 
@@ -286,6 +289,10 @@ export function CogsLoadEditorPage() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('productsBulkCogsSaveFailed'))
     }
+  }
+
+  if (!can(me, 'products.edit')) {
+    return <Navigate to="/dashboard/products/cogs/loads" replace />
   }
 
   if (!loadId || loadQuery.isLoading) {

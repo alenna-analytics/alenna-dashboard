@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { AccountDeletionPendingBanner } from '@/pages/configuration/general/account-deletion-pending-banner'
 import { useCancelAccountDeletionMutation } from '@/pages/configuration/general/use-account-deletion-mutations'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { isOwner } from '@/lib/permissions/can'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 
@@ -25,7 +26,7 @@ export function AccountDeletionPendingShellBanner() {
     return null
   }
 
-  const isWorkspaceAdmin = me.role === 'admin' || me.role === 'owner'
+  const isWorkspaceAdmin = isOwner(me)
   const scheduledLabel = formatDeletionDate(me.scheduled_purge_at, lang)
 
   const handleCancel = async () => {

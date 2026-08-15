@@ -14,7 +14,7 @@ type ProductCostInlineCellProps = {
   formatMoney: (value: number) => string
   readOnly?: boolean
   readOnlyHint?: string
-  onOpenEditor: (productId: string) => void
+  onOpenEditor?: (productId: string) => void
   t: (key: ShellStringKey) => string
 }
 
@@ -37,9 +37,10 @@ export function ProductCostInlineCell({
   onOpenEditor,
   t,
 }: ProductCostInlineCellProps) {
+  const canEdit = Boolean(onOpenEditor) && !readOnly
   const openEditor = (event?: MouseEvent) => {
     event?.stopPropagation()
-    onOpenEditor(productId)
+    onOpenEditor?.(productId)
   }
 
   const costValue = costMissing || cost == null ? null : cost
@@ -49,7 +50,7 @@ export function ProductCostInlineCell({
     'size-3 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100'
 
   const displayRow =
-    !readOnly && costValue != null ? (
+    canEdit && costValue != null ? (
       <button
         type="button"
         className={cn(
@@ -64,7 +65,7 @@ export function ProductCostInlineCell({
         <span className="truncate tabular-nums">{formatMoney(costValue)}</span>
         <Pencil className={pencilClassName} aria-hidden />
       </button>
-    ) : !readOnly && costValue == null ? (
+    ) : canEdit && costValue == null ? (
       <button
         type="button"
         className="inline-flex items-center gap-1.5 rounded-md border border-transparent px-2 py-1 outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring/30"
@@ -84,7 +85,7 @@ export function ProductCostInlineCell({
       </div>
     )
 
-  if (readOnly) {
+  if (!canEdit) {
     if (!readOnlyHint) return displayRow
     return (
       <TooltipProvider>

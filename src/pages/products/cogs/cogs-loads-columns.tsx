@@ -20,6 +20,7 @@ export type CogsLoadsColumnActions = {
   onOpen: (row: CogsBulkLoadSummaryApi) => void
   onClone: (row: CogsBulkLoadSummaryApi) => void
   onDelete: (row: CogsBulkLoadSummaryApi) => void
+  canEdit: boolean
 }
 
 function statusLabel(status: CogsBulkLoadStatus, t: (key: ShellStringKey) => string): string {
@@ -134,11 +135,13 @@ export function createCogsLoadsColumns(
                       <span>{openActionLabel(load.status, t)}</span>
                     </DropdownMenuItem>
                   ) : null}
-                  <DropdownMenuItem onClick={() => actions.onClone(load)}>
-                    <Copy className="h-4 w-4" aria-hidden />
-                    <span>{t('productsCogsLoadClone')}</span>
-                  </DropdownMenuItem>
-                  {load.status === 'draft' ? (
+                  {actions.canEdit ? (
+                    <DropdownMenuItem onClick={() => actions.onClone(load)}>
+                      <Copy className="h-4 w-4" aria-hidden />
+                      <span>{t('productsCogsLoadClone')}</span>
+                    </DropdownMenuItem>
+                  ) : null}
+                  {actions.canEdit && load.status === 'draft' ? (
                     <DropdownMenuItem
                       variant="destructive"
                       onClick={() => actions.onDelete(load)}

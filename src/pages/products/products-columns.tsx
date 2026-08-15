@@ -54,7 +54,7 @@ export type ProductTableColumnLabels = {
   formatBaseMoney: (value: number) => string
   onGoDetail: (productId: string) => void
   selection: ProductTableSelectionBinding
-  onOpenCostEditor: (productId: string) => void
+  onOpenCostEditor?: (productId: string) => void
 }
 
 function statusPillVariant(status: string): ComponentProps<typeof StatusPill>['variant'] {
@@ -228,7 +228,7 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
             cost={rowData.cost}
             costMissing={rowData.cost_missing}
             formatMoney={formatBaseMoney}
-            readOnly={hasVariants}
+            readOnly={hasVariants || !onOpenCostEditor}
             readOnlyHint={hasVariants ? t("productsInlineCostVariantHint") : undefined}
             onOpenEditor={onOpenCostEditor}
             t={t}

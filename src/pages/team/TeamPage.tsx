@@ -19,12 +19,15 @@ import { EditTeamMemberRoleSheet } from '@/components/team/edit-team-member-role
 import { InviteTeamMemberSheet } from '@/components/team/invite-team-member-sheet'
 import {
   fetchTeamMembers,
+  fetchWorkspaceRoles,
   leaveTeam,
   removeTeamMember,
   revokeTeamInvitation,
 } from '@/lib/team/team-api'
+import { can, isOwner } from '@/lib/permissions/can'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { formatPlanLimit, UPGRADE_ENTERPRISE_MAILTO } from '@/lib/plan/plan-limit-ui'
+import { memberDisplayName } from '@/lib/team/member-display-name'
 import type { TeamMember } from '@/lib/types/team-types'
 import { cn } from '@/lib/utils'
 import {
@@ -49,17 +52,6 @@ import {
 import { Input } from '@/ui/input'
 import { Skeleton } from '@/ui/skeleton'
 import { DisabledTooltip } from '@/ui/tooltip'
-
-function memberDisplayName(member: TeamMember): string {
-  const parts = [member.first_name, member.last_name].filter(Boolean)
-  if (parts.length > 0) return parts.join(' ')
-  return member.email
-}
-
-function canManageTeam(role: string | undefined): boolean {
-  const normalized = role?.trim().toLowerCase() ?? ''
-  return normalized === 'owner' || normalized === 'admin'
-}
 
 function isOwnerRole(role: string): boolean {
   return role.trim().toLowerCase() === 'owner'
@@ -95,7 +87,8 @@ export function TeamPage() {
   const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null)
 
   const tenantId = me?.tenant_id ?? null
-  const canManage = canManageTeam(me?.role)
+  const canManage = can(me, 'team.manage')
+  const actorIsOwner = isOwner(me)
   const invitesEnabled = me?.team_invites_enabled !== false && !me?.is_fixture
 
   const teamQuery = useQuery({
@@ -104,8 +97,16 @@ export function TeamPage() {
     queryFn: () => fetchTeamMembers(getToken, tenantId!, lang),
   })
 
-  const invalidate = () =>
+  const rolesQuery = useQuery({
+    queryKey: ['workspace-roles', tenantId],
+    enabled: Boolean(tenantId),
+    queryFn: () => fetchWorkspaceRoles(getToken, tenantId!, lang),
+  })
+
+  const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['team-members', tenantId] })
+    queryClient.invalidateQueries({ queryKey: ['workspace-roles', tenantId] })
+  }
 
   const revokeMutation = useMutation({
     mutationFn: (invitationId: string) =>
@@ -194,7 +195,6 @@ export function TeamPage() {
 
     if (!member.is_you && canManage && member.status === 'active' && member.user_id) {
       const targetIsOwner = isOwnerRole(member.role)
-      const actorIsOwner = isOwnerRole(me?.role ?? '')
       const canModify = !targetIsOwner || actorIsOwner
       if (canModify) {
         actions.push({
@@ -237,7 +237,7 @@ export function TeamPage() {
     <DashboardPage>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className={pageTitleClassName}>{t('navTeam')}</h1>
+          <h1 className={pageTitleClassName}>{t('teamMembersPageTitle')}</h1>
           <div className="flex flex-wrap items-center gap-2">
             {canManage ? (
               <DisabledTooltip
@@ -246,7 +246,7 @@ export function TeamPage() {
                 <Button
                   type="button"
                   variant="accent"
-                  size="default"
+                  size="tiny"
                   className="shrink-0"
                   disabled={atSeatLimit || !invitesEnabled}
                   onClick={() => setInviteOpen(true)}
@@ -433,7 +433,8 @@ export function TeamPage() {
           open={inviteOpen}
           onOpenChange={setInviteOpen}
           tenantId={tenantId}
-          actorRole={me.role}
+          isOwner={actorIsOwner}
+          roles={rolesQuery.data?.roles ?? []}
           invitesEnabled={invitesEnabled}
           onSuccess={invalidate}
         />
@@ -447,7 +448,8 @@ export function TeamPage() {
             if (!open) setEditMember(null)
           }}
           tenantId={tenantId}
-          actorRole={me.role}
+          isOwner={actorIsOwner}
+          roles={rolesQuery.data?.roles ?? []}
           member={editMember}
           isLastOwner={editingLastOwner}
           onSuccess={invalidate}

@@ -2,7 +2,9 @@ import { useAuth } from '@clerk/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useCurrentTenant } from '@/auth/hooks'
+import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { apiFetch, apiPostJson } from '@/lib/api'
+import { can } from '@/lib/permissions/can'
 import type {
   AlertPostponeDuration,
   AlertSection,
@@ -27,10 +29,12 @@ export function alertsListQueryKey(
 export function useAlertsSummaryQuery() {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const { me } = useAppBootstrap()
+  const canView = can(me, 'alerts.view')
 
   return useQuery({
     queryKey: alertsSummaryQueryKey(tenantId),
-    enabled: Boolean(tenantId),
+    enabled: Boolean(tenantId) && canView,
     staleTime: 30_000,
     refetchOnWindowFocus: true,
     queryFn: async (): Promise<AlertsSummaryApi> => {

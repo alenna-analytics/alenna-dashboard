@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { getCoreRowModel, getPaginationRowModel, type ColumnDef, type PaginationState, type RowSelectionState, useReactTable } from '@tanstack/react-table'
 import { toast } from 'sonner'
 
 import { usePlatformConnectionsQuery } from '@/hooks/use-platform-connections-query'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
+import { can } from '@/lib/permissions/can'
 import { listActiveConnections } from '@/pages/integrations/dashboard/integration-connection'
 import type {
   CogsPlatformSyncDiffStatus,
@@ -18,6 +19,7 @@ import {
 } from '@/shell/providers/global-activity-provider'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Button } from '@/ui/button'
 import { Checkbox } from '@/ui/checkbox'
 import { DataTable } from '@/ui/data-table/data-table'
@@ -72,6 +74,7 @@ function formatMoney(value: number | null | undefined, currency: string): string
 
 export function CogsPlatformSyncPage() {
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
   const t = useCallback((k: ShellStringKey) => shellT(lang, k), [lang])
   const connectionsQuery = usePlatformConnectionsQuery()
   const previewMutation = useCogsPlatformSyncPreviewMutation()
@@ -350,6 +353,10 @@ export function CogsPlatformSyncPage() {
     t,
   ])
 
+  if (!can(me, 'products.edit')) {
+    return <Navigate to="/dashboard/products/cogs" replace />
+  }
+
   return (
     <DashboardPage className="flex flex-1 flex-col gap-5">
       <header className="space-y-2">
@@ -388,6 +395,7 @@ export function CogsPlatformSyncPage() {
         <Button
           type="button"
           variant="accent"
+          size="tiny"
           loading={previewMutation.isPending}
           onClick={() => void handlePreview()}
           disabled={!connectionId}
@@ -398,6 +406,7 @@ export function CogsPlatformSyncPage() {
           <Button
             type="button"
             variant="default"
+            size="tiny"
             loading={applyMutation.isPending}
             onClick={() => void handleApply()}
           >

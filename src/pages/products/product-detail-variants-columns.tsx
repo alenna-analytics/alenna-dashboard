@@ -50,7 +50,7 @@ export function sortVariantsByStockAlert(
 export type ProductDetailVariantsColumnLabels = {
   t: (key: ShellStringKey) => string
   fmtBase: (value: number) => string
-  onOpenCostEditor: (productId: string) => void
+  onOpenCostEditor?: (productId: string) => void
 }
 
 export function createProductDetailVariantsColumns(
@@ -102,6 +102,7 @@ export function createProductDetailVariantsColumns(
             cost={variant.cost}
             costMissing={variant.cost_missing}
             formatMoney={fmtBase}
+            readOnly={!onOpenCostEditor}
             onOpenEditor={onOpenCostEditor}
             t={t}
           />

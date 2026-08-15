@@ -329,7 +329,7 @@ export function ShopifyManageBody({
                 <Button
                   type="button"
                   variant="accent"
-                  size="sm"
+                  size="tiny"
                   className="my-1.5 mr-1.5 shrink-0 self-center rounded-md px-3"
                   loading={oauthStarting}
                   disabled={isFixture || !normalizeShopifySubdomainInput(shopInput) || !tenantId}

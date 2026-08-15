@@ -43,7 +43,7 @@ export function CogsEntryCard({
         {meta ? <p className="mt-1.5 text-sm text-text-tertiary">{meta}</p> : null}
       </div>
 
-      <Button type="button" variant="accent" size="sm" disabled={disabled} onClick={onAction}>
+      <Button type="button" variant="accent" size="tiny" disabled={disabled} onClick={onAction}>
         {shellT(lang, actionKey)}
       </Button>
     </article>

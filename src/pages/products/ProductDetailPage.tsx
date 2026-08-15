@@ -9,10 +9,12 @@ import type {
 } from '@/lib/types/catalog'
 import { useMoney } from '@/hooks/use-money'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { Card, CardContent } from '@/ui/card'
 import { type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Skeleton } from '@/ui/skeleton'
+import { can } from '@/lib/permissions/can'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
@@ -225,6 +227,8 @@ function ProductDetailSkeleton() {
 
 function ProductDetailBody({ productId }: { productId: string }) {
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
+  const canEditProducts = can(me, 'products.edit')
   const t = usePnlAwareT()
 
   const defaultInsight = useMemo(() => defaultProductInsightRange(), [])
@@ -391,6 +395,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
 
   return (
     <DashboardPage className="flex min-h-full flex-1 flex-col gap-6 lg:gap-8">
+      {canEditProducts ? (
       <ProductCostEditorSheet
         lang={lang}
         open={costEditorOpen}
@@ -399,6 +404,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
         initialDetail={costEditorInitialDetail}
         onOpenChange={setCostEditorOpen}
       />
+      ) : null}
 
       <ProductDetailHeader
         detail={detail}
@@ -407,7 +413,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
         lang={lang}
         thumb={<ProductDetailHeaderThumb url={detail.image_url} title={detail.title} />}
         skuDraft={skuDraft}
-        onSkuDraftChange={setSkuDraft}
+        onSkuDraftChange={canEditProducts ? setSkuDraft : undefined}
       />
 
       {futureSegment ? (
@@ -441,10 +447,11 @@ function ProductDetailBody({ productId }: { productId: string }) {
         showInsightValues={showInsightValues}
         insightKpi={insightKpi}
         insightsFetching={detailQuery.isFetching}
-        onEditCost={openEditSheet}
-        onOpenVariantCostEditor={openVariantCostEditor}
+        onEditCost={canEditProducts ? openEditSheet : undefined}
+        onOpenVariantCostEditor={canEditProducts ? openVariantCostEditor : undefined}
       />
 
+      {canEditProducts ? (
       <ProductDetailUnsavedBar
         open={skuDirty}
         t={t}
@@ -452,6 +459,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
         onSave={() => void handleSkuSave()}
         savePending={patchMutation.isPending}
       />
+      ) : null}
     </DashboardPage>
   )
 }

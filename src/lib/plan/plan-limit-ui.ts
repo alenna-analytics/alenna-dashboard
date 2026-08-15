@@ -27,7 +27,7 @@ export function upgradeMailtoForTarget(target: UpgradeTarget | null): string | n
 }
 
 export function isBillingOwner(me: MeResponse | null | undefined): boolean {
-  return me?.role === 'owner'
+  return Boolean(me?.is_owner)
 }
 
 export function upgradeLabelKeyForTarget(target: UpgradeTarget | null): ShellStringKey | null {

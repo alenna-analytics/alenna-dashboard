@@ -7,6 +7,7 @@ import type {
   TeamInviteResponse,
   TeamListResponse,
   TeamMemberRolePayload,
+  WorkspaceRole,
   WorkspaceRoleCreatePayload,
   WorkspaceRolePatchPayload,
   WorkspaceRolesListResponse,
@@ -114,11 +115,12 @@ export async function createWorkspaceRole(
   tenantId: string,
   payload: WorkspaceRoleCreatePayload,
   lang: Language = 'es',
-): Promise<void> {
+): Promise<WorkspaceRole> {
   const res = await apiPostJson('/team/roles', getToken, payload, {}, tenantId)
   if (!res.ok) {
     throw await parseApiError(res, lang, 'teamErrorGeneric')
   }
+  return (await res.json()) as WorkspaceRole
 }
 
 export async function updateWorkspaceRole(

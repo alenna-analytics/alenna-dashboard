@@ -24,6 +24,8 @@ import { ExpensesSheet } from '@/pages/expenses/expenses-sheet'
 import { ExpensesTable } from '@/pages/expenses/expenses-table'
 import { useExpenses } from '@/pages/expenses/use-expenses'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { useWorkspace } from '@/shell/providers/workspace-context'
+import { can } from '@/lib/permissions/can'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useDisplayCurrency } from '@/shell/providers/display-currency-provider'
 import { Button } from '@/ui/button'
@@ -94,6 +96,10 @@ export function ExpensesPage() {
   )
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const { me } = useWorkspace()
+  const canCreate = can(me, 'expenses.create')
+  const canEdit = can(me, 'expenses.edit')
+  const canDelete = can(me, 'expenses.delete')
   const expenses = useExpenses()
   const { formatKpi, baseCurrency, effectiveDisplayCurrency } = useMoney()
   const { latestFx } = useDisplayCurrency()
@@ -232,10 +238,12 @@ export function ExpensesPage() {
               {t('expensesPageSubtitle')}
             </p>
           </div>
+          {canCreate ? (
           <Button type="button" variant="accent" className="shrink-0" onClick={openCreate}>
             <Plus aria-hidden />
             {t('expensesAddBtn')}
           </Button>
+          ) : null}
         </div>
 
         <div className="w-full overflow-x-auto">
@@ -377,6 +385,9 @@ export function ExpensesPage() {
             setDeleteTarget(row)
           }}
           onCreate={openCreate}
+          canCreate={canCreate}
+          canEdit={canEdit}
+          canDelete={canDelete}
           t={t}
         />
       </section>

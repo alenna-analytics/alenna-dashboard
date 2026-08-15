@@ -17,7 +17,6 @@ import { useNavigate } from 'react-router-dom'
 import { fetchMyTenants, useTenantSwitcher } from '@/auth/hooks'
 import { EditTeamMemberRoleSheet } from '@/components/team/edit-team-member-role-sheet'
 import { InviteTeamMemberSheet } from '@/components/team/invite-team-member-sheet'
-import { WorkspaceRolesPanel } from '@/components/team/workspace-roles-panel'
 import {
   fetchTeamMembers,
   fetchWorkspaceRoles,
@@ -28,6 +27,7 @@ import {
 import { can, isOwner } from '@/lib/permissions/can'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { formatPlanLimit, UPGRADE_ENTERPRISE_MAILTO } from '@/lib/plan/plan-limit-ui'
+import { memberDisplayName } from '@/lib/team/member-display-name'
 import type { TeamMember } from '@/lib/types/team-types'
 import { cn } from '@/lib/utils'
 import {
@@ -52,12 +52,6 @@ import {
 import { Input } from '@/ui/input'
 import { Skeleton } from '@/ui/skeleton'
 import { DisabledTooltip } from '@/ui/tooltip'
-
-function memberDisplayName(member: TeamMember): string {
-  const parts = [member.first_name, member.last_name].filter(Boolean)
-  if (parts.length > 0) return parts.join(' ')
-  return member.email
-}
 
 function isOwnerRole(role: string): boolean {
   return role.trim().toLowerCase() === 'owner'
@@ -243,7 +237,7 @@ export function TeamPage() {
     <DashboardPage>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className={pageTitleClassName}>{t('navTeam')}</h1>
+          <h1 className={pageTitleClassName}>{t('teamMembersPageTitle')}</h1>
           <div className="flex flex-wrap items-center gap-2">
             {canManage ? (
               <DisabledTooltip
@@ -264,17 +258,6 @@ export function TeamPage() {
             ) : null}
           </div>
         </div>
-
-        {tenantId && actorIsOwner && rolesQuery.data ? (
-          <WorkspaceRolesPanel
-            tenantId={tenantId}
-            roles={rolesQuery.data.roles}
-            rolesUsed={rolesQuery.data.roles_used}
-            rolesLimit={rolesQuery.data.roles_limit}
-            canManageRoles={rolesQuery.data.can_manage_roles}
-            isOwner={actorIsOwner}
-          />
-        ) : null}
 
         {atSeatLimit ? (
           <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">

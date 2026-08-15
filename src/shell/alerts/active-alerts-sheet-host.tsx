@@ -24,11 +24,12 @@ export function ActiveAlertsSheetHost() {
   const queryClient = useQueryClient()
   const { open, setOpen } = useAlertsSheet()
   const { me } = useAppBootstrap()
+  const canViewAlerts = can(me, 'alerts.view')
   const isAdmin = can(me, 'alerts.manage')
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
-    enabled: Boolean(tenantId),
+    enabled: Boolean(tenantId) && canViewAlerts,
     queryFn: async (): Promise<PlatformConnection[]> => {
       const res = await apiFetch('/connectors', (a) => getToken(a), {}, tenantId)
       if (!res.ok) throw new Error(await res.text())
@@ -44,8 +45,8 @@ export function ActiveAlertsSheetHost() {
     return map
   }, [connectionsQuery.data])
 
-  const activeAlertsQuery = useAlertsListQuery('active', open)
-  const postponedAlertsQuery = useAlertsListQuery('postponed', open)
+  const activeAlertsQuery = useAlertsListQuery('active', open && canViewAlerts)
+  const postponedAlertsQuery = useAlertsListQuery('postponed', open && canViewAlerts)
   const postponeAlertMutation = usePostponeAlertMutation()
 
   const t = useCallback(

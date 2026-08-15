@@ -17,7 +17,7 @@ type ProductDetailHeaderStatsProps = {
   t: (key: ShellStringKey) => string
   lang: string
   skuDraft: string
-  onSkuDraftChange: (value: string) => void
+  onSkuDraftChange?: (value: string) => void
 }
 
 function StatColumn({
@@ -60,7 +60,9 @@ export function ProductDetailHeaderStats({
       value: (
         <Input
           value={skuDraft}
-          onChange={(e) => onSkuDraftChange(e.target.value)}
+          onChange={(e) => onSkuDraftChange?.(e.target.value)}
+          readOnly={!onSkuDraftChange}
+          disabled={!onSkuDraftChange}
           placeholder={t('productsDetailSkuPlaceholder')}
           aria-label={t('productsDetailEditSkuAria')}
           className="h-8 w-full max-w-none text-sm font-normal sm:max-w-[11rem]"

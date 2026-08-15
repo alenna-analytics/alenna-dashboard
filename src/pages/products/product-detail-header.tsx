@@ -20,7 +20,7 @@ type ProductDetailHeaderProps = {
   lang: string
   thumb: React.ReactNode
   skuDraft: string
-  onSkuDraftChange: (value: string) => void
+  onSkuDraftChange?: (value: string) => void
 }
 
 export function ProductDetailHeader({

@@ -38,6 +38,8 @@ import { GeneralConfigurationPage } from '@/pages/configuration/general/GeneralC
 import { PnlTermsConfigurationPage } from '@/pages/configuration/pnl-terms/PnlTermsConfigurationPage'
 import { BillingConfigurationPage } from '@/pages/configuration/billing/BillingConfigurationPage'
 import { TeamPage } from '@/pages/team/TeamPage'
+import { TeamRolesPage } from '@/pages/team/TeamRolesPage'
+import { RequireModule } from '@/shell/require-module'
 
 function BillingLegacyRedirect() {
   const { search } = useLocation()
@@ -59,8 +61,8 @@ function App() {
           <Route index element={<DashboardHomePageV2 />} />
           <Route path="home-v2" element={<Navigate to="/dashboard" replace />} />
           <Route path="components" element={<ComponentsShowcasePage />} />
-          <Route path="reports" element={<ReportsPage />} />
-          <Route path="products" element={<ProductsShellLayout />}>
+          <Route path="reports" element={<RequireModule moduleId="reports"><ReportsPage /></RequireModule>} />
+          <Route path="products" element={<RequireModule moduleId="products"><ProductsShellLayout /></RequireModule>}>
             <Route index element={<ProductsListPage />} />
             <Route path="cogs" element={<CogsShellLayout />}>
               <Route index element={<CogsHubPage />} />
@@ -71,25 +73,26 @@ function App() {
             </Route>
             <Route path=":productId" element={<ProductDetailPage />} />
           </Route>
-          <Route path="integrations/ecommerce" element={<IntegrationsListPage category="ecommerce" />} />
-          <Route path="integrations/ads" element={<IntegrationsAdsComingSoonPage />} />
-          <Route path="integrations/:slug" element={<IntegrationDetailPage />} />
-          <Route path="integrations" element={<IntegrationsListPage category="all" />} />
-          <Route path="team" element={<TeamPage />} />
+          <Route path="integrations/ecommerce" element={<RequireModule moduleId="integrations"><IntegrationsListPage category="ecommerce" /></RequireModule>} />
+          <Route path="integrations/ads" element={<RequireModule moduleId="integrations"><IntegrationsAdsComingSoonPage /></RequireModule>} />
+          <Route path="integrations/:slug" element={<RequireModule moduleId="integrations"><IntegrationDetailPage /></RequireModule>} />
+          <Route path="integrations" element={<RequireModule moduleId="integrations"><IntegrationsListPage category="all" /></RequireModule>} />
+          <Route path="team" element={<RequireModule permission="team.view"><TeamPage /></RequireModule>} />
+          <Route path="team/roles" element={<RequireModule permission="team.view"><TeamRolesPage /></RequireModule>} />
           <Route path="billing" element={<BillingConfigurationPage />} />
           <Route path="configuration/billing" element={<BillingLegacyRedirect />} />
-          <Route path="configuration" element={<ConfigurationShellLayout />}>
+          <Route path="configuration" element={<RequireModule moduleId="workspace-config"><ConfigurationShellLayout /></RequireModule>}>
             <Route index element={<ConfigurationIndexRedirect />} />
             <Route path="general" element={<GeneralConfigurationPage />} />
             <Route path="pnl-terms" element={<PnlTermsConfigurationPage />} />
-            <Route path="alarms" element={<AlarmsConfigurationListPage />} />
-            <Route path="alarms/stock" element={<StockAlarmConfigurationPage />} />
+            <Route path="alarms" element={<RequireModule moduleId="alarms"><AlarmsConfigurationListPage /></RequireModule>} />
+            <Route path="alarms/stock" element={<RequireModule moduleId="alarms"><StockAlarmConfigurationPage /></RequireModule>} />
           </Route>
-          <Route path="sales" element={<SalesPage />} />
-          <Route path="ads" element={<AdsPage />} />
-          <Route path="simulations" element={<SimulationsPage />} />
-          <Route path="channels" element={<ChannelsPage />} />
-          <Route path="expenses" element={<ExpensesPage />} />
+          <Route path="sales" element={<RequireModule moduleId="sales"><SalesPage /></RequireModule>} />
+          <Route path="ads" element={<RequireModule moduleId="ads"><AdsPage /></RequireModule>} />
+          <Route path="simulations" element={<RequireModule moduleId="simulations"><SimulationsPage /></RequireModule>} />
+          <Route path="channels" element={<RequireModule moduleId="channels"><ChannelsPage /></RequireModule>} />
+          <Route path="expenses" element={<RequireModule moduleId="expenses"><ExpensesPage /></RequireModule>} />
           <Route path="connections" element={<Navigate to="/dashboard/integrations" replace />} />
           <Route path="*" element={<NotFoundPage variant="embedded" />} />
         </Route>

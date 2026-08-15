@@ -74,6 +74,8 @@ import { SalesMetricBasisToggle } from '@/ui/sales-metric-basis-toggle'
 import { chromeIconButtonClassName } from '@/ui/surface'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { cn } from '@/lib/utils'
+import { can } from '@/lib/permissions/can'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 
 type HomeV2FiltersState = {
   startDate: string
@@ -233,8 +235,13 @@ export function DashboardHomePageV2() {
   const dateLocale = lang === 'en' ? enUS : esLocale
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const { me } = useWorkspace()
   const t = usePnlAwareT()
   const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
+  const canHomeKpis =
+    can(me, 'reports.view') || can(me, 'sales.view') || can(me, 'products.view')
+  const canChannelWidgets = can(me, 'channels.view') || can(me, 'reports.view')
+  const canConnectors = can(me, 'integrations.view')
 
   const defaultKpiOrder = useMemo(
     (): HomeV2KpiOrderState => ({
@@ -280,7 +287,7 @@ export function DashboardHomePageV2() {
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
-    enabled: Boolean(tenantId),
+    enabled: Boolean(tenantId) && canConnectors,
     queryFn: async (): Promise<PlatformConnection[]> => {
       const res = await apiFetch('/connectors', (a) => getToken(a), {}, tenantId)
       if (!res.ok) throw new Error(await res.text())
@@ -317,13 +324,13 @@ export function DashboardHomePageV2() {
     connectionIds: activeConnectionIds,
     startDate,
     endDate,
-    enabled: !productMode,
+    enabled: canHomeKpis && !productMode,
   })
   const { data: kpiPrev, isLoading: kpiPrevLoading } = useReports({
     connectionIds: activeConnectionIds,
     startDate: prevPeriod?.start ?? '',
     endDate: prevPeriod?.end ?? '',
-    enabled: !productMode && Boolean(prevPeriod) && kpiReady,
+    enabled: canHomeKpis && !productMode && Boolean(prevPeriod) && kpiReady,
   })
 
   const { data: pkpi, isLoading: pkpiLoading, isSuccess: pkpiReady } = useProductReports({
@@ -331,14 +338,14 @@ export function DashboardHomePageV2() {
     productIds,
     startDate,
     endDate,
-    enabled: productMode,
+    enabled: canHomeKpis && productMode,
   })
   const { data: pkpiPrev, isLoading: pkpiPrevLoading } = useProductReports({
     connectionIds: activeConnectionIds,
     productIds,
     startDate: prevPeriod?.start ?? '',
     endDate: prevPeriod?.end ?? '',
-    enabled: productMode && Boolean(prevPeriod) && pkpiReady,
+    enabled: canHomeKpis && productMode && Boolean(prevPeriod) && pkpiReady,
   })
 
   const { data: sparklineSeries } = useMonthlyRevenueSeries({
@@ -347,7 +354,7 @@ export function DashboardHomePageV2() {
     startDate,
     endDate,
     granularity: sparkGranularity,
-    enabled: activeConnectionIds.length > 0,
+    enabled: canHomeKpis && activeConnectionIds.length > 0,
   })
 
   const { data: salesTrendSeries, isError: salesTrendError } = useMonthlyRevenueSeries({
@@ -356,7 +363,7 @@ export function DashboardHomePageV2() {
     startDate,
     endDate,
     granularity: salesTrendGranularity,
-    enabled: activeConnectionIds.length > 0,
+    enabled: canHomeKpis && activeConnectionIds.length > 0,
   })
 
   const { data: channelBreakdown, isPending: channelDonutPending } = useChannelBreakdown({
@@ -364,7 +371,7 @@ export function DashboardHomePageV2() {
     productIds,
     startDate,
     endDate,
-    enabled: activeConnectionIds.length > 0,
+    enabled: canChannelWidgets && activeConnectionIds.length > 0,
   })
 
   const { data: topProducts, isPending: topProductsPending } = useTopProducts({
@@ -373,7 +380,7 @@ export function DashboardHomePageV2() {
     startDate,
     endDate,
     limit: 10,
-    enabled: activeConnectionIds.length > 0,
+    enabled: canHomeKpis && activeConnectionIds.length > 0,
   })
 
   const pairedChartBodyPx = useMemo(() => getTopProductsChartHeightPx(), [])

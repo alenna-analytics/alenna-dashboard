@@ -8,6 +8,7 @@ import { HeaderConnectionsMenu } from '@/shell/layout/header-connections-menu'
 import { HeaderUserButton } from '@/shell/layout/header-user-button'
 import { HeaderWorkspaceSwitcher } from '@/shell/layout/header-workspace-switcher'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { can } from '@/lib/permissions/can'
 import type { MeResponse } from '@/lib/types/me-types'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'
@@ -84,9 +85,11 @@ export function AppHeader({
         <div className="flex min-w-0 shrink-0 items-center gap-1.5 overflow-visible sm:gap-2">
           <HeaderConnectionsMenu />
           <CurrencyPicker className="hidden h-8 sm:inline-flex" />
+          {can(me, 'alerts.view') ? (
           <HeaderChromeButton className="bg-[var(--chrome-muted)]">
             <AlertsHeaderButton />
           </HeaderChromeButton>
+          ) : null}
           <HeaderUserButton me={me} />
         </div>
       </div>

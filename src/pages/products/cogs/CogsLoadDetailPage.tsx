@@ -2,6 +2,8 @@ import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
+import { can } from '@/lib/permissions/can'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { mergeLoadItemsIntoDraftStore } from '@/pages/products/bulk-cogs/bulk-cogs-draft-store'
 import { BulkCogsGrid } from '@/pages/products/bulk-cogs/bulk-cogs-grid'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
@@ -16,6 +18,8 @@ export function CogsLoadDetailPage() {
   const { loadId } = useParams<{ loadId: string }>()
   const navigate = useNavigate()
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
+  const canEditProducts = can(me, 'products.edit')
   const t = (k: ShellStringKey) => shellT(lang, k)
   const loadQuery = useCogsLoadQuery(loadId)
   const cloneMutation = useCloneCogsLoadMutation()
@@ -75,6 +79,7 @@ export function CogsLoadDetailPage() {
             <dd>{detail.load.applied_product_count ?? detail.items.length}</dd>
           </div>
         </dl>
+        {canEditProducts ? (
         <Button
           type="button"
           variant="outline"
@@ -88,6 +93,7 @@ export function CogsLoadDetailPage() {
         >
           {t('productsCogsLoadClone')}
         </Button>
+        ) : null}
       </header>
 
       <div className="min-h-0 flex-1 overflow-hidden">

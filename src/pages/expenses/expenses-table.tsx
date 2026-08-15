@@ -40,6 +40,9 @@ type ExpensesTableProps = {
   onEdit: (expense: Expense) => void
   onDelete: (id: string) => void
   onCreate: () => void
+  canEdit?: boolean
+  canDelete?: boolean
+  canCreate?: boolean
   t: (key: ShellStringKey) => string
 }
 
@@ -53,6 +56,9 @@ export function ExpensesTable({
   onEdit,
   onDelete,
   onCreate,
+  canEdit = true,
+  canDelete = true,
+  canCreate = true,
   t,
 }: ExpensesTableProps) {
   const columns = useMemo(
@@ -155,10 +161,13 @@ export function ExpensesTable({
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
+                  {canEdit ? (
                   <DropdownMenuItem onClick={() => onEdit(row.original)}>
                     <Pencil className="h-4 w-4" aria-hidden />
                     <span>{t('expensesEditBtn')}</span>
                   </DropdownMenuItem>
+                  ) : null}
+                  {canDelete ? (
                   <DropdownMenuItem
                     disabled={isBusy}
                     variant="destructive"
@@ -167,6 +176,7 @@ export function ExpensesTable({
                     <Trash2 className="h-4 w-4" aria-hidden />
                     <span>{t('expensesDeleteBtn')}</span>
                   </DropdownMenuItem>
+                  ) : null}
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -174,7 +184,7 @@ export function ExpensesTable({
         ),
       }),
     ],
-    [formatAmount, isBusy, onDelete, onEdit, t],
+    [canDelete, canEdit, formatAmount, isBusy, onDelete, onEdit, t],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
@@ -213,10 +223,12 @@ export function ExpensesTable({
           title={t('expensesEmptyTitle')}
           description={t('expensesEmptyDescription')}
           action={
+            canCreate ? (
             <Button type="button" variant="outline" size="xs" onClick={onCreate}>
               <Plus aria-hidden />
               {t('expensesAddBtn')}
             </Button>
+            ) : undefined
           }
         />
       }

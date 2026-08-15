@@ -3,6 +3,7 @@ import { matchPath, NavLink, useLocation } from 'react-router-dom'
 import type { AppIconName } from '@/lib/icons/catalog'
 import type { SidebarControlMode } from '@/lib/shell/sidebar-control-prefs'
 import { useEnabledModules } from '@/lib/modules/use-modules'
+import { can } from '@/lib/permissions/can'
 import { useConfigSectionModules, useWorkspaceConfigModuleEnabled } from '@/lib/modules/use-workspace-config'
 import type { ModuleSection, ModuleState } from '@/lib/modules/types'
 import { shellT } from '@/lib/i18n/shell-strings'
@@ -79,7 +80,10 @@ function NavItem({
   onNavigate?: () => void
 }) {
   const { pathname } = useLocation()
-  const isActive = matchPath({ path: to, end: Boolean(end) }, pathname) != null
+  const isExact = Boolean(end)
+  const isActive =
+    matchPath({ path: to, end: isExact }, pathname) != null ||
+    (!isExact && pathname.startsWith(`${to}/`))
   const link = (
     <NavLink
       to={to}
@@ -167,8 +171,12 @@ export function AppSidebarPanel({
   const otherConfigModules = configModules.filter((mod) => mod.id !== 'integrations')
   const workspaceConfigEnabled = useWorkspaceConfigModuleEnabled()
   const canSeeBilling = workspaceConfigEnabled && isBillingOwner(me)
+  const canSeeTeam = can(me, 'team.view')
   const showBottomSection =
-    integrationsModule != null || workspaceConfigEnabled || otherConfigModules.length > 0
+    canSeeTeam ||
+    integrationsModule != null ||
+    workspaceConfigEnabled ||
+    otherConfigModules.length > 0
 
   return (
     <div
@@ -200,6 +208,7 @@ export function AppSidebarPanel({
         />
         {showBottomSection ? (
           <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionConfiguration')}>
+            {canSeeTeam ? (
             <NavItem
               icon="orgs"
               to="/dashboard/team"
@@ -207,6 +216,7 @@ export function AppSidebarPanel({
               collapsed={collapsed}
               onNavigate={onNavigate}
             />
+            ) : null}
             {integrationsModule ? (
               <NavItem
                 icon={integrationsModule.icon}

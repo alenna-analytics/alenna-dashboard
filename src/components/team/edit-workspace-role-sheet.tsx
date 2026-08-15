@@ -8,6 +8,7 @@ import { ASSIGNABLE_PERMISSION_KEYS } from '@/lib/permissions/can'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { WorkspaceRole } from '@/lib/types/team-types'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
@@ -38,6 +39,7 @@ export function EditWorkspaceRoleSheet({
 }: EditWorkspaceRoleSheetProps) {
   const { getToken } = useAuth()
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
   const t = useCallback(
     (key: Parameters<typeof shellT>[1]) => shellT(lang, key),
     [lang],
@@ -109,6 +111,7 @@ export function EditWorkspaceRoleSheet({
                 lang={lang}
                 permissions={permissions}
                 onChange={setPermissions}
+                enabledModuleIds={me?.modules ?? []}
                 disabled={locked || save.isPending}
               />
             </fieldset>

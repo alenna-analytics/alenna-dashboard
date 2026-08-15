@@ -9,6 +9,7 @@ import { shellT } from '@/lib/i18n/shell-strings'
 import type { TeamMember } from '@/lib/types/team-types'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Button } from '@/ui/button'
 import { Checkbox } from '@/ui/checkbox'
 import { Input } from '@/ui/input'
@@ -51,6 +52,7 @@ export function CreateWorkspaceRoleWizard({
 }: CreateWorkspaceRoleWizardProps) {
   const { getToken } = useAuth()
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
   const t = useCallback(
     (key: Parameters<typeof shellT>[1], vars?: Record<string, string | number>) =>
       shellT(lang, key, vars),
@@ -163,6 +165,7 @@ export function CreateWorkspaceRoleWizard({
                   lang={lang}
                   permissions={permissions}
                   onChange={setPermissions}
+                  enabledModuleIds={me?.modules ?? []}
                   disabled={save.isPending}
                 />
               </div>

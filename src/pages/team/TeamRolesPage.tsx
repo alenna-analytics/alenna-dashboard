@@ -130,6 +130,7 @@ export function TeamRolesPage() {
               lang={lang}
               permissions={[]}
               onChange={() => undefined}
+              enabledModuleIds={me.modules}
               preview
             />
           </FeatureDisabledState>

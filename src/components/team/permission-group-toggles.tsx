@@ -4,6 +4,7 @@ import {
 } from '@/lib/permissions/permission-labels'
 import {
   PERMISSION_GROUPS,
+  visiblePermissionGroups,
   toggleGroupAction,
   toggleGroupView,
   type PermissionGroup,
@@ -18,6 +19,7 @@ type PermissionGroupTogglesProps = {
   lang: Language
   permissions: string[]
   onChange: (next: string[]) => void
+  enabledModuleIds?: readonly string[]
   disabled?: boolean
   preview?: boolean
 }
@@ -26,15 +28,18 @@ export function PermissionGroupToggles({
   lang,
   permissions,
   onChange,
+  enabledModuleIds,
   disabled = false,
   preview = false,
 }: PermissionGroupTogglesProps) {
   const t = (key: Parameters<typeof shellT>[1]) => shellT(lang, key)
   const locked = disabled || preview
+  const groups =
+    enabledModuleIds == null ? PERMISSION_GROUPS : visiblePermissionGroups(enabledModuleIds)
 
   return (
     <div className="space-y-3">
-      {PERMISSION_GROUPS.map((group) => (
+      {groups.map((group) => (
         <PermissionGroupCard
           key={group.id}
           group={group}

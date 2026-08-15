@@ -1,5 +1,7 @@
 import type { AssignablePermissionKey } from '@/lib/permissions/can'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import { MODULES } from '@/lib/modules/registry'
+import type { ModuleId } from '@/lib/modules/types'
 
 export type PermissionGroupId =
   | 'products'
@@ -89,6 +91,35 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
     actionKeys: ['team.manage'],
   },
 ] as const
+
+const GROUP_MODULE_ID: Partial<Record<PermissionGroupId, ModuleId>> = {
+  products: 'products',
+  sales: 'sales',
+  reports: 'reports',
+  channels: 'channels',
+  expenses: 'expenses',
+  ads: 'ads',
+  simulations: 'simulations',
+  integrations: 'integrations',
+  workspace_config: 'workspace-config',
+  alerts: 'alarms',
+}
+
+const COMING_SOON_MODULE_IDS = new Set(
+  MODULES.filter((mod) => mod.comingSoon).map((mod) => mod.id),
+)
+
+export function visiblePermissionGroups(
+  enabledModuleIds: readonly string[],
+): PermissionGroup[] {
+  const enabled = new Set(enabledModuleIds)
+  return PERMISSION_GROUPS.filter((group) => {
+    const moduleId = GROUP_MODULE_ID[group.id]
+    if (moduleId == null) return true
+    if (COMING_SOON_MODULE_IDS.has(moduleId)) return false
+    return enabled.has(moduleId)
+  })
+}
 
 export function toggleGroupView(
   current: string[],

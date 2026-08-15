@@ -6,7 +6,7 @@ import { LoadingIcon } from "@/ui/app-icon"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "relative inline-flex shrink-0 items-center justify-center space-x-2 border text-center font-normal whitespace-nowrap transition-colors duration-200 ease-out outline-none select-none cursor-pointer rounded-md focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "relative inline-flex shrink-0 items-center justify-center gap-2.5 border text-center font-normal whitespace-nowrap transition-colors duration-200 ease-out outline-none select-none cursor-pointer rounded-md focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -38,8 +38,8 @@ const buttonVariants = cva(
           "border-[#2a2a2a] bg-[#1f1f1f] text-white hover:border-[#3a3a3a] hover:bg-[#2a2a2a] data-[state=open]:bg-[#2a2a2a] focus-visible:ring-white/20",
       },
       size: {
-        tiny: "h-[26px] space-x-1.5 px-2.5 py-1 text-xs leading-4 [&_svg]:size-[14px]",
-        xs: "h-[26px] space-x-1.5 px-2.5 py-1 text-xs leading-4 [&_svg]:size-[14px]",
+        tiny: "h-[26px] px-2.5 py-1 text-xs leading-4 [&_svg]:size-[14px]",
+        xs: "h-[26px] px-2.5 py-1 text-xs leading-4 [&_svg]:size-[14px]",
         small: "h-[34px] px-3 py-2 text-sm leading-4 [&_svg]:size-[18px]",
         sm: "h-[34px] px-3 py-2 text-sm leading-4 [&_svg]:size-[18px]",
         medium: "h-[38px] px-4 py-2 text-sm [&_svg]:size-5",

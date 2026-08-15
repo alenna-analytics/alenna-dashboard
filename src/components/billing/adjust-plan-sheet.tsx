@@ -118,13 +118,13 @@ export function AdjustPlanSheet({ open, onOpenChange, me }: AdjustPlanSheetProps
                   </ul>
                   <div className="mt-4">
                     {isCurrent ? (
-                      <Button type="button" variant="outline" size="sm" className="w-full" disabled>
+                      <Button type="button" variant="outline" size="tiny" className="w-full" disabled>
                         {shellT(lang, 'billingAdjustPlanYourCurrent')}
                       </Button>
                     ) : plan.id === 'enterprise' ? (
                       <a
                         href={UPGRADE_ENTERPRISE_MAILTO}
-                        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'w-full')}
+                        className={cn(buttonVariants({ variant: 'outline', size: 'tiny' }), 'w-full')}
                       >
                         {shellT(lang, 'billingAdjustEnterpriseCta')}
                       </a>

@@ -1,6 +1,6 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
-import type { ReactNode } from "react"
+import { createContext, useContext, type ReactNode } from "react"
 
 import { LoadingIcon } from "@/ui/app-icon"
 import { cn } from "@/lib/utils"
@@ -44,7 +44,7 @@ const buttonVariants = cva(
         sm: "h-[34px] px-3 py-2 text-sm leading-4",
         medium: "h-[38px] px-4 py-2 text-sm",
         md: "h-[38px] px-4 py-2 text-sm",
-        default: "h-[38px] px-4 py-2 text-sm",
+        default: "h-[34px] px-3 py-2 text-sm leading-4",
         large: "h-[42px] px-4 py-2 text-base",
         lg: "h-[42px] px-4 py-2 text-base",
         xlarge: "h-[50px] px-6 py-3 text-base",
@@ -77,7 +77,7 @@ const iconContainerVariants = cva("inline-flex shrink-0 items-center justify-cen
       sm: "[&_svg]:h-[18px] [&_svg]:w-[18px]",
       medium: "[&_svg]:h-[20px] [&_svg]:w-[20px]",
       md: "[&_svg]:h-[20px] [&_svg]:w-[20px]",
-      default: "[&_svg]:h-[20px] [&_svg]:w-[20px]",
+      default: "[&_svg]:h-[18px] [&_svg]:w-[18px]",
       large: "[&_svg]:h-[20px] [&_svg]:w-[20px]",
       lg: "[&_svg]:h-[20px] [&_svg]:w-[20px]",
       xlarge: "[&_svg]:h-[24px] [&_svg]:w-[24px]",
@@ -100,7 +100,7 @@ const loadingIconClassBySize: Record<ButtonSize, string> = {
   sm: "size-[18px]",
   medium: "size-5",
   md: "size-5",
-  default: "size-5",
+  default: "size-[18px]",
   large: "size-5",
   lg: "size-5",
   xlarge: "size-6",
@@ -113,6 +113,23 @@ const loadingIconClassBySize: Record<ButtonSize, string> = {
 
 function isIconButtonSize(size: ButtonSize): boolean {
   return size === "icon" || size === "icon-xs" || size === "icon-sm" || size === "icon-lg"
+}
+
+const ButtonSizeContext = createContext<ButtonSize | null>(null)
+
+type ButtonSizeProviderProps = {
+  size: ButtonSize
+  children: ReactNode
+}
+
+function ButtonSizeProvider({ size, children }: ButtonSizeProviderProps) {
+  return <ButtonSizeContext.Provider value={size}>{children}</ButtonSizeContext.Provider>
+}
+
+function resolveButtonSize(size: ButtonSize | undefined, contextSize: ButtonSize | null): ButtonSize {
+  if (size && isIconButtonSize(size)) return size
+  if (contextSize === "tiny") return "tiny"
+  return size ?? contextSize ?? "default"
 }
 
 type ButtonProps = ButtonPrimitive.Props &
@@ -130,7 +147,7 @@ function renderIcon(icon: ReactNode, size: ButtonSize) {
 function Button({
   className,
   variant = "default",
-  size = "default",
+  size,
   loading = false,
   disabled,
   children,
@@ -142,7 +159,8 @@ function Button({
   tabIndex,
   ...props
 }: ButtonProps) {
-  const resolvedSize: ButtonSize = size ?? "default"
+  const contextSize = useContext(ButtonSizeContext)
+  const resolvedSize = resolveButtonSize(size ?? undefined, contextSize)
   const resolvedVariant: ButtonVariant = variant ?? "default"
   const iconOnly = isIconButtonSize(resolvedSize)
   const leftIcon = icon ?? iconLeft
@@ -180,5 +198,5 @@ function Button({
   )
 }
 
-export { Button, buttonVariants }
-export type { ButtonProps, ButtonSize, ButtonVariant }
+export { Button, ButtonSizeProvider, buttonVariants }
+export type { ButtonProps, ButtonSize, ButtonSizeProviderProps, ButtonVariant }

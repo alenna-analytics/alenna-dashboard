@@ -201,7 +201,7 @@ function AlertPostponeButton({
       <DropdownMenuTrigger
         type="button"
         disabled={postponePending}
-        className={cn(buttonVariants({ variant: 'inverse', size: 'sm' }), 'gap-1')}
+        className={cn(buttonVariants({ variant: 'inverse', size: 'tiny' }), 'gap-1')}
         aria-busy={postponePending || undefined}
         aria-label={t('productsDetailStockAlertPostponeAria')}
       >
@@ -342,7 +342,7 @@ function AlertDetailView({
               />
             ) : null}
             {productHref ? (
-              <Button variant="accent" size="sm" render={<Link to={productHref} />}>
+              <Button variant="accent" size="tiny" render={<Link to={productHref} />}>
                 {t('homeAlertsDialogViewProduct')}
               </Button>
             ) : null}

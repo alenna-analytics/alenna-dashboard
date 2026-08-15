@@ -59,7 +59,7 @@ export function IntegrationSyncActionCard({
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
+                size="tiny"
                 loading={secondaryActionLoading}
                 disabled={secondaryActionDisabled || secondaryActionLoading}
                 onClick={onSecondaryAction}
@@ -71,7 +71,7 @@ export function IntegrationSyncActionCard({
               <Button
                 type="button"
                 variant="accent"
-                size="sm"
+                size="tiny"
                 loading={actionLoading}
                 disabled={actionDisabled}
                 onClick={onAction}

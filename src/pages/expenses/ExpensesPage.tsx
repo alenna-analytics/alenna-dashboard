@@ -239,7 +239,7 @@ export function ExpensesPage() {
             </p>
           </div>
           {canCreate ? (
-          <Button type="button" variant="accent" className="shrink-0" onClick={openCreate}>
+          <Button type="button" variant="accent" size="tiny" className="shrink-0" onClick={openCreate}>
             <Plus aria-hidden />
             {t('expensesAddBtn')}
           </Button>

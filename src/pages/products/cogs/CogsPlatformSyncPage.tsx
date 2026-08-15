@@ -395,6 +395,7 @@ export function CogsPlatformSyncPage() {
         <Button
           type="button"
           variant="accent"
+          size="tiny"
           loading={previewMutation.isPending}
           onClick={() => void handlePreview()}
           disabled={!connectionId}
@@ -405,6 +406,7 @@ export function CogsPlatformSyncPage() {
           <Button
             type="button"
             variant="default"
+            size="tiny"
             loading={applyMutation.isPending}
             onClick={() => void handleApply()}
           >

@@ -47,14 +47,14 @@ export function ProductsListPage() {
             <p className={pageSubtitleClassName}>{t("productsPageSubtitle")}</p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <Button type="button" variant="default" size="default" onClick={() => void navigate('/dashboard/products/cogs')}>
+            <Button type="button" variant="default" size="tiny" onClick={() => void navigate('/dashboard/products/cogs')}>
               {t('productsGoToCogs')}
             </Button>
             {canEditProducts ? (
             <Button
               type="button"
               variant="accent"
-              size="default"
+              size="tiny"
               className="shrink-0"
               loading={createLoadMutation.isPending}
               onClick={() => {

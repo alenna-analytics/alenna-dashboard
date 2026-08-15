@@ -81,7 +81,7 @@ function MatchPreviewRow({
       <Button
         type="button"
         variant={added ? 'outline' : 'accent'}
-        size="sm"
+        size="tiny"
         className="shrink-0"
         disabled={adding || added}
         onClick={() => onAdd(row.product_id)}
@@ -252,7 +252,7 @@ export function CogsLoadSelectStep({ loadId, detail, t }: CogsLoadSelectStepProp
               <Button
                 type="button"
                 variant="accent"
-                size="sm"
+                size="tiny"
                 disabled={adding || showInitialSkeleton || visibleMatchItems.length === 0}
                 onClick={() => void addCurrentPage()}
               >
@@ -261,7 +261,7 @@ export function CogsLoadSelectStep({ loadId, detail, t }: CogsLoadSelectStepProp
               <Button
                 type="button"
                 variant="accent"
-                size="sm"
+                size="tiny"
                 disabled={adding || showInitialSkeleton || matchTotal === 0}
                 onClick={() => void addAllMatches()}
               >
@@ -303,7 +303,7 @@ export function CogsLoadSelectStep({ loadId, detail, t }: CogsLoadSelectStepProp
             <Button
               type="button"
               variant="ghost"
-              size="sm"
+              size="tiny"
               className="shrink-0 text-destructive"
               disabled={removing || detail.items.length === 0}
               onClick={() => void removeAllFromLoad()}

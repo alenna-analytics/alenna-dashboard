@@ -111,6 +111,7 @@ export function TeamRolesPage() {
             <Button
               type="button"
               variant="accent"
+              size="tiny"
               disabled={!showUpgrade && atLimit}
               onClick={() => {
                 if (showUpgrade) {

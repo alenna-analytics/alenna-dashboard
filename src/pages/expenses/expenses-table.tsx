@@ -224,7 +224,7 @@ export function ExpensesTable({
           description={t('expensesEmptyDescription')}
           action={
             canCreate ? (
-            <Button type="button" variant="outline" size="xs" onClick={onCreate}>
+            <Button type="button" variant="outline" size="tiny" onClick={onCreate}>
               <Plus aria-hidden />
               {t('expensesAddBtn')}
             </Button>

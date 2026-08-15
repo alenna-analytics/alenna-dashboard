@@ -100,7 +100,7 @@ export function CogsLoadsListPage() {
           <p className={pageSubtitleClassName}>{t('productsCogsLoadsSubtitle')}</p>
         </div>
         {canEditProducts ? (
-        <Button type="button" variant="accent" size="default" className="shrink-0" loading={createMutation.isPending} onClick={() => void onNewLoad()}>
+        <Button type="button" variant="accent" size="tiny" className="shrink-0" loading={createMutation.isPending} onClick={() => void onNewLoad()}>
           <Plus aria-hidden />
           {t('productsCogsLoadNew')}
         </Button>
@@ -124,7 +124,7 @@ export function CogsLoadsListPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  size="xs"
+                  size="tiny"
                   loading={createMutation.isPending}
                   onClick={() => void onNewLoad()}
                 >

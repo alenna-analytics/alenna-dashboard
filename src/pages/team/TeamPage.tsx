@@ -246,7 +246,7 @@ export function TeamPage() {
                 <Button
                   type="button"
                   variant="accent"
-                  size="default"
+                  size="tiny"
                   className="shrink-0"
                   disabled={atSeatLimit || !invitesEnabled}
                   onClick={() => setInviteOpen(true)}

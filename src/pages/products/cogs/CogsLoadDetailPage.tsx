@@ -83,7 +83,7 @@ export function CogsLoadDetailPage() {
         <Button
           type="button"
           variant="outline"
-          size="sm"
+          size="tiny"
           loading={cloneMutation.isPending}
           onClick={() => {
             void cloneMutation.mutateAsync(loadId).then((cloned) => {

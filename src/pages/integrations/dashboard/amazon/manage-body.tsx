@@ -253,7 +253,7 @@ export function AmazonManageBody({
             type="button"
             variant="accent"
             className="inline-flex w-full items-center justify-center gap-2 sm:w-auto"
-            size="default"
+            size="tiny"
             loading={amazon.connectStarting}
             disabled={isFixture}
             onClick={() =>

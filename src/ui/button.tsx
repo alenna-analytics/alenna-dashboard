@@ -6,7 +6,7 @@ import { LoadingIcon } from "@/ui/app-icon"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "relative inline-flex shrink-0 items-center justify-center gap-2.5 border text-center font-normal whitespace-nowrap transition-colors duration-200 ease-out outline-none select-none cursor-pointer rounded-md focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "relative inline-flex shrink-0 items-center justify-center gap-2 border text-center font-normal whitespace-nowrap transition-colors duration-200 ease-out outline-none select-none cursor-pointer rounded-md focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {

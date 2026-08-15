@@ -2,6 +2,7 @@ import type { AssignablePermissionKey } from '@/lib/permissions/can'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { MODULES } from '@/lib/modules/registry'
 import type { ModuleId } from '@/lib/modules/types'
+import { PERMISSION_LABEL_KEYS } from '@/lib/permissions/permission-labels'
 
 export type PermissionGroupId =
   | 'products'
@@ -147,4 +148,29 @@ export function toggleGroupAction(
   }
   if (current.includes(key) && extras.length === 0) return current
   return [...current, ...extras.filter((item) => !current.includes(item)), ...(current.includes(key) ? [] : [key])]
+}
+
+export type AssignedGroupSummary = {
+  titleKey: ShellStringKey
+  actionLabels: ShellStringKey[]
+}
+
+export function assignedPermissionSummary(
+  keys: readonly string[],
+  groups: readonly PermissionGroup[],
+): AssignedGroupSummary[] {
+  const selected = new Set(keys)
+  const summaries: AssignedGroupSummary[] = []
+  for (const group of groups) {
+    if (!selected.has(group.viewKey)) continue
+    const actionLabels = group.actionKeys
+      .filter((key) => selected.has(key))
+      .map((key) => PERMISSION_LABEL_KEYS[key])
+    summaries.push({
+      titleKey: group.titleKey,
+      actionLabels:
+        actionLabels.length > 0 ? actionLabels : [PERMISSION_LABEL_KEYS[group.viewKey]],
+    })
+  }
+  return summaries
 }

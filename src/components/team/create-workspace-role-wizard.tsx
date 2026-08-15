@@ -5,6 +5,10 @@ import { useCallback, useMemo, useState } from 'react'
 import { createWorkspaceRole, updateTeamMemberRole } from '@/lib/team/team-api'
 import { memberDisplayName } from '@/lib/team/member-display-name'
 import { PermissionGroupToggles } from '@/components/team/permission-group-toggles'
+import {
+  assignedPermissionSummary,
+  visiblePermissionGroups,
+} from '@/lib/permissions/permission-groups'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { TeamMember } from '@/lib/types/team-types'
 import { cn } from '@/lib/utils'
@@ -24,7 +28,8 @@ import {
   SheetTitle,
 } from '@/ui/sheet'
 
-type Step = 1 | 2 | 3
+type Step = 1 | 2 | 3 | 4
+const WIZARD_STEPS: readonly Step[] = [1, 2, 3, 4]
 
 type CreateWorkspaceRoleWizardProps = {
   open: boolean
@@ -67,6 +72,18 @@ export function CreateWorkspaceRoleWizard({
   const [error, setError] = useState<string | null>(null)
 
   const candidates = useMemo(() => assignableMembers(members), [members])
+  const selectedMembers = useMemo(
+    () => candidates.filter((member) => member.user_id != null && userIds.includes(member.user_id)),
+    [candidates, userIds],
+  )
+  const permissionSummary = useMemo(
+    () =>
+      assignedPermissionSummary(
+        permissions,
+        visiblePermissionGroups(me?.modules ?? []),
+      ),
+    [me?.modules, permissions],
+  )
 
   function reset() {
     setStep(1)
@@ -120,10 +137,10 @@ export function CreateWorkspaceRoleWizard({
           </SheetHeader>
           <SheetBody className="space-y-4">
             <p className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-              {t('teamRolesWizardStepLabel', { step, total: 3 })}
+              {t('teamRolesWizardStepLabel', { step, total: 4 })}
             </p>
             <div className="flex gap-1.5">
-              {([1, 2, 3] as const).map((n) => (
+              {WIZARD_STEPS.map((n) => (
                 <div
                   key={n}
                   className={cn(
@@ -210,6 +227,60 @@ export function CreateWorkspaceRoleWizard({
               </div>
             ) : null}
 
+            {step === 4 ? (
+              <div className="space-y-4">
+                <SheetDescription>{t('teamRolesWizardConfirmHint')}</SheetDescription>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-text-primary">{name.trim()}</p>
+                  {description.trim() ? (
+                    <p className="text-xs text-text-tertiary">{description.trim()}</p>
+                  ) : null}
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-text-tertiary">
+                    {t('teamRolesWizardConfirmPermissions')}
+                  </p>
+                  {permissionSummary.length === 0 ? (
+                    <p className="text-sm text-text-secondary">
+                      {t('teamRolesWizardConfirmNoPermissions')}
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {permissionSummary.map((group) => (
+                        <li key={group.titleKey}>
+                          <p className="text-sm font-medium text-text-primary">{t(group.titleKey)}</p>
+                          <p className="text-xs text-text-tertiary">
+                            {group.actionLabels.map((key) => t(key)).join(' · ')}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-text-tertiary">
+                    {t('teamRolesWizardConfirmUsers')}
+                  </p>
+                  {selectedMembers.length === 0 ? (
+                    <p className="text-sm text-text-secondary">{t('teamRolesWizardConfirmNone')}</p>
+                  ) : (
+                    <ul className="space-y-1.5">
+                      {selectedMembers.map((member) => (
+                        <li key={member.user_id} className="text-sm">
+                          <span className="font-medium text-text-primary">
+                            {memberDisplayName(member)}
+                          </span>
+                          <span className="mt-0.5 block text-xs text-text-tertiary">
+                            {member.email}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            ) : null}
+
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
           </SheetBody>
           <SheetFooter>
@@ -230,7 +301,7 @@ export function CreateWorkspaceRoleWizard({
                 {t('teamRolesWizardBack')}
               </Button>
             )}
-            {step < 3 ? (
+            {step < 4 ? (
               <Button
                 type="button"
                 variant="accent"

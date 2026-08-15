@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { toggleGroupView, PERMISSION_GROUPS, visiblePermissionGroups } from '@/lib/permissions/permission-groups'
+import { assignedPermissionSummary, toggleGroupView, PERMISSION_GROUPS, visiblePermissionGroups } from '@/lib/permissions/permission-groups'
 import { shouldShowCustomRolesUpgrade } from '@/pages/team/team-roles-paywall'
 
 describe('permission-groups overlay preview', () => {
@@ -25,5 +25,18 @@ describe('permission-groups overlay preview', () => {
     expect(ids).not.toContain('ads')
     expect(ids).not.toContain('simulations')
     expect(ids).not.toContain('expenses')
+  })
+
+  it('summarizes assigned view and actions for confirmation', () => {
+    const products = PERMISSION_GROUPS.find((g) => g.id === 'products')!
+    const expenses = PERMISSION_GROUPS.find((g) => g.id === 'expenses')!
+    const summary = assignedPermissionSummary(
+      ['products.view', 'products.edit', 'expenses.view'],
+      [products, expenses],
+    )
+    expect(summary).toHaveLength(2)
+    expect(summary[0]?.titleKey).toBe('permGroupProducts')
+    expect(summary[0]?.actionLabels).toEqual(['permProductsEdit'])
+    expect(summary[1]?.actionLabels).toEqual(['permExpensesView'])
   })
 })

@@ -63,7 +63,7 @@ export function LowStockRulesTable({
         </div>
         {isAdmin ? (
           <Button type="button" variant="accent" size="tiny" onClick={onAdd}>
-            <Plus className="size-4" />
+            <Plus aria-hidden />
             {shellT(lang, 'alarmsAddRule')}
           </Button>
         ) : null}

@@ -1,6 +1,7 @@
 import type { IntegrationPlatformRow } from '@/lib/types/connectors'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 
+import alennaLogo from '@/assets/alenna/alenna-icon-black.svg'
 import amazonLogo from '@/assets/amazon_logo.png'
 import mercadolibreLogo from '@/assets/mercado_libre_logo.png'
 import shopifyLogo from '@/assets/shopify_logo.png'
@@ -38,6 +39,30 @@ export const INTEGRATION_UI: Record<string, IntegrationUiOverlay> = {
     shortDescKey: 'integrationDescWalmart',
     categoryKey: 'integrationsCategoryEcommerce',
     logoSrc: walmartLogo,
+  },
+  amazon_ads: {
+    nameKey: 'integrationNameAmazonAds',
+    shortDescKey: 'integrationDescAmazonAds',
+    categoryKey: 'integrationsCategoryAds',
+    logoSrc: alennaLogo,
+  },
+  mercadolibre_ads: {
+    nameKey: 'integrationNameMercadoLibreAds',
+    shortDescKey: 'integrationDescMercadoLibreAds',
+    categoryKey: 'integrationsCategoryAds',
+    logoSrc: mercadolibreLogo,
+  },
+  google_ads: {
+    nameKey: 'integrationNameGoogleAds',
+    shortDescKey: 'integrationDescGoogleAds',
+    categoryKey: 'integrationsCategoryAds',
+    logoSrc: alennaLogo,
+  },
+  meta_ads: {
+    nameKey: 'integrationNameMetaAds',
+    shortDescKey: 'integrationDescMetaAds',
+    categoryKey: 'integrationsCategoryAds',
+    logoSrc: alennaLogo,
   },
 }
 

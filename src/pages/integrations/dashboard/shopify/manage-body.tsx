@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { LoadingIcon } from '@/ui/app-icon'
 import { useMemo, useRef, useState } from 'react'
 
+import { IntegrationConsentDialog } from '@/pages/integrations/dashboard/integration-consent-dialog'
 import type { ShopifyIntegrationHook } from '@/pages/integrations/details/use-shopify-integration'
 import { useCancelPlatformSyncJob } from '@/hooks/use-cancel-platform-sync-job'
 import { GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID } from '@/shell/providers/global-activity-provider'
@@ -25,6 +26,10 @@ import { IntegrationSyncActionCard } from '@/components/integrations/integration
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
+import {
+  needsInitialSyncConsent,
+  useIntegrationConsentGate,
+} from '@/pages/integrations/hooks/use-integration-consent-gate'
 
 function formatYmdMedium(value: string | null, lang: string): string {
   if (!value) return ''
@@ -119,11 +124,13 @@ function ShopifySyncSection({
   shopify,
   isFixture,
   planSyncPaused,
+  onConsentThen,
 }: {
   lang: Language
   shopify: ShopifyIntegrationHook
   isFixture: boolean
   planSyncPaused: boolean
+  onConsentThen: (action: () => void) => void
 }) {
   const {
     activeConnection,
@@ -158,6 +165,18 @@ function ShopifySyncSection({
 
   const fixtureBlocked = () => {
     toast.info(shellT(lang, 'fixtureActionDisabled'))
+  }
+
+  const runSync = (action: () => void) => {
+    if (isFixture) {
+      fixtureBlocked()
+      return
+    }
+    if (needsInitialSyncConsent(syncPlan?.last_sync_status)) {
+      onConsentThen(action)
+      return
+    }
+    action()
   }
 
   const planLimitAlert = planSyncPaused ? <PlanLimitSyncAlert className="mb-4" /> : null
@@ -227,7 +246,7 @@ function ShopifySyncSection({
         title={shellT(lang, 'syncSectionTitle')}
         description={formatShopifySyncUserError(syncFailedMessage, lang)}
         actionLabel={shellT(lang, 'shopifySyncRetry')}
-        onAction={() => (isFixture ? fixtureBlocked() : retryShopifySync())}
+        onAction={() => runSync(() => retryShopifySync())}
         actionDisabled={retryShopifySyncPending || isFixture || planSyncPaused}
         actionLoading={retryShopifySyncPending}
         className="w-full"
@@ -250,7 +269,7 @@ function ShopifySyncSection({
         description={shellT(lang, 'syncSectionCardDescription')}
         actionLabel={buttonLabel}
         actionLoadingLabel={shellT(lang, 'syncRunning')}
-        onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
+        onAction={() => runSync(() => syncMutation.mutate())}
         actionDisabled={syncMutation.isPending || Boolean(cooldownHelper) || isFixture || planSyncPaused}
         actionLoading={syncMutation.isPending}
         badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
@@ -297,6 +316,7 @@ export function ShopifyManageBody({
   const shopPlaceholder = shellT(lang, 'connectionsConnectShopPlaceholder')
   const [integrationEnabled, setIntegrationEnabled] = useState(true)
   const syncInProgress = shopifySyncPhase === 'working'
+  const consent = useIntegrationConsentGate()
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -333,7 +353,13 @@ export function ShopifyManageBody({
                   className="my-1.5 mr-1.5 shrink-0 self-center rounded-md px-3"
                   loading={oauthStarting}
                   disabled={isFixture || !normalizeShopifySubdomainInput(shopInput) || !tenantId}
-                  onClick={() => (isFixture ? toast.info(shellT(lang, 'fixtureActionDisabled')) : void startOAuth())}
+                  onClick={() => {
+                    if (isFixture) {
+                      toast.info(shellT(lang, 'fixtureActionDisabled'))
+                      return
+                    }
+                    consent.requestThen(() => void startOAuth())
+                  }}
                 >
                   {shellT(lang, 'integrationConnectWithShopify')}
                 </Button>
@@ -387,6 +413,7 @@ export function ShopifyManageBody({
                   shopify={shopify}
                   isFixture={isFixture}
                   planSyncPaused={planSyncPaused}
+                  onConsentThen={consent.requestThen}
                 />
                 {syncMessage ? (
                   <p className="text-xs text-muted-foreground" role="status">
@@ -397,6 +424,13 @@ export function ShopifyManageBody({
             ) : null}
           </div>
         )}
+      <IntegrationConsentDialog
+        lang={lang}
+        slug="shopify"
+        open={consent.open}
+        onOpenChange={consent.setOpen}
+        onConfirm={consent.confirm}
+      />
     </div>
   )
 }

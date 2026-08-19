@@ -118,6 +118,7 @@ export type ChannelKpiRow = {
   shipping_charges: number
   tax_withholdings: number
   estimated_payout: number
+  ads_spend?: number
   settlement_completeness: string
 }
 

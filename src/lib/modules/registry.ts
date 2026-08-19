@@ -46,7 +46,7 @@ export const MODULES: readonly ModuleDefinition[] = [
     labelKey: 'navAds',
     path: '/dashboard/ads',
     icon: 'ads',
-    comingSoon: true,
+    comingSoon: false,
     section: 'analytics',
   },
   {

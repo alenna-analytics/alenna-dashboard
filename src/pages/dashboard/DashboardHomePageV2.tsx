@@ -61,6 +61,7 @@ import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-wat
 import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 import { useProductReports } from '@/pages/reports/use-product-reports'
+import { useAdsKpis } from '@/pages/ads/use-ads-kpis'
 import { useReports } from '@/pages/reports/use-reports'
 import { useChannelBreakdown } from '@/pages/reports/use-channel-breakdown'
 import { useTopProducts } from '@/pages/reports/use-top-products'
@@ -331,6 +332,12 @@ export function DashboardHomePageV2() {
     startDate: prevPeriod?.start ?? '',
     endDate: prevPeriod?.end ?? '',
     enabled: canHomeKpis && !productMode && Boolean(prevPeriod) && kpiReady,
+  })
+  const { data: adsKpi } = useAdsKpis({
+    connectionIds: activeConnectionIds,
+    startDate,
+    endDate,
+    enabled: canHomeKpis && !productMode && can(me, 'ads.view'),
   })
 
   const { data: pkpi, isLoading: pkpiLoading, isSuccess: pkpiReady } = useProductReports({
@@ -697,22 +704,24 @@ export function DashboardHomePageV2() {
               formatSparklineValue={formatSparklineForMetric('net-profit')}
             />
           )
-        case 'roas':
+        case 'roas': {
+          const roasValue = adsKpi?.roas
           return (
             <HomeV2KpiSparklineCard
               dragHandle={dragHandle}
               {...sparklineControl}
               label={t('homeKpiRoasGlobal')}
               helpText={t('homeKpiRoasGlobalHelp')}
-              value="—"
-              placeholder
-              placeholderLabel={t('comingSoonBadge')}
+              value={roasValue == null ? '—' : roasValue.toFixed(2)}
+              placeholder={roasValue == null}
+              placeholderLabel={roasValue == null ? '—' : undefined}
               pct={null}
               trend="flat"
               comparisonUnavailable
               sparklineValues={[]}
             />
           )
+        }
         case 'contribution':
           return (
             <HomeV2KpiSparklineCard
@@ -836,6 +845,7 @@ export function DashboardHomePageV2() {
       aov,
       aovDelta,
       sparklineOpenById,
+      adsKpi?.roas,
     ],
   )
 

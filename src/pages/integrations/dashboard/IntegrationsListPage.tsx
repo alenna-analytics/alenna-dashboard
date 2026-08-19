@@ -4,6 +4,7 @@ import { IntegrationCardSkeleton } from '@/pages/integrations/dashboard/integrat
 import { IntegrationListCard } from '@/pages/integrations/dashboard/integration-list-card'
 import {
   integrationNeedsInitialSync,
+  findActiveConnection,
   isIntegrationConnected,
 } from '@/pages/integrations/dashboard/integration-connection'
 import { IntegrationsErrorState } from '@/pages/integrations/dashboard/integrations-error-state'
@@ -33,8 +34,11 @@ export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageP
   const { integrations, connections, pageLoading, pageError, isFetching, refetch } =
     useIntegrationsListQueries()
 
-  const visibleIntegrations = useMemo(() => {
+    const visibleIntegrations = useMemo(() => {
     if (category === 'all') return integrations
+    if (category === 'ads') {
+      return integrations.filter((integration) => integration.categoryKey === 'integrationsCategoryAds')
+    }
     return integrations.filter(
       (integration) => integration.categoryKey === 'integrationsCategoryEcommerce',
     )
@@ -91,12 +95,15 @@ export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageP
                 key={integration.slug}
                 integration={integration}
                 lang={lang}
-                connected={isIntegrationConnected(
-                  integration.slug,
-                  shopifyIntegration.connected,
-                  mercadolibreIntegration.connected,
-                  amazonIntegration.connected,
-                )}
+                connected={
+                  isIntegrationConnected(
+                    integration.slug,
+                    shopifyIntegration.connected,
+                    mercadolibreIntegration.connected,
+                    amazonIntegration.connected,
+                    Boolean(findActiveConnection(connections, integration.slug)),
+                  ) || Boolean(findActiveConnection(connections, integration.slug))
+                }
                 needsInitialSync={integrationNeedsInitialSync(integration.slug, connections)}
               />
             ))}

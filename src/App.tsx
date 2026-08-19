@@ -11,7 +11,6 @@ import { SsoCallbackPage } from '@/shell/auth/sso-callback-page'
 import { OnboardingPage } from '@/pages/onboarding/OnboardingPage'
 import { PaymentPendingPage } from '@/shell/payment-pending-page'
 import { IntegrationsListPage } from '@/pages/integrations/dashboard/IntegrationsListPage'
-import { IntegrationsAdsComingSoonPage } from '@/pages/integrations/dashboard/IntegrationsAdsComingSoonPage'
 import { IntegrationDetailPage } from '@/pages/integrations/dashboard/IntegrationDetailPage'
 import { DashboardHomePageV2 } from '@/pages/dashboard/DashboardHomePageV2'
 import { ReportsPage } from '@/pages/reports/ReportsPage'
@@ -74,7 +73,7 @@ function App() {
             <Route path=":productId" element={<ProductDetailPage />} />
           </Route>
           <Route path="integrations/ecommerce" element={<RequireModule moduleId="integrations"><IntegrationsListPage category="ecommerce" /></RequireModule>} />
-          <Route path="integrations/ads" element={<RequireModule moduleId="integrations"><IntegrationsAdsComingSoonPage /></RequireModule>} />
+          <Route path="integrations/ads" element={<RequireModule moduleId="integrations"><IntegrationsListPage category="ads" /></RequireModule>} />
           <Route path="integrations/:slug" element={<RequireModule moduleId="integrations"><IntegrationDetailPage /></RequireModule>} />
           <Route path="integrations" element={<RequireModule moduleId="integrations"><IntegrationsListPage category="all" /></RequireModule>} />
           <Route path="team" element={<RequireModule permission="team.view"><TeamPage /></RequireModule>} />

@@ -21,11 +21,13 @@ import {
   integrationDescription,
   integrationTitle,
 } from '@/pages/integrations/dashboard/integration-display'
+import { AdsManageBody } from '@/pages/integrations/dashboard/ads/manage-body'
 import { MercadoLibreManageBody } from '@/pages/integrations/dashboard/mercadolibre/manage-body'
 import { AmazonManageBody } from '@/pages/integrations/dashboard/amazon/manage-body'
 import { ShopifyManageBody } from '@/pages/integrations/dashboard/shopify/manage-body'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
 import { useMercadoLibreIntegration } from '@/pages/integrations/details/use-mercadolibre-integration'
+import { useAdsIntegration } from '@/pages/integrations/details/use-ads-integration'
 import { useAmazonIntegration } from '@/pages/integrations/details/use-amazon-integration'
 import { useShopifyIntegration } from '@/pages/integrations/details/use-shopify-integration'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
@@ -54,6 +56,8 @@ export function IntegrationDetailPage() {
   const shopifyIntegration = useShopifyIntegration()
   const mercadolibreIntegration = useMercadoLibreIntegration()
   const amazonIntegration = useAmazonIntegration()
+  const amazonAdsIntegration = useAdsIntegration('amazon_ads')
+  const mercadolibreAdsIntegration = useAdsIntegration('mercadolibre_ads')
   const { integrations, connections, pageLoading } = useIntegrationsListQueries()
 
   const integration = useMemo(
@@ -64,6 +68,8 @@ export function IntegrationDetailPage() {
   const shopifyConnection = findActiveConnection(connections, 'shopify')
   const mercadolibreConnection = findActiveConnection(connections, 'mercadolibre')
   const amazonConnection = findActiveConnection(connections, 'amazon')
+  const amazonAdsConnection = findActiveConnection(connections, 'amazon_ads')
+  const mercadolibreAdsConnection = findActiveConnection(connections, 'mercadolibre_ads')
 
   const connected = slug
     ? isIntegrationConnected(
@@ -71,6 +77,7 @@ export function IntegrationDetailPage() {
         shopifyIntegration.connected,
         mercadolibreIntegration.connected,
         amazonIntegration.connected,
+        Boolean(findActiveConnection(connections, slug)),
       )
     : false
 
@@ -96,13 +103,19 @@ export function IntegrationDetailPage() {
   const isShopify = integration.slug === 'shopify'
   const isMercadolibre = integration.slug === 'mercadolibre'
   const isAmazon = integration.slug === 'amazon'
+  const isAmazonAds = integration.slug === 'amazon_ads'
+  const isMercadolibreAds = integration.slug === 'mercadolibre_ads'
   const activeConnection = isShopify
     ? shopifyConnection
     : isMercadolibre
       ? mercadolibreConnection
       : isAmazon
         ? amazonConnection
-        : null
+        : isAmazonAds
+          ? amazonAdsConnection
+          : isMercadolibreAds
+            ? mercadolibreAdsConnection
+            : null
   const needsInitialSync = connectionNeedsInitialSync(activeConnection)
   const syncPill =
     connected && activeConnection
@@ -161,6 +174,21 @@ export function IntegrationDetailPage() {
       }
       disconnectPending={amazonIntegration.disconnectMutation.isPending}
     />
+  ) : isAmazonAds || isMercadolibreAds ? (
+    <AdsManageBody
+      slug={isAmazonAds ? 'amazon_ads' : 'mercadolibre_ads'}
+      onRequestDisconnect={
+        (isAmazonAds ? amazonAdsIntegration.isAdmin : mercadolibreAdsIntegration.isAdmin) &&
+        (isAmazonAds ? amazonAdsIntegration.connected : mercadolibreAdsIntegration.connected)
+          ? () => setDisconnectDataDialogOpen(true)
+          : undefined
+      }
+      disconnectPending={
+        isAmazonAds
+          ? amazonAdsIntegration.disconnectMutation.isPending
+          : mercadolibreAdsIntegration.disconnectMutation.isPending
+      }
+    />
   ) : (
     <IntegrationPlaceholderSettings lang={lang} />
   )
@@ -202,14 +230,20 @@ export function IntegrationDetailPage() {
         disconnectPending={
           shopifyIntegration.disconnectMutation.isPending ||
           mercadolibreIntegration.disconnectMutation.isPending ||
-          amazonIntegration.disconnectMutation.isPending
+          amazonIntegration.disconnectMutation.isPending ||
+          amazonAdsIntegration.disconnectMutation.isPending ||
+          mercadolibreAdsIntegration.disconnectMutation.isPending
         }
         onBack={() => {
           setDisconnectConfirmDialogOpen(false)
           setDisconnectDataDialogOpen(true)
         }}
         onConfirmDisconnect={() => {
-          const mutation = isAmazon
+          const mutation = isAmazonAds
+            ? amazonAdsIntegration.disconnectMutation
+            : isMercadolibreAds
+              ? mercadolibreAdsIntegration.disconnectMutation
+              : isAmazon
             ? amazonIntegration.disconnectMutation
             : isMercadolibre
               ? mercadolibreIntegration.disconnectMutation

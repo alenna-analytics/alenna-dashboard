@@ -7,6 +7,7 @@ import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness
 import { isPlanLimitSyncPaused } from '@/lib/plan/plan-limit-ui'
 import { IntegrationEnableCard } from '@/components/integrations/integration-enable-card'
 import { IntegrationSyncActionCard } from '@/components/integrations/integration-sync-action-card'
+import { IntegrationConsentDialog } from '@/pages/integrations/dashboard/integration-consent-dialog'
 import { IntegrationDetailSkeleton } from '@/pages/integrations/dashboard/integration-detail-skeleton'
 import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
@@ -19,6 +20,10 @@ import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { SyncPlan } from '@/lib/types/connectors'
 import { Button } from '@/ui/button'
 import { Label } from '@/ui/label'
+import {
+  needsInitialSyncConsent,
+  useIntegrationConsentGate,
+} from '@/pages/integrations/hooks/use-integration-consent-gate'
 
 function formatYmdMedium(value: string | null, lang: string): string {
   if (!value) return ''
@@ -64,11 +69,13 @@ function AmazonSyncSection({
   amazon,
   isFixture,
   planSyncPaused,
+  onConsentThen,
 }: {
   lang: Language
   amazon: AmazonIntegrationHook
   isFixture: boolean
   planSyncPaused: boolean
+  onConsentThen: (action: () => void) => void
 }) {
   const {
     activeConnection,
@@ -97,6 +104,18 @@ function AmazonSyncSection({
 
   const fixtureBlocked = () => {
     toast.info(shellT(lang, 'fixtureActionDisabled'))
+  }
+
+  const runSync = (action: () => void) => {
+    if (isFixture) {
+      fixtureBlocked()
+      return
+    }
+    if (needsInitialSyncConsent(syncPlan?.last_sync_status)) {
+      onConsentThen(action)
+      return
+    }
+    action()
   }
 
   const planLimitAlert = planSyncPaused ? <PlanLimitSyncAlert className="mb-4" /> : null
@@ -180,7 +199,7 @@ function AmazonSyncSection({
         title={shellT(lang, 'syncSectionTitle')}
         description={syncFailedMessage ?? shellT(lang, 'amazonSyncToastFailed')}
         actionLabel={shellT(lang, 'platformSyncRetry')}
-        onAction={() => (isFixture ? fixtureBlocked() : retryAmazonSync())}
+        onAction={() => runSync(() => retryAmazonSync())}
         actionDisabled={retryAmazonSyncPending || isFixture || planSyncPaused}
         actionLoading={retryAmazonSyncPending}
         className="w-full"
@@ -196,7 +215,7 @@ function AmazonSyncSection({
         description={shellT(lang, 'syncSectionDescriptionAmazon')}
         actionLabel={buttonLabel}
         actionLoadingLabel={shellT(lang, 'syncRunning')}
-        onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
+        onAction={() => runSync(() => syncMutation.mutate())}
         actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
         actionLoading={syncMutation.isPending}
         badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
@@ -223,6 +242,7 @@ export function AmazonManageBody({
   const isFixture = Boolean(me?.is_fixture)
   const planSyncPaused = isPlanLimitSyncPaused(me)
   const [integrationEnabled, setIntegrationEnabled] = useState(true)
+  const consent = useIntegrationConsentGate()
 
   const accountId = 'integration-amazon-account'
   const accountDisplay =
@@ -252,15 +272,16 @@ export function AmazonManageBody({
           <Button
             type="button"
             variant="accent"
-            className="inline-flex w-full items-center justify-center gap-2 sm:w-auto"
             size="tiny"
             loading={amazon.connectStarting}
             disabled={isFixture}
-            onClick={() =>
-              isFixture
-                ? toast.info(shellT(lang, 'fixtureActionDisabled'))
-                : void amazon.startConnect()
-            }
+            onClick={() => {
+              if (isFixture) {
+                toast.info(shellT(lang, 'fixtureActionDisabled'))
+                return
+              }
+              consent.requestThen(() => void amazon.startConnect())
+            }}
           >
             {connectLabel}
           </Button>
@@ -298,10 +319,18 @@ export function AmazonManageBody({
               amazon={amazon}
               isFixture={isFixture}
               planSyncPaused={planSyncPaused}
+              onConsentThen={consent.requestThen}
             />
           ) : null}
         </div>
       )}
+      <IntegrationConsentDialog
+        lang={lang}
+        slug="amazon"
+        open={consent.open}
+        onOpenChange={consent.setOpen}
+        onConfirm={consent.confirm}
+      />
     </div>
   )
 }

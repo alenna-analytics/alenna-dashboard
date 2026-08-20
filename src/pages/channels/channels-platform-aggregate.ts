@@ -142,6 +142,7 @@ function addRow(target: PlatformMetrics, row: ChannelKpiRow): void {
   target.gross_profit += row.gross_profit
   target.platform_fees_total += row.platform_fees_total
   target.merchant_shipping_cost += row.merchant_shipping_cost
+  target.ads_spend += row.ads_spend ?? 0
   target.contribution_margin += row.contribution_margin
   target.units_sold += row.units_sold
 }

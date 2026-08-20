@@ -8,6 +8,7 @@ import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness
 import { isPlanLimitSyncPaused } from '@/lib/plan/plan-limit-ui'
 import { IntegrationEnableCard } from '@/components/integrations/integration-enable-card'
 import { IntegrationSyncActionCard } from '@/components/integrations/integration-sync-action-card'
+import { IntegrationConsentDialog } from '@/pages/integrations/dashboard/integration-consent-dialog'
 import { formatMercadoLibreSyncUserError } from '@/lib/integrations/mercadolibre-sync-user-error'
 import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
@@ -20,6 +21,10 @@ import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { SyncPlan } from '@/lib/types/connectors'
 import { Button } from '@/ui/button'
 import { Label } from '@/ui/label'
+import {
+  needsInitialSyncConsent,
+  useIntegrationConsentGate,
+} from '@/pages/integrations/hooks/use-integration-consent-gate'
 
 function formatYmdMedium(value: string | null, lang: string): string {
   if (!value) return ''
@@ -49,11 +54,13 @@ function MercadoLibreSyncSection({
   meli,
   isFixture,
   planSyncPaused,
+  onConsentThen,
 }: {
   lang: Language
   meli: MercadoLibreIntegrationHook
   isFixture: boolean
   planSyncPaused: boolean
+  onConsentThen: (action: () => void) => void
 }) {
   const {
     activeConnection,
@@ -81,6 +88,18 @@ function MercadoLibreSyncSection({
 
   const fixtureBlocked = () => {
     toast.info(shellT(lang, 'fixtureActionDisabled'))
+  }
+
+  const runSync = (action: () => void) => {
+    if (isFixture) {
+      fixtureBlocked()
+      return
+    }
+    if (needsInitialSyncConsent(syncPlan?.last_sync_status)) {
+      onConsentThen(action)
+      return
+    }
+    action()
   }
 
   const planLimitAlert = planSyncPaused ? <PlanLimitSyncAlert className="mb-4" /> : null
@@ -164,7 +183,7 @@ function MercadoLibreSyncSection({
         title={shellT(lang, 'syncSectionTitle')}
         description={formatMercadoLibreSyncUserError(syncFailedMessage, lang)}
         actionLabel={shellT(lang, 'shopifySyncRetry')}
-        onAction={() => (isFixture ? fixtureBlocked() : retryMercadoLibreSync())}
+        onAction={() => runSync(() => retryMercadoLibreSync())}
         actionDisabled={retryMercadoLibreSyncPending || isFixture || planSyncPaused}
         actionLoading={retryMercadoLibreSyncPending}
         className="w-full"
@@ -180,7 +199,7 @@ function MercadoLibreSyncSection({
         description={shellT(lang, 'syncSectionCardDescription')}
         actionLabel={buttonLabel}
         actionLoadingLabel={shellT(lang, 'syncRunning')}
-        onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
+        onAction={() => runSync(() => syncMutation.mutate())}
         actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
         actionLoading={syncMutation.isPending}
         badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
@@ -207,6 +226,7 @@ export function MercadoLibreManageBody({
   const isFixture = Boolean(me?.is_fixture)
   const planSyncPaused = isPlanLimitSyncPaused(me)
   const [integrationEnabled, setIntegrationEnabled] = useState(true)
+  const consent = useIntegrationConsentGate()
 
   const accountId = 'integration-meli-account'
   const accountDisplay =
@@ -234,15 +254,16 @@ export function MercadoLibreManageBody({
           <Button
             type="button"
             variant="accent"
-            className="inline-flex w-full items-center justify-center gap-2 sm:w-auto"
             size="tiny"
             loading={meli.oauthStarting}
             disabled={isFixture}
-            onClick={() =>
-              isFixture
-                ? toast.info(shellT(lang, 'fixtureActionDisabled'))
-                : void meli.startOAuth()
-            }
+            onClick={() => {
+              if (isFixture) {
+                toast.info(shellT(lang, 'fixtureActionDisabled'))
+                return
+              }
+              consent.requestThen(() => void meli.startOAuth())
+            }}
           >
             {shellT(lang, 'integrationConnectWithMercadoLibre')}
           </Button>
@@ -280,10 +301,18 @@ export function MercadoLibreManageBody({
               meli={meli}
               isFixture={isFixture}
               planSyncPaused={planSyncPaused}
+              onConsentThen={consent.requestThen}
             />
           ) : null}
         </div>
       )}
+      <IntegrationConsentDialog
+        lang={lang}
+        slug="mercadolibre"
+        open={consent.open}
+        onOpenChange={consent.setOpen}
+        onConfirm={consent.confirm}
+      />
     </div>
   )
 }

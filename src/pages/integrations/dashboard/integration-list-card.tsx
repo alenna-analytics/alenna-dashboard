@@ -43,8 +43,8 @@ export function IntegrationListCard({
           <IntegrationLogo
             src={integration.logoSrc}
             alt={name}
-            size="lg"
-            className="bg-white p-1.5"
+            size="card"
+            className="bg-white"
           />
           {connected || needsInitialSync ? (
             <div className="flex flex-wrap items-center justify-end gap-1.5">

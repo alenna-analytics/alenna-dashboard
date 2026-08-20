@@ -1,17 +1,26 @@
 import type { IntegrationPlatformRow } from '@/lib/types/connectors'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 
-import alennaLogo from '@/assets/alenna/alenna-icon-black.svg'
-import amazonLogo from '@/assets/amazon_logo.png'
-import mercadolibreLogo from '@/assets/mercado_libre_logo.png'
-import shopifyLogo from '@/assets/shopify_logo.png'
-import walmartLogo from '@/assets/walmart_logo.png'
+import amazonLogo from '@/assets/partners/amazon.svg'
+import amazonAdsLogo from '@/assets/partners/amazon_ads.svg'
+import googleAdsLogo from '@/assets/partners/google_ads.svg'
+import mercadolibreLogo from '@/assets/partners/mercado_libre.svg'
+import mercadolibreAdsLogo from '@/assets/partners/mercado_ads.svg'
+import metaAdsLogo from '@/assets/partners/meta_ads.svg'
+import shopifyLogo from '@/assets/partners/shopify.svg'
 
 type IntegrationUiOverlay = {
   nameKey: ShellStringKey
   shortDescKey: ShellStringKey
   categoryKey: ShellStringKey
   logoSrc: string
+}
+
+/** Platform slugs present in the API catalog but not shown in Integrations UI. */
+export const HIDDEN_INTEGRATION_SLUGS = new Set(['walmart'])
+
+export function isIntegrationHidden(slug: string): boolean {
+  return HIDDEN_INTEGRATION_SLUGS.has(slug)
 }
 
 /** Static i18n + logos keyed by platform slug; API rows without an entry use `catalogName` only. */
@@ -34,35 +43,29 @@ export const INTEGRATION_UI: Record<string, IntegrationUiOverlay> = {
     categoryKey: 'integrationsCategoryEcommerce',
     logoSrc: mercadolibreLogo,
   },
-  walmart: {
-    nameKey: 'integrationNameWalmart',
-    shortDescKey: 'integrationDescWalmart',
-    categoryKey: 'integrationsCategoryEcommerce',
-    logoSrc: walmartLogo,
-  },
   amazon_ads: {
     nameKey: 'integrationNameAmazonAds',
     shortDescKey: 'integrationDescAmazonAds',
     categoryKey: 'integrationsCategoryAds',
-    logoSrc: alennaLogo,
+    logoSrc: amazonAdsLogo,
   },
   mercadolibre_ads: {
     nameKey: 'integrationNameMercadoLibreAds',
     shortDescKey: 'integrationDescMercadoLibreAds',
     categoryKey: 'integrationsCategoryAds',
-    logoSrc: mercadolibreLogo,
+    logoSrc: mercadolibreAdsLogo,
   },
   google_ads: {
     nameKey: 'integrationNameGoogleAds',
     shortDescKey: 'integrationDescGoogleAds',
     categoryKey: 'integrationsCategoryAds',
-    logoSrc: alennaLogo,
+    logoSrc: googleAdsLogo,
   },
   meta_ads: {
     nameKey: 'integrationNameMetaAds',
     shortDescKey: 'integrationDescMetaAds',
     categoryKey: 'integrationsCategoryAds',
-    logoSrc: alennaLogo,
+    logoSrc: metaAdsLogo,
   },
 }
 

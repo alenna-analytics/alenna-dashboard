@@ -20,12 +20,30 @@ import {
   useGlobalActivity,
 } from '@/shell/providers/global-activity-provider'
 
-export type AdsPlatformSlug = 'amazon_ads' | 'mercadolibre_ads'
+export type AdsPlatformSlug = 'amazon_ads' | 'mercadolibre_ads' | 'google_ads'
 
 export type AdsSyncPhase = 'idle' | 'working' | 'done_ok' | 'done_fail'
 
 function adsActivityHref(slug: AdsPlatformSlug): string {
   return `/dashboard/integrations/${slug}?tab=settings`
+}
+
+function adsAuthUrl(slug: AdsPlatformSlug): string {
+  if (slug === 'amazon_ads') return '/connectors/amazon-ads/authorization-url'
+  if (slug === 'google_ads') return '/connectors/google-ads/authorization-url'
+  return '/connectors/mercadolibre/authorization-url?intent=ads'
+}
+
+function adsSyncPath(slug: AdsPlatformSlug): string {
+  if (slug === 'amazon_ads') return '/connectors/amazon-ads/sync'
+  if (slug === 'google_ads') return '/connectors/google-ads/sync'
+  return '/connectors/mercadolibre-ads/sync'
+}
+
+function adsDisconnectPath(slug: AdsPlatformSlug, id: string): string {
+  if (slug === 'amazon_ads') return `/connectors/amazon-ads/${id}`
+  if (slug === 'google_ads') return `/connectors/google-ads/${id}`
+  return `/connectors/mercadolibre-ads/${id}`
 }
 
 export function useAdsIntegration(slug: AdsPlatformSlug) {
@@ -42,16 +60,9 @@ export function useAdsIntegration(slug: AdsPlatformSlug) {
   const [pendingJobId, setPendingJobId] = useState<string | null>(null)
   const settledJobSigRef = useRef<string | null>(null)
 
-  const authUrl =
-    slug === 'amazon_ads'
-      ? '/connectors/amazon-ads/authorization-url'
-      : '/connectors/mercadolibre/authorization-url?intent=ads'
-  const syncPath =
-    slug === 'amazon_ads' ? '/connectors/amazon-ads/sync' : '/connectors/mercadolibre-ads/sync'
-  const disconnectPath = (id: string) =>
-    slug === 'amazon_ads'
-      ? `/connectors/amazon-ads/${id}`
-      : `/connectors/mercadolibre-ads/${id}`
+  const authUrl = adsAuthUrl(slug)
+  const syncPath = adsSyncPath(slug)
+  const disconnectPath = (id: string) => adsDisconnectPath(slug, id)
 
   const invalidateAds = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
@@ -226,8 +237,9 @@ export function useAdsIntegration(slug: AdsPlatformSlug) {
     syncMutation.mutate()
   }, [adsJobQuery.data?.id, effectiveJobId, retryCatalogJobMutation, syncMutation])
 
-  const siblingSlug = slug === 'amazon_ads' ? 'amazon' : 'mercadolibre'
-  const sibling = findActiveConnection(connections, siblingSlug)
+  const siblingSlug =
+    slug === 'amazon_ads' ? 'amazon' : slug === 'mercadolibre_ads' ? 'mercadolibre' : null
+  const sibling = siblingSlug ? findActiveConnection(connections, siblingSlug) : null
   const neverLabel = shellT(lang, 'integrationDetailLastSyncNever')
   const lastSyncDisplay = formatShopifyLastSync(
     activeConnection?.last_synced_at,
@@ -253,7 +265,7 @@ export function useAdsIntegration(slug: AdsPlatformSlug) {
     activeSyncJobId: effectiveJobId,
     retryAdsSync,
     retryAdsSyncPending: retryCatalogJobMutation.isPending,
-    caseC: Boolean(activeConnection) && !sibling,
-    caseA: Boolean(sibling) && !activeConnection,
+    caseC: Boolean(siblingSlug) && Boolean(activeConnection) && !sibling,
+    caseA: Boolean(siblingSlug) && Boolean(sibling) && !activeConnection,
   }
 }

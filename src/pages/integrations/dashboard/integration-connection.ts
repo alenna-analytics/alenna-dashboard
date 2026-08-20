@@ -44,7 +44,9 @@ export function isIntegrationConnected(
   if (slug === 'shopify') return shopifyConnected
   if (slug === 'mercadolibre') return mercadolibreConnected
   if (slug === 'amazon') return amazonConnected
-  if (slug === 'amazon_ads' || slug === 'mercadolibre_ads') return adsConnected
+  if (slug === 'amazon_ads' || slug === 'mercadolibre_ads' || slug === 'google_ads') {
+    return adsConnected
+  }
   return false
 }
 

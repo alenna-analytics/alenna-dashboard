@@ -14,12 +14,14 @@ export function useIntegrationOAuthReturn() {
     if (handled.current) return
     const connected = searchParams.get('connected')
     const amazonError = searchParams.get('amazon_error')
-    if (!connected && !amazonError) return
+    const connectedError = searchParams.get('connected_error')
+    if (!connected && !amazonError && !connectedError) return
 
     handled.current = true
     const next = new URLSearchParams(searchParams)
     next.delete('connected')
     next.delete('amazon_error')
+    next.delete('connected_error')
     setSearchParams(next, { replace: true })
 
     if (connected === 'amazon') {
@@ -30,8 +32,12 @@ export function useIntegrationOAuthReturn() {
       toast.success(shellT(lang, 'integrationMercadoLibreOAuthConnected'))
     } else if (connected === 'mercadolibre_ads') {
       toast.success(shellT(lang, 'integrationAdsOAuthConnected'))
+    } else if (connected === 'google_ads') {
+      toast.success(shellT(lang, 'integrationAdsOAuthConnected'))
     } else if (amazonError) {
       toast.error(shellT(lang, 'integrationAmazonOAuthFailed'))
+    } else if (connectedError === 'google_ads') {
+      toast.error(shellT(lang, 'integrationConnectFailed'))
     }
   }, [searchParams, setSearchParams, lang])
 }

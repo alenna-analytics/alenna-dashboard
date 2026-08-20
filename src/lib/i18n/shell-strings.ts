@@ -938,10 +938,13 @@ const SHELL_STRINGS = {
     integrationConnectAds: 'Conectar publicidad',
     integrationConnectAmazonAds: 'Conectar Amazon Ads',
     integrationConnectMercadoLibreAds: 'Conectar Mercado Libre Ads',
+    integrationConnectGoogleAds: 'Conectar Google Ads',
     integrationSheetAmazonAdsConnectIntro:
       'Conecta Amazon Ads para sincronizar campañas y gasto. El TACoS aparece cuando también tienes ventas de Amazon.',
     integrationSheetMercadoLibreAdsConnectIntro:
       'Conecta Mercado Libre Ads para sincronizar Product Ads y gasto. El TACoS aparece cuando también tienes ventas de Mercado Libre.',
+    integrationSheetGoogleAdsConnectIntro:
+      'Conecta Google Ads para sincronizar campañas y gasto en solo lectura. El gasto entra al P&L junto a tus otros canales de ads.',
     integrationDetailAdsHelper:
       'Serás redirigido para autorizar acceso de solo lectura a campañas y métricas.',
     integrationAdsAccountLabel: 'Cuenta conectada',
@@ -959,7 +962,7 @@ const SHELL_STRINGS = {
     adsKpiSales: 'Ventas atribuidas',
     adsChannelTableTitle: 'Por canal',
     adsChannelColumn: 'Canal',
-    adsEmptyState: 'Conecta Amazon Ads o Mercado Libre Ads para ver métricas.',
+    adsEmptyState: 'Conecta Amazon Ads, Mercado Libre Ads o Google Ads para ver métricas.',
     adsPageSubtitle: 'Gasto, ROAS y TACoS de tus cuentas de publicidad.',
     adsGoIntegrations: 'Conectar publicidad',
     adsSyncProgressTitle: 'Sincronizando publicidad',
@@ -2790,10 +2793,13 @@ const SHELL_STRINGS = {
     integrationConnectAds: 'Connect ads',
     integrationConnectAmazonAds: 'Connect Amazon Ads',
     integrationConnectMercadoLibreAds: 'Connect Mercado Libre Ads',
+    integrationConnectGoogleAds: 'Connect Google Ads',
     integrationSheetAmazonAdsConnectIntro:
       'Connect Amazon Ads to sync campaigns and spend. TACoS appears once Amazon sales are connected too.',
     integrationSheetMercadoLibreAdsConnectIntro:
       'Connect Mercado Libre Ads to sync Product Ads and spend. TACoS appears once Mercado Libre sales are connected too.',
+    integrationSheetGoogleAdsConnectIntro:
+      'Connect Google Ads to sync campaigns and spend in read-only mode. Spend rolls into P&L with your other ad channels.',
     integrationDetailAdsHelper:
       'You will be redirected to authorize read-only access to campaigns and metrics.',
     integrationAdsAccountLabel: 'Connected account',
@@ -2811,7 +2817,7 @@ const SHELL_STRINGS = {
     adsKpiSales: 'Attributed sales',
     adsChannelTableTitle: 'By channel',
     adsChannelColumn: 'Channel',
-    adsEmptyState: 'Connect Amazon Ads or Mercado Libre Ads to see metrics.',
+    adsEmptyState: 'Connect Amazon Ads, Mercado Libre Ads, or Google Ads to see metrics.',
     adsPageSubtitle: 'Spend, ROAS, and TACoS from your ads accounts.',
     adsGoIntegrations: 'Connect ads',
     adsSyncProgressTitle: 'Syncing ads',

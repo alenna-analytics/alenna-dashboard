@@ -53,11 +53,15 @@ export function AdsManageBody({
   const connectLabel =
     slug === 'amazon_ads'
       ? shellT(lang, 'integrationConnectAmazonAds')
-      : shellT(lang, 'integrationConnectMercadoLibreAds')
-  const introKey =
+      : slug === 'google_ads'
+        ? shellT(lang, 'integrationConnectGoogleAds')
+        : shellT(lang, 'integrationConnectMercadoLibreAds')
+  const introKey: ShellStringKey =
     slug === 'amazon_ads'
       ? 'integrationSheetAmazonAdsConnectIntro'
-      : 'integrationSheetMercadoLibreAdsConnectIntro'
+      : slug === 'google_ads'
+        ? 'integrationSheetGoogleAdsConnectIntro'
+        : 'integrationSheetMercadoLibreAdsConnectIntro'
   const accountId = `integration-${slug}-account`
   const accountDisplay =
     ads.activeConnection?.shop_domain?.trim() ||

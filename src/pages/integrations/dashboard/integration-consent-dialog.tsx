@@ -73,7 +73,7 @@ export function IntegrationConsentDialog({
             <ul className="mt-3 space-y-3" aria-busy="true">
               {Array.from({ length: 3 }).map((_, i) => (
                 <li key={i} className="flex gap-3">
-                  <div className="mt-0.5 size-4 shrink-0 animate-pulse rounded-sm bg-muted" />
+                  <div className="mt-0.5 size-4 shrink-0 animate-pulse rounded-full bg-muted" />
                   <div className="min-w-0 flex-1 space-y-1.5">
                     <div className="h-3.5 w-32 animate-pulse rounded bg-muted" />
                     <div className="h-3 w-full max-w-sm animate-pulse rounded bg-muted/80" />
@@ -90,12 +90,11 @@ export function IntegrationConsentDialog({
                 const description = descKey ? shellT(lang, descKey) : null
                 return (
                   <li key={item.key} className="flex gap-3">
-                    <span
-                      className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-sm border border-[color-mix(in_srgb,var(--country-green-base)_55%,white)] bg-[color-mix(in_srgb,var(--country-green-base)_12%,white)] text-[var(--country-green-base)]"
+                    <Check
+                      className="mt-0.5 size-4 shrink-0 text-[var(--country-green-base)]"
+                      strokeWidth={2.5}
                       aria-hidden
-                    >
-                      <Check className="size-3 stroke-[2.5]" />
-                    </span>
+                    />
                     <div className="min-w-0">
                       <p className="text-sm font-medium leading-snug text-text-primary">{label}</p>
                       {description ? (

@@ -3,7 +3,6 @@ import type { ReactNode } from 'react'
 import type { ManagedIntegration } from '@/lib/integrations/catalog'
 import { integrationCategory } from '@/pages/integrations/dashboard/integration-display'
 import { shellT } from '@/lib/i18n/shell-strings'
-import { Badge } from '@/ui/badge'
 import { StatusPill } from '@/ui/status-pill'
 
 type IntegrationOverviewPanelProps = {
@@ -72,10 +71,6 @@ export function IntegrationOverviewPanel({
           }
         />
       </div>
-
-      {!integration.available ? (
-        <Badge variant="default">{shellT(lang, 'integrationsComingSoonBadge')}</Badge>
-      ) : null}
     </div>
   )
 }

@@ -31,17 +31,7 @@ export function resolveIntegrationConnection(
   slug: string,
   connections: PlatformConnection[],
 ): PlatformConnection | null {
-  if (slug === 'shopify') return findActiveConnection(connections, 'shopify')
-  if (slug === 'mercadolibre') return findActiveConnection(connections, 'mercadolibre')
-  if (slug === 'amazon') return findActiveConnection(connections, 'amazon')
-  return null
-}
-
-export function integrationNeedsInitialSync(
-  slug: string,
-  connections: PlatformConnection[],
-): boolean {
-  return connectionNeedsInitialSync(resolveIntegrationConnection(slug, connections))
+  return findActiveConnection(connections, slug)
 }
 
 export function isIntegrationConnected(
@@ -49,9 +39,18 @@ export function isIntegrationConnected(
   shopifyConnected: boolean,
   mercadolibreConnected: boolean,
   amazonConnected = false,
+  adsConnected = false,
 ): boolean {
   if (slug === 'shopify') return shopifyConnected
   if (slug === 'mercadolibre') return mercadolibreConnected
   if (slug === 'amazon') return amazonConnected
+  if (slug === 'amazon_ads' || slug === 'mercadolibre_ads') return adsConnected
   return false
+}
+
+export function integrationNeedsInitialSync(
+  slug: string,
+  connections: PlatformConnection[],
+): boolean {
+  return connectionNeedsInitialSync(resolveIntegrationConnection(slug, connections))
 }

@@ -8,7 +8,6 @@ import {
   integrationTitle,
 } from '@/pages/integrations/dashboard/integration-display'
 import { shellT } from '@/lib/i18n/shell-strings'
-import { Badge } from '@/ui/badge'
 import { StatusPill } from '@/ui/status-pill'
 import { cn } from '@/lib/utils'
 
@@ -44,8 +43,8 @@ export function IntegrationListCard({
           <IntegrationLogo
             src={integration.logoSrc}
             alt={name}
-            size="lg"
-            className="bg-white p-1.5"
+            size="card"
+            className="bg-white"
           />
           {connected || needsInitialSync ? (
             <div className="flex flex-wrap items-center justify-end gap-1.5">
@@ -69,13 +68,16 @@ export function IntegrationListCard({
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          {!integration.available ? (
-            <Badge variant="default">{shellT(lang, 'integrationsComingSoonBadge')}</Badge>
-          ) : category ? (
-            <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+          {category ? (
+            <span className="text-[11px] font-medium uppercase tracking-wide text-text-tertiary">
               {category}
-            </Badge>
+            </span>
           ) : null}
+          {!integration.available ? (
+            <StatusPill variant="warning">{shellT(lang, 'integrationsComingSoonBadge')}</StatusPill>
+          ) : connected ? null : (
+            <StatusPill variant="neutral">{shellT(lang, 'integrationsStatusNotConnected')}</StatusPill>
+          )}
         </div>
       </Link>
     </li>

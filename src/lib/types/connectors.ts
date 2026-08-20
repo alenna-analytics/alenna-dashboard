@@ -3,6 +3,8 @@ export type IntegrationPlatformRow = {
   name: string
   is_available: boolean
   sort_order: number
+  kind?: 'ecommerce' | 'ads'
+  shared_family?: string | null
 }
 
 export type FullHistoryWindow = {
@@ -49,6 +51,8 @@ export type PlatformConnection = {
   orders_backfill_completed_through: string | null
   fees_status: string | null
   sync_plan: SyncPlan | null
+  linked_commerce_connection_id?: string | null
+  token_owner_connection_id?: string | null
 }
 
 export type ShopifyOrdersPreviewResponse = {

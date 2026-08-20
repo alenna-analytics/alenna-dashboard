@@ -24,6 +24,12 @@ export function useIntegrationOAuthReturn() {
 
     if (connected === 'amazon') {
       toast.success(shellT(lang, 'integrationAmazonOAuthConnected'))
+    } else if (connected === 'amazon_ads') {
+      toast.success(shellT(lang, 'integrationAdsOAuthConnected'))
+    } else if (connected === 'mercadolibre') {
+      toast.success(shellT(lang, 'integrationMercadoLibreOAuthConnected'))
+    } else if (connected === 'mercadolibre_ads') {
+      toast.success(shellT(lang, 'integrationAdsOAuthConnected'))
     } else if (amazonError) {
       toast.error(shellT(lang, 'integrationAmazonOAuthFailed'))
     }

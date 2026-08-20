@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 type IntegrationLogoProps = {
   src?: string
   alt: string
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'card'
   className?: string
 }
 
@@ -12,6 +12,7 @@ const imgSize = {
   md: 'size-6',
   lg: 'size-8',
   xl: 'size-14',
+  card: 'size-[50px]',
 }
 
 export function IntegrationLogo({

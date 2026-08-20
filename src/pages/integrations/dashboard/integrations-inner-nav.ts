@@ -39,7 +39,11 @@ export function isIntegrationsNavItemActive(
   const normalized = pathname.replace(/\/$/, '') || '/'
 
   if (item.id === 'ads') {
-    return matchPath({ path: item.path, end: true }, normalized) != null
+    const adsMatch = matchPath({ path: item.path, end: true }, normalized) != null
+    if (adsMatch) return true
+    const detailMatch = matchPath({ path: INTEGRATION_DETAIL_SLUG_PATTERN, end: true }, normalized)
+    const slug = detailMatch?.params.slug
+    return slug === 'amazon_ads' || slug === 'mercadolibre_ads' || slug === 'google_ads' || slug === 'meta_ads'
   }
 
   if (item.id === 'ecommerce') {
@@ -52,5 +56,14 @@ export function isIntegrationsNavItemActive(
   if (!detailMatch?.params.slug) return false
 
   const slug = detailMatch.params.slug
-  return slug !== 'ecommerce' && slug !== 'ads'
+  if (slug === 'ecommerce' || slug === 'ads') return false
+  if (
+    slug === 'amazon_ads' ||
+    slug === 'mercadolibre_ads' ||
+    slug === 'google_ads' ||
+    slug === 'meta_ads'
+  ) {
+    return false
+  }
+  return true
 }

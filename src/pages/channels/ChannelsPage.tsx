@@ -181,7 +181,7 @@ export function ChannelsPage() {
 
   const currentAgg = useMemo(() => {
     const agg = aggregateChannelKpisByPlatform(kpis?.items ?? [], displayedPlatforms)
-    agg.total.ads_spend = Number(kpis?.tenant_ads_spend ?? 0)
+    agg.total.ads_spend += Number(kpis?.tenant_ads_spend ?? 0)
     return agg
   }, [kpis, displayedPlatforms])
   const settlementAgg = useMemo(

@@ -6,6 +6,7 @@ import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch } from '@/lib/api'
 import type { IntegrationPlatformRow, PlatformConnection } from '@/lib/types/connectors'
 import {
+  isIntegrationHidden,
   mergeIntegrationPlatform,
   type ManagedIntegration,
 } from '@/lib/integrations/catalog'
@@ -60,7 +61,9 @@ export function useIntegrationsListQueries(): IntegrationsListState {
 
   const integrations = useMemo((): ManagedIntegration[] => {
     const rows = platformsQuery.data ?? []
-    return rows.map(mergeIntegrationPlatform)
+    return rows
+      .filter((row) => !isIntegrationHidden(row.slug))
+      .map(mergeIntegrationPlatform)
   }, [platformsQuery.data])
 
   const connections = useMemo(

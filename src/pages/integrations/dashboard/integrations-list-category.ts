@@ -1,1 +1,1 @@
-export type IntegrationsListCategory = 'all' | 'ecommerce'
+export type IntegrationsListCategory = 'all' | 'ecommerce' | 'ads'

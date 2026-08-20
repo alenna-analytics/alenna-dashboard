@@ -1,10 +1,11 @@
 import { useAuth } from '@clerk/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch, apiPostJson } from '@/lib/api'
+import { readApiErrorDetail } from '@/lib/integrations/platform-full-sync-error'
 import type { ShopifySyncEnqueueResponse } from '@/lib/types/connectors'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { can } from '@/lib/permissions/can'
@@ -13,8 +14,19 @@ import { useWorkspace } from '@/shell/providers/workspace-context'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
 import { formatShopifyLastSync } from '@/lib/integrations/shopify-format'
 import { findActiveConnection } from '@/pages/integrations/dashboard/integration-connection'
+import { useCatalogJobQuery, useRetryCatalogJobMutation } from '@/pages/products/use-catalog-queries'
+import {
+  GLOBAL_ACTIVITY_ADS_SYNC_ID,
+  useGlobalActivity,
+} from '@/shell/providers/global-activity-provider'
 
 export type AdsPlatformSlug = 'amazon_ads' | 'mercadolibre_ads'
+
+export type AdsSyncPhase = 'idle' | 'working' | 'done_ok' | 'done_fail'
+
+function adsActivityHref(slug: AdsPlatformSlug): string {
+  return `/dashboard/integrations/${slug}?tab=settings`
+}
 
 export function useAdsIntegration(slug: AdsPlatformSlug) {
   const { getToken } = useAuth()
@@ -22,10 +34,13 @@ export function useAdsIntegration(slug: AdsPlatformSlug) {
   const { me } = useWorkspace()
   const { lang } = useLanguage()
   const queryClient = useQueryClient()
+  const { upsertActivity, removeActivity } = useGlobalActivity()
   const isAdmin = can(me, 'integrations.manage')
   const { connections, pageLoading, pageError } = useIntegrationsListQueries()
   const activeConnection = findActiveConnection(connections, slug)
   const [connectStarting, setConnectStarting] = useState(false)
+  const [pendingJobId, setPendingJobId] = useState<string | null>(null)
+  const settledJobSigRef = useRef<string | null>(null)
 
   const authUrl =
     slug === 'amazon_ads'
@@ -37,6 +52,11 @@ export function useAdsIntegration(slug: AdsPlatformSlug) {
     slug === 'amazon_ads'
       ? `/connectors/amazon-ads/${id}`
       : `/connectors/mercadolibre-ads/${id}`
+
+  const invalidateAds = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
+    void queryClient.invalidateQueries({ queryKey: ['ads'] })
+  }, [queryClient, tenantId])
 
   const startConnect = useCallback(async () => {
     setConnectStarting(true)
@@ -69,13 +89,21 @@ export function useAdsIntegration(slug: AdsPlatformSlug) {
       }
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
+      removeActivity(GLOBAL_ACTIVITY_ADS_SYNC_ID)
+      invalidateAds()
       toast.success(shellT(lang, 'integrationDisconnectDone'))
     },
     onError: (e: Error) => {
       toast.error(e.message)
     },
   })
+
+  const syncPlan = activeConnection?.sync_plan ?? null
+  const serverJobId = syncPlan?.current_job_id ?? null
+  const effectiveJobId = pendingJobId ?? serverJobId
+  const adsJobQuery = useCatalogJobQuery(effectiveJobId, Boolean(effectiveJobId && activeConnection))
+  const liveJobStatus = adsJobQuery.data?.status ?? null
+  const retryCatalogJobMutation = useRetryCatalogJobMutation()
 
   const syncMutation = useMutation({
     mutationFn: async (): Promise<ShopifySyncEnqueueResponse> => {
@@ -90,19 +118,113 @@ export function useAdsIntegration(slug: AdsPlatformSlug) {
         tenantId,
       )
       if (!res.ok) {
-        const t = await res.text()
-        throw new Error(t || res.statusText)
+        const detail = await readApiErrorDetail(res)
+        if (res.status === 409 && detail === 'platform_sync_in_progress') {
+          throw new Error(shellT(lang, 'syncInProgressToast'))
+        }
+        throw new Error(detail ?? res.statusText)
       }
       return (await res.json()) as ShopifySyncEnqueueResponse
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
-      toast.success(shellT(lang, 'integrationSyncQueued'))
+    onSuccess: (data) => {
+      setPendingJobId(data.job_id)
+      upsertActivity({
+        id: GLOBAL_ACTIVITY_ADS_SYNC_ID,
+        phase: 'loading',
+        title: shellT(lang, 'adsSyncProgressTitle'),
+        subtitle: shellT(lang, 'amazonSyncProgressQueued'),
+        href: adsActivityHref(slug),
+        minimized: false,
+        jobId: data.job_id,
+      })
+      invalidateAds()
     },
     onError: (e: Error) => {
       toast.error(e.message)
+      invalidateAds()
     },
   })
+
+  useEffect(() => {
+    if (!effectiveJobId) return
+    const job = adsJobQuery.data
+    if (!job || job.id !== effectiveJobId) return
+    if (job.status === 'queued' || job.status === 'running') {
+      settledJobSigRef.current = null
+      upsertActivity({
+        id: GLOBAL_ACTIVITY_ADS_SYNC_ID,
+        phase: 'loading',
+        title: shellT(lang, 'adsSyncProgressTitle'),
+        subtitle:
+          job.status === 'queued'
+            ? shellT(lang, 'amazonSyncProgressQueued')
+            : shellT(lang, 'syncRunning'),
+        href: adsActivityHref(slug),
+        minimized: false,
+        jobId: job.id,
+      })
+      return
+    }
+    const sig = `${job.id}:${job.status}`
+    if (settledJobSigRef.current === sig) return
+    settledJobSigRef.current = sig
+    setPendingJobId(null)
+    if (job.status === 'succeeded') {
+      upsertActivity({
+        id: GLOBAL_ACTIVITY_ADS_SYNC_ID,
+        phase: 'success',
+        title: shellT(lang, 'adsSyncProgressTitle'),
+        subtitle: shellT(lang, 'integrationSyncQueued'),
+        href: adsActivityHref(slug),
+        minimized: false,
+        jobId: job.id,
+      })
+      invalidateAds()
+      return
+    }
+    if (job.status === 'failed') {
+      upsertActivity({
+        id: GLOBAL_ACTIVITY_ADS_SYNC_ID,
+        phase: 'error',
+        title: shellT(lang, 'adsSyncProgressTitle'),
+        subtitle: job.error_message ?? shellT(lang, 'integrationConnectFailed'),
+        href: adsActivityHref(slug),
+        minimized: false,
+        jobId: job.id,
+      })
+      invalidateAds()
+    }
+  }, [adsJobQuery.data, effectiveJobId, invalidateAds, lang, slug, upsertActivity])
+
+  const adsSyncPhase = useMemo((): AdsSyncPhase => {
+    if (!activeConnection) return 'idle'
+    if (effectiveJobId && liveJobStatus === 'queued') return 'working'
+    if (effectiveJobId && liveJobStatus === 'running') return 'working'
+    if (effectiveJobId && liveJobStatus === 'failed') return 'done_fail'
+    if (effectiveJobId && liveJobStatus === 'succeeded') return 'done_ok'
+    if (pendingJobId && !liveJobStatus && !adsJobQuery.isFetched) return 'working'
+    if (syncPlan?.current_job_id && !liveJobStatus && !adsJobQuery.isFetched) return 'working'
+    if (syncPlan?.last_sync_status === 'syncing') return 'working'
+    if (syncPlan?.last_sync_status === 'failed') return 'done_fail'
+    return 'idle'
+  }, [
+    activeConnection,
+    adsJobQuery.isFetched,
+    effectiveJobId,
+    liveJobStatus,
+    pendingJobId,
+    syncPlan?.current_job_id,
+    syncPlan?.last_sync_status,
+  ])
+
+  const retryAdsSync = useCallback(() => {
+    const jobId = adsJobQuery.data?.id ?? effectiveJobId
+    if (jobId) {
+      retryCatalogJobMutation.mutate(jobId)
+      return
+    }
+    syncMutation.mutate()
+  }, [adsJobQuery.data?.id, effectiveJobId, retryCatalogJobMutation, syncMutation])
 
   const siblingSlug = slug === 'amazon_ads' ? 'amazon' : 'mercadolibre'
   const sibling = findActiveConnection(connections, siblingSlug)
@@ -124,8 +246,13 @@ export function useAdsIntegration(slug: AdsPlatformSlug) {
     startConnect,
     disconnectMutation,
     syncMutation,
-    syncPlan: activeConnection?.sync_plan ?? null,
+    syncPlan,
     lastSyncDisplay,
+    adsSyncPhase,
+    adsJobQuery,
+    activeSyncJobId: effectiveJobId,
+    retryAdsSync,
+    retryAdsSyncPending: retryCatalogJobMutation.isPending,
     caseC: Boolean(activeConnection) && !sibling,
     caseA: Boolean(sibling) && !activeConnection,
   }

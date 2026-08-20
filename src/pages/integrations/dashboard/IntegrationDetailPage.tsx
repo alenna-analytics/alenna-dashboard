@@ -123,11 +123,15 @@ export function IntegrationDetailPage() {
           forceSyncing:
             (isShopify && shopifyIntegration.shopifySyncPhase === 'working') ||
             (isMercadolibre && mercadolibreIntegration.meliSyncPhase === 'working') ||
-            (isAmazon && amazonIntegration.amazonSyncPhase === 'working'),
+            (isAmazon && amazonIntegration.amazonSyncPhase === 'working') ||
+            (isAmazonAds && amazonAdsIntegration.adsSyncPhase === 'working') ||
+            (isMercadolibreAds && mercadolibreAdsIntegration.adsSyncPhase === 'working'),
           suppressSyncing:
             (isAmazon && amazonIntegration.amazonSyncPhase === 'done_fail') ||
             (isShopify && shopifyIntegration.shopifySyncPhase === 'done_fail') ||
-            (isMercadolibre && mercadolibreIntegration.meliSyncPhase === 'done_fail'),
+            (isMercadolibre && mercadolibreIntegration.meliSyncPhase === 'done_fail') ||
+            (isAmazonAds && amazonAdsIntegration.adsSyncPhase === 'done_fail') ||
+            (isMercadolibreAds && mercadolibreAdsIntegration.adsSyncPhase === 'done_fail'),
         })
       : null
 

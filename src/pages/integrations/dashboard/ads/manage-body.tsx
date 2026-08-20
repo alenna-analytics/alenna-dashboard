@@ -9,15 +9,27 @@ import { isPlanLimitSyncPaused } from '@/lib/plan/plan-limit-ui'
 import { PlanLimitSyncAlert } from '@/components/integrations/plan-limit-sync-alert'
 import { IntegrationEnableCard } from '@/components/integrations/integration-enable-card'
 import { IntegrationSyncActionCard } from '@/components/integrations/integration-sync-action-card'
+import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
+import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
+import { useCancelPlatformSyncJob } from '@/hooks/use-cancel-platform-sync-job'
+import { GLOBAL_ACTIVITY_ADS_SYNC_ID } from '@/shell/providers/global-activity-provider'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
-import { shellT } from '@/lib/i18n/shell-strings'
+import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
+import type { SyncPlan } from '@/lib/types/connectors'
 import { Button } from '@/ui/button'
 import { Label } from '@/ui/label'
 import {
   needsInitialSyncConsent,
   useIntegrationConsentGate,
 } from '@/pages/integrations/hooks/use-integration-consent-gate'
+
+function lifecycleButtonLabelKey(syncPlan: SyncPlan | null): ShellStringKey {
+  const status = syncPlan?.last_sync_status ?? 'not_synced'
+  if (status === 'synced' || status === 'partial') return 'syncRefreshBtn'
+  if (status === 'failed') return 'syncRetryBtn'
+  return 'syncRunBtn'
+}
 
 type AdsManageBodyProps = {
   slug: AdsPlatformSlug
@@ -59,14 +71,6 @@ export function AdsManageBody({
     void ads.startConnect()
   }
 
-  const runSync = () => {
-    if (isFixture) {
-      toast.info(shellT(lang, 'fixtureActionDisabled'))
-      return
-    }
-    ads.syncMutation.mutate()
-  }
-
   if (!ads.isAdmin) {
     return <p className="text-sm text-muted-foreground">{shellT(lang, 'connectionsAdminOnly')}</p>
   }
@@ -74,7 +78,7 @@ export function AdsManageBody({
   if (ads.error) {
     return (
       <p className="text-sm text-destructive" role="alert">
-        {shellT(lang, 'integrationAmazonLoadFailed')}
+        {shellT(lang, 'integrationLoadFailed')}
       </p>
     )
   }
@@ -128,21 +132,11 @@ export function AdsManageBody({
           </IntegrationEnableCard>
 
           {integrationEnabled ? (
-            <IntegrationSyncActionCard
-              title={shellT(lang, 'syncSectionTitle')}
-              description={shellT(lang, 'integrationAdsSyncDescription')}
-              actionLabel={shellT(lang, 'syncRunBtn')}
-              onAction={() => {
-                if (needsInitialSyncConsent(ads.syncPlan?.last_sync_status)) {
-                  consent.requestThen(runSync)
-                  return
-                }
-                runSync()
-              }}
-              actionDisabled={ads.syncMutation.isPending || isFixture || planSyncPaused}
-              actionLoading={ads.syncMutation.isPending}
-              footer={`${shellT(lang, 'connectionsLastSynced')}: ${ads.lastSyncDisplay}`}
-              className="w-full"
+            <AdsSyncSection
+              ads={ads}
+              isFixture={isFixture}
+              planSyncPaused={planSyncPaused}
+              onConsentThen={consent.requestThen}
             />
           ) : null}
         </div>
@@ -155,5 +149,98 @@ export function AdsManageBody({
         onConfirm={consent.confirm}
       />
     </div>
+  )
+}
+
+function AdsSyncSection({
+  ads,
+  isFixture,
+  planSyncPaused,
+  onConsentThen,
+}: {
+  ads: ReturnType<typeof useAdsIntegration>
+  isFixture: boolean
+  planSyncPaused: boolean
+  onConsentThen: (action: () => void) => void
+}) {
+  const { lang } = useLanguage()
+  const cancelSyncMutation = useCancelPlatformSyncJob()
+  const { syncPlan, adsSyncPhase, adsJobQuery, activeSyncJobId, lastSyncDisplay } = ads
+  const syncPill = resolveConnectionSyncFreshnessPillContent(ads.activeConnection, {
+    forceSyncing: adsSyncPhase === 'working',
+    suppressSyncing: adsSyncPhase === 'done_fail',
+  })
+  const buttonLabel = shellT(lang, lifecycleButtonLabelKey(syncPlan))
+
+  const runSync = (action: () => void) => {
+    if (isFixture) {
+      toast.info(shellT(lang, 'fixtureActionDisabled'))
+      return
+    }
+    if (needsInitialSyncConsent(syncPlan?.last_sync_status)) {
+      onConsentThen(action)
+      return
+    }
+    action()
+  }
+
+  if (adsSyncPhase === 'working') {
+    const queued = adsJobQuery.data?.status === 'queued'
+    return (
+      <IntegrationSyncActionCard
+        title={shellT(lang, 'syncSectionTitle')}
+        description={queued ? shellT(lang, 'amazonSyncProgressQueued') : shellT(lang, 'syncRunning')}
+        actionLabel={shellT(lang, 'syncRunning')}
+        onAction={() => {}}
+        actionDisabled
+        actionLoading
+        hideAction
+        secondaryActionLabel={ads.isAdmin ? shellT(lang, 'platformSyncCancelBtn') : undefined}
+        onSecondaryAction={
+          ads.isAdmin && activeSyncJobId
+            ? () =>
+                cancelSyncMutation.mutate({
+                  jobId: activeSyncJobId,
+                  activityId: GLOBAL_ACTIVITY_ADS_SYNC_ID,
+                })
+            : undefined
+        }
+        secondaryActionDisabled={!activeSyncJobId || isFixture}
+        secondaryActionLoading={cancelSyncMutation.isPending}
+        badge={<SyncFreshnessPillBadge pill={{ kind: 'syncing', freshnessState: 'syncing' }} lang={lang} />}
+        className="w-full"
+      />
+    )
+  }
+
+  if (adsSyncPhase === 'done_fail') {
+    return (
+      <IntegrationSyncActionCard
+        title={shellT(lang, 'syncSectionTitle')}
+        description={adsJobQuery.data?.error_message ?? shellT(lang, 'integrationConnectFailed')}
+        actionLabel={shellT(lang, 'syncRetryBtn')}
+        onAction={() => runSync(() => ads.retryAdsSync())}
+        actionDisabled={ads.retryAdsSyncPending || isFixture || planSyncPaused}
+        actionLoading={ads.retryAdsSyncPending}
+        badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
+        footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
+        className="w-full"
+      />
+    )
+  }
+
+  return (
+    <IntegrationSyncActionCard
+      title={shellT(lang, 'syncSectionTitle')}
+      description={shellT(lang, 'integrationAdsSyncDescription')}
+      actionLabel={buttonLabel}
+      actionLoadingLabel={shellT(lang, 'syncRunning')}
+      onAction={() => runSync(() => ads.syncMutation.mutate())}
+      actionDisabled={ads.syncMutation.isPending || isFixture || planSyncPaused}
+      actionLoading={ads.syncMutation.isPending}
+      badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
+      footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
+      className="w-full"
+    />
   )
 }

@@ -1,15 +1,22 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 
 import { useCurrentTenant } from '@/auth/hooks'
+import { resolveAdsApiScope } from '@/lib/integrations/ads-scope'
+import { can } from '@/lib/permissions/can'
 import { useAdsChannels, useAdsKpis } from '@/pages/ads/use-ads-kpis'
+import { IntegrationsErrorState } from '@/pages/integrations/dashboard/integrations-error-state'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { presetDateRangeYmd } from '@/ui/date-range-picker'
 import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
 import { useMoney } from '@/hooks/use-money'
+import { buttonVariants } from '@/ui/button'
+import { Skeleton } from '@/ui/skeleton'
 
 type AdsFiltersState = {
   start: string
@@ -30,6 +37,7 @@ function formatRatio(value: number | null): string {
 
 export function AdsPage() {
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
   const { tenantId } = useCurrentTenant()
   const { format: formatMoney } = useMoney()
   const { connections } = useIntegrationsListQueries()
@@ -53,33 +61,38 @@ export function AdsPage() {
     presetPreviousYear: shellT(lang, 'datePickerPreviousYear'),
   }
 
-  const connectionIds = useMemo(
-    () => connections.filter((c) => c.status === 'active').map((c) => c.id),
-    [connections],
-  )
+  const adsScope = useMemo(() => resolveAdsApiScope(connections), [connections])
+  const canView = can(me, 'ads.view')
+  const queryEnabled = adsScope.hasAdsConnections && canView
 
   const kpis = useAdsKpis({
-    connectionIds,
+    connectionIds: adsScope.queryConnectionIds,
     startDate: filters.start,
     endDate: filters.end,
-    enabled: connectionIds.length > 0,
+    enabled: queryEnabled,
   })
   const channels = useAdsChannels({
-    connectionIds,
+    connectionIds: adsScope.queryConnectionIds,
     startDate: filters.start,
     endDate: filters.end,
-    enabled: connectionIds.length > 0,
+    enabled: queryEnabled,
   })
 
   const data = kpis.data
   const adsCurrency = channels.data?.currency ?? data?.currency
+  const isLoading = queryEnabled && (kpis.isLoading || channels.isLoading)
+  const isError = kpis.isError || channels.isError
 
   return (
     <DashboardPage className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className={pageTitleClassName}>{shellT(lang, 'navAds')}</h1>
-          <p className="mt-1.5 text-xs text-text-secondary">{shellT(lang, 'adsEmptyState')}</p>
+          <p className="mt-1.5 text-xs text-text-secondary">
+            {adsScope.hasAdsConnections
+              ? shellT(lang, 'adsPageSubtitle')
+              : shellT(lang, 'adsEmptyState')}
+          </p>
         </div>
         <FilterDates
           strings={pickerStrings}
@@ -90,9 +103,33 @@ export function AdsPage() {
         />
       </div>
 
-      {!data ? (
-        <p className="text-sm text-text-secondary">{shellT(lang, 'adsEmptyState')}</p>
-      ) : (
+      {!adsScope.hasAdsConnections ? (
+        <div className="rounded-md border border-border-subtle p-6">
+          <p className="text-sm text-text-secondary">{shellT(lang, 'adsEmptyState')}</p>
+          <Link
+            to="/dashboard/integrations/ads"
+            className={`${buttonVariants({ variant: 'accent', size: 'tiny' })} mt-4`}
+          >
+            {shellT(lang, 'adsGoIntegrations')}
+          </Link>
+        </div>
+      ) : isLoading ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-md" />
+          ))}
+        </div>
+      ) : isError ? (
+        <IntegrationsErrorState
+          lang={lang}
+          error={kpis.error ?? channels.error}
+          isRetrying={kpis.isFetching || channels.isFetching}
+          onRetry={() => {
+            void kpis.refetch()
+            void channels.refetch()
+          }}
+        />
+      ) : data ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <AdsKpiCard label={shellT(lang, 'adsKpiSpend')} value={formatMoney(data.spend, { nativeCurrency: data.currency })} />
           <AdsKpiCard label={shellT(lang, 'adsKpiSales')} value={formatMoney(data.attributed_sales, { nativeCurrency: data.currency })} />
@@ -104,8 +141,9 @@ export function AdsPage() {
           />
           <AdsKpiCard label={shellT(lang, 'adsKpiCpa')} value={formatRatio(data.cpa)} />
         </div>
-      )}
+      ) : null}
 
+      {adsScope.hasAdsConnections && !isLoading && !isError ? (
       <section>
         <h2 className="mb-3 text-sm font-medium text-text-primary">
           {shellT(lang, 'adsChannelTableTitle')}
@@ -142,6 +180,7 @@ export function AdsPage() {
           </table>
         </div>
       </section>
+      ) : null}
     </DashboardPage>
   )
 }

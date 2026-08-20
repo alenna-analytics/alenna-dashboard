@@ -61,6 +61,7 @@ import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-wat
 import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 import { useProductReports } from '@/pages/reports/use-product-reports'
+import { resolveAdsApiScope } from '@/lib/integrations/ads-scope'
 import { useAdsKpis } from '@/pages/ads/use-ads-kpis'
 import { useReports } from '@/pages/reports/use-reports'
 import { useChannelBreakdown } from '@/pages/reports/use-channel-breakdown'
@@ -333,11 +334,19 @@ export function DashboardHomePageV2() {
     endDate: prevPeriod?.end ?? '',
     enabled: canHomeKpis && !productMode && Boolean(prevPeriod) && kpiReady,
   })
+  const adsScope = useMemo(
+    () =>
+      resolveAdsApiScope(
+        connections,
+        connectionIds.length > 0 ? activeConnectionIds : undefined,
+      ),
+    [connections, connectionIds.length, activeConnectionIds],
+  )
   const { data: adsKpi } = useAdsKpis({
-    connectionIds: activeConnectionIds,
+    connectionIds: adsScope.queryConnectionIds,
     startDate,
     endDate,
-    enabled: canHomeKpis && !productMode && can(me, 'ads.view'),
+    enabled: canHomeKpis && !productMode && can(me, 'ads.view') && adsScope.hasAdsConnections,
   })
 
   const { data: pkpi, isLoading: pkpiLoading, isSuccess: pkpiReady } = useProductReports({

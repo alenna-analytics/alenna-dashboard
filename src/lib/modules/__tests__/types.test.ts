@@ -22,9 +22,9 @@ describe('module ids', () => {
     expect(parseModuleIds(['expenses', 'channels', 'nope'])).toEqual(['expenses', 'channels'])
   })
 
-  it('shows alarm config without workspace settings', () => {
-    expect(visibleWorkspaceConfigSubmodules(['alarms']).map((s) => s.id)).toEqual(['alarms'])
-    expect(shouldShowWorkspaceConfigNav(['alarms'])).toBe(true)
+  it('keeps alarm config independent from workspace settings', () => {
+    expect(visibleWorkspaceConfigSubmodules(['alarms']).map((s) => s.id)).toEqual([])
+    expect(shouldShowWorkspaceConfigNav(['alarms'])).toBe(false)
     expect(visibleWorkspaceConfigSubmodules(['workspace-config']).map((s) => s.id)).toEqual([
       'general',
       'pnl-terms',

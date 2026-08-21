@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -15,7 +15,6 @@ import {
 import { fetchTeamMembers } from '@/lib/team/team-api'
 import { memberDisplayName } from '@/lib/team/member-display-name'
 import type { TeamMember } from '@/lib/types/team-types'
-import { cn } from '@/lib/utils'
 import { DeleteAccountDangerZone } from '@/pages/configuration/general/delete-account-danger-zone'
 import { DeleteAccountDialog } from '@/pages/configuration/general/delete-account-dialog'
 import {
@@ -27,6 +26,11 @@ import {
   type WorkspaceCurrencyCode,
   type WorkspacePatch,
 } from '@/pages/configuration/general/workspace-api'
+import {
+  SettingsCard,
+  SettingsRow,
+  SettingsSectionHeader,
+} from '@/pages/configuration/settings-layout'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
@@ -35,56 +39,6 @@ import { Button, buttonVariants } from '@/ui/button'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import { Input } from '@/ui/input'
 import { Skeleton } from '@/ui/skeleton'
-
-function SettingsSectionHeader({
-  title,
-  description,
-}: {
-  title: string
-  description?: string
-}) {
-  return (
-    <div>
-      <h2 className="text-base font-semibold tracking-[-0.01em] text-text-primary">{title}</h2>
-      {description ? (
-        <p className="mt-1 text-sm text-text-secondary">{description}</p>
-      ) : null}
-    </div>
-  )
-}
-
-function SettingsCard({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <div
-      className={cn(
-        'w-full overflow-hidden rounded-lg border border-border-card bg-white divide-y divide-border-card',
-        className,
-      )}
-    >
-      {children}
-    </div>
-  )
-}
-
-function SettingsRow({
-  label,
-  description,
-  children,
-}: {
-  label: string
-  description: string
-  children: ReactNode
-}) {
-  return (
-    <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-text-primary">{label}</p>
-        <p className="mt-0.5 text-sm leading-snug text-text-secondary">{description}</p>
-      </div>
-      <div className="w-full min-w-0 sm:max-w-sm sm:shrink-0">{children}</div>
-    </div>
-  )
-}
 
 function formatDeletionDate(iso: string | null | undefined, lang: string): string {
   if (!iso) {

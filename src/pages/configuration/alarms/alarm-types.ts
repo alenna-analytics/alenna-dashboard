@@ -1,6 +1,8 @@
 import type { AppIconName } from '@/lib/icons/catalog'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 
+export const ALARMS_BASE_PATH = '/dashboard/alarms'
+
 export type ConfigurableAlarmTypeId = 'stock'
 
 export type ConfigurableAlarmType = {
@@ -16,7 +18,7 @@ export const CONFIGURABLE_ALARM_TYPES: readonly ConfigurableAlarmType[] = [
     id: 'stock',
     titleKey: 'alarmsStockTypeTitle',
     descriptionKey: 'alarmsStockTypeDescription',
-    path: '/dashboard/configuration/alarms/stock',
+    path: `${ALARMS_BASE_PATH}/stock`,
     icon: 'products',
   },
 ] as const

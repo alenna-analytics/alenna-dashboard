@@ -4,7 +4,7 @@ import type { AppIconName } from '@/lib/icons/catalog'
 import type { SidebarControlMode } from '@/lib/shell/sidebar-control-prefs'
 import { useEnabledModules } from '@/lib/modules/use-modules'
 import { can } from '@/lib/permissions/can'
-import { useConfigSectionModules, useWorkspaceConfigModuleEnabled, useWorkspaceConfigNavEnabled } from '@/lib/modules/use-workspace-config'
+import { useConfigSectionModules, useWorkspaceConfigModuleEnabled, useWorkspaceConfigNavEnabled, useAlarmsModuleEnabled } from '@/lib/modules/use-workspace-config'
 import type { ModuleSection, ModuleState } from '@/lib/modules/types'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { isBillingOwner } from '@/lib/plan/plan-limit-ui'
@@ -171,13 +171,16 @@ export function AppSidebarPanel({
   const otherConfigModules = configModules.filter((mod) => mod.id !== 'integrations')
   const workspaceConfigEnabled = useWorkspaceConfigModuleEnabled()
   const workspaceConfigNavEnabled = useWorkspaceConfigNavEnabled()
+  const alarmsEnabled = useAlarmsModuleEnabled()
   const canSeeBilling = workspaceConfigEnabled && isBillingOwner(me)
   const canSeeTeam = can(me, 'team.view')
-  const showBottomSection =
+  const showWorkspaceSection =
     canSeeTeam ||
+    alarmsEnabled ||
     integrationsModule != null ||
-    workspaceConfigNavEnabled ||
+    canSeeBilling ||
     otherConfigModules.length > 0
+
 
   return (
     <div
@@ -207,8 +210,8 @@ export function AppSidebarPanel({
           collapsed={collapsed}
           onNavigate={onNavigate}
         />
-        {showBottomSection ? (
-          <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionConfiguration')}>
+        {showWorkspaceSection ? (
+          <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionWorkspace')}>
             {canSeeTeam ? (
             <NavItem
               icon="orgs"
@@ -217,6 +220,15 @@ export function AppSidebarPanel({
               collapsed={collapsed}
               onNavigate={onNavigate}
             />
+            ) : null}
+            {alarmsEnabled ? (
+              <NavItem
+                icon="notifications"
+                to="/dashboard/alarms"
+                label={t('navAlarms')}
+                collapsed={collapsed}
+                onNavigate={onNavigate}
+              />
             ) : null}
             {integrationsModule ? (
               <NavItem
@@ -236,14 +248,16 @@ export function AppSidebarPanel({
                 onNavigate={onNavigate}
               />
             ) : null}
-            {workspaceConfigNavEnabled ? (
-              <WorkspaceConfigNavItem collapsed={collapsed} onNavigate={onNavigate} />
-            ) : null}
             <ModuleNavItems
               modules={otherConfigModules}
               collapsed={collapsed}
               onNavigate={onNavigate}
             />
+          </SidebarNavSection>
+        ) : null}
+        {workspaceConfigNavEnabled ? (
+          <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionConfiguration')}>
+            <WorkspaceConfigNavItem collapsed={collapsed} onNavigate={onNavigate} />
           </SidebarNavSection>
         ) : null}
       </nav>

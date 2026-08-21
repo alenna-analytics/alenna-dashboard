@@ -2,7 +2,7 @@ import type { AppIconName } from '@/lib/icons/catalog'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ModuleId } from '@/lib/modules/types'
 
-export type WorkspaceConfigSubmoduleId = 'general' | 'alarms' | 'pnl-terms'
+export type WorkspaceConfigSubmoduleId = 'general' | 'pnl-terms'
 
 export type WorkspaceConfigSubmodule = {
   id: WorkspaceConfigSubmoduleId
@@ -23,14 +23,6 @@ export const WORKSPACE_CONFIG_SUBMODULES: readonly WorkspaceConfigSubmodule[] = 
     requiredModuleId: 'workspace-config',
   },
   {
-    id: 'alarms',
-    labelKey: 'navAlarms',
-    descriptionKey: 'workspaceConfigAlarmsDescription',
-    path: '/dashboard/configuration/alarms',
-    icon: 'notifications',
-    requiredModuleId: 'alarms',
-  },
-  {
     id: 'pnl-terms',
     labelKey: 'workspaceConfigPnlTermsTitle',
     descriptionKey: 'workspaceConfigPnlTermsDescription',
@@ -44,12 +36,7 @@ export function visibleWorkspaceConfigSubmodules(
   enabledModuleIds: readonly string[],
 ): WorkspaceConfigSubmodule[] {
   const enabled = new Set(enabledModuleIds)
-  const workspaceEnabled = enabled.has('workspace-config')
-  return WORKSPACE_CONFIG_SUBMODULES.filter((submodule) => {
-    if (!enabled.has(submodule.requiredModuleId)) return false
-    if (submodule.id === 'alarms') return true
-    return workspaceEnabled
-  })
+  return WORKSPACE_CONFIG_SUBMODULES.filter((submodule) => enabled.has(submodule.requiredModuleId))
 }
 
 export function shouldShowWorkspaceConfigNav(enabledModuleIds: readonly string[]): boolean {
@@ -59,5 +46,5 @@ export function shouldShowWorkspaceConfigNav(enabledModuleIds: readonly string[]
 export function isWorkspaceConfigSubmoduleId(
   value: string,
 ): value is WorkspaceConfigSubmoduleId {
-  return value === 'general' || value === 'alarms' || value === 'pnl-terms'
+  return value === 'general' || value === 'pnl-terms'
 }

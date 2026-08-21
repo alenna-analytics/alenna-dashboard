@@ -50,6 +50,15 @@ export function useWorkspaceConfigModuleEnabled(): boolean {
   return enabledSet.has('workspace-config')
 }
 
+export function useAlarmsModuleEnabled(): boolean {
+  const { me } = useWorkspace()
+  const enabledSet = useMemo(
+    () => new Set(parseModuleIds(me?.modules ?? [])),
+    [me?.modules],
+  )
+  return enabledSet.has('alarms')
+}
+
 export function useWorkspaceConfigNavEnabled(): boolean {
   const { me } = useWorkspace()
   const moduleIds = useMemo(

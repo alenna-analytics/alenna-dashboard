@@ -2,6 +2,7 @@ const SHELL_STRINGS = {
   es: {
     navMain: 'Navegación',
     navSectionAnalytics: 'Analítica',
+    navSectionWorkspace: 'Espacio de trabajo',
     navSectionConfiguration: 'Ajustes',
     navDashboard: 'Panel',
     navReports: 'Reportes',
@@ -1941,6 +1942,7 @@ const SHELL_STRINGS = {
   en: {
     navMain: 'Navigation',
     navSectionAnalytics: 'Analytics',
+    navSectionWorkspace: 'Workspace',
     navSectionConfiguration: 'Settings',
     navDashboard: 'Dashboard',
     navReports: 'Reports',

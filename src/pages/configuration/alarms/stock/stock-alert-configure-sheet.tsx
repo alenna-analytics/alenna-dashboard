@@ -26,6 +26,52 @@ import {
 } from '@/ui/sheet'
 import { Switch } from '@/ui/switch'
 
+const FORM_GRID =
+  'grid gap-2 sm:grid-cols-[9rem_minmax(0,1fr)] sm:items-start sm:gap-x-8'
+
+type AlertToggleRowProps = {
+  id?: string
+  label: string
+  description?: string
+  checked: boolean
+  disabled: boolean
+  onCheckedChange: (checked: boolean) => void
+}
+
+function AlertToggleRow({
+  id,
+  label,
+  description,
+  checked,
+  disabled,
+  onCheckedChange,
+}: AlertToggleRowProps) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-3">
+      <div className="min-w-0">
+        {id ? (
+          <Label htmlFor={id} className="text-sm font-medium text-text-primary">
+            {label}
+          </Label>
+        ) : (
+          <p className="text-sm text-text-primary">{label}</p>
+        )}
+        {description ? (
+          <p className="mt-0.5 text-xs text-text-tertiary">{description}</p>
+        ) : null}
+      </div>
+      <Switch
+        id={id}
+        className="mt-0.5"
+        checked={checked}
+        disabled={disabled}
+        onCheckedChange={onCheckedChange}
+        aria-label={label}
+      />
+    </div>
+  )
+}
+
 type StockAlertConfigureSheetProps = {
   lang: string
   kind: StockAlertConfigureKind | null
@@ -132,32 +178,27 @@ function ConfigureSheetForm({
       </SheetHeader>
 
       <SheetBody className="space-y-6">
-        <section className="space-y-3">
-          <div>
-            <h3 className="text-sm font-semibold text-text-primary">
-              {shellT(lang, 'alarmsConfigureGlobalTitle')}
-            </h3>
-            <p className="mt-0.5 text-sm text-text-secondary">
-              {shellT(lang, 'alarmsConfigureGlobalHelp')}
-            </p>
-          </div>
+        <div className={FORM_GRID}>
+          <p className="text-sm font-medium sm:pt-3">
+            {shellT(lang, 'alarmsConfigureGlobalTitle')}
+          </p>
+          <AlertToggleRow
+            id="stock-alert-global"
+            label={shellT(lang, globalLabelKey)}
+            description={shellT(lang, 'alarmsConfigureGlobalHelp')}
+            checked={globalEnabled}
+            disabled={saving || !rule}
+            onCheckedChange={handleGlobalChange}
+          />
+        </div>
 
-          <div className="flex items-center justify-between gap-4 rounded-md border border-border-default px-4 py-3">
-            <Label htmlFor="stock-alert-global" className="text-sm font-medium">
-              {shellT(lang, globalLabelKey)}
+        {kind === 'low_stock' ? (
+          <div className={FORM_GRID}>
+            <Label htmlFor="stock-alert-global-threshold" className="items-start leading-snug sm:pt-2">
+              {shellT(lang, 'alarmsThresholdLabel')}
             </Label>
-            <Switch
-              id="stock-alert-global"
-              checked={globalEnabled}
-              onCheckedChange={handleGlobalChange}
-              disabled={saving || !rule}
-            />
-          </div>
-
-          {kind === 'low_stock' ? (
-            <div className="space-y-2">
-              <Label htmlFor="stock-alert-global-threshold">{shellT(lang, 'alarmsThresholdLabel')}</Label>
-              <div className="flex max-w-xs items-center gap-2">
+            <div>
+              <div className="flex max-w-[10rem] items-center gap-2">
                 <Input
                   id="stock-alert-global-threshold"
                   type="number"
@@ -169,44 +210,40 @@ function ConfigureSheetForm({
                 />
                 <span className="text-sm text-text-secondary">%</span>
               </div>
-              <p className="text-sm text-text-secondary">{shellT(lang, 'alarmsThresholdHelp')}</p>
+              <p className="mt-1.5 text-xs text-text-tertiary">
+                {shellT(lang, 'alarmsThresholdHelp')}
+              </p>
             </div>
-          ) : null}
-        </section>
+          </div>
+        ) : null}
 
-        <section className="space-y-3">
-          <div>
-            <h3 className="text-sm font-semibold text-text-primary">
+        <div className={FORM_GRID}>
+          <div className="sm:pt-3">
+            <p className="text-sm font-medium">
               {shellT(lang, 'alarmsConfigureChannelsTitle')}
-            </h3>
-            <p className="mt-0.5 text-sm text-text-secondary">
+            </p>
+            <p className="mt-0.5 text-xs text-text-tertiary">
               {shellT(lang, 'alarmsConfigureChannelsHelp')}
             </p>
           </div>
-
           {connections.length === 0 ? (
-            <p className="text-sm text-text-secondary">{shellT(lang, 'alarmsChannelPlaceholder')}</p>
+            <p className="text-sm text-text-secondary sm:pt-3">
+              {shellT(lang, 'alarmsChannelPlaceholder')}
+            </p>
           ) : (
-            <ul className="space-y-2">
+            <div className="divide-y divide-border-subtle">
               {connections.map((connection) => (
-                <li
+                <AlertToggleRow
                   key={connection.id}
-                  className="flex items-center justify-between gap-4 rounded-md border border-border-default px-4 py-3"
-                >
-                  <span className="text-sm font-medium text-text-primary">
-                    {connectionLabel(lang, connection)}
-                  </span>
-                  <Switch
-                    checked={globalEnabled ? (channelStates[connection.id] ?? false) : false}
-                    onCheckedChange={(next) => handleChannelToggle(connection.id, next)}
-                    disabled={saving || !globalEnabled}
-                    aria-label={connectionLabel(lang, connection)}
-                  />
-                </li>
+                  label={connectionLabel(lang, connection)}
+                  checked={globalEnabled ? (channelStates[connection.id] ?? false) : false}
+                  disabled={saving || !globalEnabled}
+                  onCheckedChange={(next) => handleChannelToggle(connection.id, next)}
+                />
               ))}
-            </ul>
+            </div>
           )}
-        </section>
+        </div>
       </SheetBody>
 
       <SheetFooter>

@@ -58,7 +58,7 @@ export function ConfigurationInternalSidebar() {
           <InternalNavItem
             key={submodule.id}
             to={submodule.path}
-            end={submodule.id !== 'alarms'}
+            end
             label={t(submodule.labelKey)}
           />
         ))}

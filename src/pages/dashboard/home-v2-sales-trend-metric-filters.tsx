@@ -87,6 +87,7 @@ function isTrendMetricId(value: string): value is HomeV2TrendMetricId {
     value === 'contribution' ||
     value === 'ebitda' ||
     value === 'units' ||
-    value === 'orders'
+    value === 'orders' ||
+    value === 'roas'
   )
 }

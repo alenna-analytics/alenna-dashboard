@@ -7,6 +7,7 @@ import { enUS, es as esLocale } from 'date-fns/locale'
 import { useCurrentTenant } from '@/auth/hooks'
 import { useMoney } from '@/hooks/use-money'
 import { apiFetch } from '@/lib/api'
+import { filterEcommerceConnections } from '@/lib/integrations/ads-scope'
 import { usePnlAwareT } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
@@ -102,25 +103,29 @@ export function SalesPage() {
   })
 
   const connections = useMemo(() => connectionsQuery.data ?? [], [connectionsQuery.data])
+  const ecommerceConnections = useMemo(
+    () => filterEcommerceConnections(connections),
+    [connections],
+  )
   const connectorsLoading = Boolean(tenantId) && connectionsQuery.isLoading
   const hasNoIntegrations =
     !connectorsLoading && connectionsQuery.isSuccess && connections.length === 0
 
   const activeConnectionIds = useMemo(() => {
-    if (connections.length === 0) return [] as string[]
-    if (connectionIds.length === 0) return connections.map((c) => c.id)
-    const valid = new Set(connections.map((c) => c.id))
+    if (ecommerceConnections.length === 0) return [] as string[]
+    if (connectionIds.length === 0) return ecommerceConnections.map((c) => c.id)
+    const valid = new Set(ecommerceConnections.map((c) => c.id))
     const filtered = connectionIds.filter((id) => valid.has(id))
-    return filtered.length > 0 ? filtered : connections.map((c) => c.id)
-  }, [connections, connectionIds])
+    return filtered.length > 0 ? filtered : ecommerceConnections.map((c) => c.id)
+  }, [ecommerceConnections, connectionIds])
 
   const channelOptions = useMemo(
     () =>
-      connections.map((c) => ({
+      ecommerceConnections.map((c) => ({
         value: c.id,
         label: platformDisplayName(c.platform),
       })),
-    [connections],
+    [ecommerceConnections],
   )
 
   const queriesEnabled = activeConnectionIds.length > 0

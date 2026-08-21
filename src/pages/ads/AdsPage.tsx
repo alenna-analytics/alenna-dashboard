@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 import { useCurrentTenant } from '@/auth/hooks'
 import { useMoney } from '@/hooks/use-money'
 import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
-import { resolveAdsApiScope } from '@/lib/integrations/ads-scope'
+import { filterActiveAdsConnections, resolveAdsPageScope } from '@/lib/integrations/ads-scope'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { can } from '@/lib/permissions/can'
 import { cn } from '@/lib/utils'
@@ -23,20 +23,24 @@ import { buttonVariants } from '@/ui/button'
 import { ContextAlertCard, ContextAlertsGroup, type ContextAlertTone } from '@/ui/context-alert'
 import { presetDateRangeYmd } from '@/ui/date-range-picker'
 import { EmptyState } from '@/ui/empty-state'
-import { FilterDates } from '@/ui/filters/filter-dates'
+import { FilterComboboxMulti, FilterDates } from '@/ui/filters'
 import { KpiCard } from '@/ui/kpi-card'
 import { Skeleton } from '@/ui/skeleton'
 
 type AdsFiltersState = {
   start: string
   end: string
+  connectionIds: string[]
 }
 
 function parseAdsFilters(raw: unknown): AdsFiltersState | null {
   if (!raw || typeof raw !== 'object') return null
   const o = raw as Record<string, unknown>
   if (typeof o.start !== 'string' || typeof o.end !== 'string') return null
-  return { start: o.start, end: o.end }
+  const connectionIds = Array.isArray(o.connectionIds)
+    ? o.connectionIds.filter((id): id is string => typeof id === 'string')
+    : []
+  return { start: o.start, end: o.end, connectionIds }
 }
 
 function formatRatio(value: number | null): string {
@@ -98,7 +102,7 @@ export function AdsPage() {
   const [filters, setFilters] = useTenantPersistedJson<AdsFiltersState>(
     tenantId,
     'ads-filters',
-    { start: defaultRange.start, end: defaultRange.end },
+    { start: defaultRange.start, end: defaultRange.end, connectionIds: [] },
     parseAdsFilters,
   )
   const pickerStrings = {
@@ -114,9 +118,24 @@ export function AdsPage() {
     presetPreviousYear: shellT(lang, 'datePickerPreviousYear'),
   }
 
-  const adsScope = useMemo(() => resolveAdsApiScope(connections), [connections])
+  const adsConnections = useMemo(
+    () => filterActiveAdsConnections(connections),
+    [connections],
+  )
+  const channelOptions = useMemo(
+    () =>
+      adsConnections.map((c) => ({
+        value: c.id,
+        label: adsPlatformLabel(c.platform, lang),
+      })),
+    [adsConnections, lang],
+  )
+  const adsScope = useMemo(
+    () => resolveAdsPageScope(connections, filters.connectionIds),
+    [connections, filters.connectionIds],
+  )
   const canView = can(me, 'ads.view')
-  const queryEnabled = adsScope.hasAdsConnections && canView
+  const queryEnabled = adsScope.adsConnectionIds.length > 0 && canView
 
   const kpis = useAdsKpis({
     connectionIds: adsScope.queryConnectionIds,
@@ -187,6 +206,17 @@ export function AdsPage() {
               endValue={filters.end}
               onStartChange={(v) => v && setFilters({ start: v })}
               onEndChange={(v) => v && setFilters({ end: v })}
+            />
+            <FilterComboboxMulti
+              label={shellT(lang, 'homeFilterChannels')}
+              options={channelOptions}
+              values={filters.connectionIds}
+              onValuesChange={(next) => setFilters({ connectionIds: next })}
+              searchPlaceholder={shellT(lang, 'homeFilterChannelsSearch')}
+              emptyLabel={shellT(lang, 'homeFilterChannelsEmpty')}
+              clearAriaLabel={shellT(lang, 'filterClear')}
+              selectAllLabel={shellT(lang, 'homeFilterSelectAll')}
+              deselectAllLabel={shellT(lang, 'homeFilterDeselectAll')}
             />
           </div>
         ) : null}

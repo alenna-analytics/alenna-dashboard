@@ -5,11 +5,12 @@ import {
   connectionDisplaySubtitle,
   resolveConnectionLastSuccessfulSyncLine,
 } from '@/lib/integrations/connection-last-sync-display'
+import { isAdsPlatform } from '@/lib/integrations/ads-scope'
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 import { formatRelativeAgeLabel } from '@/lib/integrations/sync-freshness-pill-label'
 import {
   deriveConnectionSyncFreshness,
-  filterActiveSyncableConnections,
+  filterActiveHeaderConnections,
 } from '@/lib/integrations/sync-freshness'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import { shellT } from '@/lib/i18n/shell-strings'
@@ -49,7 +50,9 @@ function ConnectionLastSyncPill({
   }
 
   const freshness = deriveConnectionSyncFreshness(conn)
-  const variant = freshness === 'outdated' ? 'warning' : 'success'
+  let variant: 'success' | 'info' | 'warning' = 'success'
+  if (freshness === 'syncing') variant = 'info'
+  else if (freshness === 'outdated') variant = 'warning'
 
   return (
     <StatusPill variant={variant}>
@@ -97,6 +100,37 @@ function ConnectionHoverRow({
   )
 }
 
+function ConnectionGroup({
+  label,
+  connections,
+  lang,
+  showLabel,
+}: {
+  label: string
+  connections: PlatformConnection[]
+  lang: string
+  showLabel: boolean
+}) {
+  if (connections.length === 0) return null
+
+  return (
+    <li className="list-none">
+      {showLabel ? (
+        <p className="px-2 pb-1 pt-1.5 text-[0.625rem] font-semibold uppercase tracking-wide text-text-secondary">
+          {label}
+        </p>
+      ) : null}
+      <ul className="flex flex-col gap-0.5">
+        {connections.map((conn) => (
+          <li key={conn.id}>
+            <ConnectionHoverRow conn={conn} lang={lang} />
+          </li>
+        ))}
+      </ul>
+    </li>
+  )
+}
+
 export function HeaderConnectionsMenu({ className }: { className?: string }) {
   const { lang } = useLanguage()
   const { data: connections, isLoading } = usePlatformConnectionsQuery()
@@ -104,9 +138,32 @@ export function HeaderConnectionsMenu({ className }: { className?: string }) {
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const activeConnections = useMemo(
-    () => filterActiveSyncableConnections(connections ?? []),
+    () => filterActiveHeaderConnections(connections ?? []),
     [connections],
   )
+
+  const { ecommerceConnections, adsConnections } = useMemo(() => {
+    const locale = lang === 'en' ? 'en' : 'es'
+    const byName = (a: PlatformConnection, b: PlatformConnection) => {
+      const nameOf = (conn: PlatformConnection) => {
+        const ui = INTEGRATION_UI[conn.platform]
+        return ui?.nameKey ? shellT(lang, ui.nameKey) : conn.platform
+      }
+      return nameOf(a).localeCompare(nameOf(b), locale, { sensitivity: 'base' })
+    }
+
+    const ecommerce: PlatformConnection[] = []
+    const ads: PlatformConnection[] = []
+    for (const conn of activeConnections) {
+      if (isAdsPlatform(conn.platform)) ads.push(conn)
+      else ecommerce.push(conn)
+    }
+    ecommerce.sort(byName)
+    ads.sort(byName)
+    return { ecommerceConnections: ecommerce, adsConnections: ads }
+  }, [activeConnections, lang])
+
+  const showGroupLabels = ecommerceConnections.length > 0 && adsConnections.length > 0
 
   const clearCloseTimer = useCallback(() => {
     if (closeTimerRef.current !== null) {
@@ -166,12 +223,19 @@ export function HeaderConnectionsMenu({ className }: { className?: string }) {
               {shellT(lang, 'headerConnectionsEmpty')}
             </p>
           ) : (
-            <ul className="flex flex-col gap-0.5">
-              {activeConnections.map((conn) => (
-                <li key={conn.id}>
-                  <ConnectionHoverRow conn={conn} lang={lang} />
-                </li>
-              ))}
+            <ul className="flex flex-col gap-1">
+              <ConnectionGroup
+                label={shellT(lang, 'integrationsNavEcommerce')}
+                connections={ecommerceConnections}
+                lang={lang}
+                showLabel={showGroupLabels}
+              />
+              <ConnectionGroup
+                label={shellT(lang, 'navAds')}
+                connections={adsConnections}
+                lang={lang}
+                showLabel={showGroupLabels}
+              />
             </ul>
           )}
         </div>

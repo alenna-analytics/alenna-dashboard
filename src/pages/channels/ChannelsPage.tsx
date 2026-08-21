@@ -9,6 +9,7 @@ import { enUS, es as esLocale } from 'date-fns/locale'
 import { useCurrentTenant } from '@/auth/hooks'
 import { useMoney } from '@/hooks/use-money'
 import { apiFetch } from '@/lib/api'
+import { filterEcommerceConnections } from '@/lib/integrations/ads-scope'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChannelsCmChart } from '@/pages/channels/channels-cm-chart'
@@ -89,7 +90,7 @@ export function ChannelsPage() {
 
   const connections = useMemo(
     () =>
-      (connectionsQuery.data ?? []).filter(
+      filterEcommerceConnections(connectionsQuery.data ?? []).filter(
         (connection) =>
           connection.status === 'active' &&
           connection.connection_status === 'active',

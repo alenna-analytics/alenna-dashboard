@@ -10,6 +10,7 @@ import { useCurrentTenant } from '@/auth/hooks'
 import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
 import { useMoney } from '@/hooks/use-money'
 import { apiFetch } from '@/lib/api'
+import { filterEcommerceConnections } from '@/lib/integrations/ads-scope'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { KpiResponse, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
@@ -184,32 +185,36 @@ export function ReportsPage() {
   })
 
   const connections = useMemo(() => connectionsQuery.data ?? [], [connectionsQuery.data])
+  const ecommerceConnections = useMemo(
+    () => filterEcommerceConnections(connections),
+    [connections],
+  )
   const activeConnections = useMemo(
     () =>
-      connections.filter(
+      ecommerceConnections.filter(
         (c) => c.status === 'active' && c.connection_status === 'active',
       ),
-    [connections],
+    [ecommerceConnections],
   )
   const connectorsLoading = Boolean(tenantId) && connectionsQuery.isLoading
   const hasNoIntegrations =
     !connectorsLoading && connectionsQuery.isSuccess && connections.length === 0
 
   const activeConnectionIds = useMemo(() => {
-    if (connections.length === 0) return [] as string[]
-    if (connectionIds.length === 0) return connections.map((c) => c.id)
-    const valid = new Set(connections.map((c) => c.id))
+    if (ecommerceConnections.length === 0) return [] as string[]
+    if (connectionIds.length === 0) return ecommerceConnections.map((c) => c.id)
+    const valid = new Set(ecommerceConnections.map((c) => c.id))
     const filtered = connectionIds.filter((id) => valid.has(id))
-    return filtered.length > 0 ? filtered : connections.map((c) => c.id)
-  }, [connections, connectionIds])
+    return filtered.length > 0 ? filtered : ecommerceConnections.map((c) => c.id)
+  }, [ecommerceConnections, connectionIds])
 
   const channelOptions = useMemo(
     () =>
-      connections.map((c) => ({
+      ecommerceConnections.map((c) => ({
         value: c.id,
         label: platformDisplayName(c.platform),
       })),
-    [connections],
+    [ecommerceConnections],
   )
 
   const queriesEnabled = activeConnectionIds.length > 0

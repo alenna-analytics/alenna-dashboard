@@ -49,6 +49,49 @@ describe('deriveConnectionSyncFreshness', () => {
     })
     expect(deriveConnectionSyncFreshness(conn)).toBe('syncing')
   })
+
+  it('returns syncing for active ads with current_job_id', () => {
+    const conn = baseConnection({
+      platform: 'google_ads',
+      orders_watermark_at: null,
+      last_synced_at: '2026-01-01T12:00:00.000Z',
+      sync_plan: {
+        ...baseConnection().sync_plan!,
+        last_sync_status: 'synced',
+        current_job_id: 'job-ads',
+      },
+    })
+    expect(deriveConnectionSyncFreshness(conn)).toBe('syncing')
+  })
+
+  it('returns outdated for ads without last_synced_at', () => {
+    const conn = baseConnection({
+      platform: 'google_ads',
+      orders_watermark_at: null,
+      last_synced_at: null,
+      sync_plan: {
+        ...baseConnection().sync_plan!,
+        last_sync_status: 'not_synced',
+        current_job_id: null,
+      },
+    })
+    expect(deriveConnectionSyncFreshness(conn)).toBe('outdated')
+  })
+
+  it('returns up_to_date for recently synced ads without orders_watermark', () => {
+    const nowMs = Date.parse('2026-01-01T12:05:00.000Z')
+    const conn = baseConnection({
+      platform: 'amazon_ads',
+      orders_watermark_at: null,
+      last_synced_at: '2026-01-01T12:00:00.000Z',
+      sync_plan: {
+        ...baseConnection().sync_plan!,
+        last_sync_status: 'synced',
+        current_job_id: null,
+      },
+    })
+    expect(deriveConnectionSyncFreshness(conn, { nowMs })).toBe('up_to_date')
+  })
 })
 
 describe('connectorsQueryRefetchIntervalMs', () => {

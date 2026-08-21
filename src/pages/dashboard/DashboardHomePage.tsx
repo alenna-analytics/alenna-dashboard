@@ -6,6 +6,7 @@ import { enUS, es as esLocale } from 'date-fns/locale'
 import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
 import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch } from '@/lib/api'
+import { filterEcommerceConnections } from '@/lib/integrations/ads-scope'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
@@ -310,6 +311,10 @@ export function DashboardHomePage() {
   })
 
   const connections = useMemo(() => connectionsQuery.data ?? [], [connectionsQuery.data])
+  const ecommerceConnections = useMemo(
+    () => filterEcommerceConnections(connections),
+    [connections],
+  )
   const connectorsLoading = Boolean(tenantId) && connectionsQuery.isLoading
   const hasNoIntegrations =
     !connectorsLoading && connectionsQuery.isSuccess && connections.length === 0
@@ -318,20 +323,20 @@ export function DashboardHomePage() {
   // the legacy single-connection behaviour without forcing the user to
   // open the picker on first visit.
   const activeConnectionIds = useMemo(() => {
-    if (connections.length === 0) return [] as string[]
-    if (connectionIds.length === 0) return connections.map((c) => c.id)
-    const valid = new Set(connections.map((c) => c.id))
+    if (ecommerceConnections.length === 0) return [] as string[]
+    if (connectionIds.length === 0) return ecommerceConnections.map((c) => c.id)
+    const valid = new Set(ecommerceConnections.map((c) => c.id))
     const filtered = connectionIds.filter((id) => valid.has(id))
-    return filtered.length > 0 ? filtered : connections.map((c) => c.id)
-  }, [connections, connectionIds])
+    return filtered.length > 0 ? filtered : ecommerceConnections.map((c) => c.id)
+  }, [ecommerceConnections, connectionIds])
 
   const channelOptions = useMemo(
     () =>
-      connections.map((c) => ({
+      ecommerceConnections.map((c) => ({
         value: c.id,
         label: platformDisplayName(c.platform),
       })),
-    [connections],
+    [ecommerceConnections],
   )
 
   const prevPeriod = useMemo(() => computePreviousPeriod(startDate, endDate), [startDate, endDate])

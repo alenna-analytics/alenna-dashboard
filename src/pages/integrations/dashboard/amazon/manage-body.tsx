@@ -187,7 +187,7 @@ function AmazonSyncSection({
         actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
         actionLoading={syncMutation.isPending}
         badge={<CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />}
-        footer={shellT(lang, 'platformSyncBlockedHint')}
+        footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
         className="w-full"
       />
     )

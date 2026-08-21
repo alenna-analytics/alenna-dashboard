@@ -4,9 +4,10 @@ import type { Locale } from 'date-fns'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ChannelTimeSeriesRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import {
+  Bar,
   CartesianGrid,
+  ComposedChart,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -17,6 +18,7 @@ import type { ChannelPlatform } from '@/pages/channels/channels-platform-aggrega
 import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
 import { cn } from '@/lib/utils'
 import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 
 const PLATFORM_COLORS = [
   'var(--chart-1)',
@@ -49,6 +51,7 @@ type ChannelsCmChartProps = {
   platforms: ChannelPlatform[]
   t: (key: ShellStringKey) => string
   cmIncomplete?: boolean
+  chartType?: SeriesChartView
 }
 
 type ChartRow = {
@@ -124,6 +127,7 @@ export function ChannelsCmChart({
   platforms,
   t,
   cmIncomplete = false,
+  chartType = 'line',
 }: ChannelsCmChartProps) {
   const [hiddenKeys, setHiddenKeys] = useState<Record<string, boolean>>({})
 
@@ -164,7 +168,12 @@ export function ChannelsCmChart({
     <div className={cn('flex h-80 w-full min-w-0 flex-col', cmIncomplete && 'opacity-80')}>
       <div className="min-h-0 min-w-0 flex-1 [&_.recharts-cartesian-axis-tick-value]:text-[12px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+          <ComposedChart
+            data={data}
+            margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+            barCategoryGap="28%"
+            barGap={3}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default)" />
             <XAxis
               dataKey="label"
@@ -179,21 +188,44 @@ export function ChannelsCmChart({
               tickFormatter={(v: number) => fmtMoneyCompact(v, currency)}
               width={44}
             />
-            <Tooltip content={<CmTooltip formatValue={formatValue} hiddenKeys={hiddenKeys} />} />
-            {platforms.map((platform, index) => (
-              <Line
-                key={platform.slug}
-                type="monotone"
-                dataKey={platform.slug}
-                name={platform.label}
-                stroke={PLATFORM_COLORS[index % PLATFORM_COLORS.length]}
-                strokeWidth={2}
-                dot={false}
-                hide={Boolean(hiddenKeys[platform.slug])}
-                isAnimationActive={false}
-              />
-            ))}
-          </LineChart>
+            <Tooltip
+              cursor={
+                chartType === 'bar' ? { fill: 'var(--muted)', opacity: 0.45 } : undefined
+              }
+              content={<CmTooltip formatValue={formatValue} hiddenKeys={hiddenKeys} />}
+            />
+            {platforms.map((platform, index) => {
+              const color = PLATFORM_COLORS[index % PLATFORM_COLORS.length]
+              if (chartType === 'bar') {
+                return (
+                  <Bar
+                    key={platform.slug}
+                    dataKey={platform.slug}
+                    name={platform.label}
+                    fill={color}
+                    fillOpacity={0.82}
+                    radius={[8, 8, 8, 8]}
+                    maxBarSize={28}
+                    hide={Boolean(hiddenKeys[platform.slug])}
+                    isAnimationActive={false}
+                  />
+                )
+              }
+              return (
+                <Line
+                  key={platform.slug}
+                  type="monotone"
+                  dataKey={platform.slug}
+                  name={platform.label}
+                  stroke={color}
+                  strokeWidth={2}
+                  dot={false}
+                  hide={Boolean(hiddenKeys[platform.slug])}
+                  isAnimationActive={false}
+                />
+              )
+            })}
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
       <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
@@ -212,7 +244,11 @@ export function ChannelsCmChart({
                 hidden ? 'opacity-40' : 'opacity-100',
               )}
             >
-              <span className="inline-block h-0.5 w-4 rounded" style={{ background: color }} aria-hidden />
+              <span
+                className="inline-block size-2 shrink-0 rounded-full"
+                style={{ background: color }}
+                aria-hidden
+              />
               <span>{platform.label}</span>
             </button>
           )

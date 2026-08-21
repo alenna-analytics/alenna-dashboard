@@ -15,6 +15,8 @@ import { FilterDates } from '@/ui/filters/filter-dates'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { dateRangePickerStrings, presetDateRangeYmd } from '@/ui/date-range-picker'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
+import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { revenueTrendSubtitleForGranularity } from '@/pages/dashboard/revenue-trend-subtitle'
 import { cn } from '@/lib/utils'
 import { formatCompactNumber } from '@/lib/format/compact-number'
@@ -46,7 +48,7 @@ import { HomeNoIntegrationsState } from './home-no-integrations-state'
 import { invalidateAlertsQueries, useAlertsSummaryQuery } from './use-alerts-queries'
 import { useAlertsSheet } from '@/shell/alerts/alerts-sheet-context'
 import type { ReactNode } from 'react'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
 import {
   computePreviousPeriod,
   computeShiftedPreviousPeriod,
@@ -347,6 +349,12 @@ export function DashboardHomePage() {
     useState<RevenueSeriesGranularity>('month')
   const [profitMarginGranularity, setProfitMarginGranularity] =
     useState<RevenueSeriesGranularity>('month')
+  const [revenueTrendChartType, setRevenueTrendChartType] =
+    useState<SeriesChartView>('line')
+  const [channelSalesChartType, setChannelSalesChartType] =
+    useState<SeriesChartView>('line')
+  const [profitMarginChartType, setProfitMarginChartType] =
+    useState<SeriesChartView>('bar')
 
   const revenuePrevPeriod = useMemo(() => {
     if (revenueTrendGranularity === 'month') return computePreviousPeriod(startDate, endDate)
@@ -879,7 +887,7 @@ export function DashboardHomePage() {
                 <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
                   <HomeChannelShareSection
                     title={t('homeChannelDonutTitle')}
-                    description={t('homeChannelDonutSubtitle')}
+                    info={t('homeChannelDonutSubtitle')}
                     rows={channelBreakdown?.items ?? []}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}
@@ -893,9 +901,9 @@ export function DashboardHomePage() {
               {showTopProducts ? (
                 <div className="flex min-h-0 min-w-0 lg:h-full">
                   <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
-                    <SectionHeader
+                    <ChartSectionHeader
                       title={t('homeTopProductsTitle')}
-                      description={t('homeTopProductsSubtitle').replace(
+                      info={t('homeTopProductsSubtitle').replace(
                         '{count}',
                         String(topProducts?.items.length ?? 10),
                       )}
@@ -922,15 +930,22 @@ export function DashboardHomePage() {
           >
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <SectionContainer framed className="overflow-visible">
-                <SectionHeader
+                <ChartSectionHeader
                   title={t('dashboardRevenueTrendTitle')}
-                  description={revenueTrendSubtitle}
+                  info={revenueTrendSubtitle}
                   aside={
-                    <ChartGranularityFilter
-                      value={revenueTrendGranularity}
-                      onChange={setRevenueTrendGranularity}
-                      t={t}
-                    />
+                    <>
+                      <ChartGranularityFilter
+                        value={revenueTrendGranularity}
+                        onChange={setRevenueTrendGranularity}
+                        t={t}
+                      />
+                      <AppSeriesChartViewToggle
+                        value={revenueTrendChartType}
+                        onChange={setRevenueTrendChartType}
+                        t={t}
+                      />
+                    </>
                   }
                 />
                 {monthlyRevenueError ? (
@@ -952,19 +967,27 @@ export function DashboardHomePage() {
                     convertValue={convertFromBase}
                     dateLocale={dateLocale}
                     t={t}
+                    chartType={revenueTrendChartType}
                   />
                 )}
               </SectionContainer>
               <SectionContainer framed className="overflow-visible">
-                <SectionHeader
+                <ChartSectionHeader
                   title={t('dashboardChannelSalesTitle')}
-                  description={t('dashboardChannelSalesSubtitle')}
+                  info={t('dashboardChannelSalesSubtitle')}
                   aside={
-                    <ChartGranularityFilter
-                      value={channelSalesGranularity}
-                      onChange={setChannelSalesGranularity}
-                      t={t}
-                    />
+                    <>
+                      <ChartGranularityFilter
+                        value={channelSalesGranularity}
+                        onChange={setChannelSalesGranularity}
+                        t={t}
+                      />
+                      <AppSeriesChartViewToggle
+                        value={channelSalesChartType}
+                        onChange={setChannelSalesChartType}
+                        t={t}
+                      />
+                    </>
                   }
                 />
                 {channelSalesTimeSeriesError ? (
@@ -982,13 +1005,28 @@ export function DashboardHomePage() {
                     formatValue={formatInDisplay}
                     dateLocale={dateLocale}
                     t={t}
+                    chartType={channelSalesChartType}
                   />
                 )}
               </SectionContainer>
               <SectionContainer framed className="overflow-visible">
-                <SectionHeader
+                <ChartSectionHeader
                   title={t('dashboardProfitMarginTitle')}
-                  description={t('dashboardProfitMarginSubtitle')}
+                  info={t('dashboardProfitMarginSubtitle')}
+                  aside={
+                    <>
+                      <ChartGranularityFilter
+                        value={profitMarginGranularity}
+                        onChange={setProfitMarginGranularity}
+                        t={t}
+                      />
+                      <AppSeriesChartViewToggle
+                        value={profitMarginChartType}
+                        onChange={setProfitMarginChartType}
+                        t={t}
+                      />
+                    </>
+                  }
                 />
                 {profitMarginTimeSeriesError ? (
                   <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
@@ -1005,21 +1043,15 @@ export function DashboardHomePage() {
                     formatValue={formatInDisplay}
                     dateLocale={dateLocale}
                     t={t}
-                    granularityFilter={
-                      <ChartGranularityFilter
-                        value={profitMarginGranularity}
-                        onChange={setProfitMarginGranularity}
-                        t={t}
-                      />
-                    }
+                    chartType={profitMarginChartType}
                   />
                 )}
               </SectionContainer>
               {!productMode && displayKpi ? (
                 <SectionContainer framed className="overflow-visible">
-                  <SectionHeader
+                  <ChartSectionHeader
                     title={t('reportsSectionRevenueBreakdown')}
-                    description={t('reportsWaterfallSubtitle')}
+                    info={t('reportsWaterfallSubtitle')}
                   />
                   <WaterfallChart
                     segments={waterfallSegments}
@@ -1034,9 +1066,9 @@ export function DashboardHomePage() {
               ) : null}
               {settlementWaterfallSegments.length > 0 ? (
                 <SectionContainer framed className="overflow-visible">
-                  <SectionHeader
+                  <ChartSectionHeader
                     title={t('reportsSectionSettlementTitle')}
-                    description={t('reportsSectionSettlementSubtitle')}
+                    info={t('reportsSectionSettlementSubtitle')}
                   />
                   <WaterfallChart
                     segments={settlementWaterfallSegments}

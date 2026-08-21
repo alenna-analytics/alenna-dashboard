@@ -11,9 +11,10 @@ import type { Locale } from 'date-fns'
 import type { ChannelTimeSeriesRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
+  Bar,
   CartesianGrid,
+  ComposedChart,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -22,6 +23,7 @@ import {
 
 import { cn } from '@/lib/utils'
 import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { EmptyState } from '@/ui/empty-state'
 import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
 
@@ -116,6 +118,7 @@ export type DashboardChannelSalesChartProps = {
   formatValue: (value: number) => string
   dateLocale: Locale
   t: (key: ShellStringKey) => string
+  chartType?: SeriesChartView
 }
 
 type IndexedRow = {
@@ -136,6 +139,7 @@ export function DashboardChannelSalesChart({
   formatValue,
   dateLocale,
   t,
+  chartType = 'line',
 }: DashboardChannelSalesChartProps) {
   const channelsOrdered = useMemo(() => {
     const totals = new Map<
@@ -239,11 +243,37 @@ export function DashboardChannelSalesChart({
     return <EmptyState size="sm" icon="home" title={t('dashboardChannelSalesEmpty')} />
   }
 
-  const lines = channelsOrdered.flatMap((ch, i) => {
+  const series = channelsOrdered.flatMap((ch, i) => {
     const lbl = channelLabel(ch.platform)
     const stroke = PALETTE[i % PALETTE.length]
     const gKey = `g${i}`
     const nKey = `n${i}`
+    if (chartType === 'bar') {
+      return [
+        <Bar
+          key={`g-${ch.connection_id}`}
+          dataKey={gKey}
+          name={`${lbl} · ${t('reportsGrossRevenue')}`}
+          fill={stroke}
+          fillOpacity={0.82}
+          radius={[8, 8, 8, 8]}
+          maxBarSize={28}
+          opacity={hiddenKeys[gKey] ? 0.18 : 1}
+          {...mainAnimProps}
+        />,
+        <Bar
+          key={`n-${ch.connection_id}`}
+          dataKey={nKey}
+          name={`${lbl} · ${t('reportsNetRevenue')}`}
+          fill={stroke}
+          fillOpacity={0.5}
+          radius={[8, 8, 8, 8]}
+          maxBarSize={28}
+          opacity={hiddenKeys[nKey] ? 0.18 : 1}
+          {...mainAnimProps}
+        />,
+      ]
+    }
     return [
       <Line
         key={`g-${ch.connection_id}`}
@@ -280,10 +310,12 @@ export function DashboardChannelSalesChart({
       )}
     >
       <ResponsiveContainer width="100%" height={180}>
-        <LineChart
-          key={zoomResetKey}
+        <ComposedChart
+          key={`${zoomResetKey}-${chartType}`}
           data={visibleData}
           margin={{ top: 8, right: 8, left: 4, bottom: 4 }}
+          barCategoryGap="28%"
+          barGap={3}
         >
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
@@ -300,6 +332,9 @@ export function DashboardChannelSalesChart({
             tickLine={false}
           />
           <Tooltip
+            cursor={
+              chartType === 'bar' ? { fill: 'var(--muted)', opacity: 0.45 } : undefined
+            }
             content={<ChannelSalesTooltip formatValue={formatValue} />}
             wrapperStyle={{ outline: 'none' }}
             contentStyle={{
@@ -311,8 +346,8 @@ export function DashboardChannelSalesChart({
               boxShadow: 'none',
             }}
           />
-          {lines}
-        </LineChart>
+          {series}
+        </ComposedChart>
       </ResponsiveContainer>
 
       <DashboardZoomStrip
@@ -366,7 +401,7 @@ export function DashboardChannelSalesChart({
               )}
             >
               <span
-                className="inline-block h-0.5 w-4 shrink-0 rounded"
+                className="inline-block size-2 shrink-0 rounded-full"
                 style={{ background: stroke }}
                 aria-hidden
               />
@@ -382,8 +417,8 @@ export function DashboardChannelSalesChart({
               )}
             >
               <span
-                className="inline-block h-0.5 w-4 shrink-0 rounded border-t-2 border-dashed"
-                style={{ borderColor: stroke }}
+                className="inline-block size-2 shrink-0 rounded-full"
+                style={{ background: stroke }}
                 aria-hidden
               />
               <span className="truncate">{`${lbl} · ${t('reportsNetRevenue')}`}</span>

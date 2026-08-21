@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { AlertTriangle, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -15,7 +15,9 @@ import { AdsTrendChart } from '@/pages/ads/ads-trend-chart'
 import { useAdsChannels, useAdsKpis, useAdsSeries } from '@/pages/ads/use-ads-kpis'
 import { IntegrationsErrorState } from '@/pages/integrations/dashboard/integrations-error-state'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { AppSeriesChartViewToggle, AppShareChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
+import type { SeriesChartView, ShareChartView } from '@/ui/chart-view-toggle'
+import { SectionContainer, ChartSectionHeader, SectionHeader } from '@/pages/reports/report-ui'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
@@ -106,6 +108,9 @@ export function AdsPage() {
     parseAdsFilters,
   )
   const pickerStrings = dateRangePickerStrings((key) => shellT(lang, key))
+  const t = (key: Parameters<typeof shellT>[1]) => shellT(lang, key)
+  const [adsTrendChartType, setAdsTrendChartType] = useState<SeriesChartView>('line')
+  const [adsChannelChartType, setAdsChannelChartType] = useState<ShareChartView>('bar')
 
   const adsConnections = useMemo(
     () => filterActiveAdsConnections(connections),
@@ -301,21 +306,43 @@ export function AdsPage() {
 
           <div className="grid gap-8 lg:grid-cols-2">
             <SectionContainer framed>
-              <SectionHeader title={shellT(lang, 'adsChartTrendTitle')} />
+              <ChartSectionHeader
+                title={shellT(lang, 'adsChartTrendTitle')}
+                info={shellT(lang, 'adsChartTrendSubtitle')}
+                aside={
+                  <AppSeriesChartViewToggle
+                    value={adsTrendChartType}
+                    onChange={setAdsTrendChartType}
+                    t={t}
+                  />
+                }
+              />
               <AdsTrendChart
                 points={series.isError ? [] : (series.data?.points ?? [])}
                 lang={lang}
                 formatValue={formatDisplay}
                 isLoading={queryEnabled && series.isLoading}
+                chartType={adsTrendChartType}
               />
             </SectionContainer>
             <SectionContainer framed>
-              <SectionHeader title={shellT(lang, 'adsChartChannelTitle')} />
+              <ChartSectionHeader
+                title={shellT(lang, 'adsChartChannelTitle')}
+                info={shellT(lang, 'adsChartChannelSubtitle')}
+                aside={
+                  <AppShareChartViewToggle
+                    value={adsChannelChartType}
+                    onChange={setAdsChannelChartType}
+                    t={t}
+                  />
+                }
+              />
               <AdsChannelSpendChart
                 rows={channelItems}
                 lang={lang}
                 formatValue={formatDisplay}
                 isLoading={kpisChannelsLoading}
+                chartType={adsChannelChartType}
               />
             </SectionContainer>
           </div>

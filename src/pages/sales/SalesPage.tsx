@@ -12,10 +12,12 @@ import { usePnlAwareT } from '@/pages/configuration/pnl-terms/use-pnl-labels-que
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
+import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { HomeChannelShareSection } from '@/pages/dashboard/home-channel-donut-chart'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
 import { HomeProductFilter } from '@/pages/dashboard/home-product-filter'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
 import {
   computeCalendarMomPeriod,
   computeShiftedPreviousPeriod,
@@ -92,6 +94,7 @@ export function SalesPage() {
 
   const [yoyGranularity, setYoyGranularity] =
     useState<RevenueSeriesGranularity>('day')
+  const [yoyChartType, setYoyChartType] = useState<SeriesChartView>('line')
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -446,7 +449,7 @@ export function SalesPage() {
             <SectionContainer framed>
               <HomeChannelShareSection
                 title={t('salesChannelNetBarsTitle')}
-                description={t('salesChannelNetBarsSubtitle')}
+                info={t('salesChannelNetBarsSubtitle')}
                 rows={channelBreakdown?.items ?? []}
                 convertValue={convertFromBase}
                 formatValue={formatInDisplay}
@@ -457,15 +460,22 @@ export function SalesPage() {
             </SectionContainer>
 
             <SectionContainer framed>
-              <SectionHeader
+              <ChartSectionHeader
                 title={t('salesYoyChartTitle')}
-                description={t('salesYoyChartSubtitle')}
+                info={t('salesYoyChartSubtitle')}
                 aside={
-                  <ChartGranularityFilter
-                    value={yoyGranularity}
-                    onChange={setYoyGranularity}
-                    t={t}
-                  />
+                  <>
+                    <ChartGranularityFilter
+                      value={yoyGranularity}
+                      onChange={setYoyGranularity}
+                      t={t}
+                    />
+                    <AppSeriesChartViewToggle
+                      value={yoyChartType}
+                      onChange={setYoyChartType}
+                      t={t}
+                    />
+                  </>
                 }
               />
               {!yoyPeriod || yoySeriesCurrentError || yoySeriesPrevError ? (
@@ -489,6 +499,7 @@ export function SalesPage() {
                   convertValue={convertFromBase}
                   dateLocale={dateLocale}
                   t={t}
+                  chartType={yoyChartType}
                 />
               )}
             </SectionContainer>

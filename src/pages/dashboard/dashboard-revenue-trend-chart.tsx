@@ -11,8 +11,10 @@ import type { Locale } from 'date-fns'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
+  Bar,
   Brush,
   CartesianGrid,
+  ComposedChart,
   Line,
   LineChart,
   ReferenceArea,
@@ -24,6 +26,7 @@ import {
 
 import { cn } from '@/lib/utils'
 import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { mergeRevenueSeriesRows } from '@/pages/reports/monthly-revenue-chart'
 
 export type DashboardRevenueTrendChartProps = {
@@ -43,6 +46,7 @@ export type DashboardRevenueTrendChartProps = {
   convertValue: (value: number) => number
   dateLocale: Locale
   t: (key: ShellStringKey) => string
+  chartType?: SeriesChartView
 }
 
 type TrendRow = {
@@ -154,6 +158,7 @@ export function DashboardRevenueTrendChart({
   convertValue,
   dateLocale,
   t,
+  chartType = 'line',
 }: DashboardRevenueTrendChartProps) {
   const data = useMemo(() => {
     const rows = buildTrendRows(
@@ -243,10 +248,12 @@ export function DashboardRevenueTrendChart({
       )}
     >
       <ResponsiveContainer width="100%" height={180}>
-        <LineChart
-          key={zoomResetKey}
+        <ComposedChart
+          key={`${zoomResetKey}-${chartType}`}
           data={visibleData}
           margin={{ top: 8, right: 8, left: 4, bottom: 4 }}
+          barCategoryGap="28%"
+          barGap={3}
         >
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
@@ -263,6 +270,9 @@ export function DashboardRevenueTrendChart({
             tickLine={false}
           />
           <Tooltip
+            cursor={
+              chartType === 'bar' ? { fill: 'var(--muted)', opacity: 0.45 } : undefined
+            }
             content={<TrendTooltip formatValue={formatValue} comparePrevious={comparePrevious} t={t} />}
             wrapperStyle={{ outline: 'none' }}
             contentStyle={{
@@ -274,43 +284,72 @@ export function DashboardRevenueTrendChart({
               boxShadow: 'none',
             }}
           />
-          <Line
-            type="monotone"
-            dataKey="current"
-            name={t('dashboardRevenueSeriesCurrent')}
-            stroke="var(--chart-3)"
-            strokeWidth={2.5}
-            dot={chartLineDot('var(--chart-3)')}
-            activeDot={chartLineActiveDot('var(--chart-3)')}
-            opacity={hiddenKeys.current ? 0.18 : 1}
-            {...mainAnimProps}
-          />
-          {comparePrevious ? (
-            <Line
-              type="monotone"
-              dataKey="previous"
-              name={t('dashboardRevenueSeriesPrevious')}
-              stroke="var(--chart-line-secondary)"
-              strokeWidth={2}
-              strokeDasharray="6 4"
-              dot={false}
-              connectNulls={false}
-              opacity={hiddenKeys.previous ? 0.18 : 1}
-              {...mainAnimProps}
-            />
-          ) : null}
-        </LineChart>
+          {chartType === 'bar' ? (
+            <>
+              <Bar
+                dataKey="current"
+                name={t('dashboardRevenueSeriesCurrent')}
+                fill="var(--chart-3)"
+                fillOpacity={0.82}
+                radius={[8, 8, 8, 8]}
+                maxBarSize={28}
+                opacity={hiddenKeys.current ? 0.18 : 1}
+                {...mainAnimProps}
+              />
+              {comparePrevious ? (
+                <Bar
+                  dataKey="previous"
+                  name={t('dashboardRevenueSeriesPrevious')}
+                  fill="var(--chart-line-secondary)"
+                  fillOpacity={0.7}
+                  radius={[8, 8, 8, 8]}
+                  maxBarSize={28}
+                  opacity={hiddenKeys.previous ? 0.18 : 1}
+                  {...mainAnimProps}
+                />
+              ) : null}
+            </>
+          ) : (
+            <>
+              <Line
+                type="monotone"
+                dataKey="current"
+                name={t('dashboardRevenueSeriesCurrent')}
+                stroke="var(--chart-3)"
+                strokeWidth={2.5}
+                dot={chartLineDot('var(--chart-3)')}
+                activeDot={chartLineActiveDot('var(--chart-3)')}
+                opacity={hiddenKeys.current ? 0.18 : 1}
+                {...mainAnimProps}
+              />
+              {comparePrevious ? (
+                <Line
+                  type="monotone"
+                  dataKey="previous"
+                  name={t('dashboardRevenueSeriesPrevious')}
+                  stroke="var(--chart-line-secondary)"
+                  strokeWidth={2}
+                  strokeDasharray="6 4"
+                  dot={false}
+                  connectNulls={false}
+                  opacity={hiddenKeys.previous ? 0.18 : 1}
+                  {...mainAnimProps}
+                />
+              ) : null}
+            </>
+          )}
+        </ComposedChart>
       </ResponsiveContainer>
 
       {dataWithIndex.length > 0 ? (
         <div className="mt-2 rounded-md border border-border-subtle/70 bg-white px-1 py-1">
-          <div className="relative h-16 w-full">
+          <div className="relative h-8 w-full">
             <div className="absolute inset-0">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   key={`${zoomResetKey}-mini`}
                   data={dataWithIndex}
-                  margin={{ top: 4, right: 4, left: 4, bottom: 2 }}
+                  margin={{ top: 2, right: 4, left: 4, bottom: 2 }}
                 >
                   <XAxis dataKey="label" hide />
                   <YAxis hide domain={['auto', 'auto']} />
@@ -356,7 +395,7 @@ export function DashboardRevenueTrendChart({
                   <YAxis hide />
                   <Brush
                     dataKey="__idx"
-                    height={62}
+                    height={30}
                     travellerWidth={8}
                     stroke="var(--border-default)"
                     fill="transparent"
@@ -384,7 +423,7 @@ export function DashboardRevenueTrendChart({
             hiddenKeys.current ? 'opacity-40' : 'opacity-100',
           )}
         >
-          <span className="inline-block h-0.5 w-4 rounded bg-[var(--chart-3)]" aria-hidden />
+          <span className="inline-block size-2 shrink-0 rounded-full bg-[var(--chart-3)]" aria-hidden />
           <span>{t('dashboardRevenueSeriesCurrent')}</span>
         </button>
         {comparePrevious ? (
@@ -397,7 +436,7 @@ export function DashboardRevenueTrendChart({
             )}
           >
             <span
-              className="inline-block h-0.5 w-4 rounded border-t-2 border-dashed border-[var(--chart-line-secondary)]"
+              className="inline-block size-2 shrink-0 rounded-full bg-[var(--chart-line-secondary)]"
               aria-hidden
             />
             <span>{t('dashboardRevenueSeriesPrevious')}</span>

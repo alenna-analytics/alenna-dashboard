@@ -8,7 +8,6 @@ import {
 } from '@/pages/dashboard/use-chart-line-load-animation'
 
 import type { Locale } from 'date-fns'
-import type { ReactNode } from 'react'
 import type { ChannelTimeSeriesRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
@@ -25,6 +24,7 @@ import {
 
 import { cn } from '@/lib/utils'
 import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
 
 import { DashboardZoomStrip } from './dashboard-zoom-strip'
@@ -99,10 +99,8 @@ export type DashboardProfitMarginChartProps = {
   formatValue: (value: number) => string
   dateLocale: Locale
   t: (key: ShellStringKey) => string
-  granularityFilter?: ReactNode
+  chartType?: SeriesChartView
 }
-
-type ProfitMarginView = 'bars' | 'area'
 
 type IndexedRow = {
   label: string
@@ -123,7 +121,7 @@ export function DashboardProfitMarginChart({
   formatValue,
   dateLocale,
   t,
-  granularityFilter,
+  chartType = 'bar',
 }: DashboardProfitMarginChartProps) {
   const fullRows: IndexedRow[] = useMemo(() => {
     const buckets = eachRevenueBucketMeta(startDate, endDate, granularity, dateLocale)
@@ -170,7 +168,6 @@ export function DashboardProfitMarginChart({
   const [zoomStart, setZoomStart] = useState(0)
   const [zoomEnd, setZoomEnd] = useState(() => Math.max(0, fullRows.length - 1))
   const [hiddenKeys, setHiddenKeys] = useState<Record<string, boolean>>({})
-  const [view, setView] = useState<ProfitMarginView>('bars')
 
   const toggleLegendKey = (key: string) => {
     setHiddenKeys((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -230,34 +227,9 @@ export function DashboardProfitMarginChart({
         'w-full min-w-0 [&_.recharts-surface:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-wrapper:focus]:outline-none [&_.recharts-brush-traveller:focus]:outline-none',
       )}
     >
-      <div className="mb-2 flex flex-wrap items-center justify-end gap-1">
-        {granularityFilter}
-        <div
-          className="inline-flex overflow-hidden rounded-md border border-border-subtle"
-          role="group"
-          aria-label={t('dashboardProfitViewLabel')}
-        >
-          {(['bars', 'area'] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              aria-pressed={view === option}
-              onClick={() => setView(option)}
-              className={cn(
-                'px-2.5 py-1 text-xs font-medium outline-none transition-colors',
-                view === option
-                  ? 'bg-muted text-text-primary'
-                  : 'bg-background text-text-secondary hover:bg-muted/50',
-              )}
-            >
-              {option === 'bars' ? t('dashboardProfitViewBars') : t('dashboardProfitViewArea')}
-            </button>
-          ))}
-        </div>
-      </div>
       <ResponsiveContainer width="100%" height={180}>
         <ComposedChart
-          key={`${zoomResetKey}:${view}`}
+          key={`${zoomResetKey}:${chartType}`}
           data={composedChartData}
           margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
           barCategoryGap={denseMain ? '18%' : '28%'}
@@ -269,7 +241,7 @@ export function DashboardProfitMarginChart({
             tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
             axisLine={{ stroke: 'var(--border-default)' }}
             tickLine={false}
-            interval={view === 'bars' || denseMain ? 'preserveStartEnd' : 0}
+            interval={chartType === 'bar' || denseMain ? 'preserveStartEnd' : 0}
           />
           <YAxis
             yAxisId="left"
@@ -309,7 +281,7 @@ export function DashboardProfitMarginChart({
               backdropFilter: 'none',
             }}
           />
-          {view === 'bars'
+          {chartType === 'bar'
             ? seriesLayers.map((layer) => (
                 <Bar
                   key={layer.dataKey}
@@ -395,7 +367,7 @@ export function DashboardProfitMarginChart({
             )}
           >
             <span
-              className="inline-block h-2 w-4 shrink-0 rounded-sm"
+              className="inline-block size-2 shrink-0 rounded-full"
               style={{ background: layer.fill }}
               aria-hidden
             />
@@ -411,7 +383,7 @@ export function DashboardProfitMarginChart({
           )}
         >
           <span
-            className="inline-block h-0.5 w-4 shrink-0 rounded bg-[var(--danger)]"
+            className="inline-block size-2 shrink-0 rounded-full bg-[var(--danger)]"
             aria-hidden
           />
           <span>{t('reportsMonthlyLegendGrossMarginPct')}</span>

@@ -42,7 +42,11 @@ import {
 } from '@/pages/dashboard/home-v2-kpi-card-order'
 import { HomeV2KpiSortableGrid } from '@/pages/dashboard/home-v2-kpi-sortable-grid'
 import { HomeV2KpiSparklineCard } from '@/pages/dashboard/home-v2-kpi-sparkline-card'
-import { HomeV2SalesTrendChart } from '@/pages/dashboard/home-v2-sales-trend-chart'
+import {
+  HomeV2SalesTrendChart,
+  type HomeV2SalesTrendChartType,
+} from '@/pages/dashboard/home-v2-sales-trend-chart'
+import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
 import { HomeV2SalesTrendMetricFilters } from '@/pages/dashboard/home-v2-sales-trend-metric-filters'
 import {
   formatHomeV2TrendMetricValue,
@@ -56,7 +60,7 @@ import {
   computePreviousPeriod,
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
 import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
 import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
@@ -287,6 +291,10 @@ export function DashboardHomePageV2() {
     useState<HomeV2TrendMetricId>('net-sales')
   const [salesTrendSecondaryMetric, setSalesTrendSecondaryMetric] =
     useState<HomeV2TrendMetricId>('net-profit')
+  const [salesTrendChartType, setSalesTrendChartType] =
+    useState<HomeV2SalesTrendChartType>('line')
+  const [adsTrendChartType, setAdsTrendChartType] =
+    useState<HomeV2SalesTrendChartType>('line')
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -988,11 +996,12 @@ export function DashboardHomePageV2() {
           ) : null}
 
           <SectionContainer framed className="mt-6 mb-8">
-            <SectionHeader
+            <ChartSectionHeader
               title={t('homeMetricsTrendTitle')}
+              info={t('homeMetricsTrendSubtitle')}
               className="mb-5"
               aside={
-                <div className="flex flex-wrap items-center justify-end gap-2">
+                <>
                   <HomeV2SalesTrendMetricFilters
                     primaryMetric={effectiveSalesTrendPrimaryMetric}
                     secondaryMetric={effectiveSalesTrendSecondaryMetric}
@@ -1006,7 +1015,12 @@ export function DashboardHomePageV2() {
                     onChange={setSalesTrendGranularity}
                     t={t}
                   />
-                </div>
+                  <AppSeriesChartViewToggle
+                    value={salesTrendChartType}
+                    onChange={setSalesTrendChartType}
+                    t={t}
+                  />
+                </>
               }
             />
             {salesTrendError ? (
@@ -1024,6 +1038,7 @@ export function DashboardHomePageV2() {
                 secondaryMetric={effectiveSalesTrendSecondaryMetric}
                 metricContext={trendMetricContext}
                 adsSeriesPoints={adsSeriesError ? [] : (adsSeries?.points ?? [])}
+                chartType={salesTrendChartType}
                 t={t}
               />
             )}
@@ -1035,7 +1050,7 @@ export function DashboardHomePageV2() {
                 <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
                   <HomeChannelShareSection
                     title={t('homeChannelDonutTitle')}
-                    description={t('homeChannelDonutSubtitle')}
+                    info={t('homeChannelDonutSubtitle')}
                     rows={channelBreakdown?.items ?? []}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}
@@ -1048,9 +1063,9 @@ export function DashboardHomePageV2() {
               </div>
               <div className="flex min-h-0 min-w-0 lg:h-full">
                 <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
-                  <SectionHeader
+                  <ChartSectionHeader
                     title={t('homeTopProductsTitle')}
-                    description={t('homeTopProductsSubtitle').replace(
+                    info={t('homeTopProductsSubtitle').replace(
                       '{count}',
                       String(topProducts?.items.length ?? 10),
                     )}
@@ -1072,24 +1087,32 @@ export function DashboardHomePageV2() {
 
           {adsSeriesEnabled ? (
             <SectionContainer framed className="mt-6 overflow-visible">
-              <SectionHeader
+              <ChartSectionHeader
                 title={t('homeAdsTrendTitle')}
-                description={t('homeAdsTrendSubtitle')}
+                info={t('homeAdsTrendSubtitle')}
+                aside={
+                  <AppSeriesChartViewToggle
+                    value={adsTrendChartType}
+                    onChange={setAdsTrendChartType}
+                    t={t}
+                  />
+                }
               />
               <AdsTrendChart
                 points={adsSeriesError ? [] : (adsSeries?.points ?? [])}
                 lang={lang}
                 formatValue={formatInDisplay}
                 isLoading={adsSeriesLoading}
+                chartType={adsTrendChartType}
               />
             </SectionContainer>
           ) : null}
 
           {settlementWaterfallSegments.length > 0 ? (
             <SectionContainer framed className="mt-6 mb-8 overflow-visible">
-              <SectionHeader
+              <ChartSectionHeader
                 title={t('reportsSectionSettlementTitle')}
-                description={t('reportsSectionSettlementSubtitle')}
+                info={t('reportsSectionSettlementSubtitle')}
               />
               <WaterfallChart
                 segments={settlementWaterfallSegments}

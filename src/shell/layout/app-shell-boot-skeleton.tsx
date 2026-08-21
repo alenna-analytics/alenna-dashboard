@@ -5,7 +5,7 @@ import { readSidebarControlMode } from '@/lib/shell/sidebar-control-prefs'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { isConfigurationRoute } from '@/pages/configuration/configuration-inner-nav'
 import { isTeamRoute } from '@/pages/team/team-inner-nav'
-import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
+import { shellMainColumnClassName } from '@/shell/layout/shell-main-padding'
 import {
   shellChromeHeaderRowClassName,
   sidebarInsetPaddingClassName,
@@ -149,7 +149,7 @@ export function AppShellBootSkeleton() {
           ) : null}
           <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
             <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
-              <div className={cn(WORKSPACE_SHELL_COLUMN_CLASS, 'min-h-full pt-[38px] pb-3 lg:pb-4')}>
+              <div className={shellMainColumnClassName(pathname)}>
                 <ShellMainSkeleton />
               </div>
             </main>

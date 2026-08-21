@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
+import { InfoTooltip } from '@/ui/info-tooltip'
 import { KpiCard as KpiCardUi } from '@/ui/kpi-card'
 import { surfaceSectionClassName } from '@/ui/surface'
 import { useMoney } from '@/hooks/use-money'
@@ -75,6 +76,32 @@ export function SectionHeader({
       {description ? (
         <p className="max-w-2xl text-xs leading-relaxed text-[var(--color-text-muted)]">{description}</p>
       ) : null}
+    </div>
+  )
+}
+
+export function ChartSectionHeader({
+  title,
+  info,
+  aside,
+  className,
+}: {
+  title: string
+  info?: string
+  aside?: ReactNode
+  className?: string
+}) {
+  return (
+    <div className={cn('mb-4', className)}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <h2 className="text-sm font-bold text-text-tertiary">{title}</h2>
+          {info ? (
+            <InfoTooltip side="bottom">{info}</InfoTooltip>
+          ) : null}
+        </div>
+        {aside ? <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">{aside}</div> : null}
+      </div>
     </div>
   )
 }

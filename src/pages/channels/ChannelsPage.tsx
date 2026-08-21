@@ -25,8 +25,10 @@ import {
 import { useChannelsPageFilters } from '@/pages/channels/use-channels-page-filters'
 import { includesAmazonWithUnavailableFees } from '@/lib/integrations/amazon-fees-notice'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
+import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
 import { useChannelTimeSeries } from '@/pages/reports/use-channel-time-series'
 import { useKpisByChannel } from '@/pages/reports/use-kpis-by-channel'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
@@ -78,6 +80,7 @@ export function ChannelsPage() {
   const [filters, setFilters] = useChannelsPageFilters(tenantId)
   const { startDate, endDate, connectionIds } = filters
   const [cmGranularity, setCmGranularity] = useState<RevenueSeriesGranularity>('day')
+  const [cmChartType, setCmChartType] = useState<SeriesChartView>('line')
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -298,23 +301,30 @@ export function ChannelsPage() {
 
           <div className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
             <SectionContainer framed>
-              <SectionHeader
+              <ChartSectionHeader
                 title={
                   cmIncomplete
                     ? t('channelsCmChartTitleProductScope')
                     : t('channelsCmChartTitle')
                 }
-                description={
+                info={
                   cmIncomplete
                     ? t('channelsCmChartSubtitleProductScope')
                     : t('channelsCmChartSubtitle')
                 }
                 aside={
-                  <ChartGranularityFilter
-                    value={cmGranularity}
-                    onChange={setCmGranularity}
-                    t={t}
-                  />
+                  <>
+                    <ChartGranularityFilter
+                      value={cmGranularity}
+                      onChange={setCmGranularity}
+                      t={t}
+                    />
+                    <AppSeriesChartViewToggle
+                      value={cmChartType}
+                      onChange={setCmChartType}
+                      t={t}
+                    />
+                  </>
                 }
               />
               {channelTimeSeriesError ? (
@@ -336,14 +346,15 @@ export function ChannelsPage() {
                   platforms={displayedPlatforms}
                   t={t}
                   cmIncomplete={cmIncomplete}
+                  chartType={cmChartType}
                 />
               )}
             </SectionContainer>
 
             <SectionContainer framed>
-              <SectionHeader
+              <ChartSectionHeader
                 title={t('channelsCostStructureTitle')}
-                description={t('channelsCostStructureSubtitle')}
+                info={t('channelsCostStructureSubtitle')}
               />
               <ChannelsCostStructureChart
                 metrics={currentAgg}

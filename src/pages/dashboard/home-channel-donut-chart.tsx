@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { BarChart3, PieChart as PieChartIcon } from 'lucide-react'
 import {
   Bar,
   BarChart,
@@ -17,11 +16,12 @@ import { formatCompactNumber } from '@/lib/format/compact-number'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ChannelBreakdownRow } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
-import { SectionHeader } from '@/pages/reports/report-ui'
+import { AppShareChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
+import { ChartSectionHeader } from '@/pages/reports/report-ui'
 import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import type { ShareChartView } from '@/ui/chart-view-toggle'
 import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
-import { Tooltip as UiTooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { TOP_PRODUCTS_PAIRED_MIN_HEIGHT_CLASS } from '@/pages/dashboard/home-top-products-chart-layout'
 
 const TOP_N = 5
@@ -35,7 +35,7 @@ const CHANNEL_PALETTE = [
   'var(--text-tertiary)',
 ] as const
 
-export type ChannelChartType = 'bar' | 'pie'
+export type ChannelChartType = ShareChartView
 
 export type HomeChannelDonutChartProps = {
   rows: ChannelBreakdownRow[]
@@ -99,54 +99,24 @@ function ChannelTooltip({
   )
 }
 
-type ChannelChartTypeToggleProps = {
-  value: ChannelChartType
-  onChange: (next: ChannelChartType) => void
-  t: (key: ShellStringKey) => string
-}
-
-function ChannelChartTypeToggle({ value, onChange, t }: ChannelChartTypeToggleProps) {
-  const next: ChannelChartType = value === 'bar' ? 'pie' : 'bar'
-  const label = next === 'pie' ? t('homeChannelChartViewPie') : t('homeChannelChartViewBar')
-  return (
-    <UiTooltip>
-      <TooltipTrigger
-        type="button"
-        aria-label={label}
-        onClick={() => onChange(next)}
-        className={cn(
-          'inline-flex size-7 items-center justify-center rounded-md border border-border-default bg-white text-text-secondary transition-colors',
-          'hover:bg-muted hover:text-text-primary',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
-        )}
-      >
-        {value === 'bar' ? (
-          <BarChart3 className="size-3.5" strokeWidth={1.75} aria-hidden />
-        ) : (
-          <PieChartIcon className="size-3.5" strokeWidth={1.75} aria-hidden />
-        )}
-      </TooltipTrigger>
-      <TooltipContent side="bottom">{label}</TooltipContent>
-    </UiTooltip>
-  )
+type HomeChannelShareSectionProps = HomeChannelDonutChartProps & {
+  title: string
+  info?: string
 }
 
 export function HomeChannelShareSection({
   title,
-  description,
+  info,
   t,
   ...chartProps
-}: HomeChannelDonutChartProps & {
-  title: string
-  description: string
-}) {
-  const [chartType, setChartType] = useState<ChannelChartType>('bar')
+}: HomeChannelShareSectionProps) {
+  const [chartType, setChartType] = useState<ShareChartView>('bar')
   return (
     <>
-      <SectionHeader
+      <ChartSectionHeader
         title={title}
-        description={description}
-        aside={<ChannelChartTypeToggle value={chartType} onChange={setChartType} t={t} />}
+        info={info}
+        aside={<AppShareChartViewToggle value={chartType} onChange={setChartType} t={t} />}
       />
       <HomeChannelDonutChart {...chartProps} t={t} chartType={chartType} />
     </>

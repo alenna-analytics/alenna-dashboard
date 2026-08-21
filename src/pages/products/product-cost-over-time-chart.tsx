@@ -263,10 +263,10 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
         </LineChart>
       </ResponsiveContainer>
       <div className="mt-2 rounded border border-border-subtle/70 bg-white px-1 py-1">
-        <div className="relative h-16 w-full">
+        <div className="relative h-8 w-full">
           <div className="absolute inset-0">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dataWithIndex} margin={{ top: 4, right: 4, left: 4, bottom: 2 }}>
+              <LineChart data={dataWithIndex} margin={{ top: 2, right: 4, left: 4, bottom: 2 }}>
                 <XAxis dataKey="dateKey" hide />
                 <YAxis hide domain={['auto', 'auto']} />
                 <ReferenceArea
@@ -300,7 +300,7 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
                 <YAxis hide />
                 <Brush
                   dataKey="__idx"
-                  height={62}
+                  height={30}
                   travellerWidth={8}
                   stroke="var(--color-border-default)"
                   fill="transparent"
@@ -330,12 +330,8 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
               )}
             >
               <span
-                className="inline-block h-0.5 w-4 rounded"
-                style={{
-                  background: s.color,
-                  borderTop:
-                    s.kind === 'channel' ? `2px dashed ${s.color}` : `2px solid ${s.color}`,
-                }}
+                className="inline-block size-2 shrink-0 rounded-full"
+                style={{ background: s.color }}
               />
               <span>{s.label}</span>
             </button>

@@ -547,6 +547,8 @@ const SHELL_STRINGS = {
     homeSalesTrendMetricPrimary: 'Métrica 1',
     homeSalesTrendMetricSecondary: 'Métrica 2',
     homeMetricsTrendTitle: 'Tendencia de métricas',
+    homeMetricsTrendSubtitle:
+      'Compara dos métricas a lo largo del periodo. Cambia intervalo, métricas y tipo de gráfica.',
     dashboardRevenueBrushAria:
       'Arrastra los mangos del zoom inferior para ampliar o desplazar el rango visible en el gráfico.',
     dashboardChannelSalesTitle: 'Ventas brutas y netas por canal',
@@ -1019,7 +1021,9 @@ const SHELL_STRINGS = {
     adsGoIntegrations: 'Conectar publicidad',
     adsKpiSectionTitle: 'Resumen',
     adsChartTrendTitle: 'Gasto y ventas atribuidas',
+    adsChartTrendSubtitle: 'Gasto y ventas atribuidas día a día en el periodo.',
     adsChartChannelTitle: 'Gasto por canal',
+    adsChartChannelSubtitle: 'Gasto de publicidad por canal en el periodo.',
     adsChartTrendEmpty: 'No hay métricas diarias en este rango.',
     adsChartChannelEmpty: 'No hay gasto por canal en este rango.',
     adsChannelTableEmpty: 'No hay canales con métricas en este rango.',
@@ -1237,6 +1241,7 @@ const SHELL_STRINGS = {
     homeChannelChartViewAria: 'Tipo de gráfica',
     homeChannelChartViewBar: 'Ver como barras',
     homeChannelChartViewPie: 'Ver como circular',
+    homeChartViewLine: 'Ver como líneas',
     homeTopProductsTitle: 'Productos más vendidos',
     homeTopProductsSubtitle: 'Top {count} por ventas brutas en el periodo',
     homeTopProductsEmpty: 'Sin productos vendidos en el periodo',
@@ -2473,6 +2478,8 @@ const SHELL_STRINGS = {
     homeSalesTrendMetricPrimary: 'Metric 1',
     homeSalesTrendMetricSecondary: 'Metric 2',
     homeMetricsTrendTitle: 'Metrics trend',
+    homeMetricsTrendSubtitle:
+      'Compare two metrics over the period. Change interval, metrics, and chart type.',
     dashboardRevenueBrushAria:
       'Drag the handles on the lower overview strip to zoom or pan the visible range on the chart.',
     dashboardChannelSalesTitle: 'Gross and net sales by channel',
@@ -2938,7 +2945,9 @@ const SHELL_STRINGS = {
     adsGoIntegrations: 'Connect ads',
     adsKpiSectionTitle: 'Summary',
     adsChartTrendTitle: 'Spend and attributed sales',
+    adsChartTrendSubtitle: 'Daily ad spend and attributed sales for the period.',
     adsChartChannelTitle: 'Spend by channel',
+    adsChartChannelSubtitle: 'Ad spend by channel for the period.',
     adsChartTrendEmpty: 'No daily metrics in this range.',
     adsChartChannelEmpty: 'No channel spend in this range.',
     adsChannelTableEmpty: 'No channels with metrics in this range.',
@@ -3152,6 +3161,7 @@ const SHELL_STRINGS = {
     homeChannelChartViewAria: 'Chart type',
     homeChannelChartViewBar: 'View as bar chart',
     homeChannelChartViewPie: 'View as pie chart',
+    homeChartViewLine: 'View as line chart',
     homeTopProductsTitle: 'Top products',
     homeTopProductsSubtitle: 'Top {count} by gross revenue for the period',
     homeTopProductsEmpty: 'No products sold in the period',

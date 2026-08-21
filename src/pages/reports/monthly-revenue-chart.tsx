@@ -334,13 +334,12 @@ function ChartLegendToggle({
   const items: {
     key: LayerKey
     label: ShellStringKey
-    swatchClass?: string
-    isLine?: boolean
+    swatchClass: string
   }[] = [
       { key: 'bruto', label: 'reportsGrossRevenue', swatchClass: 'bg-[var(--chart-monthly-gross-bar)]' },
       { key: 'neta', label: 'reportsNetRevenue', swatchClass: 'bg-[var(--chart-3)]' },
       { key: 'utilidad', label: 'reportsGrossProfit', swatchClass: 'bg-[var(--chart-4)]' },
-      { key: 'margin', label: 'reportsMonthlyLegendGrossMarginPct', isLine: true },
+      { key: 'margin', label: 'reportsMonthlyLegendGrossMarginPct', swatchClass: 'bg-[var(--warning)]' },
     ]
 
   return (
@@ -359,29 +358,7 @@ function ChartLegendToggle({
               !isOff && 'hover:border-border-subtle hover:bg-bg-elevated/80',
             )}
           >
-            {item.isLine ? (
-              <svg width={28} height={10} aria-hidden className="shrink-0">
-                <line
-                  x1={2}
-                  y1={5}
-                  x2={26}
-                  y2={5}
-                  stroke="var(--warning)"
-                  strokeWidth={2}
-                  strokeDasharray="4 3"
-                />
-                <circle
-                  cx={14}
-                  cy={5}
-                  r={4}
-                  fill="var(--primary-foreground)"
-                  stroke="var(--warning)"
-                  strokeWidth={1.5}
-                />
-              </svg>
-            ) : (
-              <span className={cn('size-2.5 shrink-0 rounded-md', item.swatchClass)} aria-hidden />
-            )}
+            <span className={cn('size-2.5 shrink-0 rounded-full', item.swatchClass)} aria-hidden />
             <span
               className={cn('text-text-secondary', isOff && 'line-through decoration-text-tertiary')}
             >

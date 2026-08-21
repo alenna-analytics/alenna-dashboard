@@ -1,3 +1,4 @@
+import { isActiveAdsConnection } from '@/lib/integrations/ads-scope'
 import type { SyncFreshnessPillTiming } from '@/lib/integrations/sync-freshness-age'
 import { deriveSyncFreshnessAgeDisplay } from '@/lib/integrations/sync-freshness-age'
 import type { PlatformConnection, SyncPlanStatus } from '@/lib/types/connectors'
@@ -57,6 +58,15 @@ export function filterActiveSyncableConnections(
   connections: PlatformConnection[],
 ): PlatformConnection[] {
   return connections.filter(isActiveSyncableConnection)
+}
+
+/** Header Conexiones: ecommerce syncables + active ads accounts. */
+export function filterActiveHeaderConnections(
+  connections: PlatformConnection[],
+): PlatformConnection[] {
+  return connections.filter(
+    (conn) => isActiveSyncableConnection(conn) || isActiveAdsConnection(conn),
+  )
 }
 
 export function isStaleSyncingPlan(conn: PlatformConnection): boolean {

@@ -83,22 +83,6 @@ function parseMercadoLibreSyncPanel(raw: unknown): MercadoLibreSyncPanelState | 
   }
 }
 
-function blockSuccessFromSyncPlan(conn: PlatformConnection): MercadoLibreSyncBlockSuccess | null {
-  const plan = conn.sync_plan
-  if (!plan) return null
-  if (plan.last_sync_status !== 'synced' && plan.last_sync_status !== 'partial') return null
-  const minRaw = plan.actual_min_created_at
-  const maxRaw = plan.actual_max_created_at
-  return {
-    connectionId: conn.id,
-    recordsSynced: plan.last_sync_records_count ?? 0,
-    recordsTouched: plan.last_sync_records_touched_count,
-    catalogListingsUpserted: 0,
-    minOrderDate: minRaw ? minRaw.slice(0, 10) : null,
-    maxOrderDate: maxRaw ? maxRaw.slice(0, 10) : null,
-  }
-}
-
 export type MercadoLibreIntegrationHook = ReturnType<typeof useMercadoLibreIntegration>
 
 export function useMercadoLibreIntegration() {
@@ -268,11 +252,8 @@ export function useMercadoLibreIntegration() {
     if (syncPanel.blockSuccess?.connectionId === activeConnectionId) {
       return syncPanel.blockSuccess
     }
-    if (activeConnection) {
-      return blockSuccessFromSyncPlan(activeConnection)
-    }
     return null
-  }, [syncPanel.blockSuccess, activeConnectionId, activeConnection])
+  }, [syncPanel.blockSuccess, activeConnectionId])
 
   const meliSyncPhase = useMemo((): 'idle' | 'working' | 'done_ok' | 'done_fail' => {
     if (!activeConnectionId) return 'idle'
@@ -287,14 +268,13 @@ export function useMercadoLibreIntegration() {
       return 'working'
     }
     if (syncPlan?.last_sync_status === 'syncing') return 'working'
-    if (syncPanelBlockSuccess?.connectionId === activeConnectionId) return 'done_ok'
+    if (syncPanel.blockSuccess?.connectionId === activeConnectionId) return 'done_ok'
     if (syncPlan?.last_sync_status === 'failed') return 'done_fail'
     return 'idle'
   }, [
     activeConnectionId,
     syncPanel,
     syncPlan?.last_sync_status,
-    syncPanelBlockSuccess,
   ])
 
   const startOAuth = useCallback(async () => {

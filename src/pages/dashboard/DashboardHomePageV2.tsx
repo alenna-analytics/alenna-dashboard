@@ -61,7 +61,7 @@ import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-wat
 import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 import { useProductReports } from '@/pages/reports/use-product-reports'
-import { resolveAdsApiScope } from '@/lib/integrations/ads-scope'
+import { filterEcommerceConnections, resolveAdsApiScope } from '@/lib/integrations/ads-scope'
 import { AdsTrendChart } from '@/pages/ads/ads-trend-chart'
 import { useAdsKpis, useAdsSeries } from '@/pages/ads/use-ads-kpis'
 import { useReports } from '@/pages/reports/use-reports'
@@ -299,25 +299,29 @@ export function DashboardHomePageV2() {
   })
 
   const connections = useMemo(() => connectionsQuery.data ?? [], [connectionsQuery.data])
+  const ecommerceConnections = useMemo(
+    () => filterEcommerceConnections(connections),
+    [connections],
+  )
   const connectorsLoading = Boolean(tenantId) && connectionsQuery.isLoading
   const hasNoIntegrations =
     !connectorsLoading && connectionsQuery.isSuccess && connections.length === 0
 
   const activeConnectionIds = useMemo(() => {
-    if (connections.length === 0) return [] as string[]
-    if (connectionIds.length === 0) return connections.map((c) => c.id)
-    const valid = new Set(connections.map((c) => c.id))
+    if (ecommerceConnections.length === 0) return [] as string[]
+    if (connectionIds.length === 0) return ecommerceConnections.map((c) => c.id)
+    const valid = new Set(ecommerceConnections.map((c) => c.id))
     const filtered = connectionIds.filter((id) => valid.has(id))
-    return filtered.length > 0 ? filtered : connections.map((c) => c.id)
-  }, [connections, connectionIds])
+    return filtered.length > 0 ? filtered : ecommerceConnections.map((c) => c.id)
+  }, [ecommerceConnections, connectionIds])
 
   const channelOptions = useMemo(
     () =>
-      connections.map((c) => ({
+      ecommerceConnections.map((c) => ({
         value: c.id,
         label: platformDisplayName(c.platform),
       })),
-    [connections],
+    [ecommerceConnections],
   )
 
   const prevPeriod = useMemo(() => computePreviousPeriod(startDate, endDate), [startDate, endDate])

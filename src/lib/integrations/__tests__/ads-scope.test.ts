@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveAdsApiScope } from '@/lib/integrations/ads-scope'
+import {
+  filterEcommerceConnections,
+  resolveAdsApiScope,
+  resolveAdsPageScope,
+} from '@/lib/integrations/ads-scope'
 import type { PlatformConnection } from '@/lib/types/connectors'
 
 function conn(
@@ -49,5 +53,25 @@ describe('resolveAdsApiScope', () => {
     const scope = resolveAdsApiScope([shopify, amazon, adsLinked, adsUnlinked], ['amz-1'])
     expect(scope.adsConnectionIds).toEqual(['ads-1'])
     expect(scope.queryConnectionIds.sort()).toEqual(['ads-1', 'amz-1'].sort())
+  })
+})
+
+describe('resolveAdsPageScope', () => {
+  it('filters by ads connection ids when selected', () => {
+    const shopify = conn({ id: 'shopify-1', platform: 'shopify' })
+    const adsA = conn({ id: 'ads-a', platform: 'google_ads' })
+    const adsB = conn({ id: 'ads-b', platform: 'amazon_ads' })
+    const scope = resolveAdsPageScope([shopify, adsA, adsB], ['ads-a'])
+    expect(scope.hasAdsConnections).toBe(true)
+    expect(scope.adsConnectionIds).toEqual(['ads-a'])
+    expect(scope.queryConnectionIds).toEqual(['ads-a'])
+  })
+
+  it('excludes ads from ecommerce filter helper', () => {
+    const rows = [
+      conn({ id: 's', platform: 'shopify' }),
+      conn({ id: 'g', platform: 'google_ads' }),
+    ]
+    expect(filterEcommerceConnections(rows).map((r) => r.id)).toEqual(['s'])
   })
 })

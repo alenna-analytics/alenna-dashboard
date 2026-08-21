@@ -103,22 +103,6 @@ function parseAmazonSyncPanel(raw: unknown): AmazonSyncPanelState | null {
   }
 }
 
-function blockSuccessFromSyncPlan(conn: PlatformConnection): AmazonSyncBlockSuccess | null {
-  const plan = conn.sync_plan
-  if (!plan) return null
-  if (plan.last_sync_status !== 'synced' && plan.last_sync_status !== 'partial') return null
-  const minRaw = plan.actual_min_created_at
-  const maxRaw = plan.actual_max_created_at
-  return {
-    connectionId: conn.id,
-    recordsSynced: plan.last_sync_records_count ?? 0,
-    recordsTouched: plan.last_sync_records_touched_count,
-    catalogListingsUpserted: 0,
-    minOrderDate: minRaw ? minRaw.slice(0, 10) : null,
-    maxOrderDate: maxRaw ? maxRaw.slice(0, 10) : null,
-  }
-}
-
 export type AmazonIntegrationHook = ReturnType<typeof useAmazonIntegration>
 
 export function useAmazonIntegration() {
@@ -313,11 +297,8 @@ export function useAmazonIntegration() {
     if (syncPanel.blockSuccess?.connectionId === activeConnectionId) {
       return syncPanel.blockSuccess
     }
-    if (activeConnection) {
-      return blockSuccessFromSyncPlan(activeConnection)
-    }
     return null
-  }, [syncPanel.blockSuccess, activeConnectionId, activeConnection])
+  }, [syncPanel.blockSuccess, activeConnectionId])
 
   const amazonSyncPhase = useMemo((): 'idle' | 'working' | 'done_ok' | 'done_fail' => {
     if (!activeConnectionId) return 'idle'
@@ -354,7 +335,7 @@ export function useAmazonIntegration() {
       return 'working'
     }
     if (syncPlan?.last_sync_status === 'syncing') return 'working'
-    if (syncPanelBlockSuccess?.connectionId === activeConnectionId) return 'done_ok'
+    if (syncPanel.blockSuccess?.connectionId === activeConnectionId) return 'done_ok'
     if (syncPlan?.last_sync_status === 'failed') return 'done_fail'
     return 'idle'
   }, [
@@ -362,7 +343,6 @@ export function useAmazonIntegration() {
     syncPanel,
     syncPlan?.last_sync_status,
     syncPlan?.current_job_id,
-    syncPanelBlockSuccess,
     liveJobStatus,
     effectiveJobId,
     amazonJobQuery.isFetched,

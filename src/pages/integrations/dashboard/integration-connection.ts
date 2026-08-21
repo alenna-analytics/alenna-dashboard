@@ -27,6 +27,19 @@ export function findActiveConnection(
   )
 }
 
+export function findPendingGoogleAdsConnection(
+  connections: PlatformConnection[],
+): PlatformConnection | null {
+  return (
+    connections.find(
+      (c) =>
+        c.platform === 'google_ads' &&
+        (c.status === 'pending' ||
+          c.connection_status === 'pending_account_selection'),
+    ) ?? null
+  )
+}
+
 export function resolveIntegrationConnection(
   slug: string,
   connections: PlatformConnection[],
@@ -44,7 +57,9 @@ export function isIntegrationConnected(
   if (slug === 'shopify') return shopifyConnected
   if (slug === 'mercadolibre') return mercadolibreConnected
   if (slug === 'amazon') return amazonConnected
-  if (slug === 'amazon_ads' || slug === 'mercadolibre_ads') return adsConnected
+  if (slug === 'amazon_ads' || slug === 'mercadolibre_ads' || slug === 'google_ads') {
+    return adsConnected
+  }
   return false
 }
 

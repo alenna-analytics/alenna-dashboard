@@ -13,6 +13,7 @@ export type HomeV2TrendMetricId =
   | 'ebitda'
   | 'units'
   | 'orders'
+  | 'roas'
 
 export const HOME_V2_TREND_METRIC_IDS: HomeV2TrendMetricId[] = [
   'net-sales',
@@ -21,7 +22,10 @@ export const HOME_V2_TREND_METRIC_IDS: HomeV2TrendMetricId[] = [
   'ebitda',
   'units',
   'orders',
+  'roas',
 ]
+
+export type HomeV2TrendMetricScale = 'money' | 'count' | 'ratio'
 
 export type HomeV2TrendMetricContext = {
   salesMetricBasis: SalesMetricBasis
@@ -30,10 +34,21 @@ export type HomeV2TrendMetricContext = {
   profitSparklineScale: number
   contributionSparklineScale: number
   ebitdaSparklineScale: number
+  adsRoasAvailable?: boolean
+}
+
+export function homeV2TrendMetricScale(id: HomeV2TrendMetricId): HomeV2TrendMetricScale {
+  if (id === 'units' || id === 'orders') return 'count'
+  if (id === 'roas') return 'ratio'
+  return 'money'
 }
 
 export function isHomeV2TrendMetricCount(id: HomeV2TrendMetricId): boolean {
-  return id === 'units' || id === 'orders'
+  return homeV2TrendMetricScale(id) === 'count'
+}
+
+export function isHomeV2TrendMetricRatio(id: HomeV2TrendMetricId): boolean {
+  return homeV2TrendMetricScale(id) === 'ratio'
 }
 
 export function homeV2TrendMetricOptions(
@@ -42,6 +57,7 @@ export function homeV2TrendMetricOptions(
 ): { value: HomeV2TrendMetricId; label: string }[] {
   return HOME_V2_TREND_METRIC_IDS.filter((id) => {
     if (ctx.productMode && id === 'ebitda') return false
+    if (id === 'roas' && (ctx.productMode || !ctx.adsRoasAvailable)) return false
     return true
   }).map((id) => ({
     value: id,
@@ -55,6 +71,7 @@ export function resolveHomeV2TrendMetric(
   fallback: HomeV2TrendMetricId,
 ): HomeV2TrendMetricId {
   if (ctx.productMode && metric === 'ebitda') return fallback
+  if (metric === 'roas' && (ctx.productMode || !ctx.adsRoasAvailable)) return fallback
   return metric
 }
 
@@ -76,6 +93,8 @@ export function homeV2TrendMetricLabel(
       return t('reportsUnits')
     case 'orders':
       return t('reportsOrders')
+    case 'roas':
+      return t('homeKpiRoasGlobal')
     default:
       return id
   }
@@ -102,6 +121,8 @@ export function homeV2TrendMetricValue(
       return row.units_sold
     case 'orders':
       return row.order_count
+    case 'roas':
+      return row.roas ?? 0
     default:
       return 0
   }
@@ -114,6 +135,9 @@ export function formatHomeV2TrendMetricValue(
 ): string {
   if (isHomeV2TrendMetricCount(id)) {
     return value.toLocaleString(undefined, { maximumFractionDigits: 0 })
+  }
+  if (isHomeV2TrendMetricRatio(id)) {
+    return value.toFixed(2)
   }
   return formatCurrency(value)
 }

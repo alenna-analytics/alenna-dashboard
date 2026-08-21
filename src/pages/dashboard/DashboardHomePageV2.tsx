@@ -62,7 +62,8 @@ import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 import { useProductReports } from '@/pages/reports/use-product-reports'
 import { resolveAdsApiScope } from '@/lib/integrations/ads-scope'
-import { useAdsKpis } from '@/pages/ads/use-ads-kpis'
+import { AdsTrendChart } from '@/pages/ads/ads-trend-chart'
+import { useAdsKpis, useAdsSeries } from '@/pages/ads/use-ads-kpis'
 import { useReports } from '@/pages/reports/use-reports'
 import { useChannelBreakdown } from '@/pages/reports/use-channel-breakdown'
 import { useTopProducts } from '@/pages/reports/use-top-products'
@@ -348,6 +349,18 @@ export function DashboardHomePageV2() {
     endDate,
     enabled: canHomeKpis && !productMode && can(me, 'ads.view') && adsScope.hasAdsConnections,
   })
+  const adsSeriesEnabled =
+    canHomeKpis && !productMode && can(me, 'ads.view') && adsScope.hasAdsConnections
+  const {
+    data: adsSeries,
+    isLoading: adsSeriesLoading,
+    isError: adsSeriesError,
+  } = useAdsSeries({
+    connectionIds: adsScope.queryConnectionIds,
+    startDate,
+    endDate,
+    enabled: adsSeriesEnabled,
+  })
 
   const { data: pkpi, isLoading: pkpiLoading, isSuccess: pkpiReady } = useProductReports({
     connectionIds: activeConnectionIds,
@@ -578,6 +591,7 @@ export function DashboardHomePageV2() {
       profitSparklineScale,
       contributionSparklineScale,
       ebitdaSparklineScale,
+      adsRoasAvailable: adsSeriesEnabled && !adsSeriesError,
     }),
     [
       salesMetricBasis,
@@ -586,6 +600,8 @@ export function DashboardHomePageV2() {
       profitSparklineScale,
       contributionSparklineScale,
       ebitdaSparklineScale,
+      adsSeriesEnabled,
+      adsSeriesError,
     ],
   )
 
@@ -1014,6 +1030,7 @@ export function DashboardHomePageV2() {
                 primaryMetric={effectiveSalesTrendPrimaryMetric}
                 secondaryMetric={effectiveSalesTrendSecondaryMetric}
                 metricContext={trendMetricContext}
+                adsSeriesPoints={adsSeriesError ? [] : (adsSeries?.points ?? [])}
                 t={t}
               />
             )}
@@ -1061,6 +1078,21 @@ export function DashboardHomePageV2() {
               </div>
             </div>
           </PageSection>
+
+          {adsSeriesEnabled ? (
+            <SectionContainer className="mt-6 overflow-visible">
+              <SectionHeader
+                title={t('homeAdsTrendTitle')}
+                description={t('homeAdsTrendSubtitle')}
+              />
+              <AdsTrendChart
+                points={adsSeriesError ? [] : (adsSeries?.points ?? [])}
+                lang={lang}
+                formatValue={formatInDisplay}
+                isLoading={adsSeriesLoading}
+              />
+            </SectionContainer>
+          ) : null}
 
           {settlementWaterfallSegments.length > 0 ? (
             <SectionContainer className="mt-6 mb-8 overflow-visible">

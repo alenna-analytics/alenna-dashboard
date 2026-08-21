@@ -22,14 +22,16 @@ import {
   CHART_LINE_MINI_MS,
   rechartsEnterAnimationProps,
 } from '@/pages/dashboard/use-chart-line-load-animation'
+import { withAdsRoasOnChartRows } from '@/pages/dashboard/home-v2-ads-roas-series'
 import {
   formatHomeV2TrendMetricValue,
   homeV2TrendMetricLabel,
+  homeV2TrendMetricScale,
   homeV2TrendMetricValue,
-  isHomeV2TrendMetricCount,
   type HomeV2TrendMetricContext,
   type HomeV2TrendMetricId,
 } from '@/pages/dashboard/home-v2-trend-metrics'
+import type { AdsSeriesPoint } from '@/pages/ads/use-ads-kpis'
 import { mergeRevenueSeriesRows } from '@/pages/reports/monthly-revenue-chart'
 
 export type HomeV2SalesTrendChartProps = {
@@ -43,6 +45,7 @@ export type HomeV2SalesTrendChartProps = {
   primaryMetric: HomeV2TrendMetricId
   secondaryMetric: HomeV2TrendMetricId
   metricContext: HomeV2TrendMetricContext
+  adsSeriesPoints?: AdsSeriesPoint[]
   t: (key: ShellStringKey) => string
 }
 
@@ -70,6 +73,10 @@ function fmtCountCompact(value: number): string {
   if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
   if (abs >= 1_000) return `${(value / 1_000).toFixed(0)}K`
   return value.toLocaleString(undefined, { maximumFractionDigits: 0 })
+}
+
+function fmtRatioCompact(value: number): string {
+  return value.toFixed(2)
 }
 
 function TrendTooltip({
@@ -124,16 +131,35 @@ export function HomeV2SalesTrendChart({
   primaryMetric,
   secondaryMetric,
   metricContext,
+  adsSeriesPoints = [],
   t,
 }: HomeV2SalesTrendChartProps) {
   const primaryLabel = homeV2TrendMetricLabel(primaryMetric, metricContext, t)
   const secondaryLabel = homeV2TrendMetricLabel(secondaryMetric, metricContext, t)
-  const primaryIsCount = isHomeV2TrendMetricCount(primaryMetric)
-  const secondaryIsCount = isHomeV2TrendMetricCount(secondaryMetric)
-  const useDualAxis = primaryIsCount !== secondaryIsCount
+  const primaryScale = homeV2TrendMetricScale(primaryMetric)
+  const secondaryScale = homeV2TrendMetricScale(secondaryMetric)
+  const useDualAxis = primaryScale !== secondaryScale
+
+  const formatAxisTick = (scale: typeof primaryScale, value: number) => {
+    if (scale === 'count') return fmtCountCompact(value)
+    if (scale === 'ratio') return fmtRatioCompact(value)
+    return fmtMoneyCompact(value, currency)
+  }
 
   const data = useMemo((): TrendRow[] => {
-    return mergeRevenueSeriesRows(startDate, endDate, granularity, rows, dateLocale).map((row) => ({
+    const merged = mergeRevenueSeriesRows(startDate, endDate, granularity, rows, dateLocale)
+    const withRoas =
+      adsSeriesPoints.length > 0
+        ? withAdsRoasOnChartRows(
+            merged,
+            adsSeriesPoints,
+            startDate,
+            endDate,
+            granularity,
+            dateLocale,
+          )
+        : merged
+    return withRoas.map((row) => ({
       label: row.label,
       primary: homeV2TrendMetricValue(row, primaryMetric, metricContext),
       secondary: homeV2TrendMetricValue(row, secondaryMetric, metricContext),
@@ -147,6 +173,7 @@ export function HomeV2SalesTrendChart({
     primaryMetric,
     secondaryMetric,
     metricContext,
+    adsSeriesPoints,
   ])
 
   const dataWithIndex: TrendRowIndexed[] = useMemo(
@@ -217,9 +244,7 @@ export function HomeV2SalesTrendChart({
           <YAxis
             yAxisId={primaryAxisId}
             orientation="left"
-            tickFormatter={(v) =>
-              primaryIsCount ? fmtCountCompact(Number(v)) : fmtMoneyCompact(Number(v), currency)
-            }
+            tickFormatter={(v) => formatAxisTick(primaryScale, Number(v))}
             tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
@@ -228,11 +253,7 @@ export function HomeV2SalesTrendChart({
             <YAxis
               yAxisId="secondary"
               orientation="right"
-              tickFormatter={(v) =>
-                secondaryIsCount
-                  ? fmtCountCompact(Number(v))
-                  : fmtMoneyCompact(Number(v), currency)
-              }
+              tickFormatter={(v) => formatAxisTick(secondaryScale, Number(v))}
               tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
               axisLine={false}
               tickLine={false}

@@ -40,6 +40,22 @@ export const WORKSPACE_CONFIG_SUBMODULES: readonly WorkspaceConfigSubmodule[] = 
   },
 ] as const
 
+export function visibleWorkspaceConfigSubmodules(
+  enabledModuleIds: readonly string[],
+): WorkspaceConfigSubmodule[] {
+  const enabled = new Set(enabledModuleIds)
+  const workspaceEnabled = enabled.has('workspace-config')
+  return WORKSPACE_CONFIG_SUBMODULES.filter((submodule) => {
+    if (!enabled.has(submodule.requiredModuleId)) return false
+    if (submodule.id === 'alarms') return true
+    return workspaceEnabled
+  })
+}
+
+export function shouldShowWorkspaceConfigNav(enabledModuleIds: readonly string[]): boolean {
+  return visibleWorkspaceConfigSubmodules(enabledModuleIds).length > 0
+}
+
 export function isWorkspaceConfigSubmoduleId(
   value: string,
 ): value is WorkspaceConfigSubmoduleId {

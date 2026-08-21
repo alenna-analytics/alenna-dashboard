@@ -80,10 +80,10 @@ function App() {
           <Route path="team/roles" element={<RequireModule permission="team.view"><TeamRolesPage /></RequireModule>} />
           <Route path="billing" element={<BillingConfigurationPage />} />
           <Route path="configuration/billing" element={<BillingLegacyRedirect />} />
-          <Route path="configuration" element={<RequireModule moduleId="workspace-config"><ConfigurationShellLayout /></RequireModule>}>
+          <Route path="configuration" element={<RequireModule anyModuleIds={['workspace-config', 'alarms']}><ConfigurationShellLayout /></RequireModule>}>
             <Route index element={<ConfigurationIndexRedirect />} />
-            <Route path="general" element={<GeneralConfigurationPage />} />
-            <Route path="pnl-terms" element={<PnlTermsConfigurationPage />} />
+            <Route path="general" element={<RequireModule moduleId="workspace-config"><GeneralConfigurationPage /></RequireModule>} />
+            <Route path="pnl-terms" element={<RequireModule moduleId="workspace-config"><PnlTermsConfigurationPage /></RequireModule>} />
             <Route path="alarms" element={<RequireModule moduleId="alarms"><AlarmsConfigurationListPage /></RequireModule>} />
             <Route path="alarms/stock" element={<RequireModule moduleId="alarms"><StockAlarmConfigurationPage /></RequireModule>} />
           </Route>

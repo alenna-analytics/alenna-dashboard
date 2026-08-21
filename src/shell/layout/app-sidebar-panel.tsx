@@ -4,7 +4,7 @@ import type { AppIconName } from '@/lib/icons/catalog'
 import type { SidebarControlMode } from '@/lib/shell/sidebar-control-prefs'
 import { useEnabledModules } from '@/lib/modules/use-modules'
 import { can } from '@/lib/permissions/can'
-import { useConfigSectionModules, useWorkspaceConfigModuleEnabled } from '@/lib/modules/use-workspace-config'
+import { useConfigSectionModules, useWorkspaceConfigModuleEnabled, useWorkspaceConfigNavEnabled } from '@/lib/modules/use-workspace-config'
 import type { ModuleSection, ModuleState } from '@/lib/modules/types'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { isBillingOwner } from '@/lib/plan/plan-limit-ui'
@@ -170,12 +170,13 @@ export function AppSidebarPanel({
   const integrationsModule = configModules.find((mod) => mod.id === 'integrations')
   const otherConfigModules = configModules.filter((mod) => mod.id !== 'integrations')
   const workspaceConfigEnabled = useWorkspaceConfigModuleEnabled()
+  const workspaceConfigNavEnabled = useWorkspaceConfigNavEnabled()
   const canSeeBilling = workspaceConfigEnabled && isBillingOwner(me)
   const canSeeTeam = can(me, 'team.view')
   const showBottomSection =
     canSeeTeam ||
     integrationsModule != null ||
-    workspaceConfigEnabled ||
+    workspaceConfigNavEnabled ||
     otherConfigModules.length > 0
 
   return (
@@ -235,7 +236,7 @@ export function AppSidebarPanel({
                 onNavigate={onNavigate}
               />
             ) : null}
-            {workspaceConfigEnabled ? (
+            {workspaceConfigNavEnabled ? (
               <WorkspaceConfigNavItem collapsed={collapsed} onNavigate={onNavigate} />
             ) : null}
             <ModuleNavItems

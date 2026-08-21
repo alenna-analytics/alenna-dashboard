@@ -8,6 +8,7 @@ import {
   isOwner,
 } from '@/lib/permissions/can'
 import {
+  HIDDEN_ASSIGNABLE_PERMISSION_KEYS,
   PERMISSION_GROUPS,
   toggleGroupAction,
   toggleGroupView,
@@ -94,9 +95,13 @@ describe('can-permissions', () => {
     expect(next).toEqual(expect.arrayContaining(['products.view', 'products.edit']))
   })
 
-  it('groups cover every assignable key', () => {
+  it('groups cover every assignable key except hidden FX', () => {
     const grouped = PERMISSION_GROUPS.flatMap((group) => [group.viewKey, ...group.actionKeys])
-    expect([...new Set(grouped)].sort()).toEqual([...ASSIGNABLE_PERMISSION_KEYS])
+    expect([...new Set([...grouped, ...HIDDEN_ASSIGNABLE_PERMISSION_KEYS])].sort()).toEqual([
+      ...ASSIGNABLE_PERMISSION_KEYS,
+    ])
+    expect(grouped).not.toContain('fx.view')
+    expect(grouped).not.toContain('fx.manage')
   })
 
   it('hasModule follows me.modules', () => {

@@ -27,6 +27,17 @@ describe('permission-groups overlay preview', () => {
     expect(ids).not.toContain('expenses')
   })
 
+  it('keeps ads as its own group without FX under settings', () => {
+    const ads = PERMISSION_GROUPS.find((g) => g.id === 'ads')!
+    const config = PERMISSION_GROUPS.find((g) => g.id === 'workspace_config')!
+    const alerts = PERMISSION_GROUPS.find((g) => g.id === 'alerts')!
+    expect(ads.viewKey).toBe('ads.view')
+    expect(ads.titleKey).toBe('permGroupAds')
+    expect(config.actionKeys).toEqual(['pnl_labels.view', 'pnl_labels.manage'])
+    expect(alerts.viewKey).toBe('alerts.view')
+    expect(alerts.actionKeys).toEqual(['alerts.manage'])
+  })
+
   it('summarizes assigned view and actions for confirmation', () => {
     const products = PERMISSION_GROUPS.find((g) => g.id === 'products')!
     const expenses = PERMISSION_GROUPS.find((g) => g.id === 'expenses')!

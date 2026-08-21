@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import { isModuleId, parseModuleIds } from '@/lib/modules/types'
+import {
+  shouldShowWorkspaceConfigNav,
+  visibleWorkspaceConfigSubmodules,
+} from '@/lib/modules/workspace-config-submodules'
 
 describe('module ids', () => {
   it('recognizes workspace configuration modules', () => {
@@ -16,5 +20,14 @@ describe('module ids', () => {
   it('recognizes expenses module', () => {
     expect(isModuleId('expenses')).toBe(true)
     expect(parseModuleIds(['expenses', 'channels', 'nope'])).toEqual(['expenses', 'channels'])
+  })
+
+  it('shows alarm config without workspace settings', () => {
+    expect(visibleWorkspaceConfigSubmodules(['alarms']).map((s) => s.id)).toEqual(['alarms'])
+    expect(shouldShowWorkspaceConfigNav(['alarms'])).toBe(true)
+    expect(visibleWorkspaceConfigSubmodules(['workspace-config']).map((s) => s.id)).toEqual([
+      'general',
+      'pnl-terms',
+    ])
   })
 })

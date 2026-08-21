@@ -37,9 +37,9 @@ export type AppSidebarPanelProps = {
 
 function linkClassNames(isActive: boolean, collapsed: boolean): string {
   const baseTrans =
-    'font-medium transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
+    'font-semibold transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
   const active = cn(
-    'bg-[var(--sidebar-active-bg)] font-medium text-text-primary shadow-none',
+    'bg-[var(--sidebar-active-bg)] font-semibold text-text-primary shadow-none',
   )
   const inactive = cn(
     'text-text-tertiary hover:bg-[var(--sidebar-accent)] hover:text-text-primary',
@@ -93,7 +93,7 @@ function NavItem({
     >
       <AppIcon name={icon} colorize className={sidebarNavIconClassName} />
       {!collapsed ? (
-        <span className={cn(sidebarNavLabelClassName, 'text-sm')}>{label}</span>
+        <span className={sidebarNavLabelClassName}>{label}</span>
       ) : null}
     </NavLink>
   )

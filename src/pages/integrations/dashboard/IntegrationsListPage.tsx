@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 
 import type { ManagedIntegration } from '@/lib/integrations/catalog'
+import type { PlatformConnection } from '@/lib/types/connectors'
 import { IntegrationCardSkeleton } from '@/pages/integrations/dashboard/integration-card-skeleton'
 import { IntegrationListCard } from '@/pages/integrations/dashboard/integration-list-card'
 import {
@@ -21,10 +22,13 @@ import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page
 import { useLanguage } from '@/shell/providers/language-provider'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { EmptyState } from '@/ui/empty-state'
+import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 
 type IntegrationsListPageProps = {
   category?: IntegrationsListCategory
 }
+
+type InstallFilter = 'installed' | 'not_installed' | ''
 
 function integrationDisplayName(integration: ManagedIntegration, lang: string): string {
   if (integration.nameKey) return shellT(lang, integration.nameKey)
@@ -44,9 +48,28 @@ function compareIntegrationNames(
   )
 }
 
+function integrationIsConnected(
+  integration: ManagedIntegration,
+  shopifyConnected: boolean,
+  mercadolibreConnected: boolean,
+  amazonConnected: boolean,
+  connections: PlatformConnection[],
+): boolean {
+  return (
+    isIntegrationConnected(
+      integration.slug,
+      shopifyConnected,
+      mercadolibreConnected,
+      amazonConnected,
+      Boolean(findActiveConnection(connections, integration.slug)),
+    ) || Boolean(findActiveConnection(connections, integration.slug))
+  )
+}
+
 export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageProps) {
   const { lang } = useLanguage()
   const [searchQuery, setSearchQuery] = useState('')
+  const [installFilter, setInstallFilter] = useState<InstallFilter>('')
   useIntegrationOAuthReturn()
 
   const shopifyIntegration = useShopifyIntegration()
@@ -55,6 +78,18 @@ export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageP
 
   const { integrations, connections, pageLoading, pageError, isFetching, refetch } =
     useIntegrationsListQueries()
+
+  const shopifyConnected = shopifyIntegration.connected
+  const mercadolibreConnected = mercadolibreIntegration.connected
+  const amazonConnected = amazonIntegration.connected
+
+  const statusOptions = useMemo(
+    () => [
+      { value: 'installed', label: shellT(lang, 'integrationsFilterInstalled') },
+      { value: 'not_installed', label: shellT(lang, 'integrationsFilterNotInstalled') },
+    ],
+    [lang],
+  )
 
   const visibleIntegrations = useMemo(() => {
     const byCategory =
@@ -71,7 +106,7 @@ export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageP
 
     const locale = lang === 'en' ? 'en' : 'es'
     const q = searchQuery.trim().toLocaleLowerCase(locale)
-    const filtered =
+    const searched =
       q.length === 0
         ? byCategory
         : byCategory.filter((integration) => {
@@ -81,12 +116,37 @@ export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageP
             return haystack.includes(q)
           })
 
+    const filtered =
+      installFilter === ''
+        ? searched
+        : searched.filter((integration) => {
+            const connected = integrationIsConnected(
+              integration,
+              shopifyConnected,
+              mercadolibreConnected,
+              amazonConnected,
+              connections,
+            )
+            return installFilter === 'installed' ? connected : !connected
+          })
+
     return [...filtered].sort((a, b) => compareIntegrationNames(a, b, lang))
-  }, [category, integrations, lang, searchQuery])
+  }, [
+    amazonConnected,
+    category,
+    connections,
+    installFilter,
+    integrations,
+    lang,
+    mercadolibreConnected,
+    searchQuery,
+    shopifyConnected,
+  ])
 
   const hasCatalog = integrations.length > 0
   const hasVisible = visibleIntegrations.length > 0
   const searchActive = searchQuery.trim().length > 0
+  const filterActive = installFilter.length > 0
 
   return (
     <DashboardPage className="space-y-8">
@@ -100,11 +160,28 @@ export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageP
           </p>
         </div>
         {!pageLoading && hasCatalog ? (
-          <IntegrationsSearchField
-            lang={lang}
-            value={searchQuery}
-            onChange={setSearchQuery}
-          />
+          <div className="flex min-w-max items-center gap-2">
+            <IntegrationsSearchField
+              lang={lang}
+              value={searchQuery}
+              onChange={setSearchQuery}
+            />
+            <FilterComboboxSingle
+              label={shellT(lang, 'integrationsColStatus')}
+              options={statusOptions}
+              value={installFilter}
+              onValueChange={(value) => {
+                if (value === 'installed' || value === 'not_installed') {
+                  setInstallFilter(value)
+                  return
+                }
+                setInstallFilter('')
+              }}
+              searchPlaceholder={shellT(lang, 'filterSearch')}
+              emptyLabel={shellT(lang, 'filterComingSoon')}
+              clearAriaLabel={shellT(lang, 'filterClear')}
+            />
+          </div>
         ) : null}
       </section>
 
@@ -128,10 +205,13 @@ export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageP
       ) : !hasCatalog ? (
         <IntegrationsEmptyState lang={lang} />
       ) : !hasVisible ? (
-        searchActive ? (
+        searchActive || filterActive ? (
           <EmptyState
             icon="integrations"
-            title={shellT(lang, 'integrationsEmptySearch')}
+            title={shellT(
+              lang,
+              searchActive ? 'integrationsEmptySearch' : 'integrationsEmptyFilter',
+            )}
           />
         ) : (
           <IntegrationsEmptyState lang={lang} />
@@ -153,15 +233,13 @@ export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageP
                 key={integration.slug}
                 integration={integration}
                 lang={lang}
-                connected={
-                  isIntegrationConnected(
-                    integration.slug,
-                    shopifyIntegration.connected,
-                    mercadolibreIntegration.connected,
-                    amazonIntegration.connected,
-                    Boolean(findActiveConnection(connections, integration.slug)),
-                  ) || Boolean(findActiveConnection(connections, integration.slug))
-                }
+                connected={integrationIsConnected(
+                  integration,
+                  shopifyConnected,
+                  mercadolibreConnected,
+                  amazonConnected,
+                  connections,
+                )}
                 needsInitialSync={integrationNeedsInitialSync(integration.slug, connections)}
               />
             ))}

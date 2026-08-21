@@ -21,7 +21,12 @@ import { DeleteAccountDialog } from '@/pages/configuration/general/delete-accoun
 import {
   useDeleteAccountMutation,
 } from '@/pages/configuration/general/use-account-deletion-mutations'
-import { patchWorkspaceName } from '@/pages/configuration/general/workspace-api'
+import {
+  isWorkspaceCurrencyCode,
+  patchWorkspace,
+  type WorkspaceCurrencyCode,
+  type WorkspacePatch,
+} from '@/pages/configuration/general/workspace-api'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
@@ -114,6 +119,7 @@ export function GeneralConfigurationPage() {
   const [confirmName, setConfirmName] = useState('')
   const [understood, setUnderstood] = useState(false)
   const [workspaceNameDraft, setWorkspaceNameDraft] = useState('')
+  const [currencyDraft, setCurrencyDraft] = useState<WorkspaceCurrencyCode>('MXN')
 
   const companyName = useMemo(() => {
     const fromMe = me?.tenant_name?.trim()
@@ -125,6 +131,13 @@ export function GeneralConfigurationPage() {
     setWorkspaceNameDraft(companyName)
   }, [companyName])
 
+  const workspaceCurrency = (me?.base_currency ?? 'MXN').toUpperCase()
+  useEffect(() => {
+    if (isWorkspaceCurrencyCode(workspaceCurrency)) {
+      setCurrencyDraft(workspaceCurrency)
+    }
+  }, [workspaceCurrency])
+
   const isWorkspaceAdmin = isOwner(me)
   const canEditName = isWorkspaceAdmin && !me?.is_fixture && me?.account_deletion_status !== 'pending'
   const isPending = me?.account_deletion_status === 'pending'
@@ -133,11 +146,21 @@ export function GeneralConfigurationPage() {
   const canViewTeam = can(me, 'team.view')
   const canSeeBilling = isBillingOwner(me)
   const nameDirty = workspaceNameDraft.trim() !== companyName.trim()
+  const currencyDirty =
+    isWorkspaceCurrencyCode(workspaceCurrency) && currencyDraft !== workspaceCurrency
+  const generalDirty = nameDirty || currencyDirty
 
   const languageOptions = useMemo(
     () => [
       { value: 'es', label: t('settingsLanguageEs') },
       { value: 'en', label: t('settingsLanguageEn') },
+    ],
+    [t],
+  )
+  const currencyOptions = useMemo(
+    () => [
+      { value: 'MXN', label: t('settingsCurrencyMxn') },
+      { value: 'USD', label: t('settingsCurrencyUsd') },
     ],
     [t],
   )
@@ -179,14 +202,19 @@ export function GeneralConfigurationPage() {
       : t('settingsAccessSubtitleMany', { count: accessCount })
 
   const renameMutation = useMutation({
-    mutationFn: () => patchWorkspaceName(getToken, tenantId!, workspaceNameDraft.trim()),
+    mutationFn: () => {
+      const payload: WorkspacePatch = {}
+      if (nameDirty) payload.name = workspaceNameDraft.trim()
+      if (currencyDirty) payload.base_currency = currencyDraft
+      return patchWorkspace(getToken, tenantId!, payload)
+    },
     onSuccess: async () => {
       await refetchMe()
       refetchTenants()
-      toast.success(t('settingsWorkspaceNameSaveSuccess'))
+      toast.success(t('settingsWorkspaceSaveSuccess'))
     },
     onError: () => {
-      toast.error(t('settingsWorkspaceNameSaveFailed'))
+      toast.error(t('settingsWorkspaceSaveFailed'))
     },
   })
 
@@ -209,7 +237,7 @@ export function GeneralConfigurationPage() {
   const planDescription = me ? billingCatalogDescription(me.plan, lang) : null
 
   return (
-    <DashboardPage className="space-y-10">
+    <DashboardPage className="mx-auto w-full max-w-4xl space-y-10">
       <section>
         <div className="w-full">
           <h1 className={pageTitleClassName}>{t('navGeneral')}</h1>
@@ -219,7 +247,7 @@ export function GeneralConfigurationPage() {
         </div>
       </section>
 
-      <section className="space-y-3">
+      <section className="space-y-6">
         <SettingsSectionHeader title={t('workspaceConfigGeneralSectionTitle')} />
         <SettingsCard>
           <SettingsRow label={t('companyLabel')} description={t('settingsCompanyDescription')}>
@@ -249,13 +277,39 @@ export function GeneralConfigurationPage() {
               triggerClassName="w-full"
             />
           </SettingsRow>
+          <SettingsRow
+            label={t('settingsCurrencyLabel')}
+            description={t('settingsCurrencyDescription')}
+          >
+            {canEditName ? (
+              <FilterComboboxSingle
+                label=""
+                options={currencyOptions}
+                value={currencyDraft}
+                onValueChange={(value) => {
+                  if (isWorkspaceCurrencyCode(value)) setCurrencyDraft(value)
+                }}
+                searchPlaceholder={t('settingsCurrencyLabel')}
+                emptyLabel={t('filterComingSoon')}
+                allowClear={false}
+                labelLayout="stacked"
+                triggerClassName="w-full"
+              />
+            ) : (
+              <p className="text-sm font-medium text-text-primary">
+                {currencyOptions.find((option) => option.value === currencyDraft)?.label ??
+                  currencyDraft}
+              </p>
+            )}
+          </SettingsRow>
           {canEditName ? (
             <div className="flex justify-end px-4 py-3">
               <Button
                 type="button"
-                variant="success"
+                variant="accent"
                 size="tiny"
-                disabled={!nameDirty || renameMutation.isPending || !tenantId}
+                loading={renameMutation.isPending}
+                disabled={!generalDirty || !tenantId}
                 onClick={() => renameMutation.mutate()}
               >
                 {t('workspaceConfigPnlTermsSave')}
@@ -265,7 +319,7 @@ export function GeneralConfigurationPage() {
         </SettingsCard>
       </section>
 
-      <section className="space-y-3">
+      <section className="space-y-6">
         <SettingsSectionHeader title={t('settingsAccessTitle')} />
         <SettingsCard>
           <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
@@ -309,7 +363,7 @@ export function GeneralConfigurationPage() {
         </SettingsCard>
       </section>
 
-      <section className="space-y-3">
+      <section className="space-y-6">
         <SettingsSectionHeader title={t('settingsPlanTitle')} description={t('settingsPlanSubtitle')} />
         <SettingsCard>
           <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">

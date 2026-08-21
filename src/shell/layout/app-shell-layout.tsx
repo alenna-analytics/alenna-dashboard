@@ -259,7 +259,7 @@ export function AppShellLayout() {
                         <div
                           className={cn(
                             WORKSPACE_SHELL_COLUMN_CLASS,
-                            'min-h-full py-3 lg:py-4',
+                            'min-h-full pt-[38px] pb-3 lg:pb-4',
                           )}
                         >
                           {!tenantId && tenants.length > 1 ? (

@@ -67,17 +67,24 @@ export function IntegrationListCard({
           <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-text-secondary">{desc}</p>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="mt-4 flex items-end justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            {!integration.available ? (
+              <StatusPill variant="warning">{shellT(lang, 'integrationsComingSoonBadge')}</StatusPill>
+            ) : connected ? null : (
+              <StatusPill
+                variant="neutral"
+                className="border-border-default bg-transparent text-text-secondary"
+              >
+                {shellT(lang, 'integrationsStatusNotConnected')}
+              </StatusPill>
+            )}
+          </div>
           {category ? (
-            <span className="text-[11px] font-medium uppercase tracking-wide text-text-tertiary">
+            <span className="shrink-0 text-[11px] font-medium uppercase tracking-wide text-text-tertiary">
               {category}
             </span>
           ) : null}
-          {!integration.available ? (
-            <StatusPill variant="warning">{shellT(lang, 'integrationsComingSoonBadge')}</StatusPill>
-          ) : connected ? null : (
-            <StatusPill variant="neutral">{shellT(lang, 'integrationsStatusNotConnected')}</StatusPill>
-          )}
         </div>
       </Link>
     </li>

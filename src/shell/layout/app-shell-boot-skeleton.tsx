@@ -87,7 +87,7 @@ function ShellConfigurationInnerSidebarSkeleton() {
       </div>
       <div className="flex flex-col gap-1 p-3">
         {Array.from({ length: 2 }).map((_, i) => (
-          <Skeleton key={i} className="h-8 w-full rounded-md" />
+          <Skeleton key={i} className="h-6 w-full rounded-md" />
         ))}
       </div>
     </aside>
@@ -149,7 +149,7 @@ export function AppShellBootSkeleton() {
           ) : null}
           <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
             <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
-              <div className={cn(WORKSPACE_SHELL_COLUMN_CLASS, 'min-h-full py-3 lg:py-4')}>
+              <div className={cn(WORKSPACE_SHELL_COLUMN_CLASS, 'min-h-full pt-[38px] pb-3 lg:pb-4')}>
                 <ShellMainSkeleton />
               </div>
             </main>

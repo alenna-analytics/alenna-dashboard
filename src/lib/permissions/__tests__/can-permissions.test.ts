@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ASSIGNABLE_PERMISSION_KEYS,
   can,
+  canReadPnlLabels,
   hasModule,
   isOwner,
 } from '@/lib/permissions/can'
@@ -101,5 +102,16 @@ describe('can-permissions', () => {
   it('hasModule follows me.modules', () => {
     expect(hasModule(baseMe, 'products')).toBe(false)
     expect(hasModule({ ...baseMe, modules: ['products'] }, 'products')).toBe(true)
+  })
+
+  it('sales/reports view can read P&L labels used on home', () => {
+    const salesReports = {
+      ...baseMe,
+      permissions: ['sales.view', 'reports.view'],
+    }
+    expect(canReadPnlLabels(salesReports)).toBe(true)
+    expect(can(salesReports, 'pnl_labels.view')).toBe(false)
+    expect(canReadPnlLabels({ ...baseMe, permissions: [] })).toBe(false)
+    expect(canReadPnlLabels({ ...baseMe, is_owner: true, permissions: [] })).toBe(true)
   })
 })

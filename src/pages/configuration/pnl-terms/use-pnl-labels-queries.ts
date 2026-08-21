@@ -3,9 +3,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 
 import { useCurrentTenant } from '@/auth/hooks'
+import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { apiFetch, apiPutJson } from '@/lib/api'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { shellT } from '@/lib/i18n/shell-strings'
+import { canReadPnlLabels } from '@/lib/permissions/can'
 import { resolvePnlAwareShellLabel, resolvePnlLabel } from '@/lib/pnl/resolve-pnl-label'
 import type { PnlLabelOverridesResponse, PutPnlLabelOverridesBody } from '@/lib/types/pnl-labels'
 import type { PnlRowId } from '@/pages/reports/reports-pnl-rows'
@@ -18,10 +20,12 @@ export function pnlLabelsQueryKey(tenantId: string | null) {
 export function usePnlLabelsQuery() {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const { me } = useAppBootstrap()
+  const canRead = canReadPnlLabels(me)
 
   return useQuery({
     queryKey: pnlLabelsQueryKey(tenantId),
-    enabled: Boolean(tenantId),
+    enabled: Boolean(tenantId) && canRead,
     staleTime: 60_000,
     queryFn: async (): Promise<PnlLabelOverridesResponse> => {
       const res = await apiFetch('/settings/pnl-labels', (a) => getToken(a), {}, tenantId)

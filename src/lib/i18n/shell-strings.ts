@@ -967,6 +967,9 @@ const SHELL_STRINGS = {
     adsChartChannelTitle: 'Gasto por canal',
     adsChartTrendEmpty: 'No hay métricas diarias en este rango.',
     adsChartChannelEmpty: 'No hay gasto por canal en este rango.',
+    adsChannelTableEmpty: 'No hay canales con métricas en este rango.',
+    adsFxIncompleteWarning:
+      'Algunos montos no pudieron convertirse por falta de tipo de cambio; los totales pueden estar incompletos.',
     adsPlatformMercadoAds: 'Mercado Ads',
     adsPlatformAmazonAds: 'Amazon Ads',
     adsPlatformGoogleAds: 'Google Ads',
@@ -2827,6 +2830,9 @@ const SHELL_STRINGS = {
     adsChartChannelTitle: 'Spend by channel',
     adsChartTrendEmpty: 'No daily metrics in this range.',
     adsChartChannelEmpty: 'No channel spend in this range.',
+    adsChannelTableEmpty: 'No channels with metrics in this range.',
+    adsFxIncompleteWarning:
+      'Some amounts could not be converted due to missing FX rates; totals may be incomplete.',
     adsPlatformMercadoAds: 'Mercado Ads',
     adsPlatformAmazonAds: 'Amazon Ads',
     adsPlatformGoogleAds: 'Google Ads',

@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+import { AlertTriangle, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { useCurrentTenant } from '@/auth/hooks'
@@ -18,11 +20,12 @@ import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shel
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { buttonVariants } from '@/ui/button'
+import { ContextAlertCard, ContextAlertsGroup, type ContextAlertTone } from '@/ui/context-alert'
 import { presetDateRangeYmd } from '@/ui/date-range-picker'
+import { EmptyState } from '@/ui/empty-state'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { KpiCard } from '@/ui/kpi-card'
 import { Skeleton } from '@/ui/skeleton'
-import { useMemo } from 'react'
 
 type AdsFiltersState = {
   start: string
@@ -133,8 +136,32 @@ export function AdsPage() {
   const adsCurrency = channels.data?.currency ?? series.data?.currency ?? data?.currency
   const kpisChannelsLoading = queryEnabled && (kpis.isLoading || channels.isLoading)
   const isError = kpis.isError || channels.isError
+  const channelItems = channels.data?.items ?? []
   const formatDisplay = (n: number) =>
     formatMoney(n, adsCurrency ? { nativeCurrency: adsCurrency } : undefined)
+
+  const pageAlerts = useMemo(() => {
+    type PageAlertItem = {
+      key: string
+      title: string
+      icon: LucideIcon
+      tone: ContextAlertTone
+    }
+    const items: PageAlertItem[] = []
+    const fxIncomplete =
+      Boolean(kpis.data?.fx_incomplete) ||
+      Boolean(channels.data?.items.some((row) => row.fx_incomplete)) ||
+      Boolean(series.data?.fx_incomplete)
+    if (fxIncomplete) {
+      items.push({
+        key: 'fx-incomplete',
+        title: shellT(lang, 'adsFxIncompleteWarning'),
+        icon: AlertTriangle,
+        tone: 'warning',
+      })
+    }
+    return items
+  }, [kpis.data?.fx_incomplete, channels.data?.items, series.data?.fx_incomplete, lang])
 
   return (
     <DashboardPage className="flex flex-1 flex-col gap-8">
@@ -183,6 +210,24 @@ export function AdsPage() {
         />
       ) : (
         <>
+          {pageAlerts.length > 0 ? (
+            <ContextAlertsGroup
+              title={shellT(lang, 'contextAlertsTitle').replace(
+                '{count}',
+                String(pageAlerts.length),
+              )}
+            >
+              {pageAlerts.map((alert) => (
+                <ContextAlertCard
+                  key={alert.key}
+                  title={alert.title}
+                  icon={alert.icon}
+                  tone={alert.tone}
+                />
+              ))}
+            </ContextAlertsGroup>
+          ) : null}
+
           <SectionContainer>
             <SectionHeader title={shellT(lang, 'adsKpiSectionTitle')} />
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -234,7 +279,7 @@ export function AdsPage() {
             <SectionContainer>
               <SectionHeader title={shellT(lang, 'adsChartChannelTitle')} />
               <AdsChannelSpendChart
-                rows={channels.data?.items ?? []}
+                rows={channelItems}
                 lang={lang}
                 formatValue={formatDisplay}
                 isLoading={kpisChannelsLoading}
@@ -244,33 +289,39 @@ export function AdsPage() {
 
           <SectionContainer>
             <SectionHeader title={shellT(lang, 'adsChannelTableTitle')} />
-            <div className="overflow-x-auto rounded-md border border-border-subtle">
-              <table className="w-full min-w-[640px] text-left text-sm">
-                <thead className="bg-muted/40 text-text-secondary">
-                  <tr>
-                    <th className="px-3 py-2 font-medium">{shellT(lang, 'adsChannelColumn')}</th>
-                    <th className="px-3 py-2 font-medium">{shellT(lang, 'adsKpiSpend')}</th>
-                    <th className="px-3 py-2 font-medium">{shellT(lang, 'adsKpiSales')}</th>
-                    <th className="px-3 py-2 font-medium">{shellT(lang, 'adsKpiRoas')}</th>
-                    <th className="px-3 py-2 font-medium">{shellT(lang, 'adsKpiTacos')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(channels.data?.items ?? []).map((row) => (
-                    <tr
-                      key={`${row.platform}-${row.connection_id ?? 'none'}`}
-                      className="border-t border-border-subtle"
-                    >
-                      <td className="px-3 py-2">{adsPlatformLabel(row.platform, lang)}</td>
-                      <td className="px-3 py-2">{formatDisplay(row.spend)}</td>
-                      <td className="px-3 py-2">{formatDisplay(row.attributed_sales)}</td>
-                      <td className="px-3 py-2">{formatRatio(row.roas)}</td>
-                      <td className="px-3 py-2">{formatRatio(row.tacos)}</td>
+            {kpisChannelsLoading ? (
+              <Skeleton className="h-40 w-full rounded-md" aria-hidden />
+            ) : channelItems.length === 0 ? (
+              <EmptyState size="sm" icon="home" title={shellT(lang, 'adsChannelTableEmpty')} />
+            ) : (
+              <div className="overflow-x-auto rounded-md border border-border-subtle">
+                <table className="w-full min-w-[640px] text-left text-sm">
+                  <thead className="bg-muted/40 text-text-secondary">
+                    <tr>
+                      <th className="px-3 py-2 font-medium">{shellT(lang, 'adsChannelColumn')}</th>
+                      <th className="px-3 py-2 font-medium">{shellT(lang, 'adsKpiSpend')}</th>
+                      <th className="px-3 py-2 font-medium">{shellT(lang, 'adsKpiSales')}</th>
+                      <th className="px-3 py-2 font-medium">{shellT(lang, 'adsKpiRoas')}</th>
+                      <th className="px-3 py-2 font-medium">{shellT(lang, 'adsKpiTacos')}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {channelItems.map((row) => (
+                      <tr
+                        key={`${row.platform}-${row.connection_id ?? 'none'}`}
+                        className="border-t border-border-subtle"
+                      >
+                        <td className="px-3 py-2">{adsPlatformLabel(row.platform, lang)}</td>
+                        <td className="px-3 py-2">{formatDisplay(row.spend)}</td>
+                        <td className="px-3 py-2">{formatDisplay(row.attributed_sales)}</td>
+                        <td className="px-3 py-2">{formatRatio(row.roas)}</td>
+                        <td className="px-3 py-2">{formatRatio(row.tacos)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </SectionContainer>
         </>
       )}

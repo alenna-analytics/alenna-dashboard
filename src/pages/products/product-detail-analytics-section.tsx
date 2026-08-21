@@ -12,6 +12,8 @@ import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import type { FilterOption } from '@/ui/filters/types'
 import { Skeleton } from '@/ui/skeleton'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
+import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 
 import {
@@ -93,6 +95,7 @@ export function ProductDetailAnalyticsSection({
   showSectionTitle = true,
 }: ProductDetailAnalyticsSectionProps) {
   const [granularity, setGranularity] = useState<RevenueSeriesGranularity>('week')
+  const [trendChartType, setTrendChartType] = useState<SeriesChartView>('line')
   const [selectedMetrics, setSelectedMetrics] = useState<ProductDetailTrendMetricId[]>([
     'net-sales',
   ])
@@ -258,8 +261,13 @@ export function ProductDetailAnalyticsSection({
             />
           ))}
         </div>
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
           <ChartGranularityFilter value={granularity} onChange={setGranularity} t={t} />
+          <AppSeriesChartViewToggle
+            value={trendChartType}
+            onChange={setTrendChartType}
+            t={t}
+          />
         </div>
         {isError ? (
           <p className="text-sm text-destructive">{t('reportsMonthlyLoadError')}</p>
@@ -273,6 +281,7 @@ export function ProductDetailAnalyticsSection({
             formatMoney={fmtBase}
             dateLocale={dateLocale}
             t={t}
+            chartType={trendChartType}
           />
         )}
       </CardContent>

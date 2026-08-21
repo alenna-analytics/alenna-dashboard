@@ -6,7 +6,7 @@ export function IntegrationCardSkeleton() {
     <li>
       <div
         className={cn(
-          'flex h-full flex-col rounded-md border border-border-default bg-white p-5',
+          'flex h-full flex-col rounded-lg border border-border-card bg-white p-5',
         )}
         aria-hidden
       >

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { defaultInviteRoleId, selectableWorkspaceRoles } from '@/lib/team/team-role-options'
+import { defaultInviteRoleId, selectableWorkspaceRoles, sortWorkspaceRoles } from '@/lib/team/team-role-options'
 import type { WorkspaceRole } from '@/lib/types/team-types'
 
 const roles: WorkspaceRole[] = [
@@ -47,6 +47,11 @@ const roles: WorkspaceRole[] = [
 ]
 
 describe('team-role-options', () => {
+  it('lists owner before admin and staff, then custom roles', () => {
+    const shuffled = [roles[2]!, roles[3]!, roles[1]!, roles[0]!]
+    expect(sortWorkspaceRoles(shuffled).map((r) => r.id)).toEqual(['o', 'a', 's', 'c'])
+  })
+
   it('hides owner unless the actor is owner', () => {
     const forAdmin = selectableWorkspaceRoles(roles, { isOwner: false, lockToOwner: false })
     expect(forAdmin.map((r) => r.id)).toEqual(['a', 's', 'c'])

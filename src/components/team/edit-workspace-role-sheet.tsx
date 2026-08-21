@@ -105,8 +105,8 @@ export function EditWorkspaceRoleSheet({
                 disabled={locked || save.isPending}
               />
             </div>
-            <fieldset className="space-y-2">
-              <legend className="text-sm font-medium">{t('teamRolesPermissionsLabel')}</legend>
+            <div className="grid gap-2 sm:grid-cols-[9rem_minmax(0,1fr)] sm:items-start sm:gap-x-8">
+              <p className="text-sm font-medium sm:pt-3">{t('teamRolesPermissionsLabel')}</p>
               <PermissionGroupToggles
                 lang={lang}
                 permissions={permissions}
@@ -114,7 +114,7 @@ export function EditWorkspaceRoleSheet({
                 enabledModuleIds={me?.modules ?? []}
                 disabled={locked || save.isPending}
               />
-            </fieldset>
+            </div>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
           </SheetBody>
           <SheetFooter>

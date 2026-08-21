@@ -34,7 +34,7 @@ export function IntegrationEnableCard({
   return (
     <div
       className={cn(
-        'w-full overflow-hidden rounded-md border border-border-default bg-white',
+        'w-full overflow-hidden rounded-lg border border-border-card bg-white',
         className,
       )}
     >

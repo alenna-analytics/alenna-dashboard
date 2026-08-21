@@ -11,6 +11,7 @@ import {
   fetchTeamMembers,
   fetchWorkspaceRoles,
 } from '@/lib/team/team-api'
+import { sortWorkspaceRoles } from '@/lib/team/team-role-options'
 import { isOwner } from '@/lib/permissions/can'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { shouldShowCustomRolesUpgrade } from '@/pages/team/team-roles-paywall'
@@ -79,7 +80,7 @@ export function TeamRolesPage() {
     onError: (err: Error) => setError(err.message),
   })
 
-  const roles = rolesQuery.data?.roles ?? []
+  const roles = sortWorkspaceRoles(rolesQuery.data?.roles ?? [])
   const canManageRoles = Boolean(rolesQuery.data?.can_manage_roles)
   const atLimit =
     rolesQuery.data?.roles_limit != null &&

@@ -60,6 +60,23 @@ export function can(me: MeResponse | null | undefined, key: string): boolean {
   return (me.permissions ?? []).includes(key)
 }
 
+export const PNL_LABELS_READ_KEYS = [
+  'pnl_labels.view',
+  'reports.view',
+  'sales.view',
+  'products.view',
+  'channels.view',
+  'expenses.view',
+  'ads.view',
+  'simulations.view',
+] as const
+
+export function canReadPnlLabels(me: MeResponse | null | undefined): boolean {
+  if (!me) return false
+  if (me.is_owner) return true
+  return PNL_LABELS_READ_KEYS.some((key) => (me.permissions ?? []).includes(key))
+}
+
 export function hasModule(me: MeResponse | null | undefined, moduleId: ModuleId): boolean {
   if (!me) return false
   return (me.modules ?? []).includes(moduleId)

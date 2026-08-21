@@ -4,7 +4,7 @@ import type { AppIconName } from '@/lib/icons/catalog'
 import type { SidebarControlMode } from '@/lib/shell/sidebar-control-prefs'
 import { useEnabledModules } from '@/lib/modules/use-modules'
 import { can } from '@/lib/permissions/can'
-import { useConfigSectionModules, useWorkspaceConfigModuleEnabled } from '@/lib/modules/use-workspace-config'
+import { useConfigSectionModules, useWorkspaceConfigModuleEnabled, useWorkspaceConfigNavEnabled, useAlarmsModuleEnabled } from '@/lib/modules/use-workspace-config'
 import type { ModuleSection, ModuleState } from '@/lib/modules/types'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { isBillingOwner } from '@/lib/plan/plan-limit-ui'
@@ -37,9 +37,9 @@ export type AppSidebarPanelProps = {
 
 function linkClassNames(isActive: boolean, collapsed: boolean): string {
   const baseTrans =
-    'font-medium transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
+    'font-semibold transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/40'
   const active = cn(
-    'bg-[var(--sidebar-active-bg)] font-medium text-text-primary shadow-none',
+    'bg-[var(--sidebar-active-bg)] font-semibold text-text-primary shadow-none',
   )
   const inactive = cn(
     'text-text-tertiary hover:bg-[var(--sidebar-accent)] hover:text-text-primary',
@@ -93,7 +93,7 @@ function NavItem({
     >
       <AppIcon name={icon} colorize className={sidebarNavIconClassName} />
       {!collapsed ? (
-        <span className={cn(sidebarNavLabelClassName, 'text-sm')}>{label}</span>
+        <span className={sidebarNavLabelClassName}>{label}</span>
       ) : null}
     </NavLink>
   )
@@ -170,13 +170,17 @@ export function AppSidebarPanel({
   const integrationsModule = configModules.find((mod) => mod.id === 'integrations')
   const otherConfigModules = configModules.filter((mod) => mod.id !== 'integrations')
   const workspaceConfigEnabled = useWorkspaceConfigModuleEnabled()
+  const workspaceConfigNavEnabled = useWorkspaceConfigNavEnabled()
+  const alarmsEnabled = useAlarmsModuleEnabled()
   const canSeeBilling = workspaceConfigEnabled && isBillingOwner(me)
   const canSeeTeam = can(me, 'team.view')
-  const showBottomSection =
+  const showWorkspaceSection =
     canSeeTeam ||
+    alarmsEnabled ||
     integrationsModule != null ||
-    workspaceConfigEnabled ||
+    canSeeBilling ||
     otherConfigModules.length > 0
+
 
   return (
     <div
@@ -206,8 +210,8 @@ export function AppSidebarPanel({
           collapsed={collapsed}
           onNavigate={onNavigate}
         />
-        {showBottomSection ? (
-          <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionConfiguration')}>
+        {showWorkspaceSection ? (
+          <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionWorkspace')}>
             {canSeeTeam ? (
             <NavItem
               icon="orgs"
@@ -226,6 +230,15 @@ export function AppSidebarPanel({
                 onNavigate={onNavigate}
               />
             ) : null}
+            {alarmsEnabled ? (
+              <NavItem
+                icon="notifications"
+                to="/dashboard/alarms"
+                label={t('navAlarms')}
+                collapsed={collapsed}
+                onNavigate={onNavigate}
+              />
+            ) : null}
             {canSeeBilling ? (
               <NavItem
                 icon="billing"
@@ -235,14 +248,16 @@ export function AppSidebarPanel({
                 onNavigate={onNavigate}
               />
             ) : null}
-            {workspaceConfigEnabled ? (
-              <WorkspaceConfigNavItem collapsed={collapsed} onNavigate={onNavigate} />
-            ) : null}
             <ModuleNavItems
               modules={otherConfigModules}
               collapsed={collapsed}
               onNavigate={onNavigate}
             />
+          </SidebarNavSection>
+        ) : null}
+        {workspaceConfigNavEnabled ? (
+          <SidebarNavSection collapsed={collapsed} sectionLabel={t('navSectionConfiguration')}>
+            <WorkspaceConfigNavItem collapsed={collapsed} onNavigate={onNavigate} />
           </SidebarNavSection>
         ) : null}
       </nav>

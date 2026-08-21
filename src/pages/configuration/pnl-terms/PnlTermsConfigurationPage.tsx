@@ -6,35 +6,23 @@ import { normalizePnlLabelOverrides, serializePnlLabelOverrides } from '@/lib/pn
 import { shellT } from '@/lib/i18n/shell-strings'
 import { can } from '@/lib/permissions/can'
 import type { PnlLabelLocale, PnlLabelOverridesApi } from '@/lib/types/pnl-labels'
-import { ProductDetailUnsavedBar } from '@/pages/products/product-detail-unsaved-bar'
+import {
+  SettingsCard,
+  SettingsRow,
+  SettingsSectionHeader,
+} from '@/pages/configuration/settings-layout'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Button } from '@/ui/button'
+import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import { Input } from '@/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/ui/select'
 import { Skeleton } from '@/ui/skeleton'
 
 import {
   usePnlLabelsQuery,
   usePutPnlLabelsMutation,
 } from './use-pnl-labels-queries'
-
-function SettingsSection({ children }: { children: React.ReactNode }) {
-  return (
-    <section>
-      <div className="w-full overflow-hidden rounded-md border border-border-default bg-white divide-y divide-border-default">
-        {children}
-      </div>
-    </section>
-  )
-}
 
 export function PnlTermsConfigurationPage() {
   const { lang } = useLanguage()
@@ -89,85 +77,58 @@ export function PnlTermsConfigurationPage() {
   }
 
   const languageOptions = useMemo(
-    () =>
-      [
-        { value: 'es' as const, label: t('settingsLanguageEs') },
-        { value: 'en' as const, label: t('settingsLanguageEn') },
-      ] satisfies { value: PnlLabelLocale; label: string }[],
+    () => [
+      { value: 'es', label: t('settingsLanguageEs') },
+      { value: 'en', label: t('settingsLanguageEn') },
+    ],
     [t],
   )
 
   return (
-    <DashboardPage className="space-y-8">
+    <DashboardPage className="mx-auto w-full max-w-4xl space-y-10">
       <section>
-        <h1 className={pageTitleClassName}>{t('workspaceConfigPnlTermsTitle')}</h1>
-        <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
-          {t('workspaceConfigPnlTermsSubtitle')}
-        </p>
+        <div className="w-full">
+          <h1 className={pageTitleClassName}>{t('workspaceConfigPnlTermsTitle')}</h1>
+          <p className="mt-1.5 text-xs leading-relaxed text-text-secondary">
+            {t('workspaceConfigPnlTermsSubtitle')}
+          </p>
+        </div>
       </section>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="w-full max-w-xs space-y-1.5">
-          <p className="text-sm font-medium text-text-primary">{t('settingsLanguageLabel')}</p>
-          <Select
-            value={editLang}
-            itemToStringLabel={(value) =>
-              languageOptions.find((option) => option.value === value)?.label ?? String(value)
-            }
-            onValueChange={(value) => {
-              if (value === 'es' || value === 'en') setEditLang(value)
-            }}
+      <section className="space-y-6">
+        <SettingsSectionHeader title={t('workspaceConfigPnlTermsDescription')} />
+        <SettingsCard>
+          <SettingsRow
+            label={t('settingsLanguageLabel')}
+            description={t('workspaceConfigPnlTermsDescription')}
           >
-            <SelectTrigger className="h-[33px] w-full rounded-md border-border-default bg-white shadow-none">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="start" alignItemWithTrigger={false} className="min-w-[var(--anchor-width)]">
-              {languageOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value} label={option.label}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {isWorkspaceAdmin && hasCustomLabels ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 shrink-0 text-text-secondary"
-            onClick={() => void restoreDefaults()}
-            loading={putMutation.isPending}
-            disabled={termsLoading}
-          >
-            {t('workspaceConfigPnlTermsRestoreDefaults')}
-          </Button>
-        ) : null}
-      </div>
-
-      <SettingsSection>
-        {PNL_ROW_IDS.map((rowId) => {
-          const defaultLabel = shellT(editLang, PNL_ROW_LABEL_KEYS[rowId])
-          const customLabel = working[rowId]?.[editLang] ?? ''
-          return (
-            <div
-              key={rowId}
-              className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1.2fr)] sm:items-center sm:gap-6"
-            >
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-text-primary">{defaultLabel}</p>
-                <p className="mt-0.5 text-xs text-text-tertiary">
-                  {t('workspaceConfigPnlTermsDefaultLabel')}
-                </p>
-              </div>
-              <div className="hidden text-xs font-medium uppercase tracking-wide text-text-tertiary sm:block">
-                {editLang.toUpperCase()}
-              </div>
-              <div className="relative min-w-0">
+            <FilterComboboxSingle
+              label=""
+              options={languageOptions}
+              value={editLang}
+              onValueChange={(value) => {
+                if (value === 'es' || value === 'en') setEditLang(value)
+              }}
+              searchPlaceholder={t('settingsLanguageLabel')}
+              emptyLabel={t('filterComingSoon')}
+              allowClear={false}
+              labelLayout="stacked"
+              triggerClassName="w-full"
+            />
+          </SettingsRow>
+          {PNL_ROW_IDS.map((rowId) => {
+            const defaultLabel = shellT(editLang, PNL_ROW_LABEL_KEYS[rowId])
+            const customLabel = working[rowId]?.[editLang] ?? ''
+            return (
+              <SettingsRow
+                key={rowId}
+                label={defaultLabel}
+                description={t('workspaceConfigPnlTermsDefaultLabel')}
+              >
                 {termsLoading ? (
                   <Skeleton className="h-[33px] w-full" />
                 ) : (
-                  <>
+                  <div className="relative min-w-0">
                     <Input
                       value={customLabel}
                       onChange={(event) => setCustomLabel(rowId, event.target.value)}
@@ -185,26 +146,42 @@ export function PnlTermsConfigurationPage() {
                         {customLabel.length}/{MAX_PNL_LABEL_LENGTH}
                       </span>
                     ) : null}
-                  </>
+                  </div>
                 )}
-              </div>
+              </SettingsRow>
+            )
+          })}
+          {isWorkspaceAdmin ? (
+            <div className="flex flex-wrap justify-end gap-2 px-4 py-3">
+              {hasCustomLabels ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="tiny"
+                  loading={putMutation.isPending}
+                  disabled={termsLoading}
+                  onClick={() => void restoreDefaults()}
+                >
+                  {t('workspaceConfigPnlTermsRestoreDefaults')}
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                variant="accent"
+                size="tiny"
+                loading={putMutation.isPending}
+                disabled={!isDirty || termsLoading}
+                onClick={() => void save()}
+              >
+                {t('workspaceConfigPnlTermsSave')}
+              </Button>
             </div>
-          )
-        })}
-      </SettingsSection>
+          ) : null}
+        </SettingsCard>
+      </section>
 
       {!isWorkspaceAdmin ? (
         <p className="text-sm text-text-secondary">{t('workspaceConfigPnlTermsReadOnlyHint')}</p>
-      ) : null}
-
-      {isWorkspaceAdmin ? (
-        <ProductDetailUnsavedBar
-          open={isDirty}
-          t={t}
-          onDiscard={() => setDraft(null)}
-          onSave={() => void save()}
-          savePending={putMutation.isPending}
-        />
       ) : null}
     </DashboardPage>
   )

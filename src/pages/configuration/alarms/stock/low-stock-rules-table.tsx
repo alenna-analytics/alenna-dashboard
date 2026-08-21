@@ -4,6 +4,7 @@ import { shellT } from '@/lib/i18n/shell-strings'
 import type { StockOverrideApi } from '@/lib/types/alert-rules'
 import { lowStockRuleEffectiveEnabled } from '@/pages/configuration/alarms/stock/stock-alert-config-helpers'
 import { Button } from '@/ui/button'
+import { EmptyState } from '@/ui/empty-state'
 import { StatusPill } from '@/ui/status-pill'
 import { Switch } from '@/ui/switch'
 import { cn } from '@/lib/utils'
@@ -70,7 +71,20 @@ export function LowStockRulesTable({
       </div>
 
       {items.length === 0 ? (
-        <p className="text-sm text-text-secondary">{shellT(lang, 'alarmsScopedRulesEmpty')}</p>
+        <EmptyState
+          size="sm"
+          icon="notifications"
+          title={shellT(lang, 'alarmsScopedRulesEmpty')}
+          description={shellT(lang, 'alarmsCustomRulesDescription')}
+          action={
+            isAdmin ? (
+              <Button type="button" variant="outline" size="tiny" onClick={onAdd}>
+                <Plus aria-hidden />
+                {shellT(lang, 'alarmsAddRule')}
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <Table>
           <TableHeader>

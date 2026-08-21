@@ -5,7 +5,7 @@ import { readSidebarControlMode } from '@/lib/shell/sidebar-control-prefs'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { isConfigurationRoute } from '@/pages/configuration/configuration-inner-nav'
 import { isTeamRoute } from '@/pages/team/team-inner-nav'
-import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
+import { shellMainColumnClassName } from '@/shell/layout/shell-main-padding'
 import {
   shellChromeHeaderRowClassName,
   sidebarInsetPaddingClassName,
@@ -87,7 +87,7 @@ function ShellConfigurationInnerSidebarSkeleton() {
       </div>
       <div className="flex flex-col gap-1 p-3">
         {Array.from({ length: 2 }).map((_, i) => (
-          <Skeleton key={i} className="h-8 w-full rounded-md" />
+          <Skeleton key={i} className="h-6 w-full rounded-md" />
         ))}
       </div>
     </aside>
@@ -113,7 +113,7 @@ function ShellMainSkeleton() {
         <Skeleton className="h-8 w-40 max-w-[50%] rounded-md" />
         <Skeleton className="h-4 w-72 max-w-[80%] rounded-md" />
       </div>
-      <div className="w-full overflow-hidden rounded-md border border-border-default bg-white divide-y divide-border-default">
+      <div className="w-full overflow-hidden rounded-lg border border-border-card bg-white divide-y divide-border-card">
         <SettingsRowSkeleton />
         <SettingsRowSkeleton />
       </div>
@@ -149,7 +149,7 @@ export function AppShellBootSkeleton() {
           ) : null}
           <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
             <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
-              <div className={cn(WORKSPACE_SHELL_COLUMN_CLASS, 'min-h-full py-3 lg:py-4')}>
+              <div className={shellMainColumnClassName(pathname)}>
                 <ShellMainSkeleton />
               </div>
             </main>

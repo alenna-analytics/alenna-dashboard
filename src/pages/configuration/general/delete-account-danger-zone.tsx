@@ -23,7 +23,7 @@ export function DeleteAccountDangerZone({
         : 'settingsDeleteAccountCardDescription'
 
   return (
-    <section className="space-y-2">
+    <section className="space-y-6">
       <div>
         <h2 className="text-base font-semibold tracking-[-0.01em] text-text-primary">
           {shellT(lang, 'settingsDangerZoneTitle')}
@@ -33,7 +33,7 @@ export function DeleteAccountDangerZone({
         </p>
       </div>
 
-      <div className="rounded-lg border border-border-default bg-white p-4">
+      <div className="rounded-lg border border-border-card bg-white p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <div
             className="flex size-10 shrink-0 items-center justify-center rounded-md bg-[var(--status-red-500)] text-white"

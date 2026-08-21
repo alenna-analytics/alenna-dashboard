@@ -26,7 +26,7 @@ import type { PlatformConnection } from '@/lib/types/connectors'
 import type { KpiResponse, ProductKpiResponse, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
-import { HomeChannelDonutChart } from '@/pages/dashboard/home-channel-donut-chart'
+import { HomeChannelShareSection } from '@/pages/dashboard/home-channel-donut-chart'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
 import { HomeProductFilter } from '@/pages/dashboard/home-product-filter'
 import { HomeTopProductsChart } from '@/pages/dashboard/home-top-products-chart'
@@ -42,7 +42,11 @@ import {
 } from '@/pages/dashboard/home-v2-kpi-card-order'
 import { HomeV2KpiSortableGrid } from '@/pages/dashboard/home-v2-kpi-sortable-grid'
 import { HomeV2KpiSparklineCard } from '@/pages/dashboard/home-v2-kpi-sparkline-card'
-import { HomeV2SalesTrendChart } from '@/pages/dashboard/home-v2-sales-trend-chart'
+import {
+  HomeV2SalesTrendChart,
+  type HomeV2SalesTrendChartType,
+} from '@/pages/dashboard/home-v2-sales-trend-chart'
+import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
 import { HomeV2SalesTrendMetricFilters } from '@/pages/dashboard/home-v2-sales-trend-metric-filters'
 import {
   formatHomeV2TrendMetricValue,
@@ -56,7 +60,7 @@ import {
   computePreviousPeriod,
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
 import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
 import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
@@ -71,7 +75,7 @@ import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
-import { presetDateRangeYmd } from '@/ui/date-range-picker'
+import { dateRangePickerStrings, presetDateRangeYmd } from '@/ui/date-range-picker'
 import { Skeleton } from '@/ui/skeleton'
 import { SalesMetricBasisToggle } from '@/ui/sales-metric-basis-toggle'
 import { chromeIconButtonClassName } from '@/ui/surface'
@@ -206,7 +210,7 @@ function HomeV2LoadingSkeleton() {
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="flex min-h-[148px] flex-col rounded-md border border-border-default bg-white p-3"
+            className="flex min-h-[148px] flex-col rounded-lg border border-border-card bg-white p-3"
             aria-hidden
           >
             <Skeleton className="h-4 w-24" />
@@ -215,16 +219,16 @@ function HomeV2LoadingSkeleton() {
           </div>
         ))}
       </div>
-      <SectionContainer>
+      <SectionContainer framed>
         <Skeleton className="mb-4 h-6 w-48" />
         <Skeleton className="h-[280px] w-full rounded-md" />
       </SectionContainer>
       <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
-        <SectionContainer className="p-4 sm:p-5">
+        <SectionContainer framed>
           <Skeleton className="mb-4 h-5 w-40" />
           <Skeleton className="h-[288px] w-full rounded-md" />
         </SectionContainer>
-        <SectionContainer className="p-4 sm:p-5">
+        <SectionContainer framed>
           <Skeleton className="mb-4 h-5 w-44" />
           <Skeleton className="h-[288px] w-full rounded-md" />
         </SectionContainer>
@@ -287,6 +291,10 @@ export function DashboardHomePageV2() {
     useState<HomeV2TrendMetricId>('net-sales')
   const [salesTrendSecondaryMetric, setSalesTrendSecondaryMetric] =
     useState<HomeV2TrendMetricId>('net-profit')
+  const [salesTrendChartType, setSalesTrendChartType] =
+    useState<HomeV2SalesTrendChartType>('line')
+  const [adsTrendChartType, setAdsTrendChartType] =
+    useState<HomeV2SalesTrendChartType>('line')
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -633,18 +641,7 @@ export function DashboardHomePageV2() {
     [formatInDisplay],
   )
 
-  const pickerStrings = {
-    applyLabel: t('datePickerApply'),
-    todayLabel: t('datePickerToday'),
-    placeholder: t('datePickerPlaceholder'),
-    presetLast7Days: t('datePickerLast7Days'),
-    presetLast30Days: t('datePickerLast30Days'),
-    presetLast3Months: t('datePickerLast3Months'),
-    presetLast6Months: t('datePickerLast6Months'),
-    presetLastYearRolling: t('datePickerLastYearRolling'),
-    presetCurrentYear: t('datePickerCurrentYear'),
-    presetPreviousYear: t('datePickerPreviousYear'),
-  }
+  const pickerStrings = dateRangePickerStrings(t)
 
   const isInitialLoad =
     connectorsLoading ||
@@ -998,12 +995,13 @@ export function DashboardHomePageV2() {
             </div>
           ) : null}
 
-          <SectionContainer className="mt-6 mb-8">
-            <SectionHeader
+          <SectionContainer framed className="mt-6 mb-8">
+            <ChartSectionHeader
               title={t('homeMetricsTrendTitle')}
+              info={t('homeMetricsTrendSubtitle')}
               className="mb-5"
               aside={
-                <div className="flex flex-wrap items-center justify-end gap-2">
+                <>
                   <HomeV2SalesTrendMetricFilters
                     primaryMetric={effectiveSalesTrendPrimaryMetric}
                     secondaryMetric={effectiveSalesTrendSecondaryMetric}
@@ -1017,7 +1015,12 @@ export function DashboardHomePageV2() {
                     onChange={setSalesTrendGranularity}
                     t={t}
                   />
-                </div>
+                  <AppSeriesChartViewToggle
+                    value={salesTrendChartType}
+                    onChange={setSalesTrendChartType}
+                    t={t}
+                  />
+                </>
               }
             />
             {salesTrendError ? (
@@ -1035,6 +1038,7 @@ export function DashboardHomePageV2() {
                 secondaryMetric={effectiveSalesTrendSecondaryMetric}
                 metricContext={trendMetricContext}
                 adsSeriesPoints={adsSeriesError ? [] : (adsSeries?.points ?? [])}
+                chartType={salesTrendChartType}
                 t={t}
               />
             )}
@@ -1043,12 +1047,10 @@ export function DashboardHomePageV2() {
           <PageSection heading={t('homeAnalysisSectionTitle')}>
             <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2 lg:items-stretch">
               <div className="flex min-h-0 min-w-0 lg:h-full">
-                <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-5">
-                  <SectionHeader
+                <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+                  <HomeChannelShareSection
                     title={t('homeChannelDonutTitle')}
-                    description={t('homeChannelDonutSubtitle')}
-                  />
-                  <HomeChannelDonutChart
+                    info={t('homeChannelDonutSubtitle')}
                     rows={channelBreakdown?.items ?? []}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}
@@ -1060,10 +1062,10 @@ export function DashboardHomePageV2() {
                 </SectionContainer>
               </div>
               <div className="flex min-h-0 min-w-0 lg:h-full">
-                <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-5">
-                  <SectionHeader
+                <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+                  <ChartSectionHeader
                     title={t('homeTopProductsTitle')}
-                    description={t('homeTopProductsSubtitle').replace(
+                    info={t('homeTopProductsSubtitle').replace(
                       '{count}',
                       String(topProducts?.items.length ?? 10),
                     )}
@@ -1084,25 +1086,33 @@ export function DashboardHomePageV2() {
           </PageSection>
 
           {adsSeriesEnabled ? (
-            <SectionContainer className="mt-6 overflow-visible">
-              <SectionHeader
+            <SectionContainer framed className="mt-6 overflow-visible">
+              <ChartSectionHeader
                 title={t('homeAdsTrendTitle')}
-                description={t('homeAdsTrendSubtitle')}
+                info={t('homeAdsTrendSubtitle')}
+                aside={
+                  <AppSeriesChartViewToggle
+                    value={adsTrendChartType}
+                    onChange={setAdsTrendChartType}
+                    t={t}
+                  />
+                }
               />
               <AdsTrendChart
                 points={adsSeriesError ? [] : (adsSeries?.points ?? [])}
                 lang={lang}
                 formatValue={formatInDisplay}
                 isLoading={adsSeriesLoading}
+                chartType={adsTrendChartType}
               />
             </SectionContainer>
           ) : null}
 
           {settlementWaterfallSegments.length > 0 ? (
-            <SectionContainer className="mt-6 mb-8 overflow-visible">
-              <SectionHeader
+            <SectionContainer framed className="mt-6 mb-8 overflow-visible">
+              <ChartSectionHeader
                 title={t('reportsSectionSettlementTitle')}
-                description={t('reportsSectionSettlementSubtitle')}
+                info={t('reportsSectionSettlementSubtitle')}
               />
               <WaterfallChart
                 segments={settlementWaterfallSegments}

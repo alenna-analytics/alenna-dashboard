@@ -7,6 +7,7 @@ import {
 } from '@/pages/team/team-inner-nav'
 import {
   internalSidebarAsideClassName,
+  internalSidebarHeaderTitleClassName,
   internalSidebarNavItemClassName,
   internalSidebarNavLabelClassName,
 } from '@/shell/layout/sidebar-layout'
@@ -16,7 +17,7 @@ import { cn } from '@/lib/utils'
 function internalNavLinkClass(isActive: boolean): string {
   return cn(
     internalSidebarNavItemClassName,
-    'text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+    'font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
     isActive
       ? 'bg-[var(--sidebar-active-bg)] text-text-primary'
       : 'text-text-tertiary hover:bg-[var(--sidebar-accent)] hover:text-text-primary',
@@ -31,7 +32,7 @@ export function TeamInternalSidebar() {
   return (
     <aside className={internalSidebarAsideClassName} aria-label={t('navTeam')}>
       <div className="flex h-[var(--shell-inner-header-height)] shrink-0 items-center border-b border-[var(--shell-divider)] bg-white px-4">
-        <p className="truncate text-subtitle font-semibold text-text-primary">{t('navTeam')}</p>
+        <p className={internalSidebarHeaderTitleClassName}>{t('navTeam')}</p>
       </div>
 
       <nav className="flex flex-col gap-0.5 bg-white p-3">

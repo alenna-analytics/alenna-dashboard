@@ -31,7 +31,7 @@ import { shouldShowPaymentPending, shouldShowTrialExpired } from '@/lib/plan/she
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { TooltipProvider } from '@/ui/tooltip'
-import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
+import { shellMainColumnClassName } from '@/shell/layout/shell-main-padding'
 import { ConfigurationInternalSidebar } from '@/pages/configuration/configuration-internal-sidebar'
 import { isConfigurationRoute } from '@/pages/configuration/configuration-inner-nav'
 import { IntegrationsInternalSidebar } from '@/pages/integrations/dashboard/integrations-internal-sidebar'
@@ -40,7 +40,6 @@ import { ProductsInternalSidebar } from '@/pages/products/products-internal-side
 import { isProductsRoute } from '@/pages/products/products-inner-nav'
 import { TeamInternalSidebar } from '@/pages/team/team-internal-sidebar'
 import { isTeamRoute } from '@/pages/team/team-inner-nav'
-import { cn } from '@/lib/utils'
 import {
   isSidebarVisuallyCollapsed,
   readSidebarControlMode,
@@ -256,12 +255,7 @@ export function AppShellLayout() {
                         ref={mainRef}
                         className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
                       >
-                        <div
-                          className={cn(
-                            WORKSPACE_SHELL_COLUMN_CLASS,
-                            'min-h-full py-3 lg:py-4',
-                          )}
-                        >
+                        <div className={shellMainColumnClassName(location.pathname)}>
                           {!tenantId && tenants.length > 1 ? (
                             <p className="mb-4 text-sm text-text-secondary">
                               Select a workspace in your account menu if prompted.

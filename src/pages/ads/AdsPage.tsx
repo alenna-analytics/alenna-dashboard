@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { AlertTriangle, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -15,13 +15,15 @@ import { AdsTrendChart } from '@/pages/ads/ads-trend-chart'
 import { useAdsChannels, useAdsKpis, useAdsSeries } from '@/pages/ads/use-ads-kpis'
 import { IntegrationsErrorState } from '@/pages/integrations/dashboard/integrations-error-state'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { AppSeriesChartViewToggle, AppShareChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
+import type { SeriesChartView, ShareChartView } from '@/ui/chart-view-toggle'
+import { SectionContainer, ChartSectionHeader, SectionHeader } from '@/pages/reports/report-ui'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { buttonVariants } from '@/ui/button'
 import { ContextAlertCard, ContextAlertsGroup, type ContextAlertTone } from '@/ui/context-alert'
-import { presetDateRangeYmd } from '@/ui/date-range-picker'
+import { dateRangePickerStrings, presetDateRangeYmd } from '@/ui/date-range-picker'
 import { EmptyState } from '@/ui/empty-state'
 import { FilterComboboxMulti, FilterDates } from '@/ui/filters'
 import { KpiCard } from '@/ui/kpi-card'
@@ -68,7 +70,7 @@ function AdsSummaryKpi({
 }) {
   if (loading) {
     return (
-      <div className="rounded-md border border-border-default bg-bg-card-strong p-4">
+      <div className="rounded-lg border border-border-card bg-bg-card-strong p-4">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="mt-3 h-7 w-36" />
       </div>
@@ -105,18 +107,10 @@ export function AdsPage() {
     { start: defaultRange.start, end: defaultRange.end, connectionIds: [] },
     parseAdsFilters,
   )
-  const pickerStrings = {
-    applyLabel: shellT(lang, 'datePickerApply'),
-    todayLabel: shellT(lang, 'datePickerToday'),
-    placeholder: shellT(lang, 'datePickerPlaceholder'),
-    presetLast7Days: shellT(lang, 'datePickerLast7Days'),
-    presetLast30Days: shellT(lang, 'datePickerLast30Days'),
-    presetLast3Months: shellT(lang, 'datePickerLast3Months'),
-    presetLast6Months: shellT(lang, 'datePickerLast6Months'),
-    presetLastYearRolling: shellT(lang, 'datePickerLastYearRolling'),
-    presetCurrentYear: shellT(lang, 'datePickerCurrentYear'),
-    presetPreviousYear: shellT(lang, 'datePickerPreviousYear'),
-  }
+  const pickerStrings = dateRangePickerStrings((key) => shellT(lang, key))
+  const t = (key: Parameters<typeof shellT>[1]) => shellT(lang, key)
+  const [adsTrendChartType, setAdsTrendChartType] = useState<SeriesChartView>('line')
+  const [adsChannelChartType, setAdsChannelChartType] = useState<ShareChartView>('bar')
 
   const adsConnections = useMemo(
     () => filterActiveAdsConnections(connections),
@@ -223,15 +217,18 @@ export function AdsPage() {
       </header>
 
       {!adsScope.hasAdsConnections ? (
-        <div className="rounded-md border border-border-subtle p-6">
-          <p className="text-sm text-text-secondary">{shellT(lang, 'adsEmptyState')}</p>
-          <Link
-            to="/dashboard/integrations/ads"
-            className={`${buttonVariants({ variant: 'accent', size: 'tiny' })} mt-4`}
-          >
-            {shellT(lang, 'adsGoIntegrations')}
-          </Link>
-        </div>
+        <EmptyState
+          icon="ads"
+          title={shellT(lang, 'adsEmptyState')}
+          action={
+            <Link
+              to="/dashboard/integrations/ads"
+              className={buttonVariants({ variant: 'accent', size: 'tiny' })}
+            >
+              {shellT(lang, 'adsGoIntegrations')}
+            </Link>
+          }
+        />
       ) : isError ? (
         <IntegrationsErrorState
           lang={lang}
@@ -244,7 +241,7 @@ export function AdsPage() {
           }}
         />
       ) : (
-        <>
+        <div className="flex flex-col gap-8">
           {pageAlerts.length > 0 ? (
             <ContextAlertsGroup
               title={shellT(lang, 'contextAlertsTitle').replace(
@@ -307,23 +304,45 @@ export function AdsPage() {
             </div>
           </SectionContainer>
 
-          <div className="grid gap-12 lg:grid-cols-2">
-            <SectionContainer>
-              <SectionHeader title={shellT(lang, 'adsChartTrendTitle')} />
+          <div className="grid gap-8 lg:grid-cols-2">
+            <SectionContainer framed>
+              <ChartSectionHeader
+                title={shellT(lang, 'adsChartTrendTitle')}
+                info={shellT(lang, 'adsChartTrendSubtitle')}
+                aside={
+                  <AppSeriesChartViewToggle
+                    value={adsTrendChartType}
+                    onChange={setAdsTrendChartType}
+                    t={t}
+                  />
+                }
+              />
               <AdsTrendChart
                 points={series.isError ? [] : (series.data?.points ?? [])}
                 lang={lang}
                 formatValue={formatDisplay}
                 isLoading={queryEnabled && series.isLoading}
+                chartType={adsTrendChartType}
               />
             </SectionContainer>
-            <SectionContainer>
-              <SectionHeader title={shellT(lang, 'adsChartChannelTitle')} />
+            <SectionContainer framed>
+              <ChartSectionHeader
+                title={shellT(lang, 'adsChartChannelTitle')}
+                info={shellT(lang, 'adsChartChannelSubtitle')}
+                aside={
+                  <AppShareChartViewToggle
+                    value={adsChannelChartType}
+                    onChange={setAdsChannelChartType}
+                    t={t}
+                  />
+                }
+              />
               <AdsChannelSpendChart
                 rows={channelItems}
                 lang={lang}
                 formatValue={formatDisplay}
                 isLoading={kpisChannelsLoading}
+                chartType={adsChannelChartType}
               />
             </SectionContainer>
           </div>
@@ -333,7 +352,7 @@ export function AdsPage() {
             {kpisChannelsLoading ? (
               <Skeleton className="h-40 w-full rounded-md" aria-hidden />
             ) : channelItems.length === 0 ? (
-              <EmptyState size="sm" icon="home" title={shellT(lang, 'adsChannelTableEmpty')} />
+              <EmptyState size="sm" icon="ads" title={shellT(lang, 'adsChannelTableEmpty')} />
             ) : (
               <div className="overflow-x-auto rounded-md border border-border-subtle">
                 <table className="w-full min-w-[640px] text-left text-sm">
@@ -364,7 +383,7 @@ export function AdsPage() {
               </div>
             )}
           </SectionContainer>
-        </>
+        </div>
       )}
     </DashboardPage>
   )

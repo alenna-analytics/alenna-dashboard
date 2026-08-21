@@ -37,10 +37,10 @@ export function DashboardZoomStrip({
 
   return (
     <div className="mt-2 rounded-md border border-border-subtle/70 bg-white px-1 py-1">
-      <div className="relative h-16 w-full">
+      <div className="relative h-8 w-full">
         <div className="absolute inset-0">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={dataWithIdx} margin={{ top: 4, right: 4, left: 4, bottom: 2 }}>
+            <LineChart data={dataWithIdx} margin={{ top: 2, right: 4, left: 4, bottom: 2 }}>
               <XAxis dataKey="label" hide />
               <YAxis hide domain={['auto', 'auto']} />
               {miniSeries}
@@ -64,7 +64,7 @@ export function DashboardZoomStrip({
               <YAxis hide />
               <Brush
                 dataKey="__idx"
-                height={62}
+                height={30}
                 travellerWidth={8}
                 stroke="var(--border-default)"
                 fill="transparent"

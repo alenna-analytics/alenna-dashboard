@@ -4,6 +4,7 @@ import type { Locale } from 'date-fns'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { DashboardRevenueTrendChart } from '@/pages/dashboard/dashboard-revenue-trend-chart'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 
 export type SalesYoyChartProps = {
   startDate: string
@@ -18,6 +19,7 @@ export type SalesYoyChartProps = {
   convertValue: (value: number) => number
   dateLocale: Locale
   t: (key: ShellStringKey) => string
+  chartType?: SeriesChartView
 }
 
 export function SalesYoyChart({
@@ -33,6 +35,7 @@ export function SalesYoyChart({
   convertValue,
   dateLocale,
   t,
+  chartType = 'line',
 }: SalesYoyChartProps) {
   const tYoy = useCallback(
     (key: ShellStringKey) => {
@@ -58,6 +61,7 @@ export function SalesYoyChart({
       convertValue={convertValue}
       dateLocale={dateLocale}
       t={tYoy}
+      chartType={chartType}
     />
   )
 }

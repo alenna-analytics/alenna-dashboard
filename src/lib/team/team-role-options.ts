@@ -1,16 +1,33 @@
 import type { WorkspaceRole } from '@/lib/types/team-types'
 
+const SYSTEM_ROLE_LIST_RANK: Record<string, number> = {
+  owner: 0,
+  admin: 1,
+  staff: 2,
+}
+
+export function sortWorkspaceRoles(roles: WorkspaceRole[]): WorkspaceRole[] {
+  return [...roles].sort((left, right) => {
+    const leftRank = SYSTEM_ROLE_LIST_RANK[left.system_key ?? ''] ?? 3
+    const rightRank = SYSTEM_ROLE_LIST_RANK[right.system_key ?? ''] ?? 3
+    if (leftRank !== rightRank) return leftRank - rightRank
+    return left.name.localeCompare(right.name)
+  })
+}
+
 export function selectableWorkspaceRoles(
   roles: WorkspaceRole[],
   options: { isOwner: boolean; lockToOwner: boolean },
 ): WorkspaceRole[] {
   if (options.lockToOwner) {
-    return roles.filter((role) => role.system_key === 'owner')
+    return sortWorkspaceRoles(roles.filter((role) => role.system_key === 'owner'))
   }
-  return roles.filter((role) => {
-    if (role.system_key === 'owner' && !options.isOwner) return false
-    return true
-  })
+  return sortWorkspaceRoles(
+    roles.filter((role) => {
+      if (role.system_key === 'owner' && !options.isOwner) return false
+      return true
+    }),
+  )
 }
 
 export function defaultInviteRoleId(roles: WorkspaceRole[], isOwner: boolean): string {

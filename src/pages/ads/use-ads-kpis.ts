@@ -90,3 +90,42 @@ export function useAdsChannels(params: {
     },
   })
 }
+
+export type AdsSeriesPoint = {
+  date: string
+  spend: number
+  attributed_sales: number
+  attributed_conversions: number
+  impressions: number
+  clicks: number
+}
+
+export type AdsSeriesResponse = {
+  currency: string
+  fx_incomplete: boolean
+  points: AdsSeriesPoint[]
+}
+
+export function useAdsSeries(params: {
+  connectionIds: string[]
+  startDate: string
+  endDate: string
+  enabled?: boolean
+}) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const { connectionIds, startDate, endDate, enabled = true } = params
+  return useQuery({
+    queryKey: ['ads', 'series', tenantId, connectionIds.join(','), startDate, endDate],
+    enabled: enabled && Boolean(tenantId) && connectionIds.length > 0,
+    queryFn: async (): Promise<AdsSeriesResponse> => {
+      const qs = `${connectionQuery(connectionIds)}&start_date=${startDate}&end_date=${endDate}`
+      const res = await apiFetch(`/ads/series?${qs}`, (a) => getToken(a), {}, tenantId)
+      if (!res.ok) {
+        const t = await res.text()
+        throw new Error(t || res.statusText)
+      }
+      return (await res.json()) as AdsSeriesResponse
+    },
+  })
+}

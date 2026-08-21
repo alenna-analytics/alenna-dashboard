@@ -129,7 +129,7 @@ function ReportsLoadingSkeleton() {
       <Skeleton className="h-64 w-full rounded-md" />
       <div className="flex flex-col gap-12">
         {Array.from({ length: 2 }).map((_, i) => (
-          <SectionContainer key={i}>
+          <SectionContainer key={i} framed>
             <div className="mb-4 space-y-2" aria-hidden>
               <Skeleton className="h-6 w-48 max-w-[80%]" />
               <Skeleton className="h-4 w-full max-w-xl" />
@@ -566,7 +566,7 @@ export function ReportsPage() {
           ) : null}
 
           <div className="flex flex-col gap-12">
-            <SectionContainer>
+            <SectionContainer framed>
               <SectionHeader
                 title={
                   showSettlementWaterfall
@@ -648,7 +648,7 @@ export function ReportsPage() {
               <ReportsBenchmarksTable rows={benchmarkRows} t={t} />
             ) : null}
 
-            <SectionContainer>
+            <SectionContainer framed>
               <SectionHeader
                 title={t('dashboardProfitMarginTitle')}
                 description={t('dashboardProfitMarginSubtitle')}

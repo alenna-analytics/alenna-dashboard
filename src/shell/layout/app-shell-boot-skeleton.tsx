@@ -113,7 +113,7 @@ function ShellMainSkeleton() {
         <Skeleton className="h-8 w-40 max-w-[50%] rounded-md" />
         <Skeleton className="h-4 w-72 max-w-[80%] rounded-md" />
       </div>
-      <div className="w-full overflow-hidden rounded-md border border-border-default bg-white divide-y divide-border-default">
+      <div className="w-full overflow-hidden rounded-lg border border-border-card bg-white divide-y divide-border-card">
         <SettingsRowSkeleton />
         <SettingsRowSkeleton />
       </div>

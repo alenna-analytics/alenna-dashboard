@@ -1,12 +1,12 @@
 import { cn } from '@/lib/utils'
 
-/** Static card surface: 6px radius via `rounded-md`, no hover affordance. */
+/** Card / chart chrome: border only, no shadow. */
 export const surfaceCardClassName =
-  'rounded-md border border-border-default bg-bg-card-strong shadow-none'
+  'rounded-lg border border-border-card bg-bg-card-strong'
 
 /** Clickable card wrapper — use on buttons/links around a card surface. */
 export const surfaceCardInteractiveClassName =
-  'rounded-md transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45'
+  'rounded-lg transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45'
 
 /** Chart / section container shell. */
 export const surfaceSectionClassName = cn(surfaceCardClassName, 'p-4 sm:p-5')

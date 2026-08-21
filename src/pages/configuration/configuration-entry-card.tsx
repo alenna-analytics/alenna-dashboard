@@ -26,7 +26,7 @@ export function ConfigurationEntryCard({
       <Link
         to={to}
         className={cn(
-          'group flex h-full flex-col rounded-md border border-border-default bg-white p-5',
+          'group flex h-full flex-col rounded-lg border border-border-card bg-white p-5',
           'transition-colors hover:border-border-strong',
         )}
       >

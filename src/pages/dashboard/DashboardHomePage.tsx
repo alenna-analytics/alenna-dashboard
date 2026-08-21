@@ -36,7 +36,7 @@ import { SalesMetricBasisToggle } from '@/ui/sales-metric-basis-toggle'
 import { DashboardChannelSalesChart } from './dashboard-channel-sales-chart'
 import { DashboardProfitMarginChart } from './dashboard-profit-margin-chart'
 import { DashboardRevenueTrendChart } from './dashboard-revenue-trend-chart'
-import { HomeChannelDonutChart } from './home-channel-donut-chart'
+import { HomeChannelShareSection } from './home-channel-donut-chart'
 import { HomeProductFilter } from './home-product-filter'
 import { HomeTopProductsChart } from './home-top-products-chart'
 import { getTopProductsChartHeightPx } from './home-top-products-chart-layout'
@@ -194,7 +194,7 @@ function PageSection({
 function DashboardHomeLoadingSkeleton() {
   return (
     <>
-      <div className="overflow-hidden rounded-md border border-border-default" aria-hidden>
+      <div className="overflow-hidden rounded-lg border border-border-card" aria-hidden>
         <div className="flex divide-x divide-border-default">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="min-w-0 flex-1 p-4">
@@ -232,7 +232,7 @@ function DashboardHomeLoadingSkeleton() {
         <Skeleton className="h-5 w-24" />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {Array.from({ length: 2 }).map((_, i) => (
-            <SectionContainer key={i} className="overflow-visible">
+            <SectionContainer key={i} framed className="overflow-visible">
               <div className="mb-4 space-y-2" aria-hidden>
                 <Skeleton className="h-6 w-48 max-w-[80%]" />
                 <Skeleton className="h-4 w-full max-w-xl" />
@@ -247,7 +247,7 @@ function DashboardHomeLoadingSkeleton() {
         <Skeleton className="h-5 w-28" />
         <div className="flex flex-col gap-4">
           {Array.from({ length: 2 }).map((_, i) => (
-            <SectionContainer key={i} className="overflow-visible">
+            <SectionContainer key={i} framed className="overflow-visible">
               <div className="mb-4 space-y-2" aria-hidden>
                 <Skeleton className="h-6 w-56 max-w-[85%]" />
                 <Skeleton className="h-4 w-full max-w-2xl" />
@@ -698,7 +698,7 @@ export function DashboardHomePage() {
                 onBasisChange={setSalesMetricBasis}
                 t={t}
               />
-              <section className="overflow-hidden rounded-md border border-border-default bg-bg-card-strong">
+              <section className="overflow-hidden rounded-lg border border-border-card bg-bg-card-strong">
                 <div className="flex divide-x divide-border-default">
                   <div className="min-w-0 flex-1 p-4">
                     <KpiCard
@@ -876,12 +876,10 @@ export function DashboardHomePage() {
               }
             >
               <div className={showTopProducts ? 'flex min-h-0 min-w-0 lg:h-full' : 'min-w-0'}>
-                <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-5">
-                  <SectionHeader
+                <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+                  <HomeChannelShareSection
                     title={t('homeChannelDonutTitle')}
                     description={t('homeChannelDonutSubtitle')}
-                  />
-                  <HomeChannelDonutChart
                     rows={channelBreakdown?.items ?? []}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}
@@ -894,7 +892,7 @@ export function DashboardHomePage() {
               </div>
               {showTopProducts ? (
                 <div className="flex min-h-0 min-w-0 lg:h-full">
-                  <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-5">
+                  <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
                     <SectionHeader
                       title={t('homeTopProductsTitle')}
                       description={t('homeTopProductsSubtitle').replace(
@@ -923,7 +921,7 @@ export function DashboardHomePage() {
             className="gap-4"
           >
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <SectionContainer className="overflow-visible">
+              <SectionContainer framed className="overflow-visible">
                 <SectionHeader
                   title={t('dashboardRevenueTrendTitle')}
                   description={revenueTrendSubtitle}
@@ -957,7 +955,7 @@ export function DashboardHomePage() {
                   />
                 )}
               </SectionContainer>
-              <SectionContainer className="overflow-visible">
+              <SectionContainer framed className="overflow-visible">
                 <SectionHeader
                   title={t('dashboardChannelSalesTitle')}
                   description={t('dashboardChannelSalesSubtitle')}
@@ -987,7 +985,7 @@ export function DashboardHomePage() {
                   />
                 )}
               </SectionContainer>
-              <SectionContainer className="overflow-visible">
+              <SectionContainer framed className="overflow-visible">
                 <SectionHeader
                   title={t('dashboardProfitMarginTitle')}
                   description={t('dashboardProfitMarginSubtitle')}
@@ -1018,7 +1016,7 @@ export function DashboardHomePage() {
                 )}
               </SectionContainer>
               {!productMode && displayKpi ? (
-                <SectionContainer className="overflow-visible">
+                <SectionContainer framed className="overflow-visible">
                   <SectionHeader
                     title={t('reportsSectionRevenueBreakdown')}
                     description={t('reportsWaterfallSubtitle')}
@@ -1035,7 +1033,7 @@ export function DashboardHomePage() {
                 </SectionContainer>
               ) : null}
               {settlementWaterfallSegments.length > 0 ? (
-                <SectionContainer className="overflow-visible">
+                <SectionContainer framed className="overflow-visible">
                   <SectionHeader
                     title={t('reportsSectionSettlementTitle')}
                     description={t('reportsSectionSettlementSubtitle')}

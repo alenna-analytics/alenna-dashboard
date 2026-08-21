@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { assignedPermissionSummary, toggleGroupView, PERMISSION_GROUPS, visiblePermissionGroups } from '@/lib/permissions/permission-groups'
+import {
+  assignedPermissionSummary,
+  permissionHierarchy,
+  toggleGroupView,
+  PERMISSION_GROUPS,
+  visiblePermissionGroups,
+} from '@/lib/permissions/permission-groups'
 import { shouldShowCustomRolesUpgrade } from '@/pages/team/team-roles-paywall'
 
 describe('permission-groups overlay preview', () => {
@@ -49,5 +55,25 @@ describe('permission-groups overlay preview', () => {
     expect(summary[0]?.titleKey).toBe('permGroupProducts')
     expect(summary[0]?.actionLabels).toEqual(['permProductsEdit'])
     expect(summary[1]?.actionLabels).toEqual(['permExpensesView'])
+  })
+
+  it('keeps view as the first node in the permission hierarchy', () => {
+    const products = PERMISSION_GROUPS.find((g) => g.id === 'products')!
+    const expenses = PERMISSION_GROUPS.find((g) => g.id === 'expenses')!
+    const tree = permissionHierarchy(
+      ['products.view', 'products.edit', 'expenses.view'],
+      [products, expenses],
+    )
+    expect(tree).toHaveLength(2)
+    expect(tree[0]?.granted).toBe(true)
+    expect(tree[0]?.actions).toEqual([
+      { labelKey: 'permProductsView', granted: true },
+      { labelKey: 'permProductsEdit', granted: true },
+    ])
+    expect(tree[1]?.granted).toBe(true)
+    expect(tree[1]?.actions[0]).toEqual({ labelKey: 'permExpensesView', granted: true })
+    expect(tree[1]?.actions.filter((action) => action.granted).map((action) => action.labelKey)).toEqual([
+      'permExpensesView',
+    ])
   })
 })

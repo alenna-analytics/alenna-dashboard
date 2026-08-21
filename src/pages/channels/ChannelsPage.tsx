@@ -297,7 +297,7 @@ export function ChannelsPage() {
           />
 
           <div className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
-            <SectionContainer>
+            <SectionContainer framed>
               <SectionHeader
                 title={
                   cmIncomplete
@@ -340,7 +340,7 @@ export function ChannelsPage() {
               )}
             </SectionContainer>
 
-            <SectionContainer>
+            <SectionContainer framed>
               <SectionHeader
                 title={t('channelsCostStructureTitle')}
                 description={t('channelsCostStructureSubtitle')}

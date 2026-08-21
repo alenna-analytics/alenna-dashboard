@@ -26,7 +26,7 @@ import type { PlatformConnection } from '@/lib/types/connectors'
 import type { KpiResponse, ProductKpiResponse, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
-import { HomeChannelDonutChart } from '@/pages/dashboard/home-channel-donut-chart'
+import { HomeChannelShareSection } from '@/pages/dashboard/home-channel-donut-chart'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
 import { HomeProductFilter } from '@/pages/dashboard/home-product-filter'
 import { HomeTopProductsChart } from '@/pages/dashboard/home-top-products-chart'
@@ -206,7 +206,7 @@ function HomeV2LoadingSkeleton() {
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="flex min-h-[148px] flex-col rounded-md border border-border-default bg-white p-3"
+            className="flex min-h-[148px] flex-col rounded-lg border border-border-card bg-white p-3"
             aria-hidden
           >
             <Skeleton className="h-4 w-24" />
@@ -215,16 +215,16 @@ function HomeV2LoadingSkeleton() {
           </div>
         ))}
       </div>
-      <SectionContainer>
+      <SectionContainer framed>
         <Skeleton className="mb-4 h-6 w-48" />
         <Skeleton className="h-[280px] w-full rounded-md" />
       </SectionContainer>
       <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
-        <SectionContainer className="p-4 sm:p-5">
+        <SectionContainer framed>
           <Skeleton className="mb-4 h-5 w-40" />
           <Skeleton className="h-[288px] w-full rounded-md" />
         </SectionContainer>
-        <SectionContainer className="p-4 sm:p-5">
+        <SectionContainer framed>
           <Skeleton className="mb-4 h-5 w-44" />
           <Skeleton className="h-[288px] w-full rounded-md" />
         </SectionContainer>
@@ -987,7 +987,7 @@ export function DashboardHomePageV2() {
             </div>
           ) : null}
 
-          <SectionContainer className="mt-6 mb-8">
+          <SectionContainer framed className="mt-6 mb-8">
             <SectionHeader
               title={t('homeMetricsTrendTitle')}
               className="mb-5"
@@ -1032,12 +1032,10 @@ export function DashboardHomePageV2() {
           <PageSection heading={t('homeAnalysisSectionTitle')}>
             <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2 lg:items-stretch">
               <div className="flex min-h-0 min-w-0 lg:h-full">
-                <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-5">
-                  <SectionHeader
+                <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+                  <HomeChannelShareSection
                     title={t('homeChannelDonutTitle')}
                     description={t('homeChannelDonutSubtitle')}
-                  />
-                  <HomeChannelDonutChart
                     rows={channelBreakdown?.items ?? []}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}
@@ -1049,7 +1047,7 @@ export function DashboardHomePageV2() {
                 </SectionContainer>
               </div>
               <div className="flex min-h-0 min-w-0 lg:h-full">
-                <SectionContainer className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4 sm:p-5">
+                <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
                   <SectionHeader
                     title={t('homeTopProductsTitle')}
                     description={t('homeTopProductsSubtitle').replace(
@@ -1073,7 +1071,7 @@ export function DashboardHomePageV2() {
           </PageSection>
 
           {adsSeriesEnabled ? (
-            <SectionContainer className="mt-6 overflow-visible">
+            <SectionContainer framed className="mt-6 overflow-visible">
               <SectionHeader
                 title={t('homeAdsTrendTitle')}
                 description={t('homeAdsTrendSubtitle')}
@@ -1088,7 +1086,7 @@ export function DashboardHomePageV2() {
           ) : null}
 
           {settlementWaterfallSegments.length > 0 ? (
-            <SectionContainer className="mt-6 mb-8 overflow-visible">
+            <SectionContainer framed className="mt-6 mb-8 overflow-visible">
               <SectionHeader
                 title={t('reportsSectionSettlementTitle')}
                 description={t('reportsSectionSettlementSubtitle')}

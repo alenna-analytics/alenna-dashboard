@@ -2,19 +2,25 @@ import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 import { KpiCard as KpiCardUi } from '@/ui/kpi-card'
+import { surfaceSectionClassName } from '@/ui/surface'
 import { useMoney } from '@/hooks/use-money'
 
 import { pctVersusPrevious } from './reports-ui-helpers'
 
-/** Flat section wrapper — title + content, no card/box surface. */
 export function SectionContainer({
   children,
   className,
+  framed = false,
 }: {
   children: ReactNode
   className?: string
+  framed?: boolean
 }) {
-  return <section className={cn('space-y-4', className)}>{children}</section>
+  return (
+    <section className={cn('space-y-4', framed && surfaceSectionClassName, className)}>
+      {children}
+    </section>
+  )
 }
 
 /** Billing-style: title + description left, content right. */

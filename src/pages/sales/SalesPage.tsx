@@ -12,7 +12,7 @@ import { usePnlAwareT } from '@/pages/configuration/pnl-terms/use-pnl-labels-que
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
-import { HomeChannelDonutChart } from '@/pages/dashboard/home-channel-donut-chart'
+import { HomeChannelShareSection } from '@/pages/dashboard/home-channel-donut-chart'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
 import { HomeProductFilter } from '@/pages/dashboard/home-product-filter'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
@@ -443,12 +443,10 @@ export function SalesPage() {
           ) : null}
 
           <div className="flex flex-col gap-12">
-            <SectionContainer>
-              <SectionHeader
+            <SectionContainer framed>
+              <HomeChannelShareSection
                 title={t('salesChannelNetBarsTitle')}
                 description={t('salesChannelNetBarsSubtitle')}
-              />
-              <HomeChannelDonutChart
                 rows={channelBreakdown?.items ?? []}
                 convertValue={convertFromBase}
                 formatValue={formatInDisplay}
@@ -458,7 +456,7 @@ export function SalesPage() {
               />
             </SectionContainer>
 
-            <SectionContainer>
+            <SectionContainer framed>
               <SectionHeader
                 title={t('salesYoyChartTitle')}
                 description={t('salesYoyChartSubtitle')}

@@ -29,7 +29,7 @@ import {
 function SettingsSection({ children }: { children: React.ReactNode }) {
   return (
     <section>
-      <div className="w-full overflow-hidden rounded-md border border-border-default bg-white divide-y divide-border-default">
+      <div className="w-full overflow-hidden rounded-lg border border-border-card bg-white divide-y divide-border-card">
         {children}
       </div>
     </section>

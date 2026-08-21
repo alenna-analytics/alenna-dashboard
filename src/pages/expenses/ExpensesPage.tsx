@@ -65,7 +65,7 @@ function SummaryKpi({
 }) {
   if (loading) {
     return (
-      <div className="rounded-md border border-border-default bg-bg-card-strong p-4">
+      <div className="rounded-lg border border-border-card bg-bg-card-strong p-4">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="mt-3 h-7 w-36" />
       </div>

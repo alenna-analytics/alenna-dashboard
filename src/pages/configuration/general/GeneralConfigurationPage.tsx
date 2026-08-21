@@ -57,7 +57,7 @@ function SettingsCard({ children, className }: { children: ReactNode; className?
   return (
     <div
       className={cn(
-        'w-full overflow-hidden rounded-md border border-border-default bg-white divide-y divide-border-default',
+        'w-full overflow-hidden rounded-lg border border-border-card bg-white divide-y divide-border-card',
         className,
       )}
     >

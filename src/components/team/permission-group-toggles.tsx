@@ -7,11 +7,9 @@ import {
   visiblePermissionGroups,
   toggleGroupAction,
   toggleGroupView,
-  type PermissionGroup,
 } from '@/lib/permissions/permission-groups'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { Language } from '@/shell/providers/language-provider'
-import { Checkbox } from '@/ui/checkbox'
 import { Switch } from '@/ui/switch'
 import { cn } from '@/lib/utils'
 
@@ -38,75 +36,77 @@ export function PermissionGroupToggles({
     enabledModuleIds == null ? PERMISSION_GROUPS : visiblePermissionGroups(enabledModuleIds)
 
   return (
-    <div className="space-y-3">
-      {groups.map((group) => (
-        <PermissionGroupCard
-          key={group.id}
-          group={group}
-          t={t}
-          permissions={permissions}
-          onChange={onChange}
-          locked={locked}
-        />
-      ))}
+    <div className="divide-y divide-border-subtle">
+      {groups.flatMap((group) => {
+        const viewOn = permissions.includes(group.viewKey)
+        const rows = [
+          <PrivilegeRow
+            key={group.viewKey}
+            label={t(group.titleKey)}
+            description={t(PERMISSION_DESC_KEYS[group.viewKey])}
+            checked={viewOn}
+            disabled={locked}
+            onCheckedChange={(checked) => onChange(toggleGroupView(permissions, group, checked))}
+          />,
+        ]
+        for (const key of group.actionKeys) {
+          rows.push(
+            <PrivilegeRow
+              key={key}
+              nested
+              muted={!viewOn}
+              label={t(PERMISSION_LABEL_KEYS[key])}
+              description={t(PERMISSION_DESC_KEYS[key])}
+              checked={permissions.includes(key)}
+              disabled={locked || !viewOn}
+              onCheckedChange={(checked) =>
+                onChange(toggleGroupAction(permissions, group, key, checked))
+              }
+            />,
+          )
+        }
+        return rows
+      })}
     </div>
   )
 }
 
-function PermissionGroupCard({
-  group,
-  t,
-  permissions,
-  onChange,
-  locked,
+function PrivilegeRow({
+  label,
+  description,
+  checked,
+  disabled,
+  nested = false,
+  muted = false,
+  onCheckedChange,
 }: {
-  group: PermissionGroup
-  t: (key: Parameters<typeof shellT>[1]) => string
-  permissions: string[]
-  onChange: (next: string[]) => void
-  locked: boolean
+  label: string
+  description: string
+  checked: boolean
+  disabled: boolean
+  nested?: boolean
+  muted?: boolean
+  onCheckedChange: (checked: boolean) => void
 }) {
-  const viewOn = permissions.includes(group.viewKey)
   return (
-    <div className="rounded-md border border-border-subtle p-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-text-primary">{t(group.titleKey)}</p>
-          <p className="mt-0.5 text-xs text-text-tertiary">
-            {t(PERMISSION_DESC_KEYS[group.viewKey])}
-          </p>
-        </div>
-        <Switch
-          checked={viewOn}
-          disabled={locked}
-          onCheckedChange={(checked) =>
-            onChange(toggleGroupView(permissions, group, Boolean(checked)))
-          }
-          aria-label={t(group.titleKey)}
-        />
+    <div
+      className={cn(
+        'flex items-start justify-between gap-4 py-3',
+        nested && 'pl-4',
+        muted && 'opacity-50',
+      )}
+    >
+      <div className="min-w-0">
+        <p className="text-sm text-text-primary">{label}</p>
+        <p className="mt-0.5 text-xs text-text-tertiary">{description}</p>
       </div>
-      {group.actionKeys.length > 0 ? (
-        <fieldset className={cn('mt-3 space-y-3', !viewOn && 'opacity-50')}>
-          {group.actionKeys.map((key) => (
-            <label key={key} className="flex items-start gap-2 text-sm">
-              <Checkbox
-                className="mt-0.5"
-                checked={permissions.includes(key)}
-                disabled={locked || !viewOn}
-                onCheckedChange={(checked) =>
-                  onChange(toggleGroupAction(permissions, group, key, Boolean(checked)))
-                }
-              />
-              <span className="min-w-0">
-                <span className="block text-text-primary">{t(PERMISSION_LABEL_KEYS[key])}</span>
-                <span className="mt-0.5 block text-xs font-normal text-text-tertiary">
-                  {t(PERMISSION_DESC_KEYS[key])}
-                </span>
-              </span>
-            </label>
-          ))}
-        </fieldset>
-      ) : null}
+      <Switch
+        className="mt-0.5"
+        checked={checked}
+        disabled={disabled}
+        onCheckedChange={(value) => onCheckedChange(Boolean(value))}
+        aria-label={label}
+      />
     </div>
   )
 }

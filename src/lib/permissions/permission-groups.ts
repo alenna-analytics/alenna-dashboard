@@ -157,6 +157,17 @@ export type AssignedGroupSummary = {
   actionLabels: ShellStringKey[]
 }
 
+export type PermissionHierarchyAction = {
+  labelKey: ShellStringKey
+  granted: boolean
+}
+
+export type PermissionHierarchyGroup = {
+  titleKey: ShellStringKey
+  granted: boolean
+  actions: PermissionHierarchyAction[]
+}
+
 export function assignedPermissionSummary(
   keys: readonly string[],
   groups: readonly PermissionGroup[],
@@ -175,4 +186,25 @@ export function assignedPermissionSummary(
     })
   }
   return summaries
+}
+
+export function permissionHierarchy(
+  keys: readonly string[],
+  groups: readonly PermissionGroup[],
+): PermissionHierarchyGroup[] {
+  const selected = new Set(keys)
+  return groups.map((group) => ({
+    titleKey: group.titleKey,
+    granted: selected.has(group.viewKey),
+    actions: [
+      {
+        labelKey: PERMISSION_LABEL_KEYS[group.viewKey],
+        granted: selected.has(group.viewKey),
+      },
+      ...group.actionKeys.map((key) => ({
+        labelKey: PERMISSION_LABEL_KEYS[key],
+        granted: selected.has(key),
+      })),
+    ],
+  }))
 }

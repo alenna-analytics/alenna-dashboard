@@ -68,7 +68,7 @@ function AdsSummaryKpi({
 }) {
   if (loading) {
     return (
-      <div className="rounded-md border border-border-default bg-bg-card-strong p-4">
+      <div className="rounded-lg border border-border-card bg-bg-card-strong p-4">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="mt-3 h-7 w-36" />
       </div>
@@ -300,7 +300,7 @@ export function AdsPage() {
           </SectionContainer>
 
           <div className="grid gap-8 lg:grid-cols-2">
-            <SectionContainer>
+            <SectionContainer framed>
               <SectionHeader title={shellT(lang, 'adsChartTrendTitle')} />
               <AdsTrendChart
                 points={series.isError ? [] : (series.data?.points ?? [])}
@@ -309,7 +309,7 @@ export function AdsPage() {
                 isLoading={queryEnabled && series.isLoading}
               />
             </SectionContainer>
-            <SectionContainer>
+            <SectionContainer framed>
               <SectionHeader title={shellT(lang, 'adsChartChannelTitle')} />
               <AdsChannelSpendChart
                 rows={channelItems}

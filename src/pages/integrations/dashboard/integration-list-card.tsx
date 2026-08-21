@@ -33,7 +33,7 @@ export function IntegrationListCard({
       <Link
         to={`/dashboard/integrations/${integration.slug}`}
         className={cn(
-          'group flex h-full flex-col rounded-md border border-border-default bg-white p-5',
+          'group flex h-full flex-col rounded-lg border border-border-card bg-white p-5',
           'transition-colors hover:border-border-strong',
           needsInitialSync &&
             'border-warning/30 bg-[color-mix(in_srgb,var(--pill-warning-bg)_24%,white)]',

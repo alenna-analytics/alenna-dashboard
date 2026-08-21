@@ -44,6 +44,11 @@ function formatRatio(value: number | null): string {
   return value.toFixed(2)
 }
 
+function formatTacosPct(value: number | null): string {
+  if (value == null) return '—'
+  return `${(value * 100).toFixed(2)}%`
+}
+
 function AdsSummaryKpi({
   label,
   value,
@@ -260,7 +265,7 @@ export function AdsPage() {
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiTacos')}
                 helpText={shellT(lang, 'adsKpiHelpTacos')}
-                value={data ? (data.case_c ? '—' : formatRatio(data.tacos)) : '—'}
+                value={data ? (data.case_c ? '—' : formatTacosPct(data.tacos)) : '—'}
                 loading={kpisChannelsLoading}
               />
               <AdsSummaryKpi
@@ -321,7 +326,7 @@ export function AdsPage() {
                         <td className="px-3 py-2">{formatDisplay(row.spend)}</td>
                         <td className="px-3 py-2">{formatDisplay(row.attributed_sales)}</td>
                         <td className="px-3 py-2">{formatRatio(row.roas)}</td>
-                        <td className="px-3 py-2">{formatRatio(row.tacos)}</td>
+                        <td className="px-3 py-2">{formatTacosPct(row.tacos)}</td>
                       </tr>
                     ))}
                   </tbody>

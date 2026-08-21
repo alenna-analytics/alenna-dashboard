@@ -957,6 +957,15 @@ const SHELL_STRINGS = {
     adsKpiTacos: 'TACoS',
     adsKpiCpa: 'CPA',
     adsKpiSales: 'Ventas atribuidas',
+    adsKpiHelpSpend: 'Inversión publicitaria sumada en el periodo (todas las cuentas de ads en alcance).',
+    adsKpiHelpSales:
+      'Ventas atribuidas a campañas reportadas por la plataforma de ads en el periodo.',
+    adsKpiHelpRoas: 'Retorno de ad spend: ventas atribuidas ÷ gasto. Vacío si el gasto es 0.',
+    adsKpiHelpBreakEvenRoas:
+      'ROAS mínimo para no perder margen: 1 ÷ (margen bruto %). Requiere COGS completo en ventas; si falta costo o el margen es ≤ 0, queda vacío.',
+    adsKpiHelpTacos:
+      'Gasto ads ÷ ventas netas del canal de comercio vinculado. Vacío si no hay tienda vinculada (caso solo-ads).',
+    adsKpiHelpCpa: 'Costo por adquisición: gasto ÷ conversiones atribuidas. Vacío si no hay conversiones.',
     adsChannelTableTitle: 'Por canal',
     adsChannelColumn: 'Canal',
     adsEmptyState: 'Conecta Amazon Ads o Mercado Libre Ads para ver métricas.',
@@ -2820,6 +2829,14 @@ const SHELL_STRINGS = {
     adsKpiTacos: 'TACoS',
     adsKpiCpa: 'CPA',
     adsKpiSales: 'Attributed sales',
+    adsKpiHelpSpend: 'Ad spend summed over the period (all ads accounts in scope).',
+    adsKpiHelpSales: 'Sales attributed to campaigns as reported by the ads platform for the period.',
+    adsKpiHelpRoas: 'Return on ad spend: attributed sales ÷ spend. Empty when spend is 0.',
+    adsKpiHelpBreakEvenRoas:
+      'Minimum ROAS to preserve margin: 1 ÷ (gross margin %). Needs complete COGS on sales; empty when costs are incomplete or margin ≤ 0.',
+    adsKpiHelpTacos:
+      'Ad spend ÷ net sales of the linked commerce channel. Empty when no store is linked (ads-only).',
+    adsKpiHelpCpa: 'Cost per acquisition: spend ÷ attributed conversions. Empty when conversions are 0.',
     adsChannelTableTitle: 'By channel',
     adsChannelColumn: 'Channel',
     adsEmptyState: 'Connect Amazon Ads or Mercado Libre Ads to see metrics.',

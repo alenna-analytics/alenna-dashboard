@@ -1,6 +1,11 @@
 import type { PlatformConnection } from '@/lib/types/connectors'
 
-const ADS_PLATFORMS = new Set(['amazon_ads', 'mercadolibre_ads'])
+const ADS_PLATFORMS = new Set([
+  'amazon_ads',
+  'mercadolibre_ads',
+  'google_ads',
+  'meta_ads',
+])
 
 export type AdsApiScope = {
   queryConnectionIds: string[]

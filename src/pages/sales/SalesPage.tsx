@@ -37,6 +37,7 @@ import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shel
 import { useLanguage } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
+import { dateRangePickerStrings } from '@/ui/date-range-picker'
 import { Skeleton } from '@/ui/skeleton'
 import { cn } from '@/lib/utils'
 
@@ -341,18 +342,7 @@ export function SalesPage() {
     (queriesEnabled &&
       ((productMode && pkpiLoading && !pkpi) || (!productMode && kpiLoading && !kpi)))
 
-  const pickerStrings = {
-    applyLabel: t('datePickerApply'),
-    todayLabel: t('datePickerToday'),
-    placeholder: t('datePickerPlaceholder'),
-    presetLast7Days: t('datePickerLast7Days'),
-    presetLast30Days: t('datePickerLast30Days'),
-    presetLast3Months: t('datePickerLast3Months'),
-    presetLast6Months: t('datePickerLast6Months'),
-    presetLastYearRolling: t('datePickerLastYearRolling'),
-    presetCurrentYear: t('datePickerCurrentYear'),
-    presetPreviousYear: t('datePickerPreviousYear'),
-  }
+  const pickerStrings = dateRangePickerStrings(t)
 
   const vsPrior = t('reportsVsPreviousPeriod')
   const comparisonUnavailable = t('reportsComparisonUnavailable')

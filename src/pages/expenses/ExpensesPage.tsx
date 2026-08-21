@@ -32,6 +32,7 @@ import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import { FilterDates } from '@/ui/filters/filter-dates'
+import { dateRangePickerStrings } from '@/ui/date-range-picker'
 import type { FilterOption } from '@/ui/filters/types'
 import { KpiCard } from '@/ui/kpi-card'
 import { cn } from '@/lib/utils'
@@ -163,18 +164,7 @@ export function ExpensesPage() {
     expenses.updateMutation.isPending ||
     expenses.deleteMutation.isPending
 
-  const pickerStrings = {
-    applyLabel: t('datePickerApply'),
-    todayLabel: t('datePickerToday'),
-    placeholder: t('datePickerPlaceholder'),
-    presetLast7Days: t('datePickerLast7Days'),
-    presetLast30Days: t('datePickerLast30Days'),
-    presetLast3Months: t('datePickerLast3Months'),
-    presetLast6Months: t('datePickerLast6Months'),
-    presetLastYearRolling: t('datePickerLastYearRolling'),
-    presetCurrentYear: t('datePickerCurrentYear'),
-    presetPreviousYear: t('datePickerPreviousYear'),
-  }
+  const pickerStrings = dateRangePickerStrings(t)
 
   const recurrenceOptions: FilterOption[] = [
     { value: 'once', label: t('expensesRecurrenceOnce') },

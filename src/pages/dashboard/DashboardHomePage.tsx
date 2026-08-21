@@ -13,7 +13,7 @@ import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page
 import { Skeleton } from '@/ui/skeleton'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
-import { presetDateRangeYmd } from '@/ui/date-range-picker'
+import { dateRangePickerStrings, presetDateRangeYmd } from '@/ui/date-range-picker'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { revenueTrendSubtitleForGranularity } from '@/pages/dashboard/revenue-trend-subtitle'
 import { cn } from '@/lib/utils'
@@ -521,18 +521,7 @@ export function DashboardHomePage() {
 
   const previousReady = Boolean(prevPeriod) && (productMode ? !pkpiPrevLoading : !kpiPrevLoading)
 
-  const pickerStrings = {
-    applyLabel: t('datePickerApply'),
-    todayLabel: t('datePickerToday'),
-    placeholder: t('datePickerPlaceholder'),
-    presetLast7Days: t('datePickerLast7Days'),
-    presetLast30Days: t('datePickerLast30Days'),
-    presetLast3Months: t('datePickerLast3Months'),
-    presetLast6Months: t('datePickerLast6Months'),
-    presetLastYearRolling: t('datePickerLastYearRolling'),
-    presetCurrentYear: t('datePickerCurrentYear'),
-    presetPreviousYear: t('datePickerPreviousYear'),
-  }
+  const pickerStrings = dateRangePickerStrings(t)
 
   const vsPrior = t('reportsVsPreviousPeriod')
 

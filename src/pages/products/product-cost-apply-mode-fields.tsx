@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { DatePicker } from '@/ui/date-picker'
-import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
+import { DateRangePicker, dateRangePickerStrings, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Label } from '@/ui/label'
 import { cn } from '@/lib/utils'
 
@@ -26,21 +26,7 @@ export type ProductCostApplyModeFieldsProps = {
 export function useCostApplyModePickerStrings(
   t: (key: ShellStringKey) => string,
 ): DateRangePickerStrings {
-  return useMemo(
-    () => ({
-      applyLabel: t('datePickerApply'),
-      todayLabel: t('datePickerToday'),
-      placeholder: t('datePickerPlaceholder'),
-      presetLast7Days: t('datePickerLast7Days'),
-      presetLast30Days: t('datePickerLast30Days'),
-      presetLast3Months: t('datePickerLast3Months'),
-      presetLast6Months: t('datePickerLast6Months'),
-      presetLastYearRolling: t('datePickerLastYearRolling'),
-      presetCurrentYear: t('datePickerCurrentYear'),
-      presetPreviousYear: t('datePickerPreviousYear'),
-    }),
-    [t],
-  )
+  return useMemo(() => dateRangePickerStrings(t), [t])
 }
 
 export function useCostApplyModeDefaults(): {

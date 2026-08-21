@@ -71,7 +71,7 @@ import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
-import { presetDateRangeYmd } from '@/ui/date-range-picker'
+import { dateRangePickerStrings, presetDateRangeYmd } from '@/ui/date-range-picker'
 import { Skeleton } from '@/ui/skeleton'
 import { SalesMetricBasisToggle } from '@/ui/sales-metric-basis-toggle'
 import { chromeIconButtonClassName } from '@/ui/surface'
@@ -633,18 +633,7 @@ export function DashboardHomePageV2() {
     [formatInDisplay],
   )
 
-  const pickerStrings = {
-    applyLabel: t('datePickerApply'),
-    todayLabel: t('datePickerToday'),
-    placeholder: t('datePickerPlaceholder'),
-    presetLast7Days: t('datePickerLast7Days'),
-    presetLast30Days: t('datePickerLast30Days'),
-    presetLast3Months: t('datePickerLast3Months'),
-    presetLast6Months: t('datePickerLast6Months'),
-    presetLastYearRolling: t('datePickerLastYearRolling'),
-    presetCurrentYear: t('datePickerCurrentYear'),
-    presetPreviousYear: t('datePickerPreviousYear'),
-  }
+  const pickerStrings = dateRangePickerStrings(t)
 
   const isInitialLoad =
     connectorsLoading ||

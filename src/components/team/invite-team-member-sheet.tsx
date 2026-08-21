@@ -1,16 +1,17 @@
 import { useAuth } from '@clerk/react'
 import { useMutation } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 
-import { EMAIL_MAX_LENGTH, isValidEmail } from '@/lib/email'
+import { INVITE_EMAILS_MAX, parseInviteEmails } from '@/lib/email'
 import { TeamRoleOptionList } from '@/components/team/team-role-option-list'
 import { inviteTeamMember } from '@/lib/team/team-api'
 import { defaultInviteRoleId, selectableWorkspaceRoles } from '@/lib/team/team-role-options'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { WorkspaceRole } from '@/lib/types/team-types'
+import { cn } from '@/lib/utils'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
-import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import {
   Sheet,
@@ -45,7 +46,8 @@ export function InviteTeamMemberSheet({
   const { getToken } = useAuth()
   const { lang } = useLanguage()
   const t = useCallback(
-    (key: Parameters<typeof shellT>[1]) => shellT(lang, key),
+    (key: Parameters<typeof shellT>[1], vars?: Record<string, string | number>) =>
+      shellT(lang, key, vars),
     [lang],
   )
 
@@ -54,22 +56,35 @@ export function InviteTeamMemberSheet({
     [roles, isOwner],
   )
   const fallbackRoleId = defaultInviteRoleId(roles, isOwner)
-  const [email, setEmail] = useState('')
+  const [emailsRaw, setEmailsRaw] = useState('')
   const [roleId, setRoleId] = useState('')
   const [error, setError] = useState<string | null>(null)
   const selectedRoleId =
     roleId && allowed.some((role) => role.id === roleId) ? roleId : fallbackRoleId
 
   const inviteMutation = useMutation({
-    mutationFn: () =>
-      inviteTeamMember(
-        getToken,
-        tenantId,
-        { email: email.trim(), role_id: selectedRoleId },
-        lang,
-      ),
+    mutationFn: async () => {
+      const parsed = parseInviteEmails(emailsRaw)
+      if (parsed.invalid.length > 0) {
+        throw new Error(t('teamInviteEmailsInvalid', { emails: parsed.invalid.join(', ') }))
+      }
+      if (parsed.emails.length === 0) {
+        throw new Error(t('teamInviteEmailInvalid'))
+      }
+      if (parsed.emails.length > INVITE_EMAILS_MAX) {
+        throw new Error(t('teamInviteEmailsTooMany', { max: INVITE_EMAILS_MAX }))
+      }
+      for (const email of parsed.emails) {
+        await inviteTeamMember(
+          getToken,
+          tenantId,
+          { email, role_id: selectedRoleId },
+          lang,
+        )
+      }
+    },
     onSuccess: () => {
-      setEmail('')
+      setEmailsRaw('')
       setRoleId('')
       setError(null)
       onSuccess()
@@ -80,11 +95,12 @@ export function InviteTeamMemberSheet({
     },
   })
 
-  const emailValid = isValidEmail(email)
-  const emailInvalid = email.trim().length > 0 && !emailValid
   const invitesLocked = !invitesEnabled
   const canSubmit =
-    emailValid && invitesEnabled && Boolean(selectedRoleId) && !inviteMutation.isPending
+    emailsRaw.trim().length > 0 &&
+    invitesEnabled &&
+    Boolean(selectedRoleId) &&
+    !inviteMutation.isPending
   const lockedReason = useMemo(
     () => (invitesLocked ? t('teamInviteDisabledTooltip') : null),
     [invitesLocked, t],
@@ -98,32 +114,8 @@ export function InviteTeamMemberSheet({
             <SheetTitle>{t('teamInviteSheetTitle')}</SheetTitle>
           </SheetHeader>
 
-          <SheetBody className="space-y-4">
+          <SheetBody className="space-y-5">
             <SheetDescription>{t('teamInviteSheetDescription')}</SheetDescription>
-
-            <div className="space-y-2">
-              <Label htmlFor="team-invite-email">{t('teamInviteEmailLabel')}</Label>
-              <Input
-                id="team-invite-email"
-                type="email"
-                value={email}
-                maxLength={EMAIL_MAX_LENGTH}
-                onChange={(e) => {
-                  setEmail(e.target.value.slice(0, EMAIL_MAX_LENGTH))
-                  setError(null)
-                }}
-                placeholder={t('teamInviteEmailPlaceholder')}
-                autoComplete="off"
-                disabled={inviteMutation.isPending || invitesLocked}
-                aria-invalid={emailInvalid}
-                aria-describedby={emailInvalid ? 'team-invite-email-error' : undefined}
-              />
-              {emailInvalid ? (
-                <p id="team-invite-email-error" className="text-xs text-destructive" role="status">
-                  {t('teamInviteEmailInvalid')}
-                </p>
-              ) : null}
-            </div>
 
             <div className="space-y-2">
               <Label>{t('teamInviteRoleLabel')}</Label>
@@ -133,6 +125,34 @@ export function InviteTeamMemberSheet({
                 disabled={inviteMutation.isPending || invitesLocked}
                 onSelect={setRoleId}
                 t={t}
+              />
+              <Link
+                to="/dashboard/team/roles"
+                className="inline-block text-xs text-text-secondary underline underline-offset-2 hover:text-text-primary"
+                onClick={() => onOpenChange(false)}
+              >
+                {t('teamInviteLearnRoles')}
+              </Link>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="team-invite-emails">{t('teamInviteEmailLabel')}</Label>
+              <textarea
+                id="team-invite-emails"
+                value={emailsRaw}
+                onChange={(e) => {
+                  setEmailsRaw(e.target.value)
+                  setError(null)
+                }}
+                placeholder={t('teamInviteEmailPlaceholder')}
+                autoComplete="off"
+                disabled={inviteMutation.isPending || invitesLocked}
+                rows={4}
+                className={cn(
+                  'w-full min-w-0 resize-y rounded-md border border-border-default bg-white px-2 py-2 text-sm outline-none',
+                  'placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/45',
+                  'disabled:cursor-not-allowed disabled:bg-glass-fill-subtle disabled:opacity-50',
+                )}
               />
             </div>
 

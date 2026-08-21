@@ -21,7 +21,7 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { buttonVariants } from '@/ui/button'
 import { ContextAlertCard, ContextAlertsGroup, type ContextAlertTone } from '@/ui/context-alert'
-import { presetDateRangeYmd } from '@/ui/date-range-picker'
+import { dateRangePickerStrings, presetDateRangeYmd } from '@/ui/date-range-picker'
 import { EmptyState } from '@/ui/empty-state'
 import { FilterComboboxMulti, FilterDates } from '@/ui/filters'
 import { KpiCard } from '@/ui/kpi-card'
@@ -105,18 +105,7 @@ export function AdsPage() {
     { start: defaultRange.start, end: defaultRange.end, connectionIds: [] },
     parseAdsFilters,
   )
-  const pickerStrings = {
-    applyLabel: shellT(lang, 'datePickerApply'),
-    todayLabel: shellT(lang, 'datePickerToday'),
-    placeholder: shellT(lang, 'datePickerPlaceholder'),
-    presetLast7Days: shellT(lang, 'datePickerLast7Days'),
-    presetLast30Days: shellT(lang, 'datePickerLast30Days'),
-    presetLast3Months: shellT(lang, 'datePickerLast3Months'),
-    presetLast6Months: shellT(lang, 'datePickerLast6Months'),
-    presetLastYearRolling: shellT(lang, 'datePickerLastYearRolling'),
-    presetCurrentYear: shellT(lang, 'datePickerCurrentYear'),
-    presetPreviousYear: shellT(lang, 'datePickerPreviousYear'),
-  }
+  const pickerStrings = dateRangePickerStrings((key) => shellT(lang, key))
 
   const adsConnections = useMemo(
     () => filterActiveAdsConnections(connections),

@@ -42,7 +42,7 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { includesAmazonWithUnavailableFees } from '@/lib/integrations/amazon-fees-notice'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
-import { presetDateRangeYmd } from '@/ui/date-range-picker'
+import { dateRangePickerStrings, presetDateRangeYmd } from '@/ui/date-range-picker'
 import { ContextAlertCard, ContextAlertsGroup, type ContextAlertTone } from '@/ui/context-alert'
 import { Skeleton } from '@/ui/skeleton'
 import { cn } from '@/lib/utils'
@@ -474,18 +474,7 @@ export function ReportsPage() {
     (queriesEnabled &&
       (productMode ? pkpiLoading && !pkpi : kpiLoading && displayKpi === null))
 
-  const pickerStrings = {
-    applyLabel: t('datePickerApply'),
-    todayLabel: t('datePickerToday'),
-    placeholder: t('datePickerPlaceholder'),
-    presetLast7Days: t('datePickerLast7Days'),
-    presetLast30Days: t('datePickerLast30Days'),
-    presetLast3Months: t('datePickerLast3Months'),
-    presetLast6Months: t('datePickerLast6Months'),
-    presetLastYearRolling: t('datePickerLastYearRolling'),
-    presetCurrentYear: t('datePickerCurrentYear'),
-    presetPreviousYear: t('datePickerPreviousYear'),
-  }
+  const pickerStrings = dateRangePickerStrings(t)
 
   return (
     <DashboardPage className={cn('flex flex-1 flex-col', hasNoIntegrations ? 'gap-0' : 'gap-8')}>

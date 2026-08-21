@@ -12,7 +12,7 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { Card, CardContent } from '@/ui/card'
-import { type DateRangePickerStrings } from '@/ui/date-range-picker'
+import { dateRangePickerStrings, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Skeleton } from '@/ui/skeleton'
 import { can } from '@/lib/permissions/can'
 import { cn } from '@/lib/utils'
@@ -267,18 +267,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
   }
 
   const pickerStrings: DateRangePickerStrings = useMemo(
-    () => ({
-      applyLabel: t('datePickerApply'),
-      todayLabel: t('datePickerToday'),
-      placeholder: t('datePickerPlaceholder'),
-      presetLast7Days: t('datePickerLast7Days'),
-      presetLast30Days: t('datePickerLast30Days'),
-      presetLast3Months: t('datePickerLast3Months'),
-      presetLast6Months: t('datePickerLast6Months'),
-      presetLastYearRolling: t('datePickerLastYearRolling'),
-      presetCurrentYear: t('datePickerCurrentYear'),
-      presetPreviousYear: t('datePickerPreviousYear'),
-    }),
+    () => dateRangePickerStrings(t),
     [t],
   )
 

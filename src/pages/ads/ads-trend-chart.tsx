@@ -89,7 +89,14 @@ export function AdsTrendChart({
   }
 
   if (!isLoading && chartRows.length === 0) {
-    return <EmptyState size="sm" icon="home" title={shellT(lang, 'adsChartTrendEmpty')} />
+    return (
+      <EmptyState
+        size="sm"
+        icon="ads"
+        title={shellT(lang, 'adsChartTrendEmpty')}
+        className="h-72"
+      />
+    )
   }
 
   return (

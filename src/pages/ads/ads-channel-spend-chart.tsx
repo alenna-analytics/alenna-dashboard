@@ -72,15 +72,22 @@ export function AdsChannelSpendChart({
   }, [rows, lang])
 
   if (isLoading && chartRows.length === 0) {
-    return <Skeleton className={cn('h-64 w-full rounded-md', className)} aria-hidden />
+    return <Skeleton className={cn('h-72 w-full rounded-md', className)} aria-hidden />
   }
 
   if (!isLoading && chartRows.length === 0) {
-    return <EmptyState size="sm" icon="home" title={shellT(lang, 'adsChartChannelEmpty')} />
+    return (
+      <EmptyState
+        size="sm"
+        icon="ads"
+        title={shellT(lang, 'adsChartChannelEmpty')}
+        className="h-72"
+      />
+    )
   }
 
   return (
-    <div className={cn('h-64 w-full min-w-0', className)}>
+    <div className={cn('h-72 w-full min-w-0', className)}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartRows} margin={{ top: 8, right: 4, bottom: 0, left: 0 }} barCategoryGap="18%">
           <CartesianGrid vertical={false} stroke="var(--chart-grid)" strokeDasharray="3 3" />

@@ -132,7 +132,6 @@ export function IntegrationsListPage({ category = 'all' }: IntegrationsListPageP
           <EmptyState
             icon="integrations"
             title={shellT(lang, 'integrationsEmptySearch')}
-            className="rounded-md border border-border-subtle bg-muted/30"
           />
         ) : (
           <IntegrationsEmptyState lang={lang} />

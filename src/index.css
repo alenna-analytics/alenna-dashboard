@@ -181,23 +181,24 @@
   --pill-success-bg: var(--primitive-pill-green-bg);
   --pill-success-border: color-mix(
     in srgb,
-    var(--pill-success-text) 22%,
+    var(--pill-success-text) 24%,
     transparent
   );
   --pill-error-text: var(--primitive-pill-red-text);
   --pill-error-bg: var(--primitive-pill-red-bg);
   --pill-error-border: color-mix(
     in srgb,
-    var(--pill-error-text) 22%,
+    var(--pill-error-text) 24%,
     transparent
   );
   --pill-warning-text: var(--status-amber-900);
   --pill-warning-bg: var(--status-amber-50);
   --pill-warning-border: color-mix(
     in srgb,
-    var(--status-amber-500) 28%,
+    var(--pill-warning-text) 24%,
     transparent
   );
+  --pill-info-border: color-mix(in srgb, var(--info) 24%, transparent);
 
   /** Stock alert severity text (home KPI breakdown, banners). */
   --stock-alert-info: #16b674;
@@ -372,7 +373,7 @@
   --shell-sidebar-collapsed-width: 47px;
   --shell-inner-sidebar-width: 210px;
   --shell-alerts-panel-width: 430px;
-  --shell-sheet-width: 600px;
+  --shell-sheet-width: 720px;
   --shell-sheet-footer-height: 60px;
   --shell-inner-header-height: 48px;
 

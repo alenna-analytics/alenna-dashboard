@@ -212,15 +212,18 @@ export function AdsPage() {
       </header>
 
       {!adsScope.hasAdsConnections ? (
-        <div className="rounded-md border border-border-subtle p-6">
-          <p className="text-sm text-text-secondary">{shellT(lang, 'adsEmptyState')}</p>
-          <Link
-            to="/dashboard/integrations/ads"
-            className={`${buttonVariants({ variant: 'accent', size: 'tiny' })} mt-4`}
-          >
-            {shellT(lang, 'adsGoIntegrations')}
-          </Link>
-        </div>
+        <EmptyState
+          icon="ads"
+          title={shellT(lang, 'adsEmptyState')}
+          action={
+            <Link
+              to="/dashboard/integrations/ads"
+              className={buttonVariants({ variant: 'accent', size: 'tiny' })}
+            >
+              {shellT(lang, 'adsGoIntegrations')}
+            </Link>
+          }
+        />
       ) : isError ? (
         <IntegrationsErrorState
           lang={lang}
@@ -233,7 +236,7 @@ export function AdsPage() {
           }}
         />
       ) : (
-        <>
+        <div className="flex flex-col gap-8">
           {pageAlerts.length > 0 ? (
             <ContextAlertsGroup
               title={shellT(lang, 'contextAlertsTitle').replace(
@@ -296,7 +299,7 @@ export function AdsPage() {
             </div>
           </SectionContainer>
 
-          <div className="grid gap-12 lg:grid-cols-2">
+          <div className="grid gap-8 lg:grid-cols-2">
             <SectionContainer>
               <SectionHeader title={shellT(lang, 'adsChartTrendTitle')} />
               <AdsTrendChart
@@ -322,7 +325,7 @@ export function AdsPage() {
             {kpisChannelsLoading ? (
               <Skeleton className="h-40 w-full rounded-md" aria-hidden />
             ) : channelItems.length === 0 ? (
-              <EmptyState size="sm" icon="home" title={shellT(lang, 'adsChannelTableEmpty')} />
+              <EmptyState size="sm" icon="ads" title={shellT(lang, 'adsChannelTableEmpty')} />
             ) : (
               <div className="overflow-x-auto rounded-md border border-border-subtle">
                 <table className="w-full min-w-[640px] text-left text-sm">
@@ -353,7 +356,7 @@ export function AdsPage() {
               </div>
             )}
           </SectionContainer>
-        </>
+        </div>
       )}
     </DashboardPage>
   )

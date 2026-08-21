@@ -33,7 +33,7 @@ function SheetOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) {
     <DialogPrimitive.Backdrop
       data-slot="sheet-overlay"
       className={cn(
-        "fixed inset-0 z-50 bg-overlay-scrim motion-safe:duration-200 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 z-50 bg-white/40 backdrop-blur-sm supports-backdrop-filter:bg-[rgba(255,252,245,0.28)] motion-safe:duration-200 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className,
       )}
       {...props}
@@ -57,7 +57,7 @@ function SheetContent({
         className={cn(
           "fixed z-50 flex h-full min-h-0 flex-col gap-0 overflow-hidden bg-white p-0 text-sm shadow-none ring-0 outline-none duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0",
           side === "right" &&
-            "inset-y-0 right-0 w-full max-w-[var(--shell-sheet-width)] border-l border-[var(--shell-divider)] data-closed:slide-out-to-right data-open:slide-in-from-right",
+            "inset-y-0 right-0 w-full max-w-[var(--shell-sheet-width)] rounded-tl-xl rounded-bl-xl border-l border-[var(--shell-divider)] data-closed:slide-out-to-right data-open:slide-in-from-right",
           side === "left" &&
             "top-3 left-3 bottom-3 h-auto max-h-[calc(100dvh-1.5rem)] w-full rounded-md border border-[var(--shell-divider)] data-closed:slide-out-to-left data-open:slide-in-from-left sm:top-4 sm:left-4 sm:bottom-4 sm:max-h-[calc(100dvh-2rem)]",
           className,

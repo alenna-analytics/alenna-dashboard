@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { Loader2 } from 'lucide-react'
 
 import { APP_ICONS, APP_ICONS_RAW, type AppIconName } from '@/lib/icons/catalog'
@@ -21,6 +22,7 @@ export function AppIcon({
   tone = 'default',
   colorize = false,
 }: AppIconProps) {
+  const uid = useId()
   if (colorize) {
     return (
       <span
@@ -30,7 +32,9 @@ export function AppIcon({
           spin && 'animate-spin',
           className,
         )}
-        dangerouslySetInnerHTML={{ __html: svgWithCurrentColor(APP_ICONS_RAW[name]) }}
+        dangerouslySetInnerHTML={{
+          __html: svgWithCurrentColor(APP_ICONS_RAW[name], uid),
+        }}
       />
     )
   }

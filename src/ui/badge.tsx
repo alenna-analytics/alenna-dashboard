@@ -10,20 +10,20 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-none bg-primary/12 text-brand [a]:hover:bg-primary/18",
+          "border-[color:color-mix(in_srgb,var(--brand)_24%,transparent)] bg-primary/12 text-brand [a]:hover:bg-primary/18",
         secondary:
-          "border-none bg-muted/90 text-muted-foreground [a]:hover:bg-muted",
+          "border-border-subtle bg-muted/90 text-muted-foreground [a]:hover:bg-muted",
         outline:
           "border-border-subtle bg-transparent text-foreground [a]:hover:bg-muted",
         ghost: "border-transparent hover:bg-muted hover:text-foreground",
         link: "border-transparent text-primary underline-offset-4 hover:underline",
         success:
-          "border-none bg-[var(--pill-success-bg)] text-[var(--pill-success-text)] [a]:hover:bg-[color-mix(in_srgb,var(--pill-success-bg)_88%,var(--pill-success-text)_12%)]",
+          "border-[color:var(--pill-success-border)] bg-[var(--pill-success-bg)] text-[var(--pill-success-text)] [a]:hover:bg-[color-mix(in_srgb,var(--pill-success-bg)_88%,var(--pill-success-text)_12%)]",
         error:
-          "border-none bg-[var(--pill-error-bg)] text-[var(--pill-error-text)] [a]:hover:bg-[color-mix(in_srgb,var(--pill-error-bg)_88%,var(--pill-error-text)_12%)]",
+          "border-[color:var(--pill-error-border)] bg-[var(--pill-error-bg)] text-[var(--pill-error-text)] [a]:hover:bg-[color-mix(in_srgb,var(--pill-error-bg)_88%,var(--pill-error-text)_12%)]",
         warning:
-          "border-none bg-[var(--pill-warning-bg)] text-[var(--pill-warning-text)] [a]:hover:bg-[color-mix(in_srgb,var(--pill-warning-bg)_88%,var(--pill-warning-text)_12%)]",
-        info: "border-none bg-[var(--info-dim)] text-[var(--info)] [a]:hover:bg-info/18",
+          "border-[color:var(--pill-warning-border)] bg-[var(--pill-warning-bg)] text-[var(--pill-warning-text)] [a]:hover:bg-[color-mix(in_srgb,var(--pill-warning-bg)_88%,var(--pill-warning-text)_12%)]",
+        info: "border-[color:var(--pill-info-border)] bg-[var(--info-dim)] text-[var(--info)] [a]:hover:bg-info/18",
       },
     },
     defaultVariants: {

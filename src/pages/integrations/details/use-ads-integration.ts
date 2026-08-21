@@ -13,7 +13,7 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
 import { formatShopifyLastSync } from '@/lib/integrations/shopify-format'
-import { findActiveConnection } from '@/pages/integrations/dashboard/integration-connection'
+import { findActiveConnection, findPendingGoogleAdsConnection } from '@/pages/integrations/dashboard/integration-connection'
 import { useCatalogJobQuery, useRetryCatalogJobMutation } from '@/pages/products/use-catalog-queries'
 import {
   GLOBAL_ACTIVITY_ADS_SYNC_ID,
@@ -23,6 +23,12 @@ import {
 export type AdsPlatformSlug = 'amazon_ads' | 'mercadolibre_ads' | 'google_ads'
 
 export type AdsSyncPhase = 'idle' | 'working' | 'done_ok' | 'done_fail'
+
+export type GoogleAdsPendingCandidate = {
+  id: string
+  descriptive_name: string
+  currency_code: string
+}
 
 function adsActivityHref(slug: AdsPlatformSlug): string {
   return `/dashboard/integrations/${slug}?tab=settings`
@@ -56,8 +62,17 @@ export function useAdsIntegration(slug: AdsPlatformSlug) {
   const isAdmin = can(me, 'integrations.manage')
   const { connections, pageLoading, pageError } = useIntegrationsListQueries()
   const activeConnection = findActiveConnection(connections, slug)
+  const pendingGoogleAds =
+    slug === 'google_ads' ? findPendingGoogleAdsConnection(connections) : null
+  const pendingGoogleAdsId = pendingGoogleAds?.id ?? null
   const [connectStarting, setConnectStarting] = useState(false)
   const [pendingJobId, setPendingJobId] = useState<string | null>(null)
+  const [pendingCandidates, setPendingCandidates] = useState<GoogleAdsPendingCandidate[]>(
+    [],
+  )
+  const [pendingAccountsLoading, setPendingAccountsLoading] = useState(false)
+  const [pendingAccountsError, setPendingAccountsError] = useState<string | null>(null)
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
   const settledJobSigRef = useRef<string | null>(null)
 
   const authUrl = adsAuthUrl(slug)
@@ -68,6 +83,92 @@ export function useAdsIntegration(slug: AdsPlatformSlug) {
     void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
     void queryClient.invalidateQueries({ queryKey: ['ads'] })
   }, [queryClient, tenantId])
+
+  useEffect(() => {
+    if (slug !== 'google_ads' || !pendingGoogleAdsId || !isAdmin) {
+      setPendingCandidates([])
+      setPendingAccountsError(null)
+      setSelectedCustomerId(null)
+      return
+    }
+    let cancelled = false
+    setPendingAccountsLoading(true)
+    setPendingAccountsError(null)
+    void (async () => {
+      try {
+        const res = await apiFetch(
+          '/connectors/google-ads/pending-accounts',
+          (a) => getToken(a),
+          {},
+          tenantId,
+        )
+        if (!res.ok) {
+          if (res.status === 404 || res.status === 410) {
+            if (!cancelled) {
+              setPendingCandidates([])
+              setPendingAccountsError(
+                shellT(
+                  lang,
+                  res.status === 410
+                    ? 'integrationGoogleAdsSelectExpired'
+                    : 'integrationGoogleAdsSelectEmpty',
+                ),
+              )
+            }
+            return
+          }
+          throw new Error(await res.text())
+        }
+        const body = (await res.json()) as { candidates: GoogleAdsPendingCandidate[] }
+        if (cancelled) return
+        setPendingCandidates(body.candidates ?? [])
+        setSelectedCustomerId(body.candidates?.[0]?.id ?? null)
+      } catch (e) {
+        if (!cancelled) {
+          setPendingAccountsError(
+            e instanceof Error ? e.message : shellT(lang, 'integrationGoogleAdsSelectError'),
+          )
+        }
+      } finally {
+        if (!cancelled) setPendingAccountsLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [slug, pendingGoogleAdsId, isAdmin, getToken, tenantId, lang])
+
+  const confirmAccountMutation = useMutation({
+    mutationFn: async (customerId: string) => {
+      const res = await apiPostJson(
+        '/connectors/google-ads/confirm-account',
+        (a) => getToken(a),
+        { customer_id: customerId },
+        {},
+        tenantId,
+      )
+      if (!res.ok) {
+        if (res.status === 410) {
+          throw new Error(shellT(lang, 'integrationGoogleAdsSelectExpired'))
+        }
+        if (res.status === 404) {
+          throw new Error(shellT(lang, 'integrationGoogleAdsSelectEmpty'))
+        }
+        const detail = await readApiErrorDetail(res)
+        throw new Error(detail ?? shellT(lang, 'integrationGoogleAdsSelectError'))
+      }
+      return (await res.json()) as { connection_id: string; customer_id: string }
+    },
+    onSuccess: () => {
+      setPendingCandidates([])
+      setSelectedCustomerId(null)
+      invalidateAds()
+      toast.success(shellT(lang, 'integrationAdsOAuthConnected'))
+    },
+    onError: (e: Error) => {
+      toast.error(e.message)
+    },
+  })
 
   const startConnect = useCallback(async () => {
     setConnectStarting(true)
@@ -250,6 +351,13 @@ export function useAdsIntegration(slug: AdsPlatformSlug) {
   return {
     isAdmin,
     connected: Boolean(activeConnection),
+    needsAccountSelection: Boolean(pendingGoogleAds) && !activeConnection,
+    pendingCandidates,
+    pendingAccountsLoading,
+    pendingAccountsError,
+    selectedCustomerId,
+    setSelectedCustomerId,
+    confirmAccountMutation,
     activeConnection,
     sibling,
     isLoading: pageLoading,

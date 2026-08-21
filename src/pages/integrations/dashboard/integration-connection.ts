@@ -27,6 +27,19 @@ export function findActiveConnection(
   )
 }
 
+export function findPendingGoogleAdsConnection(
+  connections: PlatformConnection[],
+): PlatformConnection | null {
+  return (
+    connections.find(
+      (c) =>
+        c.platform === 'google_ads' &&
+        (c.status === 'pending' ||
+          c.connection_status === 'pending_account_selection'),
+    ) ?? null
+  )
+}
+
 export function resolveIntegrationConnection(
   slug: string,
   connections: PlatformConnection[],

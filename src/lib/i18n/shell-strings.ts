@@ -947,6 +947,16 @@ const SHELL_STRINGS = {
       'Conecta Mercado Libre Ads para sincronizar Product Ads y gasto. El TACoS aparece cuando también tienes ventas de Mercado Libre.',
     integrationSheetGoogleAdsConnectIntro:
       'Conecta Google Ads para sincronizar campañas y gasto en solo lectura. El gasto entra al P&L junto a tus otros canales de ads.',
+    integrationGoogleAdsSelectToast:
+      'Elige la cuenta de Google Ads que quieres conectar.',
+    integrationGoogleAdsSelectTitle: 'Selecciona una cuenta de Google Ads',
+    integrationGoogleAdsSelectDescription:
+      'Tu acceso de Google tiene varias cuentas de anunciante. Elige una para sincronizar con Alenna.',
+    integrationGoogleAdsSelectConfirm: 'Confirmar cuenta',
+    integrationGoogleAdsSelectExpired:
+      'La selección de cuenta expiró. Vuelve a conectar Google Ads.',
+    integrationGoogleAdsSelectEmpty: 'No hay cuentas pendientes para seleccionar.',
+    integrationGoogleAdsSelectError: 'No se pudo confirmar la cuenta. Inténtalo de nuevo.',
     integrationDetailAdsHelper:
       'Serás redirigido para autorizar acceso de solo lectura a campañas y métricas.',
     integrationAdsAccountLabel: 'Cuenta conectada',
@@ -2824,6 +2834,15 @@ const SHELL_STRINGS = {
       'Connect Mercado Libre Ads to sync Product Ads and spend. TACoS appears once Mercado Libre sales are connected too.',
     integrationSheetGoogleAdsConnectIntro:
       'Connect Google Ads to sync campaigns and spend in read-only mode. Spend rolls into P&L with your other ad channels.',
+    integrationGoogleAdsSelectToast: 'Choose the Google Ads account you want to connect.',
+    integrationGoogleAdsSelectTitle: 'Select a Google Ads account',
+    integrationGoogleAdsSelectDescription:
+      'Your Google access includes multiple advertiser accounts. Pick one to sync with Alenna.',
+    integrationGoogleAdsSelectConfirm: 'Confirm account',
+    integrationGoogleAdsSelectExpired:
+      'Account selection expired. Connect Google Ads again.',
+    integrationGoogleAdsSelectEmpty: 'No pending accounts to select.',
+    integrationGoogleAdsSelectError: 'Could not confirm the account. Try again.',
     integrationDetailAdsHelper:
       'You will be redirected to authorize read-only access to campaigns and metrics.',
     integrationAdsAccountLabel: 'Connected account',

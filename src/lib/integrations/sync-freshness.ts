@@ -54,6 +54,19 @@ function isActiveSyncableConnection(conn: PlatformConnection): boolean {
   )
 }
 
+function hasCompletedEcommerceInitialSync(conn: PlatformConnection): boolean {
+  if (conn.orders_watermark_at) return true
+  if (conn.orders_backfill_completed_through) return true
+  const status: SyncPlanStatus | undefined = conn.sync_plan?.last_sync_status
+  return status === 'synced' || status === 'partial'
+}
+
+function hasCompletedAdsInitialSync(conn: PlatformConnection): boolean {
+  const status: SyncPlanStatus | undefined = conn.sync_plan?.last_sync_status
+  if (status === 'synced' || status === 'partial') return true
+  return Boolean(conn.last_synced_at)
+}
+
 export function filterActiveSyncableConnections(
   connections: PlatformConnection[],
 ): PlatformConnection[] {
@@ -81,10 +94,8 @@ export function isStaleSyncingPlan(conn: PlatformConnection): boolean {
 }
 
 function hasCompletedInitialSync(conn: PlatformConnection): boolean {
-  if (conn.orders_watermark_at) return true
-  if (conn.orders_backfill_completed_through) return true
-  const status: SyncPlanStatus | undefined = conn.sync_plan?.last_sync_status
-  return status === 'synced' || status === 'partial'
+  if (isActiveAdsConnection(conn)) return hasCompletedAdsInitialSync(conn)
+  return hasCompletedEcommerceInitialSync(conn)
 }
 
 export function connectionNeedsInitialSync(
@@ -101,7 +112,12 @@ export function deriveConnectionSyncFreshness(
   conn: PlatformConnection | null | undefined,
   options?: DeriveSyncFreshnessOptions,
 ): SyncFreshnessState | null {
-  if (!conn || !isActiveSyncableConnection(conn)) return null
+  if (
+    !conn ||
+    (!isActiveSyncableConnection(conn) && !isActiveAdsConnection(conn))
+  ) {
+    return null
+  }
 
   if (options?.forceSyncing) return 'syncing'
   if (!options?.suppressSyncing) {
@@ -216,7 +232,12 @@ export function resolveConnectionSyncFreshnessPillContent(
   conn: PlatformConnection | null | undefined,
   options?: DeriveSyncFreshnessOptions,
 ): SyncFreshnessPillContent | null {
-  if (!conn || !isActiveSyncableConnection(conn)) return null
+  if (
+    !conn ||
+    (!isActiveSyncableConnection(conn) && !isActiveAdsConnection(conn))
+  ) {
+    return null
+  }
 
   const freshnessState = deriveConnectionSyncFreshness(conn, options)
   if (!freshnessState) return null

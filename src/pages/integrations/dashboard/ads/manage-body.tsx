@@ -96,7 +96,83 @@ export function AdsManageBody({
         <p className="text-sm text-text-secondary">{shellT(lang, 'integrationAdsCaseC')}</p>
       ) : null}
       {planSyncPaused ? <PlanLimitSyncAlert /> : null}
-      {!ads.connected ? (
+      {ads.needsAccountSelection ? (
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-text-primary">
+              {shellT(lang, 'integrationGoogleAdsSelectTitle')}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {shellT(lang, 'integrationGoogleAdsSelectDescription')}
+            </p>
+          </div>
+          {ads.pendingAccountsLoading ? (
+            <IntegrationDetailSkeleton />
+          ) : ads.pendingAccountsError ? (
+            <div className="space-y-3">
+              <p className="text-sm text-destructive" role="alert">
+                {ads.pendingAccountsError}
+              </p>
+              <Button
+                type="button"
+                variant="accent"
+                size="tiny"
+                loading={ads.connectStarting}
+                disabled={isFixture}
+                onClick={() => consent.requestThen(runConnect)}
+              >
+                {connectLabel}
+              </Button>
+            </div>
+          ) : ads.pendingCandidates.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {shellT(lang, 'integrationGoogleAdsSelectEmpty')}
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <ul className="flex flex-col gap-2">
+                {ads.pendingCandidates.map((candidate) => {
+                  const selected = ads.selectedCustomerId === candidate.id
+                  return (
+                    <li key={candidate.id}>
+                      <button
+                        type="button"
+                        className={
+                          selected
+                            ? 'flex w-full flex-col items-start rounded-md border border-accent bg-accent/10 px-3 py-2 text-left'
+                            : 'flex w-full flex-col items-start rounded-md border border-border-subtle px-3 py-2 text-left hover:bg-muted/40'
+                        }
+                        onClick={() => ads.setSelectedCustomerId(candidate.id)}
+                      >
+                        <span className="text-sm font-medium text-text-primary">
+                          {candidate.descriptive_name}
+                        </span>
+                        <span className="text-xs text-text-secondary">
+                          {candidate.id}
+                          {candidate.currency_code ? ` · ${candidate.currency_code}` : ''}
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+              <Button
+                type="button"
+                variant="accent"
+                size="tiny"
+                loading={ads.confirmAccountMutation.isPending}
+                disabled={!ads.selectedCustomerId || isFixture}
+                onClick={() => {
+                  if (!ads.selectedCustomerId) return
+                  ads.confirmAccountMutation.mutate(ads.selectedCustomerId)
+                }}
+              >
+                {shellT(lang, 'integrationGoogleAdsSelectConfirm')}
+              </Button>
+            </div>
+          )}
+        </div>
+      ) : !ads.connected ? (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">{shellT(lang, introKey)}</p>
           <Button

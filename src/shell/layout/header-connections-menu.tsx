@@ -50,7 +50,9 @@ function ConnectionLastSyncPill({
   }
 
   const freshness = deriveConnectionSyncFreshness(conn)
-  const variant = freshness === 'outdated' ? 'warning' : 'success'
+  let variant: 'success' | 'info' | 'warning' = 'success'
+  if (freshness === 'syncing') variant = 'info'
+  else if (freshness === 'outdated') variant = 'warning'
 
   return (
     <StatusPill variant={variant}>

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -7,6 +7,7 @@ import { shellT } from '@/lib/i18n/shell-strings'
 
 export function useIntegrationOAuthReturn() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
   const { lang } = useLanguage()
   const handled = useRef(false)
 
@@ -15,14 +16,22 @@ export function useIntegrationOAuthReturn() {
     const connected = searchParams.get('connected')
     const amazonError = searchParams.get('amazon_error')
     const connectedError = searchParams.get('connected_error')
-    if (!connected && !amazonError && !connectedError) return
+    const googleAdsSelect = searchParams.get('google_ads_select')
+    if (!connected && !amazonError && !connectedError && !googleAdsSelect) return
 
     handled.current = true
     const next = new URLSearchParams(searchParams)
     next.delete('connected')
     next.delete('amazon_error')
     next.delete('connected_error')
+    next.delete('google_ads_select')
     setSearchParams(next, { replace: true })
+
+    if (googleAdsSelect === '1') {
+      toast.info(shellT(lang, 'integrationGoogleAdsSelectToast'))
+      navigate('/dashboard/integrations/google_ads?tab=settings', { replace: true })
+      return
+    }
 
     if (connected === 'amazon') {
       toast.success(shellT(lang, 'integrationAmazonOAuthConnected'))
@@ -39,5 +48,5 @@ export function useIntegrationOAuthReturn() {
     } else if (connectedError === 'google_ads') {
       toast.error(shellT(lang, 'integrationConnectFailed'))
     }
-  }, [searchParams, setSearchParams, lang])
+  }, [searchParams, setSearchParams, lang, navigate])
 }

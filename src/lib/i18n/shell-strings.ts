@@ -966,7 +966,7 @@ const SHELL_STRINGS = {
     adsKpiHelpBreakEvenRoas:
       'ROAS mínimo para no perder margen: 1 ÷ (margen bruto %). Requiere COGS completo en ventas; si falta costo o el margen es ≤ 0, queda vacío.',
     adsKpiHelpTacos:
-      'Gasto ads ÷ ventas netas del canal de comercio vinculado. Vacío si no hay tienda vinculada (caso solo-ads).',
+      'Gasto ads ÷ ventas netas del canal de comercio vinculado, mostrado en %. Vacío si no hay tienda vinculada (caso solo-ads).',
     adsKpiHelpCpa: 'Costo por adquisición: gasto ÷ conversiones atribuidas. Vacío si no hay conversiones.',
     adsChannelTableTitle: 'Por canal',
     adsChannelColumn: 'Canal',
@@ -2839,7 +2839,7 @@ const SHELL_STRINGS = {
     adsKpiHelpBreakEvenRoas:
       'Minimum ROAS to preserve margin: 1 ÷ (gross margin %). Needs complete COGS on sales; empty when costs are incomplete or margin ≤ 0.',
     adsKpiHelpTacos:
-      'Ad spend ÷ net sales of the linked commerce channel. Empty when no store is linked (ads-only).',
+      'Ad spend ÷ net sales of the linked commerce channel, shown as %. Empty when no store is linked (ads-only).',
     adsKpiHelpCpa: 'Cost per acquisition: spend ÷ attributed conversions. Empty when conversions are 0.',
     adsChannelTableTitle: 'By channel',
     adsChannelColumn: 'Channel',

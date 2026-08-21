@@ -484,6 +484,8 @@ const SHELL_STRINGS = {
     homeSecondaryKpiSectionTitle: 'Otros indicadores',
     homeAnalysisSectionTitle: 'Análisis',
     homeTrendsSectionTitle: 'Tendencias',
+    homeAdsTrendTitle: 'Publicidad',
+    homeAdsTrendSubtitle: 'Gasto y ventas atribuidas de tus cuentas de ads en el periodo.',
     trialExpiredTitle: 'Tu periodo de prueba terminó',
     trialExpiredBody:
       'Para seguir usando alenna, elige un plan que se adapte a tu operación.',
@@ -2362,6 +2364,8 @@ const SHELL_STRINGS = {
     homeSecondaryKpiSectionTitle: 'Other indicators',
     homeAnalysisSectionTitle: 'Analysis',
     homeTrendsSectionTitle: 'Trends',
+    homeAdsTrendTitle: 'Advertising',
+    homeAdsTrendSubtitle: 'Ad spend and attributed sales from your ads accounts in the period.',
     trialExpiredTitle: 'Your trial has ended',
     trialExpiredBody: 'To keep using alenna, choose a plan that fits your operation.',
     trialExpiredSignOut: 'Sign out',

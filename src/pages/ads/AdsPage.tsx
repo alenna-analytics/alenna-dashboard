@@ -44,6 +44,11 @@ function formatRatio(value: number | null): string {
   return value.toFixed(2)
 }
 
+function formatTacosPct(value: number | null): string {
+  if (value == null) return '—'
+  return `${(value * 100).toFixed(2)}%`
+}
+
 function AdsSummaryKpi({
   label,
   value,
@@ -180,8 +185,8 @@ export function AdsPage() {
               strings={pickerStrings}
               startValue={filters.start}
               endValue={filters.end}
-              onStartChange={(v) => v && setFilters({ start: v, end: filters.end })}
-              onEndChange={(v) => v && setFilters({ start: filters.start, end: v })}
+              onStartChange={(v) => v && setFilters({ start: v })}
+              onEndChange={(v) => v && setFilters({ end: v })}
             />
           </div>
         ) : null}
@@ -233,33 +238,39 @@ export function AdsPage() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiSpend')}
+                helpText={shellT(lang, 'adsKpiHelpSpend')}
                 value={data ? formatDisplay(data.spend) : '—'}
                 loading={kpisChannelsLoading}
                 currencyCode={adsCurrency}
               />
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiSales')}
+                helpText={shellT(lang, 'adsKpiHelpSales')}
                 value={data ? formatDisplay(data.attributed_sales) : '—'}
                 loading={kpisChannelsLoading}
                 currencyCode={adsCurrency}
               />
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiRoas')}
+                helpText={shellT(lang, 'adsKpiHelpRoas')}
                 value={data ? formatRatio(data.roas) : '—'}
                 loading={kpisChannelsLoading}
               />
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiBreakEvenRoas')}
+                helpText={shellT(lang, 'adsKpiHelpBreakEvenRoas')}
                 value={data ? formatRatio(data.break_even_roas) : '—'}
                 loading={kpisChannelsLoading}
               />
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiTacos')}
-                value={data ? (data.case_c ? '—' : formatRatio(data.tacos)) : '—'}
+                helpText={shellT(lang, 'adsKpiHelpTacos')}
+                value={data ? (data.case_c ? '—' : formatTacosPct(data.tacos)) : '—'}
                 loading={kpisChannelsLoading}
               />
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiCpa')}
+                helpText={shellT(lang, 'adsKpiHelpCpa')}
                 value={data ? formatRatio(data.cpa) : '—'}
                 loading={kpisChannelsLoading}
               />
@@ -315,7 +326,7 @@ export function AdsPage() {
                         <td className="px-3 py-2">{formatDisplay(row.spend)}</td>
                         <td className="px-3 py-2">{formatDisplay(row.attributed_sales)}</td>
                         <td className="px-3 py-2">{formatRatio(row.roas)}</td>
-                        <td className="px-3 py-2">{formatRatio(row.tacos)}</td>
+                        <td className="px-3 py-2">{formatTacosPct(row.tacos)}</td>
                       </tr>
                     ))}
                   </tbody>

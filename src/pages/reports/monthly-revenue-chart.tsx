@@ -39,6 +39,8 @@ export type MonthlyChartRow = {
   units_sold: number
   order_count: number
   contribution_margin: number
+  /** Ads ROAS for the bucket when merged on home; optional elsewhere. */
+  roas?: number
 }
 
 type LayerKey = 'bruto' | 'neta' | 'utilidad' | 'margin'

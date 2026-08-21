@@ -131,8 +131,8 @@ export function AdsPage() {
 
   const data = kpis.data
   const adsCurrency = channels.data?.currency ?? series.data?.currency ?? data?.currency
-  const isLoading = queryEnabled && (kpis.isLoading || channels.isLoading || series.isLoading)
-  const isError = kpis.isError || channels.isError || series.isError
+  const kpisChannelsLoading = queryEnabled && (kpis.isLoading || channels.isLoading)
+  const isError = kpis.isError || channels.isError
   const formatDisplay = (n: number) =>
     formatMoney(n, adsCurrency ? { nativeCurrency: adsCurrency } : undefined)
 
@@ -173,8 +173,8 @@ export function AdsPage() {
       ) : isError ? (
         <IntegrationsErrorState
           lang={lang}
-          error={kpis.error ?? channels.error ?? series.error}
-          isRetrying={kpis.isFetching || channels.isFetching || series.isFetching}
+          error={kpis.error ?? channels.error}
+          isRetrying={kpis.isFetching || channels.isFetching}
           onRetry={() => {
             void kpis.refetch()
             void channels.refetch()
@@ -189,34 +189,34 @@ export function AdsPage() {
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiSpend')}
                 value={data ? formatDisplay(data.spend) : '—'}
-                loading={isLoading}
+                loading={kpisChannelsLoading}
                 currencyCode={adsCurrency}
               />
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiSales')}
                 value={data ? formatDisplay(data.attributed_sales) : '—'}
-                loading={isLoading}
+                loading={kpisChannelsLoading}
                 currencyCode={adsCurrency}
               />
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiRoas')}
                 value={data ? formatRatio(data.roas) : '—'}
-                loading={isLoading}
+                loading={kpisChannelsLoading}
               />
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiBreakEvenRoas')}
                 value={data ? formatRatio(data.break_even_roas) : '—'}
-                loading={isLoading}
+                loading={kpisChannelsLoading}
               />
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiTacos')}
                 value={data ? (data.case_c ? '—' : formatRatio(data.tacos)) : '—'}
-                loading={isLoading}
+                loading={kpisChannelsLoading}
               />
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiCpa')}
                 value={data ? formatRatio(data.cpa) : '—'}
-                loading={isLoading}
+                loading={kpisChannelsLoading}
               />
             </div>
           </SectionContainer>
@@ -225,10 +225,10 @@ export function AdsPage() {
             <SectionContainer>
               <SectionHeader title={shellT(lang, 'adsChartTrendTitle')} />
               <AdsTrendChart
-                points={series.data?.points ?? []}
+                points={series.isError ? [] : (series.data?.points ?? [])}
                 lang={lang}
                 formatValue={formatDisplay}
-                isLoading={isLoading}
+                isLoading={queryEnabled && series.isLoading}
               />
             </SectionContainer>
             <SectionContainer>
@@ -237,7 +237,7 @@ export function AdsPage() {
                 rows={channels.data?.items ?? []}
                 lang={lang}
                 formatValue={formatDisplay}
-                isLoading={isLoading}
+                isLoading={kpisChannelsLoading}
               />
             </SectionContainer>
           </div>

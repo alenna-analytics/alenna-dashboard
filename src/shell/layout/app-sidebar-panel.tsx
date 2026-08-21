@@ -221,20 +221,20 @@ export function AppSidebarPanel({
               onNavigate={onNavigate}
             />
             ) : null}
-            {alarmsEnabled ? (
-              <NavItem
-                icon="notifications"
-                to="/dashboard/alarms"
-                label={t('navAlarms')}
-                collapsed={collapsed}
-                onNavigate={onNavigate}
-              />
-            ) : null}
             {integrationsModule ? (
               <NavItem
                 icon={integrationsModule.icon}
                 to={integrationsModule.path}
                 label={t(integrationsModule.labelKey)}
+                collapsed={collapsed}
+                onNavigate={onNavigate}
+              />
+            ) : null}
+            {alarmsEnabled ? (
+              <NavItem
+                icon="notifications"
+                to="/dashboard/alarms"
+                label={t('navAlarms')}
                 collapsed={collapsed}
                 onNavigate={onNavigate}
               />

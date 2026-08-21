@@ -25,14 +25,17 @@ import {
 import { useChannelsPageFilters } from '@/pages/channels/use-channels-page-filters'
 import { includesAmazonWithUnavailableFees } from '@/lib/integrations/amazon-fees-notice'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
+import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
 import { useChannelTimeSeries } from '@/pages/reports/use-channel-time-series'
 import { useKpisByChannel } from '@/pages/reports/use-kpis-by-channel'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
+import { dateRangePickerStrings } from '@/ui/date-range-picker'
 import { ContextAlertCard, ContextAlertsGroup, type ContextAlertTone } from '@/ui/context-alert'
 import { Skeleton } from '@/ui/skeleton'
 import { cn } from '@/lib/utils'
@@ -77,6 +80,7 @@ export function ChannelsPage() {
   const [filters, setFilters] = useChannelsPageFilters(tenantId)
   const { startDate, endDate, connectionIds } = filters
   const [cmGranularity, setCmGranularity] = useState<RevenueSeriesGranularity>('day')
+  const [cmChartType, setCmChartType] = useState<SeriesChartView>('line')
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -225,18 +229,7 @@ export function ChannelsPage() {
   const isInitialLoad =
     connectorsLoading || (queriesEnabled && kpisLoading && !kpis)
 
-  const pickerStrings = {
-    applyLabel: t('datePickerApply'),
-    todayLabel: t('datePickerToday'),
-    placeholder: t('datePickerPlaceholder'),
-    presetLast7Days: t('datePickerLast7Days'),
-    presetLast30Days: t('datePickerLast30Days'),
-    presetLast3Months: t('datePickerLast3Months'),
-    presetLast6Months: t('datePickerLast6Months'),
-    presetLastYearRolling: t('datePickerLastYearRolling'),
-    presetCurrentYear: t('datePickerCurrentYear'),
-    presetPreviousYear: t('datePickerPreviousYear'),
-  }
+  const pickerStrings = dateRangePickerStrings(t)
 
   return (
     <DashboardPage className={cn('flex flex-1 flex-col', hasNoIntegrations ? 'gap-0' : 'gap-8')}>
@@ -307,24 +300,31 @@ export function ChannelsPage() {
           />
 
           <div className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
-            <SectionContainer>
-              <SectionHeader
+            <SectionContainer framed>
+              <ChartSectionHeader
                 title={
                   cmIncomplete
                     ? t('channelsCmChartTitleProductScope')
                     : t('channelsCmChartTitle')
                 }
-                description={
+                info={
                   cmIncomplete
                     ? t('channelsCmChartSubtitleProductScope')
                     : t('channelsCmChartSubtitle')
                 }
                 aside={
-                  <ChartGranularityFilter
-                    value={cmGranularity}
-                    onChange={setCmGranularity}
-                    t={t}
-                  />
+                  <>
+                    <ChartGranularityFilter
+                      value={cmGranularity}
+                      onChange={setCmGranularity}
+                      t={t}
+                    />
+                    <AppSeriesChartViewToggle
+                      value={cmChartType}
+                      onChange={setCmChartType}
+                      t={t}
+                    />
+                  </>
                 }
               />
               {channelTimeSeriesError ? (
@@ -346,14 +346,15 @@ export function ChannelsPage() {
                   platforms={displayedPlatforms}
                   t={t}
                   cmIncomplete={cmIncomplete}
+                  chartType={cmChartType}
                 />
               )}
             </SectionContainer>
 
-            <SectionContainer>
-              <SectionHeader
+            <SectionContainer framed>
+              <ChartSectionHeader
                 title={t('channelsCostStructureTitle')}
-                description={t('channelsCostStructureSubtitle')}
+                info={t('channelsCostStructureSubtitle')}
               />
               <ChannelsCostStructureChart
                 metrics={currentAgg}

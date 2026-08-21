@@ -32,7 +32,7 @@ export function EmptyState({
     <div
       role="status"
       className={cn(
-        'mx-auto flex w-full flex-col items-center justify-center text-center',
+        'flex w-full flex-col items-center justify-center rounded-md border border-dashed border-[color:rgba(78,84,58,0.32)] bg-transparent text-center',
         compact ? 'min-h-[10rem] gap-2 px-4 py-8' : 'min-h-[22rem] gap-3 px-6 py-16',
         className,
       )}

@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import type { Locale } from 'date-fns'
 import {
+  Bar,
   Brush,
   CartesianGrid,
+  ComposedChart,
   Line,
   LineChart,
   ReferenceArea,
@@ -16,6 +18,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
 import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { EmptyState } from '@/ui/empty-state'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import { CHART_NARROW_MQ, lineChartXAxisLayout } from '@/pages/dashboard/chart-x-axis-layout'
@@ -46,6 +49,7 @@ export type ProductDetailTrendChartProps = {
   formatMoney: (value: number) => string
   dateLocale: Locale
   t: (key: ShellStringKey) => string
+  chartType?: SeriesChartView
 }
 
 type ChartRow = Record<string, number | string> & { label: string; __idx: number }
@@ -118,6 +122,7 @@ export function ProductDetailTrendChart({
   formatMoney,
   dateLocale,
   t,
+  chartType = 'line',
 }: ProductDetailTrendChartProps) {
   const chartMetrics = selectedMetrics.filter((id) => id !== 'inventory-days')
   const axisKinds = useMemo(
@@ -194,10 +199,12 @@ export function ProductDetailTrendChart({
   return (
     <div className="w-full min-w-0 py-3 [&_.recharts-brush-traveller:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-surface:focus]:outline-none [&_.recharts-wrapper:focus]:outline-none">
       <ResponsiveContainer width="100%" height={isNarrow ? 260 : 220}>
-        <LineChart
-          key={zoomResetKey}
+        <ComposedChart
+          key={`${zoomResetKey}-${chartType}`}
           data={visibleData}
           margin={{ top: 8, right: useDualAxis ? 8 : 8, left: 4, bottom: isNarrow ? 8 : 4 }}
+          barCategoryGap="28%"
+          barGap={3}
         >
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
@@ -231,6 +238,9 @@ export function ProductDetailTrendChart({
             />
           ) : null}
           <Tooltip
+            cursor={
+              chartType === 'bar' ? { fill: 'var(--muted)', opacity: 0.45 } : undefined
+            }
             content={
               <MultiTrendTooltip
                 selectedMetrics={chartMetrics}
@@ -257,6 +267,22 @@ export function ProductDetailTrendChart({
                   ? 'right'
                   : 'left'
             const color = PRODUCT_DETAIL_METRIC_COLORS[id]
+            if (chartType === 'bar') {
+              return (
+                <Bar
+                  key={id}
+                  dataKey={id}
+                  name={productDetailTrendMetricLabel(id, t)}
+                  yAxisId={yAxisId}
+                  fill={color}
+                  fillOpacity={0.82}
+                  radius={[8, 8, 8, 8]}
+                  maxBarSize={28}
+                  opacity={hiddenKeys[id] ? 0.18 : 1}
+                  {...mainAnimProps}
+                />
+              )
+            }
             return (
               <Line
                 key={id}
@@ -273,18 +299,18 @@ export function ProductDetailTrendChart({
               />
             )
           })}
-        </LineChart>
+        </ComposedChart>
       </ResponsiveContainer>
 
       {data.length > 0 ? (
         <div className="mt-2 rounded-md border border-border-subtle/70 bg-white px-1 py-1">
-          <div className="relative h-16 w-full">
+          <div className="relative h-8 w-full">
             <div className="absolute inset-0">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   key={`${zoomResetKey}-mini`}
                   data={data}
-                  margin={{ top: 4, right: 4, left: 4, bottom: 2 }}
+                  margin={{ top: 2, right: 4, left: 4, bottom: 2 }}
                 >
                   <XAxis dataKey="label" hide />
                   <YAxis hide domain={['auto', 'auto']} />
@@ -320,7 +346,7 @@ export function ProductDetailTrendChart({
                   <YAxis hide />
                   <Brush
                     dataKey="__idx"
-                    height={62}
+                    height={30}
                     travellerWidth={8}
                     stroke="var(--border-default)"
                     fill="transparent"
@@ -351,7 +377,7 @@ export function ProductDetailTrendChart({
             )}
           >
             <span
-              className="inline-block h-0.5 w-4 rounded"
+              className="inline-block size-2 shrink-0 rounded-full"
               style={{ backgroundColor: PRODUCT_DETAIL_METRIC_COLORS[id] }}
               aria-hidden
             />

@@ -1,9 +1,10 @@
 import { useMemo } from 'react'
 import {
+  Bar,
   CartesianGrid,
+  ComposedChart,
   Legend,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -14,6 +15,7 @@ import { formatCompactNumber } from '@/lib/format/compact-number'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { AdsSeriesPoint } from '@/pages/ads/use-ads-kpis'
 import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
 import { cn } from '@/lib/utils'
@@ -64,12 +66,14 @@ export function AdsTrendChart({
   lang,
   formatValue,
   isLoading = false,
+  chartType = 'line',
   className,
 }: {
   points: AdsSeriesPoint[]
   lang: string
   formatValue: (value: number) => string
   isLoading?: boolean
+  chartType?: SeriesChartView
   className?: string
 }) {
   const spendLabel = shellT(lang, 'adsKpiSpend')
@@ -89,13 +93,25 @@ export function AdsTrendChart({
   }
 
   if (!isLoading && chartRows.length === 0) {
-    return <EmptyState size="sm" icon="home" title={shellT(lang, 'adsChartTrendEmpty')} />
+    return (
+      <EmptyState
+        size="sm"
+        icon="ads"
+        title={shellT(lang, 'adsChartTrendEmpty')}
+        className="h-72"
+      />
+    )
   }
 
   return (
     <div className={cn('h-72 w-full min-w-0', className)}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartRows} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
+        <ComposedChart
+          data={chartRows}
+          margin={{ top: 8, right: 12, bottom: 0, left: 0 }}
+          barCategoryGap="28%"
+          barGap={3}
+        >
           <CartesianGrid vertical={false} stroke="var(--chart-grid)" strokeDasharray="3 3" />
           <XAxis
             dataKey="label"
@@ -112,6 +128,9 @@ export function AdsTrendChart({
             tickFormatter={(value: number) => formatCompactNumber(Number(value), 0)}
           />
           <Tooltip
+            cursor={
+              chartType === 'bar' ? { fill: 'var(--muted)', opacity: 0.45 } : undefined
+            }
             content={
               <TrendTooltip
                 formatValue={formatValue}
@@ -123,28 +142,53 @@ export function AdsTrendChart({
           <Legend
             verticalAlign="top"
             align="right"
-            iconType="plainline"
+            iconType="circle"
             wrapperStyle={{ fontSize: 12, color: 'var(--text-secondary)' }}
           />
-          <Line
-            type="monotone"
-            dataKey="spend"
-            name={spendLabel}
-            stroke="var(--chart-3)"
-            strokeWidth={2}
-            dot={false}
-            isAnimationActive={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="sales"
-            name={salesLabel}
-            stroke="var(--chart-1)"
-            strokeWidth={2}
-            dot={false}
-            isAnimationActive={false}
-          />
-        </LineChart>
+          {chartType === 'bar' ? (
+            <>
+              <Bar
+                dataKey="spend"
+                name={spendLabel}
+                fill="var(--chart-3)"
+                fillOpacity={0.82}
+                radius={[8, 8, 8, 8]}
+                maxBarSize={28}
+                isAnimationActive={false}
+              />
+              <Bar
+                dataKey="sales"
+                name={salesLabel}
+                fill="var(--chart-1)"
+                fillOpacity={0.82}
+                radius={[8, 8, 8, 8]}
+                maxBarSize={28}
+                isAnimationActive={false}
+              />
+            </>
+          ) : (
+            <>
+              <Line
+                type="monotone"
+                dataKey="spend"
+                name={spendLabel}
+                stroke="var(--chart-3)"
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="sales"
+                name={salesLabel}
+                stroke="var(--chart-1)"
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={false}
+              />
+            </>
+          )}
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   )

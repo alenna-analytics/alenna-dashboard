@@ -3,6 +3,7 @@ import * as React from 'react'
 import type { DateRange } from 'react-day-picker'
 import { Calendar as CalendarIcon, Check, ChevronDown } from 'lucide-react'
 
+import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { cn } from '@/lib/utils'
 import { filterPillInactiveClassName } from '@/ui/filters/filter-pill-classes'
 import { Button } from '@/ui/button'
@@ -22,6 +23,7 @@ export type DateRangePickerStrings = {
   presetLast3Months: string
   presetLast6Months: string
   presetLastYearRolling: string
+  presetMonthToDate: string
   presetCurrentYear: string
   presetPreviousYear: string
 }
@@ -37,7 +39,34 @@ export type DateRangePickerProps = {
   clearAriaLabel?: string
 }
 
-type PresetId = 'last7' | 'last30' | 'last3m' | 'last6m' | 'last12m' | 'ytd' | 'lastYear' | 'custom'
+type PresetId =
+  | 'last7'
+  | 'last30'
+  | 'last3m'
+  | 'last6m'
+  | 'last12m'
+  | 'mtd'
+  | 'ytd'
+  | 'lastYear'
+  | 'custom'
+
+export function dateRangePickerStrings(
+  t: (key: ShellStringKey) => string,
+): DateRangePickerStrings {
+  return {
+    applyLabel: t('datePickerApply'),
+    todayLabel: t('datePickerToday'),
+    placeholder: t('datePickerPlaceholder'),
+    presetLast7Days: t('datePickerLast7Days'),
+    presetLast30Days: t('datePickerLast30Days'),
+    presetLast3Months: t('datePickerLast3Months'),
+    presetLast6Months: t('datePickerLast6Months'),
+    presetLastYearRolling: t('datePickerLastYearRolling'),
+    presetMonthToDate: t('datePickerMonthToDate'),
+    presetCurrentYear: t('datePickerCurrentYear'),
+    presetPreviousYear: t('datePickerPreviousYear'),
+  }
+}
 
 function sob(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate())
@@ -89,6 +118,8 @@ export function rangeForPreset(id: Exclude<PresetId, 'custom'>): { from: Date; t
       return { from: subMonths(6), to: today }
     case 'last12m':
       return { from: subMonths(12), to: today }
+    case 'mtd':
+      return { from: new Date(today.getFullYear(), today.getMonth(), 1), to: today }
     case 'ytd':
       return { from: new Date(today.getFullYear(), 0, 1), to: today }
     case 'lastYear': {
@@ -116,6 +147,7 @@ function guessPreset(from?: Date, to?: Date): PresetId {
     'last3m',
     'last6m',
     'last12m',
+    'mtd',
     'ytd',
     'lastYear',
   ]
@@ -133,7 +165,8 @@ function buildPresets(strings: DateRangePickerStrings): { id: PresetId; label: s
     { id: 'last3m', label: strings.presetLast3Months },
     { id: 'last6m', label: strings.presetLast6Months },
     { id: 'last12m', label: strings.presetLastYearRolling },
-    { id: 'ytd', label: strings.presetCurrentYear, divider: true },
+    { id: 'mtd', label: strings.presetMonthToDate, divider: true },
+    { id: 'ytd', label: strings.presetCurrentYear },
     { id: 'lastYear', label: strings.presetPreviousYear },
   ]
 }
@@ -383,13 +416,13 @@ export function DateRangePickerPanel({
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-[var(--shell-divider)] bg-white px-4 py-3">
-          <Button type="button" variant="primary" size="sm" onClick={handleToday}>
+          <Button type="button" variant="primary" size="tiny" onClick={handleToday}>
             {strings.todayLabel}
           </Button>
           <Button
             type="button"
             variant="accent"
-            size="sm"
+            size="tiny"
             disabled={!draft.from || !draft.to}
             onClick={handleApply}
           >

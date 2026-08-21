@@ -23,10 +23,14 @@ export function SettlementCompletenessBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide',
-        c === 'full' && 'bg-[color-mix(in_srgb,var(--country-green-base)_14%,transparent)] text-[var(--country-green-base)]',
-        c === 'partial' && 'bg-[color-mix(in_srgb,var(--status-amber-600)_14%,transparent)] text-[var(--status-amber-600)]',
-        c !== 'full' && c !== 'partial' && 'bg-muted text-text-secondary',
+        'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide',
+        c === 'full' &&
+          'border-[color:color-mix(in_srgb,var(--country-green-base)_24%,transparent)] bg-[color-mix(in_srgb,var(--country-green-base)_14%,transparent)] text-[var(--country-green-base)]',
+        c === 'partial' &&
+          'border-[color:color-mix(in_srgb,var(--status-amber-600)_24%,transparent)] bg-[color-mix(in_srgb,var(--status-amber-600)_14%,transparent)] text-[var(--status-amber-600)]',
+        c !== 'full' &&
+          c !== 'partial' &&
+          'border-border-default bg-muted text-text-secondary',
         className,
       )}
     >

@@ -1,17 +1,14 @@
-import { Check } from 'lucide-react'
-
 import { roleOptionPresentation } from '@/lib/team/role-option-presentation'
-import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import type { ShellStringKey, ShellStringVars } from '@/lib/i18n/shell-strings'
 import type { WorkspaceRole } from '@/lib/types/team-types'
 import { cn } from '@/lib/utils'
-import { AppIcon } from '@/ui/app-icon'
 
 type TeamRoleOptionListProps = {
   roles: WorkspaceRole[]
   selectedRoleId: string
   disabled?: boolean
   onSelect: (roleId: string) => void
-  t: (key: ShellStringKey) => string
+  t: (key: ShellStringKey, vars?: ShellStringVars) => string
 }
 
 export function TeamRoleOptionList({
@@ -22,7 +19,11 @@ export function TeamRoleOptionList({
   t,
 }: TeamRoleOptionListProps) {
   return (
-    <div className="space-y-2" role="radiogroup" aria-label={t('teamInviteRoleLabel')}>
+    <div
+      className="overflow-hidden rounded-md border border-border-default"
+      role="radiogroup"
+      aria-label={t('teamInviteRoleLabel')}
+    >
       {roles.map((role) => {
         const selected = selectedRoleId === role.id
         const visual = roleOptionPresentation(role)
@@ -38,14 +39,19 @@ export function TeamRoleOptionList({
             disabled={disabled}
             onClick={() => onSelect(role.id)}
             className={cn(
-              'flex w-full items-start gap-3 rounded-md border px-3 py-3 text-left transition-colors',
-              selected
-                ? 'border-[var(--firefly-base)] bg-muted/40'
-                : 'border-border-subtle hover:bg-muted/20',
+              'flex w-full items-start gap-3 border-b border-border-subtle px-3 py-3 text-left last:border-b-0',
+              selected ? 'bg-muted/40' : 'hover:bg-muted/20',
+              disabled && 'opacity-50',
             )}
           >
-            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-muted">
-              <AppIcon name={visual.icon} className="size-4" colorize />
+            <span
+              className={cn(
+                'mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border',
+                selected ? 'border-text-primary' : 'border-border-default',
+              )}
+              aria-hidden
+            >
+              {selected ? <span className="size-2 rounded-full bg-text-primary" /> : null}
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-text-primary">{role.name}</span>
@@ -53,9 +59,6 @@ export function TeamRoleOptionList({
                 {description}
               </span>
             </span>
-            {selected ? (
-              <Check className="mt-1 size-4 shrink-0 text-text-primary" aria-hidden />
-            ) : null}
           </button>
         )
       })}

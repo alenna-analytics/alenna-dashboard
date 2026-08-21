@@ -7,11 +7,11 @@ export const sidebarNavIconClassName = 'size-4 shrink-0'
 
 /** Label line-height matches icon box for vertical centering. */
 export const sidebarNavLabelClassName =
-  'min-w-0 flex-1 truncate font-medium leading-4'
+  'min-w-0 flex-1 truncate text-sm font-semibold leading-4'
 
 /** Shared sidebar nav row: 32px tall (`h-8`), 8px horizontal inset (`px-2`). */
 export const sidebarNavItemClassName =
-  'flex h-8 min-h-8 shrink-0 items-center rounded-md px-2'
+  'flex h-8 min-h-8 shrink-0 items-center rounded-md px-2 text-sm'
 
 /** Collapsed sidebar: square 32×32 hit target centered in the rail. */
 export const sidebarNavItemCollapsedClassName =
@@ -26,7 +26,12 @@ export const sidebarInsetPaddingClassName = 'p-2'
 export const internalSidebarAsideClassName =
   'hidden h-full w-[var(--shell-inner-sidebar-width)] min-w-[var(--shell-inner-sidebar-width)] shrink-0 flex-col overflow-x-hidden overflow-y-auto border-r border-[var(--shell-divider)] bg-white lg:flex'
 
-export const internalSidebarNavItemClassName =
-  'flex h-8 w-full min-w-0 items-center rounded-md px-2'
+/** Inner sidebar title: 16px. */
+export const internalSidebarHeaderTitleClassName =
+  'truncate text-[16px] font-semibold leading-none text-text-primary'
 
-export const internalSidebarNavLabelClassName = 'font-medium leading-4'
+/** Inner sidebar nav row: 24px tall, 14px label. */
+export const internalSidebarNavItemClassName =
+  'flex h-6 min-h-6 w-full min-w-0 items-center rounded-md px-2 text-sm'
+
+export const internalSidebarNavLabelClassName = 'text-sm font-semibold leading-none'

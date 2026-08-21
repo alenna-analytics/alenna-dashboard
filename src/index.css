@@ -27,6 +27,7 @@
 
   --color-border-subtle: var(--border-subtle);
   --color-border-default: var(--border-default);
+  --color-border-card: var(--border-card);
   --color-border-strong: var(--border-strong);
   --color-border-emphasis: var(--border-emphasis);
   --color-border-frost: var(--border-frost);
@@ -181,23 +182,24 @@
   --pill-success-bg: var(--primitive-pill-green-bg);
   --pill-success-border: color-mix(
     in srgb,
-    var(--pill-success-text) 22%,
+    var(--pill-success-text) 24%,
     transparent
   );
   --pill-error-text: var(--primitive-pill-red-text);
   --pill-error-bg: var(--primitive-pill-red-bg);
   --pill-error-border: color-mix(
     in srgb,
-    var(--pill-error-text) 22%,
+    var(--pill-error-text) 24%,
     transparent
   );
   --pill-warning-text: var(--status-amber-900);
   --pill-warning-bg: var(--status-amber-50);
   --pill-warning-border: color-mix(
     in srgb,
-    var(--status-amber-500) 28%,
+    var(--pill-warning-text) 24%,
     transparent
   );
+  --pill-info-border: color-mix(in srgb, var(--info) 24%, transparent);
 
   /** Stock alert severity text (home KPI breakdown, banners). */
   --stock-alert-info: #16b674;
@@ -266,6 +268,7 @@
 
   --border-subtle: rgba(78, 84, 58, 0.08);
   --border-default: rgba(78, 84, 58, 0.12);
+  --border-card: #e4e4e7;
   --border-emphasis: rgba(78, 84, 58, 0.18);
   --border-frost: rgba(255, 255, 255, 0.45);
   --border-strong: rgba(var(--ink-rgb), 0.16);
@@ -372,7 +375,7 @@
   --shell-sidebar-collapsed-width: 47px;
   --shell-inner-sidebar-width: 210px;
   --shell-alerts-panel-width: 430px;
-  --shell-sheet-width: 600px;
+  --shell-sheet-width: 720px;
   --shell-sheet-footer-height: 60px;
   --shell-inner-header-height: 48px;
 
@@ -641,13 +644,9 @@
   }
 
   .surface-chart-card {
-    background: linear-gradient(
-      180deg,
-      rgba(255, 252, 246, 0.98),
-      rgba(248, 244, 232, 0.96)
-    );
-    border: 0;
-    box-shadow: var(--shadow-ink-md), var(--card-solid-inset);
+    background: var(--bg-card-strong);
+    border: 1px solid var(--border-card);
+    border-radius: 8px;
   }
 
   .surface-kpi-card {

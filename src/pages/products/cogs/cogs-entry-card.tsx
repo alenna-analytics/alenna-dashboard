@@ -28,7 +28,7 @@ export function CogsEntryCard({
   return (
     <article
       className={cn(
-        'flex w-full flex-wrap items-center gap-4 rounded-md border border-border-default bg-white p-4 transition-colors',
+        'flex w-full flex-wrap items-center gap-4 rounded-lg border border-border-card bg-white p-4 transition-colors',
         !disabled && 'hover:border-border-strong hover:bg-muted/20',
         disabled && 'border-dashed border-[color-mix(in_srgb,var(--text-secondary)_28%,transparent)] bg-muted/45 opacity-60',
       )}

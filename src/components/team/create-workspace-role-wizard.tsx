@@ -2,20 +2,20 @@ import { useAuth } from '@clerk/react'
 import { useMutation } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
 
-import { createWorkspaceRole, updateTeamMemberRole } from '@/lib/team/team-api'
-import { memberDisplayName } from '@/lib/team/member-display-name'
+import { AssignMembersCombobox } from '@/components/team/assign-members-combobox'
 import { PermissionGroupToggles } from '@/components/team/permission-group-toggles'
 import {
-  assignedPermissionSummary,
-  visiblePermissionGroups,
-} from '@/lib/permissions/permission-groups'
+  GrantedPermissionTree,
+  RoleSummaryField,
+} from '@/components/team/role-permission-hierarchy'
+import { createWorkspaceRole, updateTeamMemberRole } from '@/lib/team/team-api'
+import { memberDisplayName } from '@/lib/team/member-display-name'
+import { permissionHierarchy, visiblePermissionGroups } from '@/lib/permissions/permission-groups'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { TeamMember } from '@/lib/types/team-types'
-import { cn } from '@/lib/utils'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Button } from '@/ui/button'
-import { Checkbox } from '@/ui/checkbox'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import {
@@ -28,8 +28,10 @@ import {
   SheetTitle,
 } from '@/ui/sheet'
 
-type Step = 1 | 2 | 3 | 4
-const WIZARD_STEPS: readonly Step[] = [1, 2, 3, 4]
+type Step = 1 | 2 | 3
+const TOTAL_STEPS = 3
+const FORM_GRID =
+  'grid gap-2 sm:grid-cols-[9rem_minmax(0,1fr)] sm:items-start sm:gap-x-8'
 
 type CreateWorkspaceRoleWizardProps = {
   open: boolean
@@ -66,7 +68,6 @@ export function CreateWorkspaceRoleWizard({
 
   const [step, setStep] = useState<Step>(1)
   const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
   const [permissions, setPermissions] = useState<string[]>([])
   const [userIds, setUserIds] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -76,19 +77,15 @@ export function CreateWorkspaceRoleWizard({
     () => candidates.filter((member) => member.user_id != null && userIds.includes(member.user_id)),
     [candidates, userIds],
   )
-  const permissionSummary = useMemo(
+  const groups = useMemo(
     () =>
-      assignedPermissionSummary(
-        permissions,
-        visiblePermissionGroups(me?.modules ?? []),
-      ),
+      permissionHierarchy(permissions, visiblePermissionGroups(me?.modules ?? [])),
     [me?.modules, permissions],
   )
 
   function reset() {
     setStep(1)
     setName('')
-    setDescription('')
     setPermissions([])
     setUserIds([])
     setError(null)
@@ -99,7 +96,7 @@ export function CreateWorkspaceRoleWizard({
       const role = await createWorkspaceRole(
         getToken,
         tenantId,
-        { name: name.trim(), description: description.trim() || null, permissions },
+        { name: name.trim(), description: null, permissions },
         lang,
       )
       const failures: string[] = []
@@ -135,27 +132,18 @@ export function CreateWorkspaceRoleWizard({
           <SheetHeader>
             <SheetTitle>{t('teamRolesCreateTitle')}</SheetTitle>
           </SheetHeader>
-          <SheetBody className="space-y-4">
+          <SheetBody className="space-y-6">
             <p className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-              {t('teamRolesWizardStepLabel', { step, total: 4 })}
+              {t('teamRolesWizardStepLabel', { step, total: TOTAL_STEPS })}
             </p>
-            <div className="flex gap-1.5">
-              {WIZARD_STEPS.map((n) => (
-                <div
-                  key={n}
-                  className={cn(
-                    'h-1.5 flex-1 rounded-full',
-                    n <= step ? 'bg-brand' : 'bg-neutral-200',
-                  )}
-                />
-              ))}
-            </div>
 
             {step === 1 ? (
-              <div className="space-y-4">
-                <SheetDescription>{t('teamRolesWizardNameHint')}</SheetDescription>
-                <div className="space-y-2">
-                  <Label htmlFor="new-role-name">{t('teamRolesNameLabel')}</Label>
+              <div className="space-y-6">
+                <SheetDescription className="sr-only">{t('teamRolesWizardNameHint')}</SheetDescription>
+                <div className={FORM_GRID}>
+                  <Label htmlFor="new-role-name" className="sm:pt-2">
+                    {t('teamRolesNameLabel')}
+                  </Label>
                   <Input
                     id="new-role-name"
                     value={name}
@@ -163,12 +151,13 @@ export function CreateWorkspaceRoleWizard({
                     disabled={save.isPending}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="new-role-desc">{t('teamRolesDescriptionLabel')}</Label>
-                  <Input
-                    id="new-role-desc"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                <div className={FORM_GRID}>
+                  <p className="text-sm font-medium sm:pt-3">{t('teamRolesPermissionsLabel')}</p>
+                  <PermissionGroupToggles
+                    lang={lang}
+                    permissions={permissions}
+                    onChange={setPermissions}
+                    enabledModuleIds={me?.modules ?? []}
                     disabled={save.isPending}
                   />
                 </div>
@@ -177,106 +166,70 @@ export function CreateWorkspaceRoleWizard({
 
             {step === 2 ? (
               <div className="space-y-3">
-                <SheetDescription>{t('teamRolesWizardPermissionsHint')}</SheetDescription>
-                <PermissionGroupToggles
-                  lang={lang}
-                  permissions={permissions}
-                  onChange={setPermissions}
-                  enabledModuleIds={me?.modules ?? []}
-                  disabled={save.isPending}
-                />
+                <SheetDescription className="sr-only">{t('teamRolesWizardUsersHint')}</SheetDescription>
+                <div className={FORM_GRID}>
+                  <p className="text-sm font-medium sm:pt-2">{t('teamRolesWizardConfirmUsers')}</p>
+                  {candidates.length === 0 ? (
+                    <p className="text-sm text-text-secondary sm:pt-2">
+                      {t('teamRolesWizardUsersEmpty')}
+                    </p>
+                  ) : (
+                    <AssignMembersCombobox
+                      candidates={candidates}
+                      selectedIds={userIds}
+                      onChange={setUserIds}
+                      disabled={save.isPending}
+                      placeholder={t('teamRolesWizardMembersPlaceholder')}
+                      searchPlaceholder={t('teamRolesWizardMembersSearch')}
+                      emptySearchLabel={t('teamRolesWizardMembersEmptySearch')}
+                      removeLabel={t('teamRolesWizardRemoveMember')}
+                      currentRoleLabel={(role) => t('teamRolesWizardMemberCurrentRole', { role })}
+                    />
+                  )}
+                </div>
               </div>
             ) : null}
 
             {step === 3 ? (
-              <div className="space-y-3">
-                <SheetDescription>{t('teamRolesWizardUsersHint')}</SheetDescription>
-                {candidates.length === 0 ? (
-                  <p className="text-sm text-text-secondary">{t('teamRolesWizardUsersEmpty')}</p>
-                ) : (
-                  <ul className="space-y-2">
-                    {candidates.map((member) => {
-                      const id = member.user_id!
-                      const checked = userIds.includes(id)
-                      return (
-                        <li key={id}>
-                          <label className="flex items-start gap-2 text-sm">
-                            <Checkbox
-                              checked={checked}
-                              onCheckedChange={(next) => {
-                                setUserIds((prev) =>
-                                  next ? [...prev, id] : prev.filter((item) => item !== id),
-                                )
-                              }}
-                              disabled={save.isPending}
-                            />
-                            <span>
-                              <span className="font-medium text-text-primary">
-                                {memberDisplayName(member)}
-                              </span>
-                              <span className="mt-0.5 block text-xs text-text-tertiary">
-                                {member.email} · {member.role_name}
-                              </span>
-                            </span>
-                          </label>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                )}
-              </div>
-            ) : null}
-
-            {step === 4 ? (
-              <div className="space-y-4">
-                <SheetDescription>{t('teamRolesWizardConfirmHint')}</SheetDescription>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-text-primary">{name.trim()}</p>
-                  {description.trim() ? (
-                    <p className="text-xs text-text-tertiary">{description.trim()}</p>
-                  ) : null}
-                </div>
-                <div className="space-y-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-text-tertiary">
-                    {t('teamRolesWizardConfirmPermissions')}
-                  </p>
-                  {permissionSummary.length === 0 ? (
-                    <p className="text-sm text-text-secondary">
-                      {t('teamRolesWizardConfirmNoPermissions')}
+              <div>
+                <SheetDescription className="sr-only">
+                  {t('teamRolesWizardConfirmHint')}
+                </SheetDescription>
+                <div className="divide-y divide-border-subtle">
+                  <RoleSummaryField label={t('teamRolesNameLabel')}>
+                    <p className="text-sm text-text-primary">
+                      {name.trim() || t('teamRolesWizardPreviewEmptyName')}
                     </p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {permissionSummary.map((group) => (
-                        <li key={group.titleKey}>
-                          <p className="text-sm font-medium text-text-primary">{t(group.titleKey)}</p>
-                          <p className="text-xs text-text-tertiary">
-                            {group.actionLabels.map((key) => t(key)).join(' · ')}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-text-tertiary">
-                    {t('teamRolesWizardConfirmUsers')}
-                  </p>
-                  {selectedMembers.length === 0 ? (
-                    <p className="text-sm text-text-secondary">{t('teamRolesWizardConfirmNone')}</p>
-                  ) : (
-                    <ul className="space-y-1.5">
-                      {selectedMembers.map((member) => (
-                        <li key={member.user_id} className="text-sm">
-                          <span className="font-medium text-text-primary">
-                            {memberDisplayName(member)}
-                          </span>
-                          <span className="mt-0.5 block text-xs text-text-tertiary">
-                            {member.email}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  </RoleSummaryField>
+                  <RoleSummaryField label={t('teamRolesPermissionsLabel')}>
+                    <GrantedPermissionTree
+                      groups={groups}
+                      t={t}
+                      emptyLabel={t('teamRolesWizardConfirmNoPermissions')}
+                    />
+                  </RoleSummaryField>
+                  <RoleSummaryField label={t('teamRolesWizardConfirmUsers')}>
+                    {selectedMembers.length === 0 ? (
+                      <p className="text-sm text-text-secondary">{t('teamRolesWizardConfirmNone')}</p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {selectedMembers.map((member) => (
+                          <li
+                            key={member.user_id}
+                            className="rounded-md border border-border-subtle px-3 py-2"
+                          >
+                            <p className="text-sm font-medium text-text-primary">
+                              {memberDisplayName(member)}
+                            </p>
+                            <p className="mt-0.5 text-xs text-text-tertiary">
+                              {member.email} ·{' '}
+                              {t('teamRolesWizardMemberCurrentRole', { role: member.role_name })}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </RoleSummaryField>
                 </div>
               </div>
             ) : null}
@@ -301,7 +254,7 @@ export function CreateWorkspaceRoleWizard({
                 {t('teamRolesWizardBack')}
               </Button>
             )}
-            {step < 4 ? (
+            {step < TOTAL_STEPS ? (
               <Button
                 type="button"
                 variant="accent"

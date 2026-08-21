@@ -61,12 +61,12 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
       { label: shellT(lang, 'workspaceConfigPnlTermsTitle') },
     ]
   }
-  if (normalized === '/dashboard/configuration/alarms') {
-    return [{ label: shellT(lang, 'navWorkspaceConfiguration') }]
+  if (normalized === '/dashboard/alarms') {
+    return [{ label: shellT(lang, 'navAlarms') }]
   }
-  if (normalized === '/dashboard/configuration/alarms/stock') {
+  if (normalized === '/dashboard/alarms/stock') {
     return [
-      { label: shellT(lang, 'navWorkspaceConfiguration'), to: '/dashboard/configuration/alarms' },
+      { label: shellT(lang, 'navAlarms'), to: '/dashboard/alarms' },
       { label: shellT(lang, 'alarmsStockTypeTitle') },
     ]
   }
@@ -81,9 +81,6 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
       { label: shellT(lang, 'navIntegrations'), to: '/dashboard/integrations' },
       { label },
     ]
-  }
-  if (normalized === '/dashboard/alarms') {
-    return [{ label: shellT(lang, 'navAlarms') }]
   }
   if (normalized === '/dashboard/products/cogs') {
     return [{ label: shellT(lang, 'productsNavCogs') }]

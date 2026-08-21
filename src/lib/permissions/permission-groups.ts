@@ -77,7 +77,7 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
     id: 'workspace_config',
     titleKey: 'permGroupWorkspaceConfig',
     viewKey: 'workspace_config.view',
-    actionKeys: ['fx.view', 'fx.manage', 'pnl_labels.view', 'pnl_labels.manage'],
+    actionKeys: ['pnl_labels.view', 'pnl_labels.manage'],
   },
   {
     id: 'alerts',
@@ -92,6 +92,9 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
     actionKeys: ['team.manage'],
   },
 ] as const
+
+/** FX rates are system-managed; keep keys in the API catalog but hide them in the role wizard. */
+export const HIDDEN_ASSIGNABLE_PERMISSION_KEYS = ['fx.view', 'fx.manage'] as const
 
 const GROUP_MODULE_ID: Partial<Record<PermissionGroupId, ModuleId>> = {
   products: 'products',
@@ -142,7 +145,6 @@ export function toggleGroupAction(
   if (!enabled) return current.filter((item) => item !== key)
   const extras: string[] = []
   if (!current.includes(group.viewKey)) extras.push(group.viewKey)
-  if (key === 'fx.manage' && !current.includes('fx.view')) extras.push('fx.view')
   if (key === 'pnl_labels.manage' && !current.includes('pnl_labels.view')) {
     extras.push('pnl_labels.view')
   }
@@ -153,6 +155,17 @@ export function toggleGroupAction(
 export type AssignedGroupSummary = {
   titleKey: ShellStringKey
   actionLabels: ShellStringKey[]
+}
+
+export type PermissionHierarchyAction = {
+  labelKey: ShellStringKey
+  granted: boolean
+}
+
+export type PermissionHierarchyGroup = {
+  titleKey: ShellStringKey
+  granted: boolean
+  actions: PermissionHierarchyAction[]
 }
 
 export function assignedPermissionSummary(
@@ -173,4 +186,25 @@ export function assignedPermissionSummary(
     })
   }
   return summaries
+}
+
+export function permissionHierarchy(
+  keys: readonly string[],
+  groups: readonly PermissionGroup[],
+): PermissionHierarchyGroup[] {
+  const selected = new Set(keys)
+  return groups.map((group) => ({
+    titleKey: group.titleKey,
+    granted: selected.has(group.viewKey),
+    actions: [
+      {
+        labelKey: PERMISSION_LABEL_KEYS[group.viewKey],
+        granted: selected.has(group.viewKey),
+      },
+      ...group.actionKeys.map((key) => ({
+        labelKey: PERMISSION_LABEL_KEYS[key],
+        granted: selected.has(key),
+      })),
+    ],
+  }))
 }

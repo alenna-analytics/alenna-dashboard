@@ -9,14 +9,25 @@ function Switch({ className, ...props }: SwitchParts.Root.Props) {
     <SwitchParts.Root
       data-slot="switch"
       className={cn(
-        "group/switch inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border border-transparent px-0.5 shadow-xs transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-checked:bg-secondary data-unchecked:bg-muted data-disabled:cursor-not-allowed data-disabled:opacity-45 data-disabled:data-checked:bg-muted data-disabled:data-unchecked:bg-muted/80 data-disabled:shadow-none",
+        "group/switch inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-0 p-0.5 transition-colors outline-none",
+        "focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        "data-checked:bg-secondary",
+        "data-unchecked:bg-[rgba(var(--ink-rgb),0.38)]",
+        "data-disabled:cursor-not-allowed data-disabled:opacity-45",
+        "data-disabled:data-unchecked:bg-[rgba(var(--ink-rgb),0.12)]",
+        "data-disabled:data-checked:bg-muted",
         className,
       )}
       {...props}
     >
       <SwitchParts.Thumb
         data-slot="switch-thumb"
-        className="pointer-events-none block size-4 rounded-full bg-glass-fill-knob shadow-sm ring-0 transition-transform data-checked:translate-x-4 data-unchecked:translate-x-0 group-data-disabled/switch:bg-(--platinum-blonde-300) group-data-disabled/switch:shadow-none"
+        className={cn(
+          "pointer-events-none block size-4 rounded-full shadow-sm ring-0 transition-transform",
+          "data-unchecked:translate-x-0 data-unchecked:bg-[#e4e4e7]",
+          "data-checked:translate-x-4 data-checked:bg-white",
+          "group-data-disabled/switch:shadow-none group-data-disabled/switch:data-unchecked:bg-[#f4f4f5]",
+        )}
       />
     </SwitchParts.Root>
   )

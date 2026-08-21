@@ -4,6 +4,7 @@ import { useEnabledWorkspaceConfigSubmodules } from '@/lib/modules/use-workspace
 import { shellT } from '@/lib/i18n/shell-strings'
 import {
   internalSidebarAsideClassName,
+  internalSidebarHeaderTitleClassName,
   internalSidebarNavItemClassName,
   internalSidebarNavLabelClassName,
 } from '@/shell/layout/sidebar-layout'
@@ -13,7 +14,7 @@ import { cn } from '@/lib/utils'
 function internalNavLinkClass(isActive: boolean): string {
   return cn(
     internalSidebarNavItemClassName,
-    'text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+    'font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
     isActive
       ? 'bg-[var(--sidebar-active-bg)] text-text-primary'
       : 'text-text-tertiary hover:bg-[var(--sidebar-accent)] hover:text-text-primary',
@@ -47,7 +48,7 @@ export function ConfigurationInternalSidebar() {
   return (
     <aside className={internalSidebarAsideClassName} aria-label={t('navWorkspaceConfiguration')}>
       <div className="flex h-[var(--shell-inner-header-height)] shrink-0 items-center border-b border-[var(--shell-divider)] bg-white px-4">
-        <p className="truncate text-subtitle font-semibold text-text-primary">
+        <p className={internalSidebarHeaderTitleClassName}>
           {t('navWorkspaceConfiguration')}
         </p>
       </div>
@@ -57,7 +58,7 @@ export function ConfigurationInternalSidebar() {
           <InternalNavItem
             key={submodule.id}
             to={submodule.path}
-            end={submodule.id !== 'alarms'}
+            end
             label={t(submodule.labelKey)}
           />
         ))}

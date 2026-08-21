@@ -12,10 +12,12 @@ import { usePnlAwareT } from '@/pages/configuration/pnl-terms/use-pnl-labels-que
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
-import { HomeChannelDonutChart } from '@/pages/dashboard/home-channel-donut-chart'
+import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
+import { HomeChannelShareSection } from '@/pages/dashboard/home-channel-donut-chart'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
 import { HomeProductFilter } from '@/pages/dashboard/home-product-filter'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
 import {
   computeCalendarMomPeriod,
   computeShiftedPreviousPeriod,
@@ -37,6 +39,7 @@ import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shel
 import { useLanguage } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
+import { dateRangePickerStrings } from '@/ui/date-range-picker'
 import { Skeleton } from '@/ui/skeleton'
 import { cn } from '@/lib/utils'
 
@@ -91,6 +94,7 @@ export function SalesPage() {
 
   const [yoyGranularity, setYoyGranularity] =
     useState<RevenueSeriesGranularity>('day')
+  const [yoyChartType, setYoyChartType] = useState<SeriesChartView>('line')
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -341,18 +345,7 @@ export function SalesPage() {
     (queriesEnabled &&
       ((productMode && pkpiLoading && !pkpi) || (!productMode && kpiLoading && !kpi)))
 
-  const pickerStrings = {
-    applyLabel: t('datePickerApply'),
-    todayLabel: t('datePickerToday'),
-    placeholder: t('datePickerPlaceholder'),
-    presetLast7Days: t('datePickerLast7Days'),
-    presetLast30Days: t('datePickerLast30Days'),
-    presetLast3Months: t('datePickerLast3Months'),
-    presetLast6Months: t('datePickerLast6Months'),
-    presetLastYearRolling: t('datePickerLastYearRolling'),
-    presetCurrentYear: t('datePickerCurrentYear'),
-    presetPreviousYear: t('datePickerPreviousYear'),
-  }
+  const pickerStrings = dateRangePickerStrings(t)
 
   const vsPrior = t('reportsVsPreviousPeriod')
   const comparisonUnavailable = t('reportsComparisonUnavailable')
@@ -453,12 +446,10 @@ export function SalesPage() {
           ) : null}
 
           <div className="flex flex-col gap-12">
-            <SectionContainer>
-              <SectionHeader
+            <SectionContainer framed>
+              <HomeChannelShareSection
                 title={t('salesChannelNetBarsTitle')}
-                description={t('salesChannelNetBarsSubtitle')}
-              />
-              <HomeChannelDonutChart
+                info={t('salesChannelNetBarsSubtitle')}
                 rows={channelBreakdown?.items ?? []}
                 convertValue={convertFromBase}
                 formatValue={formatInDisplay}
@@ -468,16 +459,23 @@ export function SalesPage() {
               />
             </SectionContainer>
 
-            <SectionContainer>
-              <SectionHeader
+            <SectionContainer framed>
+              <ChartSectionHeader
                 title={t('salesYoyChartTitle')}
-                description={t('salesYoyChartSubtitle')}
+                info={t('salesYoyChartSubtitle')}
                 aside={
-                  <ChartGranularityFilter
-                    value={yoyGranularity}
-                    onChange={setYoyGranularity}
-                    t={t}
-                  />
+                  <>
+                    <ChartGranularityFilter
+                      value={yoyGranularity}
+                      onChange={setYoyGranularity}
+                      t={t}
+                    />
+                    <AppSeriesChartViewToggle
+                      value={yoyChartType}
+                      onChange={setYoyChartType}
+                      t={t}
+                    />
+                  </>
                 }
               />
               {!yoyPeriod || yoySeriesCurrentError || yoySeriesPrevError ? (
@@ -501,6 +499,7 @@ export function SalesPage() {
                   convertValue={convertFromBase}
                   dateLocale={dateLocale}
                   t={t}
+                  chartType={yoyChartType}
                 />
               )}
             </SectionContainer>

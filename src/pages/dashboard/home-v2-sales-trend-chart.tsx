@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import type { Locale } from 'date-fns'
 import {
+  Bar,
   Brush,
   CartesianGrid,
+  ComposedChart,
   Line,
   LineChart,
   ReferenceArea,
@@ -16,8 +18,10 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
 import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import {
+  CHART_BAR_MS,
   CHART_LINE_MAIN_MS,
   CHART_LINE_MINI_MS,
   rechartsEnterAnimationProps,
@@ -34,6 +38,8 @@ import {
 import type { AdsSeriesPoint } from '@/pages/ads/use-ads-kpis'
 import { mergeRevenueSeriesRows } from '@/pages/reports/monthly-revenue-chart'
 
+export type HomeV2SalesTrendChartType = SeriesChartView
+
 export type HomeV2SalesTrendChartProps = {
   startDate: string
   endDate: string
@@ -46,6 +52,7 @@ export type HomeV2SalesTrendChartProps = {
   secondaryMetric: HomeV2TrendMetricId
   metricContext: HomeV2TrendMetricContext
   adsSeriesPoints?: AdsSeriesPoint[]
+  chartType?: SeriesChartView
   t: (key: ShellStringKey) => string
 }
 
@@ -132,6 +139,7 @@ export function HomeV2SalesTrendChart({
   secondaryMetric,
   metricContext,
   adsSeriesPoints = [],
+  chartType = 'line',
   t,
 }: HomeV2SalesTrendChartProps) {
   const primaryLabel = homeV2TrendMetricLabel(primaryMetric, metricContext, t)
@@ -211,7 +219,9 @@ export function HomeV2SalesTrendChart({
     dataWithIndex[Math.max(0, Math.min(zoomEnd, Math.max(0, dataWithIndex.length - 1)))]?.label
 
   const dense = visibleData.length > 18
-  const mainAnimProps = rechartsEnterAnimationProps(CHART_LINE_MAIN_MS)
+  const mainAnimProps = rechartsEnterAnimationProps(
+    chartType === 'bar' ? CHART_BAR_MS : CHART_LINE_MAIN_MS,
+  )
   const miniAnimProps = rechartsEnterAnimationProps(CHART_LINE_MINI_MS)
 
   const toggleLegendKey = (key: string) => {
@@ -228,10 +238,12 @@ export function HomeV2SalesTrendChart({
       )}
     >
       <ResponsiveContainer width="100%" height={180}>
-        <LineChart
-          key={zoomResetKey}
+        <ComposedChart
+          key={`${zoomResetKey}-${chartType}`}
           data={visibleData}
           margin={{ top: 8, right: useDualAxis ? 8 : 8, left: 4, bottom: 4 }}
+          barCategoryGap="28%"
+          barGap={3}
         >
           <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
           <XAxis
@@ -260,6 +272,9 @@ export function HomeV2SalesTrendChart({
             />
           ) : null}
           <Tooltip
+            cursor={
+              chartType === 'bar' ? { fill: 'var(--muted)', opacity: 0.45 } : undefined
+            }
             content={
               <TrendTooltip
                 primaryLabel={primaryLabel}
@@ -279,41 +294,70 @@ export function HomeV2SalesTrendChart({
               boxShadow: 'none',
             }}
           />
-          <Line
-            type="monotone"
-            dataKey="primary"
-            name={primaryLabel}
-            yAxisId={primaryAxisId}
-            stroke="var(--chart-3)"
-            strokeWidth={2.5}
-            dot={chartLineDot('var(--chart-3)')}
-            activeDot={chartLineActiveDot('var(--chart-3)')}
-            opacity={hiddenKeys.primary ? 0.18 : 1}
-            {...mainAnimProps}
-          />
-          <Line
-            type="monotone"
-            dataKey="secondary"
-            name={secondaryLabel}
-            yAxisId={secondaryAxisId}
-            stroke="var(--chart-monthly-gross-bar)"
-            strokeWidth={2}
-            dot={false}
-            opacity={hiddenKeys.secondary ? 0.18 : 1}
-            {...mainAnimProps}
-          />
-        </LineChart>
+          {chartType === 'bar' ? (
+            <>
+              <Bar
+                dataKey="primary"
+                name={primaryLabel}
+                yAxisId={primaryAxisId}
+                fill="var(--chart-3)"
+                fillOpacity={0.82}
+                radius={[8, 8, 8, 8]}
+                maxBarSize={28}
+                opacity={hiddenKeys.primary ? 0.18 : 1}
+                {...mainAnimProps}
+              />
+              <Bar
+                dataKey="secondary"
+                name={secondaryLabel}
+                yAxisId={secondaryAxisId}
+                fill="var(--chart-monthly-gross-bar)"
+                fillOpacity={0.82}
+                radius={[8, 8, 8, 8]}
+                maxBarSize={28}
+                opacity={hiddenKeys.secondary ? 0.18 : 1}
+                {...mainAnimProps}
+              />
+            </>
+          ) : (
+            <>
+              <Line
+                type="monotone"
+                dataKey="primary"
+                name={primaryLabel}
+                yAxisId={primaryAxisId}
+                stroke="var(--chart-3)"
+                strokeWidth={2.5}
+                dot={chartLineDot('var(--chart-3)')}
+                activeDot={chartLineActiveDot('var(--chart-3)')}
+                opacity={hiddenKeys.primary ? 0.18 : 1}
+                {...mainAnimProps}
+              />
+              <Line
+                type="monotone"
+                dataKey="secondary"
+                name={secondaryLabel}
+                yAxisId={secondaryAxisId}
+                stroke="var(--chart-monthly-gross-bar)"
+                strokeWidth={2}
+                dot={false}
+                opacity={hiddenKeys.secondary ? 0.18 : 1}
+                {...mainAnimProps}
+              />
+            </>
+          )}
+        </ComposedChart>
       </ResponsiveContainer>
 
       {dataWithIndex.length > 0 ? (
         <div className="mt-2 rounded-md border border-border-subtle/70 bg-white px-1 py-1">
-          <div className="relative h-16 w-full">
+          <div className="relative h-8 w-full">
             <div className="absolute inset-0">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   key={`${zoomResetKey}-mini`}
                   data={dataWithIndex}
-                  margin={{ top: 4, right: 4, left: 4, bottom: 2 }}
+                  margin={{ top: 2, right: 4, left: 4, bottom: 2 }}
                 >
                   <XAxis dataKey="label" hide />
                   <YAxis hide domain={['auto', 'auto']} />
@@ -355,7 +399,7 @@ export function HomeV2SalesTrendChart({
                   <YAxis hide />
                   <Brush
                     dataKey="__idx"
-                    height={62}
+                    height={30}
                     travellerWidth={8}
                     stroke="var(--border-default)"
                     fill="transparent"
@@ -383,7 +427,7 @@ export function HomeV2SalesTrendChart({
             hiddenKeys.primary ? 'opacity-40' : 'opacity-100',
           )}
         >
-          <span className="inline-block h-0.5 w-4 rounded bg-[var(--chart-3)]" aria-hidden />
+          <span className="inline-block size-2 shrink-0 rounded-full bg-[var(--chart-3)]" aria-hidden />
           <span>{primaryLabel}</span>
         </button>
         <button
@@ -394,7 +438,10 @@ export function HomeV2SalesTrendChart({
             hiddenKeys.secondary ? 'opacity-40' : 'opacity-100',
           )}
         >
-          <span className="inline-block h-0.5 w-4 rounded bg-[var(--chart-monthly-gross-bar)]" aria-hidden />
+          <span
+            className="inline-block size-2 shrink-0 rounded-full bg-[var(--chart-monthly-gross-bar)]"
+            aria-hidden
+          />
           <span>{secondaryLabel}</span>
         </button>
       </div>

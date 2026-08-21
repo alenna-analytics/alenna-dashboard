@@ -14,6 +14,8 @@ import { filterEcommerceConnections } from '@/lib/integrations/ads-scope'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { KpiResponse, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
+import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
+import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { DashboardProfitMarginChart } from '@/pages/dashboard/dashboard-profit-margin-chart'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
 import { HomeProductFilter } from '@/pages/dashboard/home-product-filter'
@@ -22,7 +24,7 @@ import { ReportsBenchmarksTable } from '@/pages/reports/reports-benchmarks-table
 import { ReportsHeroKpis } from '@/pages/reports/reports-hero-kpis'
 import { buildProductPnlRows, buildTenantPnlRows } from '@/pages/reports/reports-pnl-rows'
 import { ReportsPnlTable } from '@/pages/reports/reports-pnl-table'
-import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
+import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
 import {
   computeCalendarMomPeriod,
   computeShiftedPreviousPeriod,
@@ -42,7 +44,7 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { includesAmazonWithUnavailableFees } from '@/lib/integrations/amazon-fees-notice'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
-import { presetDateRangeYmd } from '@/ui/date-range-picker'
+import { dateRangePickerStrings, presetDateRangeYmd } from '@/ui/date-range-picker'
 import { ContextAlertCard, ContextAlertsGroup, type ContextAlertTone } from '@/ui/context-alert'
 import { Skeleton } from '@/ui/skeleton'
 import { cn } from '@/lib/utils'
@@ -129,7 +131,7 @@ function ReportsLoadingSkeleton() {
       <Skeleton className="h-64 w-full rounded-md" />
       <div className="flex flex-col gap-12">
         {Array.from({ length: 2 }).map((_, i) => (
-          <SectionContainer key={i}>
+          <SectionContainer key={i} framed>
             <div className="mb-4 space-y-2" aria-hidden>
               <Skeleton className="h-6 w-48 max-w-[80%]" />
               <Skeleton className="h-4 w-full max-w-xl" />
@@ -172,6 +174,8 @@ export function ReportsPage() {
   const productMode = productIds.length > 0
   const [profitMarginGranularity, setProfitMarginGranularity] =
     useState<RevenueSeriesGranularity>('day')
+  const [profitMarginChartType, setProfitMarginChartType] =
+    useState<SeriesChartView>('bar')
   const [waterfallTab, setWaterfallTab] = useState<'pnl' | 'settlement'>('pnl')
 
   const connectionsQuery = useQuery({
@@ -474,18 +478,7 @@ export function ReportsPage() {
     (queriesEnabled &&
       (productMode ? pkpiLoading && !pkpi : kpiLoading && displayKpi === null))
 
-  const pickerStrings = {
-    applyLabel: t('datePickerApply'),
-    todayLabel: t('datePickerToday'),
-    placeholder: t('datePickerPlaceholder'),
-    presetLast7Days: t('datePickerLast7Days'),
-    presetLast30Days: t('datePickerLast30Days'),
-    presetLast3Months: t('datePickerLast3Months'),
-    presetLast6Months: t('datePickerLast6Months'),
-    presetLastYearRolling: t('datePickerLastYearRolling'),
-    presetCurrentYear: t('datePickerCurrentYear'),
-    presetPreviousYear: t('datePickerPreviousYear'),
-  }
+  const pickerStrings = dateRangePickerStrings(t)
 
   return (
     <DashboardPage className={cn('flex flex-1 flex-col', hasNoIntegrations ? 'gap-0' : 'gap-8')}>
@@ -577,14 +570,14 @@ export function ReportsPage() {
           ) : null}
 
           <div className="flex flex-col gap-12">
-            <SectionContainer>
-              <SectionHeader
+            <SectionContainer framed>
+              <ChartSectionHeader
                 title={
                   showSettlementWaterfall
                     ? t('reportsSectionSettlementTitle')
                     : t('reportsSectionRevenueBreakdown')
                 }
-                description={
+                info={
                   showSettlementWaterfall
                     ? t('reportsSectionSettlementSubtitle')
                     : t('reportsWaterfallSubtitle')
@@ -659,10 +652,24 @@ export function ReportsPage() {
               <ReportsBenchmarksTable rows={benchmarkRows} t={t} />
             ) : null}
 
-            <SectionContainer>
-              <SectionHeader
+            <SectionContainer framed>
+              <ChartSectionHeader
                 title={t('dashboardProfitMarginTitle')}
-                description={t('dashboardProfitMarginSubtitle')}
+                info={t('dashboardProfitMarginSubtitle')}
+                aside={
+                  <>
+                    <ChartGranularityFilter
+                      value={profitMarginGranularity}
+                      onChange={setProfitMarginGranularity}
+                      t={t}
+                    />
+                    <AppSeriesChartViewToggle
+                      value={profitMarginChartType}
+                      onChange={setProfitMarginChartType}
+                      t={t}
+                    />
+                  </>
+                }
               />
               {profitMarginTimeSeriesError ? (
                 <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
@@ -679,13 +686,7 @@ export function ReportsPage() {
                   formatValue={formatInDisplay}
                   dateLocale={dateLocale}
                   t={t}
-                  granularityFilter={
-                    <ChartGranularityFilter
-                      value={profitMarginGranularity}
-                      onChange={setProfitMarginGranularity}
-                      t={t}
-                    />
-                  }
+                  chartType={profitMarginChartType}
                 />
               )}
             </SectionContainer>

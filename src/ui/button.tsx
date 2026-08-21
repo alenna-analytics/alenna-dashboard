@@ -21,7 +21,7 @@ const buttonVariants = cva(
         secondary:
           "border-[var(--firefly-200)] bg-[var(--firefly-base)] text-white hover:border-[var(--firefly-300)] hover:bg-[var(--firefly-100)] hover:text-white/90 data-[state=open]:border-[var(--firefly-300)]",
         outline:
-          "border-[var(--african-turquoise-100)] bg-transparent text-[var(--firefly-base)] hover:border-[var(--african-turquoise-200)] hover:bg-[var(--platinum-blonde-300)] data-[state=open]:border-[var(--african-turquoise-200)]",
+          "border-[color:rgba(var(--ink-rgb),0.16)] bg-white text-text-primary hover:border-[color:rgba(var(--ink-rgb),0.36)] data-[state=open]:border-[color:rgba(var(--ink-rgb),0.36)]",
         dashed:
           "border border-dashed border-[var(--border-strong)] bg-transparent text-[var(--firefly-base)] hover:border-[var(--border-emphasis)] data-[state=open]:border-[var(--border-emphasis)]",
         destructive:

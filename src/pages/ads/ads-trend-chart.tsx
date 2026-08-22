@@ -3,7 +3,6 @@ import {
   Bar,
   CartesianGrid,
   ComposedChart,
-  Legend,
   Line,
   ResponsiveContainer,
   Tooltip,
@@ -104,7 +103,8 @@ export function AdsTrendChart({
   }
 
   return (
-    <div className={cn('h-72 w-full min-w-0', className)}>
+    <div className={cn('w-full min-w-0', className)}>
+      <div className="h-72 w-full min-w-0">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart
           data={chartRows}
@@ -138,12 +138,6 @@ export function AdsTrendChart({
                 salesLabel={salesLabel}
               />
             }
-          />
-          <Legend
-            verticalAlign="top"
-            align="right"
-            iconType="circle"
-            wrapperStyle={{ fontSize: 12, color: 'var(--text-secondary)' }}
           />
           {chartType === 'bar' ? (
             <>
@@ -190,6 +184,17 @@ export function AdsTrendChart({
           )}
         </ComposedChart>
       </ResponsiveContainer>
+      </div>
+      <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
+        <span className="inline-flex items-center gap-1.5 text-text-secondary">
+          <span className="inline-block size-2 shrink-0 rounded-full bg-[var(--chart-3)]" aria-hidden />
+          {spendLabel}
+        </span>
+        <span className="inline-flex items-center gap-1.5 text-text-secondary">
+          <span className="inline-block size-2 shrink-0 rounded-full bg-[var(--chart-1)]" aria-hidden />
+          {salesLabel}
+        </span>
+      </div>
     </div>
   )
 }

@@ -19,6 +19,7 @@ const FROZEN_API_KEYS = [
   'ads.view',
   'alerts.manage',
   'alerts.view',
+  'billing.view',
   'channels.view',
   'expenses.create',
   'expenses.delete',
@@ -76,7 +77,11 @@ describe('can-permissions', () => {
   it('admin uses assigned keys only', () => {
     expect(can(baseMe, 'alerts.manage')).toBe(true)
     expect(can(baseMe, 'integrations.manage')).toBe(false)
+    expect(can(baseMe, 'billing.view')).toBe(false)
+    expect(can(baseMe, 'billing.manage')).toBe(false)
     expect(isOwner(baseMe)).toBe(false)
+    expect(can({ ...baseMe, permissions: ['billing.view'] }, 'billing.view')).toBe(true)
+    expect(can({ ...baseMe, permissions: ['billing.view'] }, 'billing.manage')).toBe(false)
   })
 
   it('assignable keys match API frozen list', () => {

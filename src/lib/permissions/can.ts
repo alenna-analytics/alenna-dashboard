@@ -5,6 +5,7 @@ export type AssignablePermissionKey =
   | 'ads.view'
   | 'alerts.manage'
   | 'alerts.view'
+  | 'billing.view'
   | 'channels.view'
   | 'expenses.create'
   | 'expenses.delete'
@@ -29,6 +30,7 @@ export const ASSIGNABLE_PERMISSION_KEYS: readonly AssignablePermissionKey[] = [
   'ads.view',
   'alerts.manage',
   'alerts.view',
+  'billing.view',
   'channels.view',
   'expenses.create',
   'expenses.delete',

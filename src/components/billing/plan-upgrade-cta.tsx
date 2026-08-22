@@ -6,6 +6,7 @@ import {
   isBillingOwner,
   upgradeLabelForTarget,
   upgradeTargetForPlan,
+  type UpgradeTarget,
 } from '@/lib/plan/plan-limit-ui'
 import type { MeResponse } from '@/lib/types/me-types'
 import { Button } from '@/ui/button'
@@ -18,6 +19,7 @@ type PlanUpgradeCtaProps = {
   size?: 'sm' | 'default'
   className?: string
   onClick?: () => void
+  target?: UpgradeTarget
 }
 
 export function PlanUpgradeCta({
@@ -27,9 +29,10 @@ export function PlanUpgradeCta({
   size = 'sm',
   className,
   onClick,
+  target,
 }: PlanUpgradeCtaProps) {
   const [sheetOpen, setSheetOpen] = useState(false)
-  const label = upgradeLabelForTarget(upgradeTargetForPlan(me.plan), lang)
+  const label = upgradeLabelForTarget(target ?? upgradeTargetForPlan(me.plan), lang)
 
   if (!isBillingOwner(me) || !label) return null
 

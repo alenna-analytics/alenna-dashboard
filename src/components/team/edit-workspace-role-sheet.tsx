@@ -27,6 +27,7 @@ type EditWorkspaceRoleSheetProps = {
   onOpenChange: (open: boolean) => void
   tenantId: string
   role: WorkspaceRole
+  planLocked?: boolean
   onSuccess: () => void
 }
 
@@ -35,6 +36,7 @@ export function EditWorkspaceRoleSheet({
   onOpenChange,
   tenantId,
   role,
+  planLocked = false,
   onSuccess,
 }: EditWorkspaceRoleSheetProps) {
   const { getToken } = useAuth()
@@ -44,7 +46,7 @@ export function EditWorkspaceRoleSheet({
     (key: Parameters<typeof shellT>[1]) => shellT(lang, key),
     [lang],
   )
-  const locked = role.system_key === 'owner'
+  const locked = role.system_key === 'owner' || planLocked
   const [name, setName] = useState(role.name)
   const [description, setDescription] = useState(role.description ?? '')
   const [permissions, setPermissions] = useState<string[]>(
@@ -83,7 +85,11 @@ export function EditWorkspaceRoleSheet({
           </SheetHeader>
           <SheetBody className="space-y-4">
             {locked ? (
-              <SheetDescription>{t('teamRolesOwnerLocked')}</SheetDescription>
+              <SheetDescription>
+                {role.system_key === 'owner'
+                  ? t('teamRolesOwnerLocked')
+                  : t('teamErrorCustomRolesNotOnPlan')}
+              </SheetDescription>
             ) : (
               <SheetDescription>{t('teamRolesEditDescription')}</SheetDescription>
             )}

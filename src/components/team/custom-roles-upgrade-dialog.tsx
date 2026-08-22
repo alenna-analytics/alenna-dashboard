@@ -40,7 +40,7 @@ export function CustomRolesUpgradeDialog({
               {description}
             </DialogDescription>
           </DialogHeader>
-          <PlanUpgradeCta me={me} lang={lang} variant="primary" size="default" />
+          <PlanUpgradeCta me={me} lang={lang} variant="primary" size="default" target="growth" />
         </div>
       </DialogContent>
     </Dialog>

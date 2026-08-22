@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { MoreVertical, Pencil, Plus, Trash2 } from 'lucide-react'
+import { MoreVertical, Pencil, Plus, Trash2, Lock, Eye } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
 import { CreateWorkspaceRoleWizard } from '@/components/team/create-workspace-role-wizard'
@@ -171,7 +171,20 @@ export function TeamRolesPage() {
                 ? roles.map((role) => (
                     <tr key={role.id} className="border-b border-border-subtle last:border-0">
                       <td className="px-4 py-3">
-                        <p className="font-medium text-text-primary">{role.name}</p>
+                        <div className="flex min-w-0 items-center gap-1.5">
+                          <p className="font-medium text-text-primary">{role.name}</p>
+                          {role.system_key === 'owner' ? (
+                            <span
+                              className="inline-flex"
+                              title={t('teamRolesOwnerLocked')}
+                            >
+                              <Lock
+                                className="size-3.5 shrink-0 text-text-tertiary"
+                                aria-label={t('teamRolesOwnerLocked')}
+                              />
+                            </span>
+                          ) : null}
+                        </div>
                         {role.description ? (
                           <p className="text-xs text-text-tertiary">{role.description}</p>
                         ) : null}
@@ -204,10 +217,23 @@ export function TeamRolesPage() {
                               </DropdownMenuGroup>
                               <DropdownMenuSeparator />
                               <DropdownMenuGroup>
-                                <DropdownMenuItem onClick={() => setEditRole(role)}>
-                                  <Pencil className="h-4 w-4" aria-hidden />
-                                  <span>{t('teamEditRoleAction')}</span>
-                                </DropdownMenuItem>
+                                {role.system_key === 'owner' || showUpgrade ? (
+                                  <DropdownMenuItem onClick={() => setEditRole(role)}>
+                                    <Eye className="h-4 w-4" aria-hidden />
+                                    <span>{t('teamViewRoleAction')}</span>
+                                  </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem onClick={() => setEditRole(role)}>
+                                    <Pencil className="h-4 w-4" aria-hidden />
+                                    <span>{t('teamEditRoleAction')}</span>
+                                  </DropdownMenuItem>
+                                )}
+                                {showUpgrade && role.system_key !== 'owner' ? (
+                                  <DropdownMenuItem onClick={() => setUpgradeOpen(true)}>
+                                    <Pencil className="h-4 w-4" aria-hidden />
+                                    <span>{t('teamEditRoleAction')}</span>
+                                  </DropdownMenuItem>
+                                ) : null}
                                 {role.system_key == null && canManageRoles ? (
                                   <DropdownMenuItem
                                     variant="destructive"
@@ -269,6 +295,7 @@ export function TeamRolesPage() {
           }}
           tenantId={tenantId}
           role={editRole}
+          planLocked={showUpgrade}
           onSuccess={invalidate}
         />
       ) : null}

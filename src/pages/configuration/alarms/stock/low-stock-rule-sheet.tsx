@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
 
@@ -33,7 +33,28 @@ import {
   SheetTitle,
 } from '@/ui/sheet'
 
+const FORM_GRID =
+  'grid gap-2 sm:grid-cols-[9rem_minmax(0,1fr)] sm:items-start sm:gap-x-8'
+
 type LowStockRuleScopeType = Extract<AlertScopeType, 'channel' | 'product' | 'product_listing'>
+
+type RuleFormRowProps = {
+  label: string
+  htmlFor?: string
+  locked?: boolean
+  children: ReactNode
+}
+
+function RuleFormRow({ label, htmlFor, locked = false, children }: RuleFormRowProps) {
+  return (
+    <div className={cn(FORM_GRID, locked && 'pointer-events-none opacity-60')}>
+      <Label htmlFor={htmlFor} className="items-start leading-snug sm:pt-2">
+        {label}
+      </Label>
+      <div>{children}</div>
+    </div>
+  )
+}
 
 type LowStockRuleSheetProps = {
   lang: string
@@ -261,10 +282,10 @@ function LowStockRuleSheetForm({
         </SheetTitle>
       </SheetHeader>
 
-      <SheetBody className="space-y-4">
+      <SheetBody className="space-y-6">
         <SheetDescription>{shellT(lang, 'alarmsLowStockRuleSheetDescription')}</SheetDescription>
 
-        <div className={cn(identityLocked && 'pointer-events-none opacity-60')}>
+        <RuleFormRow label={shellT(lang, 'alarmsColScope')} locked={identityLocked}>
           <FilterComboboxSingle
             label={shellT(lang, 'alarmsColScope')}
             options={scopeOptions}
@@ -282,13 +303,13 @@ function LowStockRuleSheetForm({
             searchPlaceholder={searchPlaceholder}
             emptyLabel={shellT(lang, 'filterComingSoon')}
             allowClear={false}
-            labelLayout="stacked"
+            labelLayout="control"
             popoverSide="bottom"
           />
-        </div>
+        </RuleFormRow>
 
         {scopeType === 'channel' ? (
-          <div className={cn(identityLocked && 'pointer-events-none opacity-60')}>
+          <RuleFormRow label={shellT(lang, 'alarmsChannelLabel')} locked={identityLocked}>
             <FilterComboboxSingle
               label={shellT(lang, 'alarmsChannelLabel')}
               options={connectionOptions}
@@ -300,13 +321,13 @@ function LowStockRuleSheetForm({
               loading={connectionsQuery.isLoading}
               loadingLabel={shellT(lang, 'alarmsChannelPlaceholder')}
               allowClear={false}
-              labelLayout="stacked"
+              labelLayout="control"
               popoverSide="bottom"
             />
-          </div>
+          </RuleFormRow>
         ) : (
           <>
-            <div className={cn(identityLocked && 'pointer-events-none opacity-60')}>
+            <RuleFormRow label={shellT(lang, 'alarmsProductLabel')} locked={identityLocked}>
               <FilterComboboxSingle
                 label={shellT(lang, 'alarmsProductLabel')}
                 options={productOptions}
@@ -321,14 +342,14 @@ function LowStockRuleSheetForm({
                 loading={productPickerLoading}
                 loadingLabel={shellT(lang, 'alarmsProductPlaceholder')}
                 allowClear={false}
-                labelLayout="stacked"
+                labelLayout="control"
                 popoverSide="bottom"
               />
-            </div>
+            </RuleFormRow>
 
             {scopeType === 'product_listing' ? (
               <>
-                <div className={cn(identityLocked && 'pointer-events-none opacity-60')}>
+                <RuleFormRow label={shellT(lang, 'alarmsChannelLabel')} locked={identityLocked}>
                   <FilterComboboxSingle
                     label={shellT(lang, 'alarmsChannelLabel')}
                     options={connectionOptions}
@@ -343,12 +364,13 @@ function LowStockRuleSheetForm({
                     loading={connectionsQuery.isLoading}
                     loadingLabel={shellT(lang, 'alarmsChannelPlaceholder')}
                     allowClear={false}
-                    labelLayout="stacked"
+                    labelLayout="control"
                     popoverSide="bottom"
                   />
-                </div>
-                <div
-                  className={cn((identityLocked || !productId) && 'pointer-events-none opacity-60')}
+                </RuleFormRow>
+                <RuleFormRow
+                  label={shellT(lang, 'alarmsListingLabel')}
+                  locked={identityLocked || !productId}
                 >
                   <FilterComboboxSingle
                     label={shellT(lang, 'alarmsListingLabel')}
@@ -361,18 +383,20 @@ function LowStockRuleSheetForm({
                     loading={productDetailQuery.isLoading}
                     loadingLabel={shellT(lang, 'alarmsListingPlaceholder')}
                     allowClear={false}
-                    labelLayout="stacked"
+                    labelLayout="control"
                     popoverSide="bottom"
                   />
-                </div>
+                </RuleFormRow>
               </>
             ) : null}
           </>
         )}
 
-        <div className="space-y-2">
-          <Label htmlFor="low-stock-rule-threshold">{shellT(lang, 'alarmsThresholdLabel')}</Label>
-          <div className="flex max-w-xs items-center gap-2">
+        <RuleFormRow
+          label={shellT(lang, 'alarmsThresholdLabel')}
+          htmlFor="low-stock-rule-threshold"
+        >
+          <div className="flex max-w-[10rem] items-center gap-2">
             <Input
               id="low-stock-rule-threshold"
               type="number"
@@ -384,7 +408,7 @@ function LowStockRuleSheetForm({
             />
             <span className="text-sm text-text-secondary">%</span>
           </div>
-        </div>
+        </RuleFormRow>
 
         {editing ? (
           <div className="border-t border-border-subtle pt-4">

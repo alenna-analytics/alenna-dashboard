@@ -78,7 +78,7 @@ function App() {
           <Route path="integrations" element={<RequireModule moduleId="integrations"><IntegrationsListPage category="all" /></RequireModule>} />
           <Route path="team" element={<RequireModule permission="team.view"><TeamPage /></RequireModule>} />
           <Route path="team/roles" element={<RequireModule permission="team.view"><TeamRolesPage /></RequireModule>} />
-          <Route path="billing" element={<BillingConfigurationPage />} />
+          <Route path="billing" element={<RequireModule moduleId="workspace-config" permission="billing.view"><BillingConfigurationPage /></RequireModule>} />
           <Route path="configuration/billing" element={<BillingLegacyRedirect />} />
           <Route path="configuration/alarms/stock" element={<Navigate to="/dashboard/alarms/stock" replace />} />
           <Route path="configuration/alarms" element={<Navigate to="/dashboard/alarms" replace />} />

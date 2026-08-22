@@ -6,7 +6,12 @@ import {
 } from '@tanstack/react-table'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { BenchmarkBand, BenchmarkMetricId, BenchmarkRow } from '@/pages/reports/reports-benchmarks'
+import {
+  formatBenchmarkValue,
+  type BenchmarkBand,
+  type BenchmarkMetricId,
+  type BenchmarkRow,
+} from '@/pages/reports/reports-benchmarks'
 import { SectionSplit } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
@@ -72,12 +77,10 @@ export function ReportsBenchmarksTable({ rows, t }: ReportsBenchmarksTableProps)
           />
         ),
         cell: ({ row }) => {
-          const r = row.original
+          const formatted = formatBenchmarkValue(row.original)
           return (
             <span className="w-full text-right font-numeric tabular-nums">
-              {r.band === 'no_data' || r.value === null
-                ? t('reportsBenchStatusNoData')
-                : `${r.value.toFixed(1)}%`}
+              {formatted ?? t('reportsBenchStatusNoData')}
             </span>
           )
         },

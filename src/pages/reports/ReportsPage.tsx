@@ -467,9 +467,11 @@ export function ReportsPage() {
     return buildBenchmarkRows({
       grossMarginPct: displayKpi.gross_margin_pct,
       contributionMarginPct: displayKpi.contribution_margin_pct,
+      contributionMargin: displayKpi.contribution_margin,
       adsSpend: displayKpi.ads_spend,
       netRevenue: displayKpi.net_revenue,
       ebitdaMarginPct: displayKpi.ebitda_margin_pct,
+      cogsIncomplete: displayKpi.cogs_incomplete,
     })
   }, [productMode, displayKpi])
 

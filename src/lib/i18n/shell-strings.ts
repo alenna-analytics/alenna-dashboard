@@ -1440,7 +1440,7 @@ const SHELL_STRINGS = {
     expensesSummaryUsd: 'Volumen en USD',
     expensesSummaryCombined: 'Total en {currency}',
     expensesSummaryWindowHint:
-      'Gastos prorrateados al rango de fechas seleccionado.',
+      'Los gastos mensuales se reconocen el día de cobro (el 1 si no se indica).',
     expensesReportsHint:
       'Los gastos se aplican en vivo al P&L (opex → EBITDA; categoría Publicidad → CM). No hay backfill como en COGS: revisa la cascada P&L / KPI EBITDA, no las gráficas de ventas.',
     expensesTableSearchPlaceholder: 'Buscar gastos…',
@@ -1453,6 +1453,9 @@ const SHELL_STRINGS = {
     expensesRecurrenceField: 'Recurrencia',
     expensesStartDateField: 'Fecha inicio',
     expensesEndDateField: 'Fecha fin (opcional)',
+    expensesChargeDayField: 'Día de cobro',
+    expensesChargeDayHelp:
+      'Opcional. Vacío = día 1. El monto completo se reconoce ese día, no se reparte en el mes.',
     expensesSaveBtn: 'Guardar',
     expensesCancelBtn: 'Cancelar',
     expensesDeleteBtn: 'Eliminar',
@@ -3363,7 +3366,7 @@ const SHELL_STRINGS = {
     expensesSummaryUsd: 'Volume in USD',
     expensesSummaryCombined: 'Total in {currency}',
     expensesSummaryWindowHint:
-      'Expenses prorated to the selected date range.',
+      'Monthly expenses are recognized on the charge day (the 1st if omitted).',
     expensesReportsHint:
       'Expenses apply live to the P&L (opex → EBITDA; Ads category → CM). No COGS-style backfill: check the P&L waterfall / EBITDA KPI, not sales bar charts.',
     expensesTableSearchPlaceholder: 'Search expenses…',
@@ -3376,6 +3379,9 @@ const SHELL_STRINGS = {
     expensesRecurrenceField: 'Recurrence',
     expensesStartDateField: 'Start date',
     expensesEndDateField: 'End date (optional)',
+    expensesChargeDayField: 'Charge day',
+    expensesChargeDayHelp:
+      'Optional. Empty = the 1st. The full amount is recognized that day, not spread across the month.',
     expensesSaveBtn: 'Save',
     expensesCancelBtn: 'Cancel',
     expensesDeleteBtn: 'Delete',

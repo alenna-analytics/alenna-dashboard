@@ -18,6 +18,7 @@ function expense(partial: Partial<Expense> & Pick<Expense, 'amount' | 'currency'
     category: partial.category ?? 'rent',
     platform: partial.platform ?? null,
     recurrence_type: partial.recurrence_type ?? 'once',
+    day_of_month: partial.day_of_month ?? null,
     start_date: partial.start_date ?? '2026-04-15',
     end_date: partial.end_date ?? null,
   }
@@ -59,7 +60,7 @@ describe('summarizeExpenses', () => {
     expect(summary.combinedDisplay).toBeNull()
   })
 
-  it('prorates monthly expense for half-month window', () => {
+  it('recognizes full monthly amount on day 1 even in a half-month window', () => {
     const monthly = expense({
       amount: 3000,
       currency: 'MXN',
@@ -74,7 +75,7 @@ describe('summarizeExpenses', () => {
       startDate: '2026-04-01',
       endDate: '2026-04-15',
     })
-    expect(summary.mxnTotal).toBeCloseTo(1500, 5)
+    expect(summary.mxnTotal).toBe(3000)
   })
 
   it('one_time outside window contributes 0 when dates set', () => {
@@ -104,6 +105,28 @@ describe('prorateExpenseAmount', () => {
       start_date: '2026-04-10',
     })
     expect(prorateExpenseAmount(80, once, '2026-04-01', '2026-04-30')).toBe(80)
+  })
+
+  it('skips monthly amount when charge day is after the window', () => {
+    const monthly = expense({
+      amount: 25000,
+      currency: 'MXN',
+      recurrence_type: 'monthly',
+      start_date: '2026-01-01',
+      day_of_month: 25,
+    })
+    expect(prorateExpenseAmount(25000, monthly, '2026-08-01', '2026-08-22')).toBe(0)
+  })
+
+  it('recognizes monthly amount when charge day falls in the window', () => {
+    const monthly = expense({
+      amount: 25000,
+      currency: 'MXN',
+      recurrence_type: 'monthly',
+      start_date: '2026-01-01',
+      day_of_month: 15,
+    })
+    expect(prorateExpenseAmount(25000, monthly, '2026-08-01', '2026-08-22')).toBe(25000)
   })
 })
 

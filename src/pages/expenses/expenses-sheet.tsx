@@ -3,7 +3,10 @@ import { useState, type ReactNode } from 'react'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { Expense, ExpenseCategory, ExpenseCreate, ExpenseRecurrence } from '@/lib/types/expenses'
 import {
+  CHARGE_DAY_MAX,
+  CHARGE_DAY_MIN,
   EXPENSE_CURRENCIES,
+  sanitizeChargeDayInput,
   type ExpenseCurrencyCode,
 } from '@/pages/expenses/expenses-helpers'
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -113,7 +116,7 @@ function parseChargeDay(raw: string): ParsedChargeDay {
   if (trimmed === '') return { status: 'empty' }
   if (!/^\d+$/.test(trimmed)) return { status: 'invalid' }
   const day = Number(trimmed)
-  if (day < 1 || day > 28) return { status: 'invalid' }
+  if (day < CHARGE_DAY_MIN || day > CHARGE_DAY_MAX) return { status: 'invalid' }
   return { status: 'ok', day }
 }
 
@@ -314,11 +317,17 @@ export function ExpensesSheet({
               <FormRow label={t('expensesChargeDayField')} htmlFor="exp-charge-day">
                 <Input
                   id="exp-charge-day"
-                  type="number"
-                  min={1}
-                  max={28}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  maxLength={2}
                   value={form.day_of_month}
-                  onChange={(e) => setForm((f) => ({ ...f, day_of_month: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      day_of_month: sanitizeChargeDayInput(e.target.value, f.day_of_month),
+                    }))
+                  }
                   placeholder="1"
                   disabled={isBusy}
                   aria-invalid={chargeDayInvalid}

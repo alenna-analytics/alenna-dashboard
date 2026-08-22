@@ -1455,7 +1455,7 @@ const SHELL_STRINGS = {
     expensesEndDateField: 'Fecha fin (opcional)',
     expensesChargeDayField: 'Día de cobro',
     expensesChargeDayHelp:
-      'Opcional. Vacío = día 1. El monto completo se reconoce ese día, no se reparte en el mes.',
+      'Opcional. 1–31 (vacío = día 1). En meses cortos se reconoce el último día.',
     expensesSaveBtn: 'Guardar',
     expensesCancelBtn: 'Cancelar',
     expensesDeleteBtn: 'Eliminar',
@@ -3381,7 +3381,7 @@ const SHELL_STRINGS = {
     expensesEndDateField: 'End date (optional)',
     expensesChargeDayField: 'Charge day',
     expensesChargeDayHelp:
-      'Optional. Empty = the 1st. The full amount is recognized that day, not spread across the month.',
+      'Optional. 1–31 (empty = the 1st). Short months recognize the last day of the month.',
     expensesSaveBtn: 'Save',
     expensesCancelBtn: 'Cancel',
     expensesDeleteBtn: 'Delete',

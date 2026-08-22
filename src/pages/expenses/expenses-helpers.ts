@@ -5,6 +5,18 @@ import type { LatestFxForDisplay } from '@/lib/types/me-types'
 export const EXPENSE_CURRENCIES = ['MXN', 'USD'] as const
 export type ExpenseCurrencyCode = (typeof EXPENSE_CURRENCIES)[number]
 
+export const CHARGE_DAY_MIN = 1
+export const CHARGE_DAY_MAX = 31
+
+export function sanitizeChargeDayInput(raw: string, previous: string): string {
+  if (raw.trim() === '') return ''
+  const digits = raw.replace(/\D/g, '')
+  if (digits === '') return previous
+  const n = Number(digits)
+  if (n >= CHARGE_DAY_MIN && n <= CHARGE_DAY_MAX) return String(n)
+  return previous
+}
+
 export type AmountCompareOp = 'gte' | 'lte' | 'eq'
 
 export type ExpensesFilters = {
@@ -144,7 +156,7 @@ export function prorateExpenseAmount(
 
   const expEndParts = expense.end_date ? ymdParts(expense.end_date) : null
   const rawDay = expense.day_of_month
-  const chargeDom = rawDay == null || rawDay < 1 ? 1 : Math.min(rawDay, 28)
+  const chargeDom = rawDay == null || rawDay < 1 ? 1 : Math.min(rawDay, CHARGE_DAY_MAX)
   const qStartMs = Date.UTC(qs.y, qs.m - 1, qs.d)
   const qEndMs = Date.UTC(qe.y, qe.m - 1, qe.d)
   const expStartMs = Date.UTC(es.y, es.m - 1, es.d)

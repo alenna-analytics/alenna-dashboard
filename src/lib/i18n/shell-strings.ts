@@ -31,7 +31,7 @@ const SHELL_STRINGS = {
       'Acceso total: facturación, roles, integraciones, ajustes y borrar el espacio de trabajo.',
     teamRoleAdminTitle: 'Admin',
     teamRoleAdminDescription:
-      'Ve y edita módulos, invita miembros y gestiona integraciones. Sin facturación ni crear roles.',
+      'Ve y edita módulos, invita miembros y gestiona integraciones. Puede ver facturación, pero no cambiar el plan ni crear roles.',
     teamRoleStaffTitle: 'Staff',
     teamRoleStaffDescription:
       'Ve productos, ventas, reportes y gastos. No edita datos ni ve Equipo o Billing.',
@@ -50,6 +50,7 @@ const SHELL_STRINGS = {
       'Dejarás de tener acceso a este espacio de trabajo. Podrás volver solo si te invitan de nuevo.',
     teamRevokeInvite: 'Revocar invitación',
     teamEditRoleAction: 'Editar',
+    teamViewRoleAction: 'Ver',
     teamEditRoleSheetTitle: 'Editar rol',
     teamEditRoleSheetDescription: 'Cambia el acceso de {name} en este espacio de trabajo.',
     teamEditRoleSubmit: 'Guardar rol',
@@ -135,6 +136,8 @@ const SHELL_STRINGS = {
     permTeamManageDesc: 'Invitar, cambiar el rol y quitar personas. No incluye crear o editar roles.',
     permTeamView: 'Ver equipo',
     permTeamViewDesc: 'Ver la lista de miembros y los roles del espacio de trabajo.',
+    permBillingView: 'Ver facturación',
+    permBillingViewDesc: 'Ver el plan, el uso y las facturas. No incluye cambiar el plan ni el método de pago.',
     permIntegrationsManage: 'Gestionar integraciones',
     permIntegrationsManageDesc: 'Conectar, desconectar y sincronizar tiendas y plataformas.',
     permIntegrationsView: 'Ver integraciones',
@@ -186,6 +189,7 @@ const SHELL_STRINGS = {
     permGroupIntegrations: 'Integraciones',
     permGroupWorkspaceConfig: 'Configuración',
     permGroupAlerts: 'Alertas',
+    permGroupBilling: 'Facturación',
     permGroupTeam: 'Equipo',
     teamRolesUpgradeTitle: 'Roles personalizados',
     navWorkspaceConfiguration: 'Ajustes',
@@ -1436,7 +1440,7 @@ const SHELL_STRINGS = {
     expensesSummaryUsd: 'Volumen en USD',
     expensesSummaryCombined: 'Total en {currency}',
     expensesSummaryWindowHint:
-      'Gastos prorrateados al rango de fechas seleccionado.',
+      'Los gastos mensuales se reconocen el día de cobro (el 1 si no se indica).',
     expensesReportsHint:
       'Los gastos se aplican en vivo al P&L (opex → EBITDA; categoría Publicidad → CM). No hay backfill como en COGS: revisa la cascada P&L / KPI EBITDA, no las gráficas de ventas.',
     expensesTableSearchPlaceholder: 'Buscar gastos…',
@@ -1449,6 +1453,9 @@ const SHELL_STRINGS = {
     expensesRecurrenceField: 'Recurrencia',
     expensesStartDateField: 'Fecha inicio',
     expensesEndDateField: 'Fecha fin (opcional)',
+    expensesChargeDayField: 'Día de cobro',
+    expensesChargeDayHelp:
+      'Opcional. 1–31 (vacío = día 1). En meses cortos se reconoce el último día.',
     expensesSaveBtn: 'Guardar',
     expensesCancelBtn: 'Cancelar',
     expensesDeleteBtn: 'Eliminar',
@@ -1971,7 +1978,7 @@ const SHELL_STRINGS = {
       'Full access: billing, roles, integrations, settings, and workspace deletion.',
     teamRoleAdminTitle: 'Admin',
     teamRoleAdminDescription:
-      'View and edit modules, invite members, and manage integrations. No billing or custom roles.',
+      'View and edit modules, invite members, and manage integrations. Can view billing, but cannot change the plan or create roles.',
     teamRoleStaffTitle: 'Staff',
     teamRoleStaffDescription:
       'View products, sales, reports, and expenses. Cannot edit data or see Team or Billing.',
@@ -1990,6 +1997,7 @@ const SHELL_STRINGS = {
       'You will lose access to this workspace. You can return only if you are invited again.',
     teamRevokeInvite: 'Revoke invitation',
     teamEditRoleAction: 'Edit',
+    teamViewRoleAction: 'View',
     teamEditRoleSheetTitle: 'Edit role',
     teamEditRoleSheetDescription: 'Change {name}’s access in this workspace.',
     teamEditRoleSubmit: 'Save role',
@@ -2075,6 +2083,8 @@ const SHELL_STRINGS = {
     permTeamManageDesc: 'Invite people, change their role, and remove them. Does not include creating or editing roles.',
     permTeamView: 'View team',
     permTeamViewDesc: 'See workspace members and roles.',
+    permBillingView: 'View billing',
+    permBillingViewDesc: 'See the plan, usage, and invoices. Does not include changing the plan or payment method.',
     permIntegrationsManage: 'Manage integrations',
     permIntegrationsManageDesc: 'Connect, disconnect, and sync stores and platforms.',
     permIntegrationsView: 'View integrations',
@@ -2126,6 +2136,7 @@ const SHELL_STRINGS = {
     permGroupIntegrations: 'Integrations',
     permGroupWorkspaceConfig: 'Settings',
     permGroupAlerts: 'Alerts',
+    permGroupBilling: 'Billing',
     permGroupTeam: 'Team',
     teamRolesUpgradeTitle: 'Custom roles',
     navWorkspaceConfiguration: 'Settings',
@@ -3355,7 +3366,7 @@ const SHELL_STRINGS = {
     expensesSummaryUsd: 'Volume in USD',
     expensesSummaryCombined: 'Total in {currency}',
     expensesSummaryWindowHint:
-      'Expenses prorated to the selected date range.',
+      'Monthly expenses are recognized on the charge day (the 1st if omitted).',
     expensesReportsHint:
       'Expenses apply live to the P&L (opex → EBITDA; Ads category → CM). No COGS-style backfill: check the P&L waterfall / EBITDA KPI, not sales bar charts.',
     expensesTableSearchPlaceholder: 'Search expenses…',
@@ -3368,6 +3379,9 @@ const SHELL_STRINGS = {
     expensesRecurrenceField: 'Recurrence',
     expensesStartDateField: 'Start date',
     expensesEndDateField: 'End date (optional)',
+    expensesChargeDayField: 'Charge day',
+    expensesChargeDayHelp:
+      'Optional. 1–31 (empty = the 1st). Short months recognize the last day of the month.',
     expensesSaveBtn: 'Save',
     expensesCancelBtn: 'Cancel',
     expensesDeleteBtn: 'Delete',

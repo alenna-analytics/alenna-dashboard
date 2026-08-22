@@ -211,12 +211,16 @@ export function ExpensesTable({
     enableSorting: false,
   })
 
+  const isEmpty = !isLoading && rows.length === 0
+
   return (
     <DataTable
       table={table}
       isLoading={isLoading}
       isFetching={isFetching}
       hasEverLoaded={!isLoading || rows.length > 0}
+      variant={isEmpty ? 'plain' : 'card'}
+      scrollClassName={isEmpty ? '' : undefined}
       emptyContent={
         <EmptyState
           icon="billing"

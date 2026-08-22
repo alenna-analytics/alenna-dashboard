@@ -29,6 +29,7 @@ describe('permission-groups overlay preview', () => {
     expect(ids).toContain('ads')
     expect(ids).toContain('alerts')
     expect(ids).toContain('team')
+    expect(ids).toContain('billing')
     expect(ids).not.toContain('simulations')
     expect(ids).not.toContain('expenses')
   })

@@ -15,6 +15,7 @@ export type PermissionGroupId =
   | 'integrations'
   | 'workspace_config'
   | 'alerts'
+  | 'billing'
   | 'team'
 
 export type PermissionGroup = {
@@ -84,6 +85,12 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
     titleKey: 'permGroupAlerts',
     viewKey: 'alerts.view',
     actionKeys: ['alerts.manage'],
+  },
+  {
+    id: 'billing',
+    titleKey: 'permGroupBilling',
+    viewKey: 'billing.view',
+    actionKeys: [],
   },
   {
     id: 'team',

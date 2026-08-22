@@ -7,6 +7,7 @@ import {
   billingPlanHeadline,
   checkoutPlanForTarget,
   isBillingOwner,
+  canViewBilling,
   isPlanLimitSyncPaused,
   planSummaryLabel,
   upgradeLabelForTarget,
@@ -119,6 +120,17 @@ describe('plan-limit-ui', () => {
     expect(isBillingOwner(baseMe)).toBe(false)
     expect(isBillingOwner({ ...baseMe, is_owner: true })).toBe(true)
     expect(isBillingOwner({ ...baseMe, role: 'admin', is_owner: false })).toBe(false)
+  })
+
+  it('canViewBilling is assignable independently of manage', () => {
+    expect(canViewBilling(baseMe)).toBe(false)
+    expect(canViewBilling({ ...baseMe, is_owner: true })).toBe(true)
+    expect(
+      canViewBilling({ ...baseMe, role: 'admin', is_owner: false, permissions: ['billing.view'] }),
+    ).toBe(true)
+    expect(
+      isBillingOwner({ ...baseMe, role: 'admin', is_owner: false, permissions: ['billing.view'] }),
+    ).toBe(false)
   })
 
 

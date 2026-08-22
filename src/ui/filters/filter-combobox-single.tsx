@@ -51,8 +51,8 @@ export type FilterComboboxSingleProps = {
   allowClear?: boolean
   popoverAlign?: 'start' | 'center' | 'end'
   popoverSide?: 'top' | 'bottom' | 'left' | 'right'
-  /** Inline keeps the filter-pill label inside the trigger; stacked puts the label above a plain input-style trigger. */
-  labelLayout?: 'inline' | 'stacked'
+  /** Inline keeps the filter-pill label inside the trigger; stacked puts the label above a plain input-style trigger; control is the trigger only (pair with an external label). */
+  labelLayout?: 'inline' | 'stacked' | 'control'
 }
 
 const stackedTriggerClassName =
@@ -89,12 +89,14 @@ export function FilterComboboxSingle({
 
   const serverSide = typeof onSearchChange === 'function'
 
+  const stackedTrigger = labelLayout === 'stacked' || labelLayout === 'control'
   const trigger =
-    labelLayout === 'stacked' ? (
+    stackedTrigger ? (
       <PopoverTrigger
         type="button"
         className={cn(stackedTriggerClassName, triggerClassName)}
         aria-expanded={open}
+        aria-label={label}
       >
         <span
           className={cn(

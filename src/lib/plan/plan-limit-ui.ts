@@ -1,3 +1,4 @@
+import { can } from '@/lib/permissions/can'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { Language } from '@/shell/providers/language-provider'
 import type { MeResponse } from '@/lib/types/me-types'
@@ -26,8 +27,12 @@ export function upgradeMailtoForTarget(target: UpgradeTarget | null): string | n
   return null
 }
 
+export function canViewBilling(me: MeResponse | null | undefined): boolean {
+  return can(me, 'billing.view')
+}
+
 export function isBillingOwner(me: MeResponse | null | undefined): boolean {
-  return Boolean(me?.is_owner)
+  return can(me, 'billing.manage')
 }
 
 export function upgradeLabelKeyForTarget(target: UpgradeTarget | null): ShellStringKey | null {

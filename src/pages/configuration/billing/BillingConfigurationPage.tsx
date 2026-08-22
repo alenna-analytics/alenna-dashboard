@@ -30,6 +30,7 @@ import {
   formatMoneyCents,
   formatPlanLimit,
   formatTrialEndDate,
+  canViewBilling,
   isBillingOwner,
   isPlanLimitSyncPaused,
   UPGRADE_ENTERPRISE_MAILTO,
@@ -309,8 +310,9 @@ export function BillingConfigurationPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on landing with ?checkout=
   }, [])
 
-  const isOwner = isBillingOwner(me)
-  const subscribed = Boolean(isOwner && me?.has_stripe_subscription)
+  const canManage = isBillingOwner(me)
+  const canView = canViewBilling(me)
+  const subscribed = Boolean(canView && me?.has_stripe_subscription)
   const overviewQuery = useQuery({
     queryKey: ['billing', 'overview', me?.tenant_id],
     enabled: subscribed && Boolean(me?.tenant_id),
@@ -322,7 +324,7 @@ export function BillingConfigurationPage() {
   const overview = overviewQuery.data
   const ordersDailyQuery = useQuery({
     queryKey: ['billing', 'orders-daily', me?.tenant_id],
-    enabled: isOwner && Boolean(me?.tenant_id),
+    enabled: canView && Boolean(me?.tenant_id),
     queryFn: async () => {
       if (!me) throw new Error('missing workspace')
       return fetchBillingOrdersDaily((args) => getToken(args), me.tenant_id)
@@ -354,7 +356,7 @@ export function BillingConfigurationPage() {
         ? 'planLimitBillingAlertSkus'
         : 'planLimitBillingAlertGeneric'
 
-  if (me && !isOwner) {
+  if (me && !canView) {
     return <Navigate to="/dashboard" replace />
   }
 
@@ -380,7 +382,7 @@ export function BillingConfigurationPage() {
           title={t('planLimitBillingAlertTitle')}
           subtitle={t(planLimitAlertSubtitleKey)}
           action={
-            isOwner && me ? (
+            canManage && me ? (
               <Button type="button" variant="accent" size="tiny" onClick={() => setAdjustOpen(true)}>
                 {t('billingChangePlan')}
               </Button>
@@ -426,13 +428,13 @@ export function BillingConfigurationPage() {
                 </>
               )}
             </div>
-            {isOwner && me ? (
+            {canManage && me ? (
               <PlanChangeActions me={me} onChangePlan={() => setAdjustOpen(true)} />
             ) : null}
           </div>
         </BillingSection>
 
-        {subscribed && me ? (
+        {subscribed && canManage && me ? (
           <BillingSection
             label={t('billingPaymentLabel')}
             description={t('billingPaymentDescription')}

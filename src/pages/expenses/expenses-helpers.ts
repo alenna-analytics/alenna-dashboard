@@ -5,6 +5,18 @@ import type { LatestFxForDisplay } from '@/lib/types/me-types'
 export const EXPENSE_CURRENCIES = ['MXN', 'USD'] as const
 export type ExpenseCurrencyCode = (typeof EXPENSE_CURRENCIES)[number]
 
+export const CHARGE_DAY_MIN = 1
+export const CHARGE_DAY_MAX = 31
+
+export function sanitizeChargeDayInput(raw: string, previous: string): string {
+  if (raw.trim() === '') return ''
+  const digits = raw.replace(/\D/g, '')
+  if (digits === '') return previous
+  const n = Number(digits)
+  if (n >= CHARGE_DAY_MIN && n <= CHARGE_DAY_MAX) return String(n)
+  return previous
+}
+
 export type AmountCompareOp = 'gte' | 'lte' | 'eq'
 
 export type ExpensesFilters = {
@@ -119,9 +131,8 @@ function convertMxnUsd(
 }
 
 /**
- * Day-proration mirror of API `prorate_monthly_expense`.
- * Monthly: days_in_overlap / days_in_month × amount across months.
- * Once: full amount if start_date in window, else 0 (caller should skip).
+ * Monthly: full amount on charge day (default 1) if that date is in the window.
+ * Once: full amount if start_date in window, else 0.
  */
 export function prorateExpenseAmount(
   amount: number,
@@ -144,34 +155,31 @@ export function prorateExpenseAmount(
   }
 
   const expEndParts = expense.end_date ? ymdParts(expense.end_date) : null
-  const effStartY = Math.max(
-    Date.UTC(es.y, es.m - 1, es.d),
-    Date.UTC(qs.y, qs.m - 1, qs.d),
-  )
-  const effEndY = Math.min(
-    expEndParts
-      ? Date.UTC(expEndParts.y, expEndParts.m - 1, expEndParts.d)
-      : Date.UTC(qe.y, qe.m - 1, qe.d),
-    Date.UTC(qe.y, qe.m - 1, qe.d),
-  )
-  if (effStartY > effEndY) return 0
+  const rawDay = expense.day_of_month
+  const chargeDom = rawDay == null || rawDay < 1 ? 1 : Math.min(rawDay, CHARGE_DAY_MAX)
+  const qStartMs = Date.UTC(qs.y, qs.m - 1, qs.d)
+  const qEndMs = Date.UTC(qe.y, qe.m - 1, qe.d)
+  const expStartMs = Date.UTC(es.y, es.m - 1, es.d)
+  const expEndMs = expEndParts
+    ? Date.UTC(expEndParts.y, expEndParts.m - 1, expEndParts.d)
+    : null
 
   let total = 0
-  let cy = new Date(effStartY).getUTCFullYear()
-  let cm = new Date(effStartY).getUTCMonth() + 1
-  const endY = new Date(effEndY).getUTCFullYear()
-  const endM = new Date(effEndY).getUTCMonth() + 1
+  let cy = qs.y
+  let cm = qs.m
 
-  while (cy < endY || (cy === endY && cm <= endM)) {
+  while (cy < qe.y || (cy === qe.y && cm <= qe.m)) {
     const dim = daysInMonth(cy, cm)
     const monthStart = Date.UTC(cy, cm - 1, 1)
     const monthEnd = Date.UTC(cy, cm - 1, dim)
-    const overlapStart = Math.max(effStartY, monthStart)
-    const overlapEnd = Math.min(effEndY, monthEnd)
-    if (overlapStart <= overlapEnd) {
-      const daysOverlap =
-        Math.round((overlapEnd - overlapStart) / 86_400_000) + 1
-      total += (amount * daysOverlap) / dim
+    const active =
+      expStartMs <= monthEnd && (expEndMs === null || expEndMs >= monthStart)
+    if (active) {
+      let chargeMs = Date.UTC(cy, cm - 1, Math.min(chargeDom, dim))
+      if (chargeMs < expStartMs) chargeMs = expStartMs
+      if (expEndMs === null || chargeMs <= expEndMs) {
+        if (chargeMs >= qStartMs && chargeMs <= qEndMs) total += amount
+      }
     }
     if (cm === 12) {
       cy += 1
@@ -225,9 +233,9 @@ export type ExpensesSummary = {
 
 /**
  * Summarize expense amounts.
- * When both `startDate` and `endDate` are set, amounts are day-prorated into the
- * window (same idea as API P&L). When either date is missing, uses catalog face
- * amounts (no silent half-window).
+ * When both `startDate` and `endDate` are set, monthly amounts are recognized
+ * on the charge day (same idea as API P&L). When either date is missing, uses
+ * catalog face amounts (no silent half-window).
  */
 export function summarizeExpenses(
   rows: Expense[],

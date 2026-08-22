@@ -7,7 +7,7 @@ import { can } from '@/lib/permissions/can'
 import { useConfigSectionModules, useWorkspaceConfigModuleEnabled, useWorkspaceConfigNavEnabled, useAlarmsModuleEnabled } from '@/lib/modules/use-workspace-config'
 import type { ModuleSection, ModuleState } from '@/lib/modules/types'
 import { shellT } from '@/lib/i18n/shell-strings'
-import { isBillingOwner } from '@/lib/plan/plan-limit-ui'
+import { canViewBilling } from '@/lib/plan/plan-limit-ui'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { SidebarNavSection } from '@/shell/layout/sidebar-nav-section'
@@ -172,7 +172,7 @@ export function AppSidebarPanel({
   const workspaceConfigEnabled = useWorkspaceConfigModuleEnabled()
   const workspaceConfigNavEnabled = useWorkspaceConfigNavEnabled()
   const alarmsEnabled = useAlarmsModuleEnabled()
-  const canSeeBilling = workspaceConfigEnabled && isBillingOwner(me)
+  const canSeeBilling = workspaceConfigEnabled && canViewBilling(me)
   const canSeeTeam = can(me, 'team.view')
   const showWorkspaceSection =
     canSeeTeam ||

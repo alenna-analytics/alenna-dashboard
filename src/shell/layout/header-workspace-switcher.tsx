@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 import {
   isBillingOwner,
+  canViewBilling,
   planPillLabel,
   planSummaryLabel,
   upgradeTargetForPlan,
@@ -44,6 +45,7 @@ export function HeaderWorkspaceSwitcher({ companyName, me }: HeaderWorkspaceSwit
   const [menuOpen, setMenuOpen] = useState(false)
   const [adjustOpen, setAdjustOpen] = useState(false)
   const canManageBilling = isBillingOwner(me)
+  const canSeeBilling = canViewBilling(me)
   const showUpgrade = Boolean(canManageBilling && me && upgradeTargetForPlan(me.plan))
   const pillLabel = me ? planPillLabel(me, lang) : null
   const planLine = me ? planSummaryLabel(me, lang) : null
@@ -104,7 +106,7 @@ export function HeaderWorkspaceSwitcher({ companyName, me }: HeaderWorkspaceSwit
           </>
         ) : null}
 
-        {canManageBilling ? (
+        {canSeeBilling ? (
           <DropdownMenuItem
             className={menuItemClassName}
             onClick={() => navigate(BILLING_PATH)}

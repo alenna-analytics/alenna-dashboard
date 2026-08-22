@@ -18,6 +18,7 @@ export type Expense = {
   category: ExpenseCategory
   platform: string | null
   recurrence_type: ExpenseRecurrence
+  day_of_month: number | null
   start_date: string
   end_date: string | null
 }
@@ -29,6 +30,7 @@ export type ExpenseCreate = {
   category: ExpenseCategory
   platform: string | null
   recurrence_type: ExpenseRecurrence
+  day_of_month: number | null
   start_date: string
   end_date: string | null
 }

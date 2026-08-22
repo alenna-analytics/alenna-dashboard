@@ -10,6 +10,7 @@ import {
   billingCatalogDescription,
   billingPlanDisplayName,
   isBillingOwner,
+  canViewBilling,
   planSummaryLabel,
 } from '@/lib/plan/plan-limit-ui'
 import { fetchTeamMembers } from '@/lib/team/team-api'
@@ -98,7 +99,8 @@ export function GeneralConfigurationPage() {
   const previewScheduledLabel = formatDeletionDate(null, lang)
   const memberCount = me?.member_count ?? 0
   const canViewTeam = can(me, 'team.view')
-  const canSeeBilling = isBillingOwner(me)
+  const canSeeBilling = canViewBilling(me)
+  const canManageBilling = isBillingOwner(me)
   const nameDirty = workspaceNameDraft.trim() !== companyName.trim()
   const currencyDirty =
     isWorkspaceCurrencyCode(workspaceCurrency) && currencyDraft !== workspaceCurrency
@@ -332,7 +334,7 @@ export function GeneralConfigurationPage() {
                 to="/dashboard/billing"
                 className={buttonVariants({ variant: 'outline', size: 'tiny' })}
               >
-                {t('settingsManageBilling')}
+                {canManageBilling ? t('settingsManageBilling') : t('navBilling')}
               </Link>
             ) : null}
           </div>

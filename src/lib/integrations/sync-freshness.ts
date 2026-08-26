@@ -1,6 +1,10 @@
 import { isActiveAdsConnection } from '@/lib/integrations/ads-scope'
-import type { SyncFreshnessPillTiming } from '@/lib/integrations/sync-freshness-age'
-import { deriveSyncFreshnessAgeDisplay } from '@/lib/integrations/sync-freshness-age'
+import {
+  connectionSyncAgePillVariant,
+  deriveSyncFreshnessAgeDisplay,
+  type ConnectionSyncAgePillVariant,
+  type SyncFreshnessPillTiming,
+} from '@/lib/integrations/sync-freshness-age'
 import type { PlatformConnection, SyncPlanStatus } from '@/lib/types/connectors'
 
 /** After this age, incremental sync is considered stale (default 5m tick × 3). */
@@ -190,7 +194,7 @@ export function connectorsQueryRefetchIntervalMs(
 
 export type SyncFreshnessPillContent =
   | { kind: 'syncing'; freshnessState: SyncFreshnessState }
-  | (SyncFreshnessPillTiming & { freshnessState: SyncFreshnessState })
+  | (SyncFreshnessPillTiming & { freshnessState: SyncFreshnessState; ageMs: number })
 
 function latestSyncedAtMs(connections: PlatformConnection[]): number | null {
   let latest: number | null = null
@@ -224,7 +228,7 @@ export function resolveSyncFreshnessPillContent(
 
   const now = options?.nowMs ?? Date.now()
   const ageMs = now - latestMs
-  return { ...deriveSyncFreshnessAgeDisplay(ageMs), freshnessState }
+  return { ...deriveSyncFreshnessAgeDisplay(ageMs), freshnessState, ageMs }
 }
 
 /** Per-connection pill (integration card / manage sheet). */
@@ -254,13 +258,12 @@ export function resolveConnectionSyncFreshnessPillContent(
 
   const now = options?.nowMs ?? Date.now()
   const ageMs = now - ms
-  return { ...deriveSyncFreshnessAgeDisplay(ageMs), freshnessState }
+  return { ...deriveSyncFreshnessAgeDisplay(ageMs), freshnessState, ageMs }
 }
 
 export function syncFreshnessPillBadgeVariant(
   pill: SyncFreshnessPillContent,
-): 'success' | 'info' | 'warning' {
+): 'info' | ConnectionSyncAgePillVariant {
   if (pill.kind === 'syncing' || pill.freshnessState === 'syncing') return 'info'
-  if (pill.freshnessState === 'outdated') return 'warning'
-  return 'success'
+  return connectionSyncAgePillVariant(pill.ageMs)
 }

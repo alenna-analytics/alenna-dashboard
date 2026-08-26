@@ -106,6 +106,21 @@ describe('filterAlertsByListFilters', () => {
       filterAlertsByListFilters(items, filters({ channel: 'shopify' }), connections).map((item) => item.id),
     ).toEqual(['m'])
   })
+
+  it('keeps only match suggestions when kind is match_suggestion', () => {
+    const items = [
+      stockAlert({
+        id: 'm',
+        alert_type: 'match_suggestion',
+        severity: 'informational',
+        platform: null,
+      }),
+      stockAlert({ id: 'a', platform: 'amazon' }),
+    ]
+    expect(
+      filterAlertsByListFilters(items, filters({ kind: 'match_suggestion' }), connections).map((item) => item.id),
+    ).toEqual(['m'])
+  })
 })
 
 describe('countActiveAlertsFilters', () => {

@@ -73,7 +73,7 @@ export function LowStockRulesTable({
       {items.length === 0 ? (
         <EmptyState
           size="sm"
-          icon="notifications"
+          icon="orders"
           title={shellT(lang, 'alarmsScopedRulesEmpty')}
           description={shellT(lang, 'alarmsCustomRulesDescription')}
           action={

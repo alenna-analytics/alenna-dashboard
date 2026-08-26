@@ -20,7 +20,7 @@ import { StatusPill } from '@/ui/status-pill'
 import { Button, buttonVariants } from '@/ui/button'
 import { EmptyState } from '@/ui/empty-state'
 import { ProductPlatformLogoName } from '@/pages/products/product-platform-logo-name'
-import { LoadingIcon } from '@/ui/app-icon'
+import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 import { EmbeddedShellPanel } from '@/ui/embedded-shell-panel'
 import { Skeleton } from '@/ui/skeleton'
 import { SheetRowButton, sheetRowButtonClassName } from '@/ui/sheet-row'
@@ -209,22 +209,21 @@ function AlertListRow({
   onSelect: (id: string) => void
   t: (key: ShellStringKey) => string
 }) {
-  const Icon = item.severity === 'critical' ? Package : Gauge
   const headline = alertTypeName(t, item)
+  const iconToneClass =
+    item.severity === 'critical'
+      ? 'text-[var(--stock-alert-critical)]'
+      : item.severity === 'low'
+        ? 'text-[var(--stock-alert-warning)]'
+        : 'text-[var(--info)]'
 
   return (
     <SheetRowButton onClick={() => onSelect(item.id)}>
-      <Icon
-        className={cn(
-          'size-4 shrink-0',
-          item.severity === 'critical'
-            ? 'text-[var(--stock-alert-critical)]'
-            : item.severity === 'low'
-              ? 'text-[var(--stock-alert-warning)]'
-              : 'text-[var(--info)]',
-        )}
-        aria-hidden
-      />
+      {item.alert_type === 'stock' ? (
+        <AppIcon name="orders" colorize className={cn('size-4 shrink-0', iconToneClass)} />
+      ) : (
+        <Gauge className={cn('size-4 shrink-0', iconToneClass)} aria-hidden />
+      )}
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs font-bold text-foreground">{headline}</p>
         <AlertProductChannelLine

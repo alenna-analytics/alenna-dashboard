@@ -1,6 +1,5 @@
-import { Check } from 'lucide-react'
-
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
+import { AppIcon } from '@/ui/app-icon'
 import { Button } from '@/ui/button'
 import {
   Dialog,
@@ -90,10 +89,10 @@ export function IntegrationConsentDialog({
                 const description = descKey ? shellT(lang, descKey) : null
                 return (
                   <li key={item.key} className="flex gap-3">
-                    <Check
+                    <AppIcon
+                      name="validation"
+                      colorize
                       className="mt-0.5 size-4 shrink-0 text-[var(--country-green-base)]"
-                      strokeWidth={2.5}
-                      aria-hidden
                     />
                     <div className="min-w-0">
                       <p className="text-sm font-medium leading-snug text-text-primary">{label}</p>

@@ -31,6 +31,6 @@ export function shellMainColumnClassName(pathname: string): string {
   return cn(
     WORKSPACE_SHELL_COLUMN_CLASS,
     'min-h-full pb-3 lg:pb-4',
-    pathnameHasPageBreadcrumb(pathname) ? 'pt-3 lg:pt-4' : 'pt-[38px]',
+    pathnameHasPageBreadcrumb(pathname) ? 'pt-5 lg:pt-6' : 'pt-[38px]',
   )
 }

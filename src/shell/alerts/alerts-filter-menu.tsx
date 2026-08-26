@@ -1,10 +1,11 @@
-import { Bell, Clock, Gauge, Layers, Package, Store } from 'lucide-react'
+import { Bell, Clock, Layers } from 'lucide-react'
 import { useMemo } from 'react'
 
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { AlertSection } from '@/lib/types/alerts'
 import { cn } from '@/lib/utils'
+import { AppIcon } from '@/ui/app-icon'
 import { FilterContextPill } from '@/ui/filters/filter-context-pill'
 
 import { platformDisplayName } from './alert-display'
@@ -41,11 +42,11 @@ function SeverityDot({ severity }: { severity: AlertSeverityFilter }) {
 }
 
 function kindLeading(kind: AlertKindFilter) {
-  if (kind === 'stock_out') {
-    return <Package className="size-4 text-muted-foreground" aria-hidden />
+  if (kind === 'stock_out' || kind === 'stock_low') {
+    return <AppIcon name="orders" colorize className="size-4 text-muted-foreground" />
   }
-  if (kind === 'stock_low') {
-    return <Gauge className="size-4 text-muted-foreground" aria-hidden />
+  if (kind === 'match_suggestion') {
+    return <AppIcon name="channels" colorize className="size-4 text-muted-foreground" />
   }
   return <Layers className="size-4 text-muted-foreground" aria-hidden />
 }
@@ -121,15 +122,14 @@ function AlertsKindFilter({
   return (
     <FilterContextPill
       label={t('homeAlertsSheetFilterSectionTipo')}
-      triggerIcon={Package}
+      triggerIcon={<AppIcon name="speed" colorize className="size-3.5" />}
       value={filters.kind}
       defaultValue="all"
       valueOnlyWhenActive
       options={options}
       onValueChange={(value) => {
-        if (value === 'all' || value === 'stock_out' || value === 'stock_low') {
-          onFiltersChange({ kind: value })
-        }
+        const kind = ALERT_KIND_OPTIONS.find((option) => option.id === value)?.id
+        if (kind) onFiltersChange({ kind })
       }}
       popoverAlign="start"
     />
@@ -138,7 +138,7 @@ function AlertsKindFilter({
 
 function channelLeading(channel: AlertChannelFilter) {
   if (channel === 'all') {
-    return <Store className="size-4 text-muted-foreground" aria-hidden />
+    return <AppIcon name="channels" colorize className="size-4 text-muted-foreground" />
   }
   const logoSrc = INTEGRATION_UI[channel]?.logoSrc
   if (logoSrc) {
@@ -152,7 +152,7 @@ function channelLeading(channel: AlertChannelFilter) {
       />
     )
   }
-  return <Store className="size-4 text-muted-foreground" aria-hidden />
+  return <AppIcon name="channels" colorize className="size-4 text-muted-foreground" />
 }
 
 function AlertsChannelFilter({
@@ -185,7 +185,7 @@ function AlertsChannelFilter({
   return (
     <FilterContextPill
       label={t('homeAlertsSheetFilterSectionCanal')}
-      triggerIcon={Store}
+      triggerIcon={<AppIcon name="channels" colorize className="size-3.5" />}
       value={filters.channel}
       defaultValue="all"
       valueOnlyWhenActive

@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom'
 
 import { shellT } from '@/lib/i18n/shell-strings'
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
+import { configurationInnerSubmoduleCrumbs } from '@/pages/configuration/configuration-inner-submodule-crumbs'
 import { cogsBreadcrumbItems } from '@/pages/products/cogs/cogs-breadcrumb-crumbs'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useProductDetailQuery } from '@/pages/products/use-catalog-queries'
@@ -64,12 +65,8 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
   if (normalized === '/dashboard/alarms') {
     return [{ label: shellT(lang, 'navAlarms') }]
   }
-  if (normalized === '/dashboard/alarms/stock') {
-    return [
-      { label: shellT(lang, 'navAlarms'), to: '/dashboard/alarms' },
-      { label: shellT(lang, 'alarmsStockTypeTitle') },
-    ]
-  }
+  const alarmCrumbs = configurationInnerSubmoduleCrumbs(normalized, lang)
+  if (alarmCrumbs) return alarmCrumbs
   if (normalized === '/dashboard/integrations') {
     return [{ label: shellT(lang, 'navIntegrations') }]
   }

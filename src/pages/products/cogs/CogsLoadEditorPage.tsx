@@ -28,7 +28,6 @@ import { Button } from '@/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 import { CogsLoadEditorLoadingSkeleton } from './cogs-load-editor-loading-skeleton'
-import { CogsPageBreadcrumb } from './cogs-page-breadcrumb'
 import { CogsLoadReviewStep } from './cogs-load-review-step'
 import { countLoadReviewStates } from './cogs-load-review-utils'
 import { CogsLoadSelectStep } from './cogs-load-select-step'
@@ -339,7 +338,6 @@ export function CogsLoadEditorPage() {
   if (!loadId || loadQuery.isLoading) {
     return (
       <DashboardPage className="flex h-full min-h-0 flex-col overflow-hidden">
-        <CogsPageBreadcrumb />
         <CogsLoadEditorLoadingSkeleton />
       </DashboardPage>
     )
@@ -366,7 +364,6 @@ export function CogsLoadEditorPage() {
       />
 
       <header className="flex shrink-0 flex-col gap-4 pb-5">
-        <CogsPageBreadcrumb />
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1.5">
             <h1 className={pageTitleClassName}>{t('productsCogsLoadEditorTitle')}</h1>

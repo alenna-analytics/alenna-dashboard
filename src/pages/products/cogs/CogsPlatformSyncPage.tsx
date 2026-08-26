@@ -36,7 +36,6 @@ import {
 } from '@/ui/select'
 import { StatusPill } from '@/ui/status-pill'
 
-import { CogsPageBreadcrumb } from './cogs-page-breadcrumb'
 import { CogsPlatformSyncPlatformCard } from './cogs-platform-sync-platform-card'
 import { CogsPlatformSyncSummaryCard } from './cogs-platform-sync-summary-card'
 import {
@@ -370,7 +369,6 @@ export function CogsPlatformSyncPage() {
   return (
     <DashboardPage className="flex flex-1 flex-col gap-5">
       <header className="space-y-2">
-        <CogsPageBreadcrumb />
         <h1 className={pageTitleClassName}>{t('productsCogsSyncTitle')}</h1>
         <p className={pageSubtitleClassName}>{t('productsCogsSyncSubtitle')}</p>
       </header>

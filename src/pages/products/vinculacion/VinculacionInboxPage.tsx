@@ -1,4 +1,3 @@
-import { Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -9,6 +8,7 @@ import type { ProductLinkSuggestionApi } from '@/lib/types/product-links'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
+import { AppIcon } from '@/ui/app-icon'
 import { Button } from '@/ui/button'
 import { Card, CardContent } from '@/ui/card'
 import { EmptyState } from '@/ui/empty-state'
@@ -94,7 +94,7 @@ export function VinculacionInboxPage() {
             variant="default"
             size="tiny"
             loading={searching}
-            icon={<Sparkles aria-hidden />}
+            icon={<AppIcon name="ai" colorize />}
             onClick={() => {
               void refresh.mutateAsync('button').catch(() => {
                 toast.error(t('productsVinculacionSearchFailed'))
@@ -106,7 +106,13 @@ export function VinculacionInboxPage() {
               : t('productsVinculacionSearchButton')}
           </Button>
           {canEdit ? (
-            <Button type="button" variant="accent" size="tiny" onClick={() => setPickerOpen(true)}>
+            <Button
+              type="button"
+              variant="accent"
+              size="tiny"
+              icon={<AppIcon name="channels" colorize />}
+              onClick={() => setPickerOpen(true)}
+            >
               {t('productsVinculacionLinkManual')}
             </Button>
           ) : null}

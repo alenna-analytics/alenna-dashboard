@@ -10,7 +10,6 @@ import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
 
-import { CogsPageBreadcrumb } from './cogs-page-breadcrumb'
 import { CogsLoadDetailLoadingSkeleton } from './cogs-load-editor-loading-skeleton'
 import { useCloneCogsLoadMutation, useCogsLoadQuery } from './use-cogs-load-queries'
 
@@ -59,7 +58,6 @@ export function CogsLoadDetailPage() {
   return (
     <DashboardPage className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
       <header className="shrink-0 space-y-2">
-        <CogsPageBreadcrumb />
         <h1 className={pageTitleClassName}>{t('productsCogsLoadViewTitle')}</h1>
         <dl className="grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <div>

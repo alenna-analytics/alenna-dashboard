@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
-import { BarChart3, LineChart, PieChart } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { AppIcon } from '@/ui/app-icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 export type SeriesChartView = 'line' | 'bar'
@@ -44,7 +44,7 @@ export function ChartViewToggleGroup<T extends string>({
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
         )}
       >
-        {current.icon}
+        {next.icon}
       </TooltipTrigger>
       <TooltipContent side="bottom">{next.label}</TooltipContent>
     </Tooltip>
@@ -72,12 +72,12 @@ export function SeriesChartViewToggle({
         {
           value: 'line',
           label: lineLabel,
-          icon: <LineChart className="size-3.5" strokeWidth={1.75} aria-hidden />,
+          icon: <AppIcon name="reports" colorize className="size-3.5" />,
         },
         {
           value: 'bar',
           label: barLabel,
-          icon: <BarChart3 className="size-3.5" strokeWidth={1.75} aria-hidden />,
+          icon: <AppIcon name="graphs" colorize className="size-3.5" />,
         },
       ]}
     />
@@ -105,12 +105,12 @@ export function ShareChartViewToggle({
         {
           value: 'bar',
           label: barLabel,
-          icon: <BarChart3 className="size-3.5" strokeWidth={1.75} aria-hidden />,
+          icon: <AppIcon name="graphs" colorize className="size-3.5" />,
         },
         {
           value: 'pie',
           label: pieLabel,
-          icon: <PieChart className="size-3.5" strokeWidth={1.75} aria-hidden />,
+          icon: <AppIcon name="graphPie" colorize className="size-3.5" />,
         },
       ]}
     />

@@ -1,8 +1,7 @@
-import { CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useState } from 'react'
 
-import { LoadingIcon } from '@/ui/app-icon'
+import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 import { PlanLimitSyncAlert } from '@/components/integrations/plan-limit-sync-alert'
 import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
 import { isPlanLimitSyncPaused } from '@/lib/plan/plan-limit-ui'
@@ -170,7 +169,7 @@ function MercadoLibreSyncSection({
         onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
         actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
         actionLoading={syncMutation.isPending}
-        badge={<CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />}
+        badge={<AppIcon name="validation" colorize className="size-4 shrink-0 text-success" />}
         footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
         className="w-full"
       />

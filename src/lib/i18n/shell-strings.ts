@@ -931,6 +931,9 @@ const SHELL_STRINGS = {
     integrationDetailBuiltBy: 'Desarrollado por',
     integrationDetailCategoryLabel: 'Categoría',
     integrationDetailStatusLabel: 'Estado',
+    integrationDetailTypeLabel: 'Tipo',
+    integrationDetailTypeOauth: 'OAuth',
+    integrationDetailLinksLabel: 'Enlaces',
     integrationsCategoryEcommerce: 'Ecommerce',
     integrationNameShopify: 'Shopify',
     integrationDescShopify:
@@ -2911,6 +2914,9 @@ const SHELL_STRINGS = {
     integrationDetailBuiltBy: 'Built by',
     integrationDetailCategoryLabel: 'Category',
     integrationDetailStatusLabel: 'Status',
+    integrationDetailTypeLabel: 'Type',
+    integrationDetailTypeOauth: 'OAuth',
+    integrationDetailLinksLabel: 'Links',
     integrationsCategoryEcommerce: 'Ecommerce',
     integrationNameShopify: 'Shopify',
     integrationDescShopify:

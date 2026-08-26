@@ -1,4 +1,4 @@
-import { ChevronRight, Search, X } from 'lucide-react'
+import { ChevronRight, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -13,7 +13,6 @@ import { ProductsListFilters } from '@/pages/products/products-list-filters'
 import { Button } from '@/ui/button'
 import { Checkbox } from '@/ui/checkbox'
 import { EmptyState } from '@/ui/empty-state'
-import { Input } from '@/ui/input'
 import {
   Sheet,
   SheetBody,
@@ -133,37 +132,15 @@ export function VinculacionPickerSheet({
           <SheetBody className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
             <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_minmax(11rem,0.42fr)] md:grid-rows-none md:grid-cols-[minmax(0,1.65fr)_minmax(17rem,0.9fr)]">
               <div className="flex min-h-0 min-w-0 flex-col border-b border-[var(--shell-divider)] md:border-r md:border-b-0">
-                <div className="flex shrink-0 flex-wrap items-center gap-2 overflow-x-auto px-4 py-3">
-                  <div className="relative min-w-[12rem] flex-1">
-                    <Search
-                      className="pointer-events-none absolute top-1/2 left-2.5 z-10 size-4 -translate-y-1/2 text-muted-foreground"
-                      aria-hidden
-                    />
-                    <Input
-                      value={q}
-                      onChange={(event) => setQ(event.target.value)}
-                      placeholder={t('productsVinculacionPickerSearch')}
-                      aria-label={t('productsVinculacionPickerSearch')}
-                      className="h-7 border-border-default bg-white pl-8 text-xs placeholder:text-xs focus-visible:border-border-emphasis focus-visible:ring-0 focus-visible:ring-offset-0"
-                    />
-                    {q.trim() ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        className="absolute top-1/2 right-0.5 z-10 size-7 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        aria-label={t('productsSearchClearAria')}
-                        onClick={() => setQ('')}
-                      >
-                        <X className="size-4 shrink-0" aria-hidden />
-                      </Button>
-                    ) : null}
-                  </div>
+                <div className="w-full shrink-0 overflow-x-auto px-4 py-3">
                   <ProductsListFilters
                     filters={filters}
                     onFiltersChange={(patch) => setFilters((current) => ({ ...current, ...patch }))}
                     t={t}
                     channelsOnly
+                    searchQ={q}
+                    onSearchQChange={setQ}
+                    searchPlaceholderKey="productsVinculacionPickerSearch"
                   />
                 </div>
                 {candidatesQuery.isLoading && items.length === 0 ? (

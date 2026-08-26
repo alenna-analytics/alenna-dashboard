@@ -6,6 +6,8 @@ import companyIcon from '@/assets/icons/company.svg'
 import configIcon from '@/assets/icons/config.svg'
 import decreaseIcon from '@/assets/icons/decrease.svg'
 import downloadIcon from '@/assets/icons/download.svg'
+import graphsIcon from '@/assets/icons/graphs.svg'
+import graphPieIcon from '@/assets/icons/graph-pie.svg'
 import growthIcon from '@/assets/icons/growth.svg'
 import homeIcon from '@/assets/icons/home.svg'
 import integrationsIcon from '@/assets/icons/integrations.svg'
@@ -34,6 +36,8 @@ import aiIconRaw from '@/assets/icons/ai.svg?raw'
 import billingIconRaw from '@/assets/icons/billing.svg?raw'
 import companyIconRaw from '@/assets/icons/company.svg?raw'
 import downloadIconRaw from '@/assets/icons/download.svg?raw'
+import graphsIconRaw from '@/assets/icons/graphs.svg?raw'
+import graphPieIconRaw from '@/assets/icons/graph-pie.svg?raw'
 import growthIconRaw from '@/assets/icons/growth.svg?raw'
 import notificationsIconRaw from '@/assets/icons/notifications.svg?raw'
 import ordersIconRaw from '@/assets/icons/orders.svg?raw'
@@ -57,6 +61,8 @@ export const APP_ICONS = {
   billing: billingIcon,
   company: companyIcon,
   download: downloadIcon,
+  graphs: graphsIcon,
+  graphPie: graphPieIcon,
   growth: growthIcon,
   notifications: notificationsIcon,
   orders: ordersIcon,
@@ -81,6 +87,8 @@ export const APP_ICONS_RAW = {
   billing: billingIconRaw,
   company: companyIconRaw,
   download: downloadIconRaw,
+  graphs: graphsIconRaw,
+  graphPie: graphPieIconRaw,
   growth: growthIconRaw,
   notifications: notificationsIconRaw,
   orders: ordersIconRaw,

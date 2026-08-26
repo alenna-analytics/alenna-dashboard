@@ -5,6 +5,7 @@ import { useCurrentTenant } from '@/auth/hooks'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { AppShellBootSkeleton } from '@/shell/layout/app-shell-boot-skeleton'
 import { AppHeader } from '@/shell/layout/app-header'
+import { AppBreadcrumbs } from '@/shell/layout/app-breadcrumbs'
 import { AppSidebar } from '@/shell/layout/app-sidebar'
 import { AppSidebarDrawer } from '@/shell/layout/app-sidebar-drawer'
 import { ShellBootstrapError } from '@/shell/layout/shell-bootstrap-error'
@@ -31,7 +32,7 @@ import { shouldShowPaymentPending, shouldShowTrialExpired } from '@/lib/plan/she
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { TooltipProvider } from '@/ui/tooltip'
-import { shellMainColumnClassName } from '@/shell/layout/shell-main-padding'
+import { shellMainColumnClassName, pathnameHasPageBreadcrumb } from '@/shell/layout/shell-main-padding'
 import { ConfigurationInternalSidebar } from '@/pages/configuration/configuration-internal-sidebar'
 import { isConfigurationRoute } from '@/pages/configuration/configuration-inner-nav'
 import { IntegrationsInternalSidebar } from '@/pages/integrations/dashboard/integrations-internal-sidebar'
@@ -40,6 +41,7 @@ import { ProductsInternalSidebar } from '@/pages/products/products-internal-side
 import { isProductsRoute } from '@/pages/products/products-inner-nav'
 import { TeamInternalSidebar } from '@/pages/team/team-internal-sidebar'
 import { isTeamRoute } from '@/pages/team/team-inner-nav'
+import { internalPageBreadcrumbBarClassName } from '@/shell/layout/sidebar-layout'
 import {
   isSidebarVisuallyCollapsed,
   readSidebarControlMode,
@@ -153,6 +155,7 @@ export function AppShellLayout() {
   const showIntegrationsInnerSidebar = isIntegrationsRoute(location.pathname)
   const showProductsInnerSidebar = isProductsRoute(location.pathname)
   const showTeamInnerSidebar = isTeamRoute(location.pathname)
+  const showPageBreadcrumb = pathnameHasPageBreadcrumb(location.pathname)
 
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0)
@@ -252,6 +255,11 @@ export function AppShellLayout() {
                     {showTeamInnerSidebar ? <TeamInternalSidebar /> : null}
                     <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
                       <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
+                        {showPageBreadcrumb ? (
+                          <div className={internalPageBreadcrumbBarClassName}>
+                            <AppBreadcrumbs />
+                          </div>
+                        ) : null}
                         <main
                           ref={mainRef}
                           className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"

@@ -45,7 +45,7 @@ export function StockAlertTypeCard({
             : 'border-border-subtle bg-muted/30 opacity-60 grayscale',
         )}
       >
-        <AppIcon name="decrease" className="size-5" />
+        <AppIcon name="orders" colorize className="size-5" />
       </div>
 
       <div className="min-w-0 flex-1">

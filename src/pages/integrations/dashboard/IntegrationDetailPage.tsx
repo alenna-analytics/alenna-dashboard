@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { Navigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
 import { connectionNeedsInitialSync } from '@/lib/integrations/sync-freshness'
@@ -8,19 +8,19 @@ import {
   isIntegrationConnected,
 } from '@/pages/integrations/dashboard/integration-connection'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
-import { IntegrationDetailBreadcrumb } from '@/pages/integrations/dashboard/integration-detail-breadcrumb'
 import { IntegrationDetailLayout } from '@/pages/integrations/dashboard/integration-detail-layout'
 import { IntegrationDetailSkeleton } from '@/pages/integrations/dashboard/integration-detail-skeleton'
-import { IntegrationOverviewPanel } from '@/pages/integrations/dashboard/integration-overview-panel'
-import { IntegrationsDisconnectConfirmDialog } from '@/pages/integrations/dashboard/integrations-disconnect-confirm-dialog'
+import { integrationDetailTabFromSearch } from '@/pages/integrations/dashboard/integration-detail-tab'
+import {
+  integrationDescription,
+  integrationOverviewCopy,
+  integrationTitle,
+} from '@/pages/integrations/dashboard/integration-display'
 import {
   IntegrationsDisconnectDataDialog,
   type DisconnectDataChoice,
 } from '@/pages/integrations/dashboard/integrations-disconnect-data-dialog'
-import {
-  integrationDescription,
-  integrationTitle,
-} from '@/pages/integrations/dashboard/integration-display'
+import { IntegrationsDisconnectConfirmDialog } from '@/pages/integrations/dashboard/integrations-disconnect-confirm-dialog'
 import { AdsManageBody } from '@/pages/integrations/dashboard/ads/manage-body'
 import { MercadoLibreManageBody } from '@/pages/integrations/dashboard/mercadolibre/manage-body'
 import { AmazonManageBody } from '@/pages/integrations/dashboard/amazon/manage-body'
@@ -49,6 +49,8 @@ function IntegrationPlaceholderSettings({ lang }: { lang: string }) {
 export function IntegrationDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { lang } = useLanguage()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tab = integrationDetailTabFromSearch(searchParams.get('tab'))
   const [disconnectDataDialogOpen, setDisconnectDataDialogOpen] = useState(false)
   const [disconnectConfirmDialogOpen, setDisconnectConfirmDialogOpen] = useState(false)
   const [purgeDataOnDisconnect, setPurgeDataOnDisconnect] = useState(false)
@@ -94,7 +96,6 @@ export function IntegrationDetailPage() {
   if (!integration) {
     return (
       <DashboardPage className="space-y-6">
-        <IntegrationDetailBreadcrumb slug={slug} />
         <IntegrationDetailSkeleton />
       </DashboardPage>
     )
@@ -206,19 +207,25 @@ export function IntegrationDetailPage() {
   )
 
   return (
-    <DashboardPage className="space-y-6">
-      <IntegrationDetailBreadcrumb slug={slug} />
+    <DashboardPage>
       <IntegrationDetailLayout
         definition={integration}
         title={title}
         description={description}
         titleBadges={titleBadges}
+        lang={lang}
+        connected={connected}
+        tab={tab}
+        onTabChange={(next) => {
+          const params = new URLSearchParams(searchParams)
+          if (next === 'overview') params.delete('tab')
+          else params.set('tab', next)
+          setSearchParams(params, { replace: true })
+        }}
         overview={
-          <IntegrationOverviewPanel
-            integration={integration}
-            lang={lang}
-            connected={connected}
-          />
+          <p className="max-w-2xl text-sm leading-relaxed text-text-secondary">
+            {integrationOverviewCopy(lang, integration)}
+          </p>
         }
         settings={settingsBody}
       />

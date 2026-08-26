@@ -14,6 +14,7 @@ type IntegrationUiOverlay = {
   shortDescKey: ShellStringKey
   categoryKey: ShellStringKey
   logoSrc: string
+  docsUrl: string
 }
 
 /** Platform slugs present in the API catalog but not shown in Integrations UI. */
@@ -30,42 +31,49 @@ export const INTEGRATION_UI: Record<string, IntegrationUiOverlay> = {
     shortDescKey: 'integrationDescShopify',
     categoryKey: 'integrationsCategoryEcommerce',
     logoSrc: shopifyLogo,
+    docsUrl: 'https://help.shopify.com/manual',
   },
   amazon: {
     nameKey: 'integrationNameAmazon',
     shortDescKey: 'integrationDescAmazon',
     categoryKey: 'integrationsCategoryEcommerce',
     logoSrc: amazonLogo,
+    docsUrl: 'https://developer-docs.amazon.com/sp-api/docs',
   },
   mercadolibre: {
     nameKey: 'integrationNameMercadoLibre',
     shortDescKey: 'integrationDescMercadoLibre',
     categoryKey: 'integrationsCategoryEcommerce',
     logoSrc: mercadolibreLogo,
+    docsUrl: 'https://developers.mercadolibre.com.mx/',
   },
   amazon_ads: {
     nameKey: 'integrationNameAmazonAds',
     shortDescKey: 'integrationDescAmazonAds',
     categoryKey: 'integrationsCategoryAds',
     logoSrc: amazonAdsLogo,
+    docsUrl: 'https://advertising.amazon.com/API/docs',
   },
   mercadolibre_ads: {
     nameKey: 'integrationNameMercadoLibreAds',
     shortDescKey: 'integrationDescMercadoLibreAds',
     categoryKey: 'integrationsCategoryAds',
     logoSrc: mercadolibreAdsLogo,
+    docsUrl: 'https://developers.mercadolibre.com.mx/es_ar/product-ads',
   },
   google_ads: {
     nameKey: 'integrationNameGoogleAds',
     shortDescKey: 'integrationDescGoogleAds',
     categoryKey: 'integrationsCategoryAds',
     logoSrc: googleAdsLogo,
+    docsUrl: 'https://developers.google.com/google-ads/api/docs/start',
   },
   meta_ads: {
     nameKey: 'integrationNameMetaAds',
     shortDescKey: 'integrationDescMetaAds',
     categoryKey: 'integrationsCategoryAds',
     logoSrc: metaAdsLogo,
+    docsUrl: 'https://developers.facebook.com/docs/marketing-api',
   },
 }
 
@@ -78,6 +86,7 @@ export type ManagedIntegration = {
   shortDescKey?: ShellStringKey
   categoryKey?: ShellStringKey
   logoSrc?: string
+  docsUrl?: string
 }
 
 export function mergeIntegrationPlatform(row: IntegrationPlatformRow): ManagedIntegration {
@@ -91,5 +100,6 @@ export function mergeIntegrationPlatform(row: IntegrationPlatformRow): ManagedIn
     shortDescKey: ui?.shortDescKey,
     categoryKey: ui?.categoryKey,
     logoSrc: ui?.logoSrc,
+    docsUrl: ui?.docsUrl,
   }
 }

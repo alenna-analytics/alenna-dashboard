@@ -1,4 +1,3 @@
-import { CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useState } from 'react'
 
@@ -20,6 +19,7 @@ import { useWorkspace } from '@/shell/providers/workspace-context'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { SyncPlan } from '@/lib/types/connectors'
 import { Button } from '@/ui/button'
+import { AppIcon } from '@/ui/app-icon'
 import { Label } from '@/ui/label'
 import {
   needsInitialSyncConsent,
@@ -176,7 +176,7 @@ function AmazonSyncSection({
         onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
         actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
         actionLoading={syncMutation.isPending}
-        badge={<CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />}
+        badge={<AppIcon name="validation" colorize className="size-4 shrink-0 text-success" />}
         footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
         className="w-full"
       />

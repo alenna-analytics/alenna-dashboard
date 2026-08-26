@@ -1,7 +1,6 @@
-import { CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { LoadingIcon } from '@/ui/app-icon'
+import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 import { useMemo, useRef, useState } from 'react'
 
 import { IntegrationConsentDialog } from '@/pages/integrations/dashboard/integration-consent-dialog'
@@ -233,7 +232,7 @@ function ShopifySyncSection({
         actionLabel={shellT(lang, 'syncRefreshBtn')}
         onAction={() => {}}
         hideAction
-        badge={<CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />}
+        badge={<AppIcon name="validation" colorize className="size-4 shrink-0 text-success" />}
         footer={shellT(lang, 'shopifySyncBlockedHint')}
         className="w-full"
       />

@@ -218,7 +218,7 @@ function AlertListRow({
         aria-hidden
       />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-medium text-foreground">{headline}</p>
+        <p className="truncate text-xs font-bold text-foreground">{headline}</p>
         <AlertProductChannelLine
           item={item}
           connectionPlatformById={connectionPlatformById}

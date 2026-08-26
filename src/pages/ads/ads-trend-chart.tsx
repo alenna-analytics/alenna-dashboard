@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import type { Locale } from 'date-fns'
 import {
   Bar,
   CartesianGrid,
@@ -12,6 +13,8 @@ import {
 
 import { formatCompactNumber } from '@/lib/format/compact-number'
 import { shellT } from '@/lib/i18n/shell-strings'
+import type { RevenueSeriesGranularity } from '@/lib/types/reports'
+import { bucketAdsSeriesPoints, type AdsTrendChartRow } from '@/pages/ads/ads-series-buckets'
 import type { AdsSeriesPoint } from '@/pages/ads/use-ads-kpis'
 import { ChartTooltipFrame } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
@@ -19,17 +22,11 @@ import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
 import { cn } from '@/lib/utils'
 
-type ChartRow = {
-  label: string
-  spend: number
-  sales: number
-}
-
 type TooltipPayload = {
   dataKey?: string
   value?: number
   color?: string
-  payload?: ChartRow
+  payload?: AdsTrendChartRow
 }
 
 function TrendTooltip({
@@ -64,6 +61,10 @@ export function AdsTrendChart({
   points,
   lang,
   formatValue,
+  startDate,
+  endDate,
+  granularity,
+  dateLocale,
   isLoading = false,
   chartType = 'line',
   className,
@@ -71,27 +72,26 @@ export function AdsTrendChart({
   points: AdsSeriesPoint[]
   lang: string
   formatValue: (value: number) => string
+  startDate: string
+  endDate: string
+  granularity: RevenueSeriesGranularity
+  dateLocale: Locale
   isLoading?: boolean
   chartType?: SeriesChartView
   className?: string
 }) {
   const spendLabel = shellT(lang, 'adsKpiSpend')
   const salesLabel = shellT(lang, 'adsKpiSales')
-  const chartRows = useMemo<ChartRow[]>(
-    () =>
-      points.map((point) => ({
-        label: point.date.slice(5),
-        spend: point.spend,
-        sales: point.attributed_sales,
-      })),
-    [points],
+  const chartRows = useMemo(
+    () => bucketAdsSeriesPoints(points, startDate, endDate, granularity, dateLocale),
+    [dateLocale, endDate, granularity, points, startDate],
   )
 
-  if (isLoading && chartRows.length === 0) {
+  if (isLoading && points.length === 0) {
     return <Skeleton className={cn('h-72 w-full rounded-md', className)} aria-hidden />
   }
 
-  if (!isLoading && chartRows.length === 0) {
+  if (!isLoading && points.length === 0) {
     return (
       <EmptyState
         size="sm"

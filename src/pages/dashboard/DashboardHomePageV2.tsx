@@ -293,6 +293,8 @@ export function DashboardHomePageV2() {
     useState<HomeV2TrendMetricId>('net-profit')
   const [salesTrendChartType, setSalesTrendChartType] =
     useState<HomeV2SalesTrendChartType>('line')
+  const [adsTrendGranularity, setAdsTrendGranularity] =
+    useState<RevenueSeriesGranularity>('day')
   const [adsTrendChartType, setAdsTrendChartType] =
     useState<HomeV2SalesTrendChartType>('line')
 
@@ -1091,17 +1093,28 @@ export function DashboardHomePageV2() {
                 title={t('homeAdsTrendTitle')}
                 info={t('homeAdsTrendSubtitle')}
                 aside={
-                  <AppSeriesChartViewToggle
-                    value={adsTrendChartType}
-                    onChange={setAdsTrendChartType}
-                    t={t}
-                  />
+                  <>
+                    <ChartGranularityFilter
+                      value={adsTrendGranularity}
+                      onChange={setAdsTrendGranularity}
+                      t={t}
+                    />
+                    <AppSeriesChartViewToggle
+                      value={adsTrendChartType}
+                      onChange={setAdsTrendChartType}
+                      t={t}
+                    />
+                  </>
                 }
               />
               <AdsTrendChart
                 points={adsSeriesError ? [] : (adsSeries?.points ?? [])}
                 lang={lang}
                 formatValue={formatInDisplay}
+                startDate={startDate}
+                endDate={endDate}
+                granularity={adsTrendGranularity}
+                dateLocale={dateLocale}
                 isLoading={adsSeriesLoading}
                 chartType={adsTrendChartType}
               />

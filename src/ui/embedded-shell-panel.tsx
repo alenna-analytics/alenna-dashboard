@@ -6,8 +6,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
 import { Sheet, SheetContent } from '@/ui/sheet'
 
-export const embeddedShellPanelWidthClass =
-  'w-full max-w-[var(--shell-alerts-panel-width)]'
+export const embeddedShellPanelWidthClass = 'h-full w-full'
 
 const embeddedPanelTransitionMs = 220
 
@@ -105,8 +104,8 @@ export function EmbeddedShellPanel({
           className={cn(
             embeddedPanelShellClassName,
             panelVisible
-              ? 'w-[min(var(--shell-alerts-panel-width),40vw)] max-w-[var(--shell-alerts-panel-width)] border-l border-[var(--shell-divider)]'
-              : 'w-0 border-l border-transparent',
+              ? 'w-1/3 min-w-[var(--shell-alerts-panel-min-width)] max-w-[var(--shell-alerts-panel-max-width)] border-l border-[var(--shell-divider)]'
+              : 'w-0 min-w-0 border-l border-transparent',
           )}
         >
           <aside
@@ -131,7 +130,7 @@ export function EmbeddedShellPanel({
           <SheetContent
             side="right"
             className={cn(
-              'flex w-full max-w-[var(--shell-alerts-panel-width)] flex-col overflow-hidden bg-white',
+              'flex w-full max-w-[var(--shell-alerts-panel-max-width)] flex-col overflow-hidden bg-white',
               className,
             )}
           >

@@ -250,27 +250,29 @@ export function AppShellLayout() {
                     {showIntegrationsInnerSidebar ? <IntegrationsInternalSidebar /> : null}
                     {showProductsInnerSidebar ? <ProductsInternalSidebar /> : null}
                     {showTeamInnerSidebar ? <TeamInternalSidebar /> : null}
-                    <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
-                      <main
-                        ref={mainRef}
-                        className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
-                      >
-                        <div className={shellMainColumnClassName(location.pathname)}>
-                          {!tenantId && tenants.length > 1 ? (
-                            <p className="mb-4 text-sm text-text-secondary">
-                              Select a workspace in your account menu if prompted.
-                            </p>
-                          ) : null}
-                          <div
-                            key={location.pathname}
-                            className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150 motion-safe:fill-mode-both"
-                          >
-                            <Outlet />
+                    <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+                      <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
+                        <main
+                          ref={mainRef}
+                          className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
+                        >
+                          <div className={shellMainColumnClassName(location.pathname)}>
+                            {!tenantId && tenants.length > 1 ? (
+                              <p className="mb-4 text-sm text-text-secondary">
+                                Select a workspace in your account menu if prompted.
+                              </p>
+                            ) : null}
+                            <div
+                              key={location.pathname}
+                              className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150 motion-safe:fill-mode-both"
+                            >
+                              <Outlet />
+                            </div>
                           </div>
-                        </div>
-                      </main>
-                    </section>
-                    <ActiveAlertsSheetHost />
+                        </main>
+                      </section>
+                      <ActiveAlertsSheetHost />
+                    </div>
                   </div>
                 </div>
               </div>

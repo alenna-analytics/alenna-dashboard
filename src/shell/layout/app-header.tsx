@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { Menu } from 'lucide-react'
 
 import alennaIconBlack from '@/assets/alenna/alenna-icon-black.svg'
@@ -21,25 +20,6 @@ type AppHeaderProps = {
   onOpenMobileNav?: () => void
   companyName?: string
   me?: MeResponse | null
-}
-
-function HeaderChromeButton({
-  children,
-  className,
-}: {
-  children: ReactNode
-  className?: string
-}) {
-  return (
-    <div
-      className={cn(
-        'relative flex size-8 shrink-0 items-center justify-center overflow-visible rounded',
-        className,
-      )}
-    >
-      {children}
-    </div>
-  )
 }
 
 export function AppHeader({
@@ -84,11 +64,7 @@ export function AppHeader({
         <div className="flex min-w-0 shrink-0 items-center gap-1.5 overflow-visible sm:gap-2">
           <HeaderConnectionsMenu />
           <CurrencyPicker className="hidden h-8 sm:inline-flex" />
-          {can(me, 'alerts.view') ? (
-          <HeaderChromeButton className="bg-[var(--chrome-muted)]">
-            <AlertsHeaderButton />
-          </HeaderChromeButton>
-          ) : null}
+          {can(me, 'alerts.view') ? <AlertsHeaderButton /> : null}
           <HeaderUserButton me={me} />
         </div>
       </div>

@@ -841,6 +841,8 @@ const SHELL_STRINGS = {
       'No se pudo completar la sincronización de Amazon. Puedes reintentar en unos momentos.',
     amazonSyncFailedPermissionsMessage:
       'Amazon no autorizó el acceso a pedidos. Desconecta y vuelve a conectar la integración.',
+    amazonSyncFailedExpiredTokenMessage:
+      'El acceso a Amazon expiró durante la sincronización. Vuelve a sincronizar; no hace falta reconectar.',
     amazonSyncToastFailed: 'No se pudo completar la sincronización de Amazon.',
     amazonSyncToastSuccess: 'Sincronización de Amazon completada.',
     syncSectionDescriptionMercadoLibre:
@@ -2775,6 +2777,8 @@ const SHELL_STRINGS = {
       'Could not complete Amazon sync. You can try again in a few moments.',
     amazonSyncFailedPermissionsMessage:
       'Amazon denied access to orders. Disconnect and reconnect the integration.',
+    amazonSyncFailedExpiredTokenMessage:
+      'Amazon access expired during the sync. Retry the sync; you do not need to reconnect.',
     amazonSyncToastFailed: 'Could not complete Amazon sync.',
     amazonSyncToastSuccess: 'Amazon sync completed.',
     syncSectionDescriptionMercadoLibre:

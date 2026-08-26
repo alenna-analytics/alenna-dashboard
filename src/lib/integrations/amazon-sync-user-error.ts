@@ -11,7 +11,14 @@ export function formatAmazonSyncUserError(
   lang: Language,
   errorCode?: string | null,
 ): string {
-  if (/HTTP 403/i.test(message ?? '') || /denied access to orders/i.test(message ?? '')) {
+  const text = message ?? ''
+  if (
+    /access expired during the (fees )?sync/i.test(text) ||
+    (/access token/i.test(text) && /expired/i.test(text))
+  ) {
+    return shellT(lang, 'amazonSyncFailedExpiredTokenMessage')
+  }
+  if (/HTTP 403/i.test(text) || /denied access to orders/i.test(text)) {
     return shellT(lang, 'amazonSyncFailedPermissionsMessage')
   }
   return formatPlatformSyncUserError(

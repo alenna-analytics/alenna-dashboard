@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 import { StatusPill } from '@/ui/status-pill'
 import { Button, buttonVariants } from '@/ui/button'
 import { EmptyState } from '@/ui/empty-state'
+import { ProductPlatformLogoName } from '@/pages/products/product-platform-logo-name'
 import { LoadingIcon } from '@/ui/app-icon'
 import { EmbeddedShellPanel } from '@/ui/embedded-shell-panel'
 import { Skeleton } from '@/ui/skeleton'
@@ -31,8 +32,8 @@ import {
 } from '@/ui/dropdown-menu'
 
 import {
-  alertChannelName,
-  alertProductChannelLine,
+  alertPlatformSlug,
+  alertProductTitle,
   alertTypeName,
 } from './alert-display'
 import {
@@ -41,6 +42,8 @@ import {
   type AlertsListFilters,
 } from './alerts-filter'
 import { AlertsFiltersToolbar } from './alerts-filter-menu'
+
+const alertPanelIconButtonClassName = 'size-7 shrink-0 [&_svg]:size-4'
 
 type ActiveAlertsSheetProps = {
   open: boolean
@@ -100,20 +103,89 @@ function AlertListSkeleton() {
   )
 }
 
+function AlertChannelMark({
+  item,
+  connectionPlatformById,
+  t,
+}: {
+  item: AlertItemApi
+  connectionPlatformById: ReadonlyMap<string, string>
+  t: (key: ShellStringKey) => string
+}) {
+  const slug = alertPlatformSlug(item, connectionPlatformById)
+  if (!slug) return null
+  return (
+    <ProductPlatformLogoName
+      platformSlug={slug}
+      t={t}
+      className="shrink-0"
+      logoClassName="size-3.5"
+      textClassName="text-xs text-muted-foreground"
+    />
+  )
+}
+
+function AlertProductChannelLine({
+  item,
+  connectionPlatformById,
+  t,
+  className,
+}: {
+  item: AlertItemApi
+  connectionPlatformById: ReadonlyMap<string, string>
+  t: (key: ShellStringKey) => string
+  className?: string
+}) {
+  const slug = alertPlatformSlug(item, connectionPlatformById)
+  return (
+    <div className={cn('flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground', className)}>
+      {slug ? (
+        <>
+          <AlertChannelMark
+            item={item}
+            connectionPlatformById={connectionPlatformById}
+            t={t}
+          />
+          <span className="shrink-0" aria-hidden>
+            ·
+          </span>
+        </>
+      ) : null}
+      <p className="min-w-0 truncate">{alertProductTitle(item)}</p>
+    </div>
+  )
+}
+
 function AlertListToolbar({
   filters,
   onFiltersChange,
+  onClose,
+  closeAriaLabel,
   t,
 }: {
   filters: AlertsListFilters
   onFiltersChange: (patch: Partial<AlertsListFilters>) => void
+  onClose: () => void
+  closeAriaLabel: string
   t: (key: ShellStringKey) => string
 }) {
   return (
-    <div className="min-h-12 shrink-0 overflow-x-auto border-b border-border-subtle px-6 py-3 pr-14">
-      <div className="flex min-w-max items-center">
-        <AlertsFiltersToolbar filters={filters} onFiltersChange={onFiltersChange} t={t} />
+    <div className="flex min-h-12 shrink-0 items-center gap-2 border-b border-border-subtle px-6 py-3">
+      <div className="min-w-0 flex-1 overflow-x-auto">
+        <div className="flex min-w-max items-center">
+          <AlertsFiltersToolbar filters={filters} onFiltersChange={onFiltersChange} t={t} />
+        </div>
       </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        className={alertPanelIconButtonClassName}
+        onClick={onClose}
+        aria-label={closeAriaLabel}
+      >
+        <X className="size-4" aria-hidden />
+      </Button>
     </div>
   )
 }
@@ -130,9 +202,7 @@ function AlertListRow({
   t: (key: ShellStringKey) => string
 }) {
   const Icon = item.severity === 'critical' ? Package : Gauge
-  const channelName = alertChannelName(item, connectionPlatformById, t)
   const headline = alertTypeName(t, item)
-  const subtitle = alertProductChannelLine(item, channelName)
 
   return (
     <SheetRowButton onClick={() => onSelect(item.id)}>
@@ -148,8 +218,13 @@ function AlertListRow({
         aria-hidden
       />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-foreground">{headline}</p>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
+        <p className="truncate text-xs font-bold text-foreground">{headline}</p>
+        <AlertProductChannelLine
+          item={item}
+          connectionPlatformById={connectionPlatformById}
+          t={t}
+          className="mt-0.5"
+        />
       </div>
       <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
     </SheetRowButton>
@@ -264,9 +339,9 @@ function AlertDetailView({
   const stock = payloadNumber(item.payload, 'stock_quantity')
   const sold = payloadNumber(item.payload, 'prev_month_units_sold')
   const productHref = item.product_id ? `/dashboard/products/${item.product_id}` : null
-  const channelName = alertChannelName(item, connectionPlatformById, t)
   const headline = alertTypeName(t, item)
-  const productChannelLine = alertProductChannelLine(item, channelName)
+  const productTitle = alertProductTitle(item)
+  const channelSlug = alertPlatformSlug(item, connectionPlatformById)
 
   const issueText =
     item.severity === 'critical'
@@ -279,20 +354,19 @@ function AlertDetailView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center gap-2 border-b border-border-subtle px-5 py-4">
+      <div className="flex items-center gap-2 border-b border-border-subtle px-4 py-2.5">
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="shrink-0 self-center"
+          className={cn(alertPanelIconButtonClassName, 'self-center')}
           onClick={onBack}
           aria-label={t('homeAlertsSheetBackToList')}
         >
           <ChevronLeft className="size-4" />
         </Button>
         <div className="min-w-0 flex-1 overflow-hidden">
-          <h2 className="truncate text-base font-semibold leading-snug text-foreground">{headline}</h2>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">{productChannelLine}</p>
+          <h2 className="truncate text-sm font-semibold leading-snug text-foreground">{headline}</h2>
         </div>
         <StatusPill
           variant={severityStatusPillVariant(item.severity)}
@@ -304,7 +378,7 @@ function AlertDetailView({
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="shrink-0 self-center"
+          className={cn(alertPanelIconButtonClassName, 'self-center')}
           onClick={onClosePanel}
           aria-label={t('productsDetailSheetCancel')}
         >
@@ -316,9 +390,20 @@ function AlertDetailView({
         <AlertDetailSection title={t('homeAlertsSheetEntity')}>
           <span className="inline-flex max-w-full items-center gap-2 rounded-md border border-border-subtle bg-muted/30 px-2.5 py-1.5 text-xs text-foreground">
             <Package className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-            <span className="truncate">{productChannelLine}</span>
+            <span className="min-w-0 truncate">{productTitle}</span>
           </span>
         </AlertDetailSection>
+
+        {channelSlug ? (
+          <AlertDetailSection title={t('homeAlertsSheetChannel')}>
+            <ProductPlatformLogoName
+              platformSlug={channelSlug}
+              t={t}
+              logoClassName="size-3.5"
+              textClassName="text-sm text-muted-foreground"
+            />
+          </AlertDetailSection>
+        ) : null}
 
         <AlertDetailSection title={t('homeAlertsSheetIssue')}>{issueText}</AlertDetailSection>
 
@@ -362,6 +447,7 @@ function AlertListView({
   filterEmptyLabel,
   connectionPlatformById,
   onSelect,
+  onClose,
   t,
 }: {
   filters: AlertsListFilters
@@ -372,6 +458,7 @@ function AlertListView({
   filterEmptyLabel: string
   connectionPlatformById: ReadonlyMap<string, string>
   onSelect: (id: string) => void
+  onClose: () => void
   t: (key: ShellStringKey) => string
 }) {
   const filteredItems = useMemo(
@@ -384,7 +471,13 @@ function AlertListView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <AlertListToolbar filters={filters} onFiltersChange={onFiltersChange} t={t} />
+      <AlertListToolbar
+        filters={filters}
+        onFiltersChange={onFiltersChange}
+        onClose={onClose}
+        closeAriaLabel={t('productsDetailSheetCancel')}
+        t={t}
+      />
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {loading ? (
@@ -461,7 +554,7 @@ export function ActiveAlertsSheet({
       open={open}
       onOpenChange={handleOpenChange}
       closeAriaLabel={t('productsDetailSheetCancel')}
-      hideCloseButton={showDetail}
+      hideCloseButton
     >
       <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
         <div
@@ -479,6 +572,7 @@ export function ActiveAlertsSheet({
             filterEmptyLabel={filterEmptyLabel}
             connectionPlatformById={connectionPlatformById}
             onSelect={setSelectedId}
+            onClose={() => handleOpenChange(false)}
             t={t}
           />
         </div>

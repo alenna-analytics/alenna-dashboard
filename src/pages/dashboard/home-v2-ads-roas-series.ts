@@ -1,17 +1,10 @@
-import { format, startOfMonth, startOfWeek } from 'date-fns'
 import type { Locale } from 'date-fns'
 
+import { adsPointBucketKey } from '@/pages/ads/ads-series-buckets'
 import type { AdsSeriesPoint } from '@/pages/ads/use-ads-kpis'
 import type { MonthlyChartRow } from '@/pages/reports/monthly-revenue-chart'
-import { eachRevenueBucketMeta, parseLocalYmd } from '@/pages/reports/reports-ui-helpers'
+import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
-
-function adsPointBucketKey(dateYmd: string, granularity: RevenueSeriesGranularity): string {
-  const d = parseLocalYmd(dateYmd.slice(0, 10))
-  if (granularity === 'day') return format(d, 'yyyy-MM-dd')
-  if (granularity === 'month') return format(startOfMonth(d), 'yyyy-MM-dd')
-  return format(startOfWeek(d, { weekStartsOn: 1 }), 'yyyy-MM-dd')
-}
 
 export function withAdsRoasOnChartRows(
   rows: MonthlyChartRow[],

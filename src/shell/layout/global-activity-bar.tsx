@@ -14,7 +14,7 @@ import {
   type GlobalActivityItem,
   type GlobalActivityPhase,
 } from '@/shell/providers/global-activity-provider'
-import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
+import { WORKSPACE_SHELL_CHROME_INSET_CLASS } from '@/shell/layout/workspace-shell-column'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { can } from '@/lib/permissions/can'
 import { Button } from '@/ui/button'
@@ -99,7 +99,7 @@ function ActivityRow({ item }: { item: GlobalActivityItem }) {
     >
       <div
         className={cn(
-          WORKSPACE_SHELL_COLUMN_CLASS,
+          WORKSPACE_SHELL_CHROME_INSET_CLASS,
           'flex h-full items-center gap-2 text-sm',
         )}
       >

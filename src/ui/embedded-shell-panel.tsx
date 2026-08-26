@@ -6,7 +6,8 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
 import { Sheet, SheetContent } from '@/ui/sheet'
 
-export const embeddedShellPanelWidthClass = 'w-[var(--shell-alerts-panel-width)]'
+export const embeddedShellPanelWidthClass =
+  'w-full max-w-[var(--shell-alerts-panel-width)]'
 
 const embeddedPanelTransitionMs = 220
 
@@ -104,7 +105,7 @@ export function EmbeddedShellPanel({
           className={cn(
             embeddedPanelShellClassName,
             panelVisible
-              ? 'w-[var(--shell-alerts-panel-width)] border-l border-[var(--shell-divider)]'
+              ? 'w-[min(var(--shell-alerts-panel-width),40vw)] max-w-[var(--shell-alerts-panel-width)] border-l border-[var(--shell-divider)]'
               : 'w-0 border-l border-transparent',
           )}
         >

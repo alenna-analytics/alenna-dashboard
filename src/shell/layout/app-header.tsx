@@ -14,8 +14,7 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'
 import { Button } from '@/ui/button'
 import { shellChromeHeaderRowClassName } from '@/shell/layout/sidebar-layout'
-
-const shellHeaderRowPaddingClassName = 'w-full px-4 lg:px-5'
+import { WORKSPACE_SHELL_CHROME_INSET_CLASS } from '@/shell/layout/workspace-shell-column'
 
 type AppHeaderProps = {
   className?: string
@@ -56,7 +55,7 @@ export function AppHeader({
       <div
         className={cn(
           shellChromeHeaderRowClassName,
-          shellHeaderRowPaddingClassName,
+          WORKSPACE_SHELL_CHROME_INSET_CLASS,
           'justify-between gap-3',
         )}
       >

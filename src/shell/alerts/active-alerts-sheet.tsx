@@ -346,7 +346,12 @@ function AlertDetailView({
 }) {
   const stock = payloadNumber(item.payload, 'stock_quantity')
   const sold = payloadNumber(item.payload, 'prev_month_units_sold')
-  const productHref = item.product_id ? `/dashboard/products/${item.product_id}` : null
+  const isMatch = item.alert_type === 'match_suggestion'
+  const productHref = isMatch
+    ? '/dashboard/products/vinculacion'
+    : item.product_id
+      ? `/dashboard/products/${item.product_id}`
+      : null
   const headline = alertTypeName(t, item)
   const productTitle = alertProductTitle(item)
   const channelSlug = alertPlatformSlug(item, connectionPlatformById)
@@ -413,10 +418,12 @@ function AlertDetailView({
           </AlertDetailSection>
         ) : null}
 
-        <AlertDetailSection title={t('homeAlertsSheetIssue')}>{issueText}</AlertDetailSection>
+        {!isMatch ? (
+          <AlertDetailSection title={t('homeAlertsSheetIssue')}>{issueText}</AlertDetailSection>
+        ) : null}
 
         <AlertDetailSection title={t('homeAlertsSheetDescription')}>
-          {t('homeAlertsSheetDescriptionStock')}
+          {isMatch ? t('productsVinculacionSubtitle') : t('homeAlertsSheetDescriptionStock')}
         </AlertDetailSection>
 
         {isPostponedSection && item.postponed_until ? (
@@ -436,7 +443,7 @@ function AlertDetailView({
             ) : null}
             {productHref ? (
               <Button variant="accent" size="tiny" render={<Link to={productHref} />}>
-                {t('homeAlertsDialogViewProduct')}
+                {isMatch ? t('homeAlertsDialogViewMatches') : t('homeAlertsDialogViewProduct')}
               </Button>
             ) : null}
           </div>

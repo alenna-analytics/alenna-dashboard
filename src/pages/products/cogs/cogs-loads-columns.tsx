@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/ui/dropdown-menu'
 import { StatusPill } from '@/ui/status-pill'
+import { TableEmptyCell } from '@/ui/data-table/table-empty-cell'
 
 export type CogsLoadsColumnActions = {
   onOpen: (row: CogsBulkLoadSummaryApi) => void
@@ -68,7 +69,7 @@ export function createCogsLoadsColumns(
   actions: CogsLoadsColumnActions,
 ): ColumnDef<CogsBulkLoadSummaryApi>[] {
   const formatWhen = (iso: string | null) => {
-    if (!iso) return '—'
+    if (!iso) return <TableEmptyCell />
     return new Date(iso).toLocaleString(lang === 'es' ? 'es-MX' : 'en-US')
   }
 
@@ -92,7 +93,7 @@ export function createCogsLoadsColumns(
     {
       accessorKey: 'created_by_name',
       header: t('productsCogsLoadColCreatedBy'),
-      cell: ({ row }) => row.original.created_by_name ?? '—',
+      cell: ({ row }) => row.original.created_by_name ?? <TableEmptyCell />,
     },
     {
       accessorKey: 'created_at',

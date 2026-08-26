@@ -447,12 +447,12 @@
   --sidebar-foreground: var(--text-primary);
   --sidebar-primary: var(--firefly-base);
   --sidebar-primary-foreground: var(--platinum-blonde-400);
-  --table-row-hover-bg: #f5f5f5;
   --chrome-muted: #f1f1f1;
   --sidebar-active-bg: var(--chrome-muted);
   --sidebar-active-foreground: var(--firefly-base);
   --sidebar-accent: var(--chrome-muted);
   --sidebar-accent-foreground: var(--firefly-base);
+  --table-row-hover-bg: var(--sidebar-accent);
   --sidebar-border: transparent;
   --sidebar-ring: var(--firefly-base);
 

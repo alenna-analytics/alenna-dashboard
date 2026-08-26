@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { ChevronLeft, Info } from 'lucide-react'
 import { toast } from 'sonner'
@@ -17,7 +17,7 @@ import { useBulkCogsViewportLock } from '@/pages/products/bulk-cogs/bulk-cogs-vi
 import { patchDraftField, resolveDraftCostValues } from '@/pages/products/bulk-cogs/bulk-cogs-validation'
 import { mapCostApplyUiModeToApi, willBulkSaveEnqueueBackfill } from '@/pages/products/product-cost-apply-mode-api'
 import { isCostApplyModeValid, useCostApplyModeDefaults } from '@/pages/products/product-cost-apply-mode-fields'
-import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import {
   GLOBAL_ACTIVITY_COGS_BULK_BACKFILL_ID,
   useGlobalActivity,
@@ -46,9 +46,23 @@ import {
 
 type WizardStep = 'select' | 'grid' | 'review' | 'apply'
 
+const WIZARD_STEP_TOTAL = 4
 const footerClassName = 'flex shrink-0 items-center border-t border-border-subtle bg-white px-0 py-3'
 const AUTOSAVE_MS = 1500
 const AUTOSAVE_SAVED_MS = 3000
+
+function wizardStepIndex(step: WizardStep): number {
+  switch (step) {
+    case 'select':
+      return 1
+    case 'grid':
+      return 2
+    case 'review':
+      return 3
+    case 'apply':
+      return 4
+  }
+}
 
 function WizardBackButton({
   ariaLabel,
@@ -61,6 +75,28 @@ function WizardBackButton({
     <Button type="button" variant="outline" size="icon-sm" aria-label={ariaLabel} onClick={onClick}>
       <ChevronLeft className="size-4 shrink-0" aria-hidden />
     </Button>
+  )
+}
+
+function WizardFooter({
+  progress,
+  leading,
+  action,
+}: {
+  progress: string
+  leading?: ReactNode
+  action: ReactNode
+}) {
+  return (
+    <footer className={footerClassName}>
+      <div className="flex w-full items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <p className="shrink-0 text-xs text-text-tertiary">{progress}</p>
+          {leading}
+        </div>
+        {action}
+      </div>
+    </footer>
   )
 }
 
@@ -269,6 +305,11 @@ export function CogsLoadEditorPage() {
     }
   }, [step, t])
 
+  const stepProgress = shellT(lang, 'productsCogsLoadStepProgress', {
+    current: wizardStepIndex(step),
+    total: WIZARD_STEP_TOTAL,
+  })
+
   const handleApply = async () => {
     const apiApply = mapCostApplyUiModeToApi(applyMode, effectiveFromDate, rangeStart, rangeEnd)
     try {
@@ -324,12 +365,12 @@ export function CogsLoadEditorPage() {
         }}
       />
 
-      <header className="shrink-0 space-y-1 pb-3 pt-1">
-        <CogsPageBreadcrumb className="mb-0" />
+      <header className="flex shrink-0 flex-col gap-4 pb-5">
+        <CogsPageBreadcrumb />
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <h1 className={pageTitleClassName}>{t('productsCogsLoadEditorTitle')}</h1>
-            <p className="text-xs text-text-tertiary">{stepLabel}</p>
+            <p className={pageSubtitleClassName}>{stepLabel}</p>
           </div>
           {step === 'grid' && isDraft ? (
             <div className="flex shrink-0 items-center gap-1.5">
@@ -376,17 +417,20 @@ export function CogsLoadEditorPage() {
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <CogsLoadSelectStep loadId={loadId} detail={detail} t={t} />
             </div>
-            <footer className={footerClassName}>
-              <div className="flex w-full items-center justify-end">
+            <WizardFooter
+              progress={stepProgress}
+              action={
                 <Button
                   type="button"
+                  variant="accent"
+                  size="tiny"
                   onClick={() => setStep('grid')}
                   disabled={detail.items.length === 0 || !isDraft}
                 >
                   {t('productsCogsLoadContinueGrid')}
                 </Button>
-              </div>
-            </footer>
+              }
+            />
           </>
         ) : null}
 
@@ -408,9 +452,10 @@ export function CogsLoadEditorPage() {
                 }
               />
             </div>
-            <footer className={footerClassName}>
-              <div className="flex w-full items-center justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-2">
+            <WizardFooter
+              progress={stepProgress}
+              leading={
+                <>
                   <WizardBackButton
                     ariaLabel={t('productsCogsLoadBackSelect')}
                     onClick={() => setStep('select')}
@@ -421,9 +466,13 @@ export function CogsLoadEditorPage() {
                     onRetry={() => void retryFailedSaves()}
                     retryPending={pendingSaves > 0}
                   />
-                </div>
+                </>
+              }
+              action={
                 <Button
                   type="button"
+                  variant="accent"
+                  size="tiny"
                   onClick={() => setStep('review')}
                   disabled={
                     detail.items.length === 0 || pendingSaves > 0 || debouncingSaves > 0
@@ -431,8 +480,8 @@ export function CogsLoadEditorPage() {
                 >
                   {t('productsBulkCogsContinueReview')}
                 </Button>
-              </div>
-            </footer>
+              }
+            />
           </>
         ) : null}
 
@@ -445,14 +494,19 @@ export function CogsLoadEditorPage() {
                 t={t}
               />
             </div>
-            <footer className={footerClassName}>
-              <div className="flex w-full items-center justify-between gap-2">
+            <WizardFooter
+              progress={stepProgress}
+              leading={
                 <WizardBackButton
                   ariaLabel={t('productsBulkCogsBackEdit')}
                   onClick={() => setStep('grid')}
                 />
+              }
+              action={
                 <Button
                   type="button"
+                  variant="accent"
+                  size="tiny"
                   onClick={() => setStep('apply')}
                   disabled={
                     reviewCounts.invalid > 0 ||
@@ -464,8 +518,8 @@ export function CogsLoadEditorPage() {
                 >
                   {t('productsBulkCogsContinueApply')}
                 </Button>
-              </div>
-            </footer>
+              }
+            />
           </>
         ) : null}
 
@@ -487,14 +541,19 @@ export function CogsLoadEditorPage() {
                 hidePrimaryAction
               />
             </div>
-            <footer className={footerClassName}>
-              <div className="flex w-full items-center justify-between gap-2">
+            <WizardFooter
+              progress={stepProgress}
+              leading={
                 <WizardBackButton
                   ariaLabel={t('productsBulkCogsBackReview')}
                   onClick={() => setStep('review')}
                 />
+              }
+              action={
                 <Button
                   type="button"
+                  variant="accent"
+                  size="tiny"
                   loading={applyMutation.isPending}
                   onClick={() => void handleApply()}
                   disabled={
@@ -506,8 +565,8 @@ export function CogsLoadEditorPage() {
                 >
                   {t('productsBulkCogsApplySave')}
                 </Button>
-              </div>
-            </footer>
+              }
+            />
           </>
         ) : null}
       </div>

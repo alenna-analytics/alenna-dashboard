@@ -11,6 +11,7 @@ type ChannelBadgeProps = {
 export function ChannelBadge({ logoSrc, children, className }: ChannelBadgeProps) {
   return (
     <span
+      data-slot="channel-badge"
       className={cn(
         'inline-flex h-6 items-center justify-center gap-1 rounded-full border border-border-default bg-transparent px-2 text-[length:var(--text-micro)] font-medium leading-none text-text-primary',
         className,

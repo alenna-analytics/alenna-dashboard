@@ -7,7 +7,7 @@ import { PRODUCTS_BASE_PATH } from '@/pages/products/products-inner-nav'
 import { cn } from '@/lib/utils'
 import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
 
-const PRODUCT_DETAIL_EXCLUDED_IDS = new Set(['cogs', 'bulk-cogs'])
+const PRODUCT_DETAIL_EXCLUDED_IDS = new Set(['cogs', 'bulk-cogs', 'vinculacion'])
 const INTEGRATION_NAV_SLUGS = new Set(['ecommerce', 'ads'])
 
 export function pathnameHasPageBreadcrumb(pathname: string): boolean {

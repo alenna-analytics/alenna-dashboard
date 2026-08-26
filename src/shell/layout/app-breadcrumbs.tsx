@@ -85,6 +85,15 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
   if (normalized === '/dashboard/products/cogs') {
     return [{ label: shellT(lang, 'productsNavCogs') }]
   }
+  if (normalized === '/dashboard/products/vinculacion') {
+    return [{ label: shellT(lang, 'productsNavVinculacion') }]
+  }
+  if (/^\/dashboard\/products\/vinculacion\/[^/]+$/.test(normalized)) {
+    return [
+      { label: shellT(lang, 'productsNavVinculacion'), to: '/dashboard/products/vinculacion' },
+      { label: shellT(lang, 'productsVinculacionHubCrumb') },
+    ]
+  }
   const cogsCrumbs = cogsBreadcrumbItems(normalized, lang)
   if (cogsCrumbs) {
     return cogsCrumbs

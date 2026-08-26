@@ -95,8 +95,8 @@ export function formatListingPublicationSubtitle(listing: ListingPublicationInpu
   return parts.length > 0 ? parts.join(' · ') : null
 }
 
-export function formatListingVelocityPerDay(velocity: number | null | undefined): string {
-  if (velocity == null || velocity <= 0) return '—'
+export function formatListingVelocityPerDay(velocity: number | null | undefined): string | null {
+  if (velocity == null || velocity <= 0) return null
   return velocity.toLocaleString(undefined, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,

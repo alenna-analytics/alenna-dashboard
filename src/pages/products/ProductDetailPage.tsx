@@ -403,6 +403,7 @@ function ProductDetailBody({ productId }: { productId: string }) {
         thumb={<ProductDetailHeaderThumb url={detail.image_url} title={detail.title} />}
         skuDraft={skuDraft}
         onSkuDraftChange={canEditProducts ? setSkuDraft : undefined}
+        fmtMoney={fmtBase}
       />
 
       {futureSegment ? (

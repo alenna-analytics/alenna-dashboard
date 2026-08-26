@@ -19,11 +19,21 @@ export function buildCogsLoadFilterSearchParams(
   return sp
 }
 
+export function cogsLoadHasActiveFilters(q: string, filters: ProductsListFiltersState): boolean {
+  return (
+    q.trim().length > 0 ||
+    filters.platforms.length > 0 ||
+    filters.statuses.length > 0 ||
+    filters.stockAlertLevels.length > 0
+  )
+}
+
 export function buildAddByFilterBody(
   q: string,
   filters: ProductsListFiltersState,
   addAll: boolean,
   page: { limit: number; offset: number },
+  excludeProductIds?: string[],
 ) {
   const stockAlert = normalizeStockAlertLevelsFilter(filters.stockAlertLevels)
   const body = {
@@ -33,6 +43,8 @@ export function buildAddByFilterBody(
     platform: filters.platforms.length ? filters.platforms : undefined,
     stock_alert: stockAlert.length ? stockAlert : undefined,
     cost_missing: undefined as boolean | undefined,
+    exclude_product_ids:
+      excludeProductIds && excludeProductIds.length > 0 ? excludeProductIds : undefined,
   }
   if (!addAll) {
     return { ...body, limit: page.limit, offset: page.offset }

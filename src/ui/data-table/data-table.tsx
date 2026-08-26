@@ -10,6 +10,11 @@ type ColumnMetaWithCellClass = {
   headerClassName?: string
 }
 
+const tableFontClass = 'text-[13px]'
+const headerFontClass = 'font-numeric text-xs uppercase'
+const cellFontClass =
+  'text-[13px] [&_*]:text-[13px] [&_[data-slot=badge]]:text-[length:var(--text-micro)] [&_[data-slot=badge]_*]:text-[length:var(--text-micro)] [&_[data-slot=status-pill]]:text-[length:var(--text-micro)] [&_[data-slot=status-pill]_*]:text-[length:var(--text-micro)] [&_[data-slot=channel-badge]]:text-[length:var(--text-micro)] [&_[data-slot=channel-badge]_*]:text-[length:var(--text-micro)]'
+
 type DataTableProps<TData> = {
   table: TableType<TData>
   isLoading: boolean
@@ -21,7 +26,7 @@ type DataTableProps<TData> = {
   scrollClassName?: string
   /** `card` (default) keeps bordered section shell; `plain` is borderless for flat analytics layouts. */
   variant?: 'card' | 'plain'
-  /** Compact grid (Supabase-style): 12px type, tighter rows, cell borders. */
+  /** Compact grid: tighter rows and cell borders. */
   density?: 'default' | 'compact'
   /** Compact tables hug content by default; `full` stretches to the container. */
   tableWidth?: 'content' | 'full'
@@ -108,7 +113,7 @@ export function DataTable<TData>({
         <table
           className={cn(
             'caption-bottom border-separate border-spacing-0',
-            isCompact ? cn('text-xs', stretchTable ? 'w-full' : 'w-max min-w-0') : 'w-full text-sm',
+            isCompact ? cn(tableFontClass, stretchTable ? 'w-full' : 'w-max min-w-0') : cn('w-full', tableFontClass),
           )}
         >
           <TableHeader className="[&_tr]:border-b">
@@ -131,20 +136,17 @@ export function DataTable<TData>({
                           : undefined
                       }
                       className={cn(
-                        "sticky top-0 z-10 align-middle font-medium text-muted-foreground",
+                        "sticky top-0 z-10 align-middle bg-white font-medium text-muted-foreground",
                         isCompact
-                          ? "h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0 shadow-none bg-[var(--table-row-hover-bg)]"
-                          : cn(
-                              "border-0 shadow-[0_1px_0_var(--border-subtle)]",
-                              isPlain ? "bg-transparent" : "bg-[var(--table-row-hover-bg)]",
-                            ),
+                          ? "h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0 shadow-none"
+                          : "border-0 shadow-[0_1px_0_var(--border-subtle)]",
                         meta?.headerClassName,
                       )}
                     >
                       <div
                         className={cn(
                           "flex w-full items-center font-medium leading-none text-muted-foreground",
-                          isCompact ? "min-h-9 text-xs" : "min-h-10 text-xs",
+                          isCompact ? cn('min-h-9', headerFontClass) : cn('min-h-10', headerFontClass),
                         )}
                       >
                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -176,7 +178,7 @@ export function DataTable<TData>({
                       <div
                         className={cn(
                           'flex items-center leading-normal',
-                          isCompact ? 'min-h-9 text-xs' : 'min-h-10 text-sm',
+                          isCompact ? cn('min-h-9', cellFontClass) : cn('min-h-10', cellFontClass),
                         )}
                       >
                         <Skeleton className="h-[1.125rem] w-full max-w-48 rounded-md" />
@@ -219,7 +221,7 @@ export function DataTable<TData>({
                             <div
                               className={cn(
                                 'flex w-full items-center leading-normal [&:has([role=checkbox])]:[&_input]:self-center',
-                                isCompact ? 'min-h-9 text-xs' : 'min-h-10 text-sm',
+                                isCompact ? cn('min-h-9', cellFontClass) : cn('min-h-10', cellFontClass),
                               )}
                             >
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}

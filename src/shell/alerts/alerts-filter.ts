@@ -4,9 +4,15 @@ import type { AlertItemApi, AlertSection, AlertSeverity } from '@/lib/types/aler
 
 import { alertPlatformSlug } from './alert-display'
 
+function payloadPlatforms(payload: Record<string, unknown>): string[] {
+  const raw = payload.platforms
+  if (!Array.isArray(raw)) return []
+  return raw.map((value) => String(value).trim().toLowerCase()).filter(Boolean)
+}
+
 export type AlertSeverityFilter = AlertSeverity | 'all'
 
-export type AlertKindFilter = 'all' | 'stock_out' | 'stock_low'
+export type AlertKindFilter = 'all' | 'stock_out' | 'stock_low' | 'match_suggestion'
 
 export type AlertChannelFilter = 'all' | string
 
@@ -45,6 +51,11 @@ export const ALERT_KIND_OPTIONS: AlertKindOption[] = [
     id: 'stock_low',
     labelKey: 'homeAlertsSheetAlertNameLow',
     matches: (item) => item.alert_type === 'stock' && item.severity === 'low',
+  },
+  {
+    id: 'match_suggestion',
+    labelKey: 'homeAlertsSheetAlertNameMatch',
+    matches: (item) => item.alert_type === 'match_suggestion',
   },
 ]
 
@@ -89,6 +100,13 @@ export function uniqueAlertChannelSlugs(
   for (const item of items) {
     const slug = alertPlatformSlug(item, connectionPlatformById)
     if (isAlertChannelSlug(slug)) slugs.add(slug)
+    const raw = item.payload.platforms
+    if (Array.isArray(raw)) {
+      for (const value of raw) {
+        const payloadSlug = String(value).trim().toLowerCase()
+        if (isAlertChannelSlug(payloadSlug)) slugs.add(payloadSlug)
+      }
+    }
   }
   return [...slugs].sort((a, b) => a.localeCompare(b))
 }
@@ -103,7 +121,12 @@ export function filterAlertsByListFilters(
     if (filters.severity !== 'all' && item.severity !== filters.severity) return false
     if (kindMatcher && !kindMatcher(item)) return false
     if (filters.channel !== 'all') {
-      if (alertPlatformSlug(item, connectionPlatformById) !== filters.channel) return false
+      if (item.alert_type === 'match_suggestion') {
+        const platforms = payloadPlatforms(item.payload)
+        if (!platforms.includes(filters.channel)) return false
+      } else if (alertPlatformSlug(item, connectionPlatformById) !== filters.channel) {
+        return false
+      }
     }
     return true
   })

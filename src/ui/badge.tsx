@@ -43,7 +43,8 @@ function Badge({
     props: mergeProps<"span">(
       {
         className: cn(badgeVariants({ variant }), className),
-      },
+        'data-slot': 'badge',
+      } as useRender.ComponentProps<"span">,
       props
     ),
     render,

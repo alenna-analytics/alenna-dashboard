@@ -24,6 +24,7 @@ import { Button } from '@/ui/button'
 import { Checkbox } from '@/ui/checkbox'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTablePagination } from '@/ui/data-table/data-table-pagination'
+import { TableEmptyCell } from '@/ui/data-table/table-empty-cell'
 import { EmptyState } from '@/ui/empty-state'
 import { Label } from '@/ui/label'
 import {
@@ -61,8 +62,7 @@ function diffStatusLabel(t: (k: ShellStringKey) => string, status: CogsPlatformS
   }
 }
 
-function formatMoney(value: number | null | undefined, currency: string): string {
-  if (value == null) return '—'
+function formatMoney(value: number, currency: string): string {
   return new Intl.NumberFormat(undefined, {
     style: 'currency',
     currency,
@@ -268,7 +268,12 @@ export function CogsPlatformSyncPage() {
       {
         id: 'current_cost',
         header: t('productsCogsSyncColCurrentCost'),
-        cell: ({ row }) => formatMoney(row.original.current_cost, currency),
+        cell: ({ row }) =>
+          row.original.current_cost == null ? (
+            <TableEmptyCell />
+          ) : (
+            formatMoney(row.original.current_cost, currency)
+          ),
         meta: {
           headerClassName: 'min-w-[8.5rem] [&>div]:justify-end',
           cellClassName: 'min-w-[8.5rem] tabular-nums [&>div]:justify-end',
@@ -277,7 +282,12 @@ export function CogsPlatformSyncPage() {
       {
         id: 'platform_cost',
         header: t('productsCogsSyncColPlatformCost'),
-        cell: ({ row }) => formatMoney(row.original.platform_cost, currency),
+        cell: ({ row }) =>
+          row.original.platform_cost == null ? (
+            <TableEmptyCell />
+          ) : (
+            formatMoney(row.original.platform_cost, currency)
+          ),
         meta: {
           headerClassName: 'min-w-[8.5rem] [&>div]:justify-end',
           cellClassName: 'min-w-[8.5rem] tabular-nums [&>div]:justify-end',

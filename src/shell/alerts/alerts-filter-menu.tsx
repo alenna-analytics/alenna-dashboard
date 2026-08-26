@@ -1,15 +1,18 @@
-import { Bell, Clock, Gauge, Layers, Package } from 'lucide-react'
+import { Bell, Clock, Gauge, Layers, Package, Store } from 'lucide-react'
 import { useMemo } from 'react'
 
+import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { AlertSection } from '@/lib/types/alerts'
 import { cn } from '@/lib/utils'
 import { FilterContextPill } from '@/ui/filters/filter-context-pill'
 
+import { platformDisplayName } from './alert-display'
 import {
   ALERT_KIND_OPTIONS,
   ALERT_LIFECYCLE_OPTIONS,
   ALERT_SEVERITY_OPTIONS,
+  type AlertChannelFilter,
   type AlertKindFilter,
   type AlertsListFilters,
   type AlertSeverityFilter,
@@ -18,6 +21,7 @@ import {
 type AlertsFiltersToolbarProps = {
   filters: AlertsListFilters
   onFiltersChange: (patch: Partial<AlertsListFilters>) => void
+  channelSlugs: string[]
   t: (key: ShellStringKey) => string
 }
 
@@ -132,6 +136,70 @@ function AlertsKindFilter({
   )
 }
 
+function channelLeading(channel: AlertChannelFilter) {
+  if (channel === 'all') {
+    return <Store className="size-4 text-muted-foreground" aria-hidden />
+  }
+  const logoSrc = INTEGRATION_UI[channel]?.logoSrc
+  if (logoSrc) {
+    return (
+      <img
+        src={logoSrc}
+        alt=""
+        className="size-4 object-contain"
+        draggable={false}
+        aria-hidden
+      />
+    )
+  }
+  return <Store className="size-4 text-muted-foreground" aria-hidden />
+}
+
+function AlertsChannelFilter({
+  filters,
+  onFiltersChange,
+  channelSlugs,
+  t,
+}: {
+  filters: AlertsListFilters
+  onFiltersChange: (patch: Partial<AlertsListFilters>) => void
+  channelSlugs: string[]
+  t: (key: ShellStringKey) => string
+}) {
+  const options = useMemo(
+    () => [
+      {
+        value: 'all',
+        label: t('homeAlertsSheetFilterAll'),
+        leading: channelLeading('all'),
+      },
+      ...channelSlugs.map((slug) => ({
+        value: slug,
+        label: platformDisplayName(t, slug) || slug,
+        leading: channelLeading(slug),
+      })),
+    ],
+    [channelSlugs, t],
+  )
+
+  return (
+    <FilterContextPill
+      label={t('homeAlertsSheetFilterSectionCanal')}
+      triggerIcon={Store}
+      value={filters.channel}
+      defaultValue="all"
+      valueOnlyWhenActive
+      options={options}
+      onValueChange={(value) => {
+        if (value === 'all' || channelSlugs.includes(value)) {
+          onFiltersChange({ channel: value })
+        }
+      }}
+      popoverAlign="start"
+    />
+  )
+}
+
 function AlertsLifecycleFilter({
   filters,
   onFiltersChange,
@@ -173,6 +241,7 @@ function AlertsLifecycleFilter({
 export function AlertsFiltersToolbar({
   filters,
   onFiltersChange,
+  channelSlugs,
   t,
 }: AlertsFiltersToolbarProps) {
   return (
@@ -180,6 +249,14 @@ export function AlertsFiltersToolbar({
       <AlertsSeverityFilter filters={filters} onFiltersChange={onFiltersChange} t={t} />
       <AlertsKindFilter filters={filters} onFiltersChange={onFiltersChange} t={t} />
       <AlertsLifecycleFilter filters={filters} onFiltersChange={onFiltersChange} t={t} />
+      {channelSlugs.length > 0 ? (
+        <AlertsChannelFilter
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          channelSlugs={channelSlugs}
+          t={t}
+        />
+      ) : null}
     </div>
   )
 }

@@ -374,7 +374,8 @@
   --shell-sidebar-width: 200px;
   --shell-sidebar-collapsed-width: 47px;
   --shell-inner-sidebar-width: 210px;
-  --shell-alerts-panel-width: 480px;
+  --shell-alerts-panel-min-width: 380px;
+  --shell-alerts-panel-max-width: 580px;
   --shell-sheet-width: 720px;
   --shell-sheet-footer-height: 60px;
   --shell-inner-header-height: 48px;

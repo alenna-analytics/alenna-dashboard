@@ -3,6 +3,7 @@ import { shellT } from '@/lib/i18n/shell-strings'
 import { useAlertsSummaryQuery } from '@/pages/dashboard/use-alerts-queries'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { cn } from '@/lib/utils'
+import { chromeIconButtonClassName } from '@/ui/surface'
 
 import { useAlertsSheet } from './alerts-sheet-context'
 import { activeAlertsDisplayCount } from './alert-display'
@@ -16,10 +17,7 @@ export function AlertsHeaderButton({ className }: { className?: string }) {
   return (
     <button
       type="button"
-      className={cn(
-        'relative flex size-8 items-center justify-center rounded text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
-        className,
-      )}
+      className={cn(chromeIconButtonClassName, 'relative cursor-pointer overflow-visible', className)}
       aria-label={shellT(lang, 'shellAlertsOpenAria')}
       onClick={openSheet}
     >

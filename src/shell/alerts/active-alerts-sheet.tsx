@@ -39,6 +39,7 @@ import {
 import {
   DEFAULT_ALERTS_LIST_FILTERS,
   filterAlertsByListFilters,
+  uniqueAlertChannelSlugs,
   type AlertsListFilters,
 } from './alerts-filter'
 import { AlertsFiltersToolbar } from './alerts-filter-menu'
@@ -159,12 +160,14 @@ function AlertProductChannelLine({
 function AlertListToolbar({
   filters,
   onFiltersChange,
+  channelSlugs,
   onClose,
   closeAriaLabel,
   t,
 }: {
   filters: AlertsListFilters
   onFiltersChange: (patch: Partial<AlertsListFilters>) => void
+  channelSlugs: string[]
   onClose: () => void
   closeAriaLabel: string
   t: (key: ShellStringKey) => string
@@ -173,7 +176,12 @@ function AlertListToolbar({
     <div className="flex min-h-12 shrink-0 items-center gap-2 border-b border-border-subtle px-6 py-3">
       <div className="min-w-0 flex-1 overflow-x-auto">
         <div className="flex min-w-max items-center">
-          <AlertsFiltersToolbar filters={filters} onFiltersChange={onFiltersChange} t={t} />
+          <AlertsFiltersToolbar
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+            channelSlugs={channelSlugs}
+            t={t}
+          />
         </div>
       </div>
       <Button
@@ -445,6 +453,7 @@ function AlertListView({
   loading,
   emptyLabel,
   filterEmptyLabel,
+  channelSlugs,
   connectionPlatformById,
   onSelect,
   onClose,
@@ -456,14 +465,15 @@ function AlertListView({
   loading: boolean
   emptyLabel: string
   filterEmptyLabel: string
+  channelSlugs: string[]
   connectionPlatformById: ReadonlyMap<string, string>
   onSelect: (id: string) => void
   onClose: () => void
   t: (key: ShellStringKey) => string
 }) {
   const filteredItems = useMemo(
-    () => filterAlertsByListFilters(items, filters),
-    [items, filters],
+    () => filterAlertsByListFilters(items, filters, connectionPlatformById),
+    [items, filters, connectionPlatformById],
   )
 
   const listEmptyLabel =
@@ -474,6 +484,7 @@ function AlertListView({
       <AlertListToolbar
         filters={filters}
         onFiltersChange={onFiltersChange}
+        channelSlugs={channelSlugs}
         onClose={onClose}
         closeAriaLabel={t('productsDetailSheetCancel')}
         t={t}
@@ -483,7 +494,14 @@ function AlertListView({
         {loading ? (
           <AlertListSkeleton />
         ) : filteredItems.length === 0 ? (
-          <EmptyState size="sm" icon="notifications" title={listEmptyLabel} />
+          <div className="flex h-full min-h-[12rem] p-6">
+            <EmptyState
+              size="sm"
+              icon="notifications"
+              title={listEmptyLabel}
+              className="h-full min-h-0 flex-1"
+            />
+          </div>
         ) : (
           filteredItems.map((item) => (
             <AlertListRow
@@ -535,6 +553,10 @@ export function ActiveAlertsSheet({
       ? t('homeAlertsDialogActiveEmpty')
       : t('homeAlertsDialogPostponedEmpty')
   const filterEmptyLabel = t('homeAlertsSheetFilterEmpty')
+  const channelSlugs = useMemo(
+    () => uniqueAlertChannelSlugs([...activeItems, ...postponedItems], connectionPlatformById),
+    [activeItems, postponedItems, connectionPlatformById],
+  )
 
   const selectedItem = useMemo(() => {
     if (!selectedId) return null
@@ -570,6 +592,7 @@ export function ActiveAlertsSheet({
             loading={loading}
             emptyLabel={emptyLabel}
             filterEmptyLabel={filterEmptyLabel}
+            channelSlugs={channelSlugs}
             connectionPlatformById={connectionPlatformById}
             onSelect={setSelectedId}
             onClose={() => handleOpenChange(false)}

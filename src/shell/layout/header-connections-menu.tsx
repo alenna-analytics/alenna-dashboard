@@ -197,7 +197,7 @@ export function HeaderConnectionsMenu({ className }: { className?: string }) {
     >
       <button
         type="button"
-        className={cn(chromeTextButtonClassName, 'gap-1.5 rounded-full px-3')}
+        className={cn(chromeTextButtonClassName, 'gap-1.5 px-2.5')}
         aria-expanded={open}
         aria-haspopup="true"
         aria-label={shellT(lang, 'headerConnectionsLabel')}

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { AlertTriangle, type LucideIcon } from 'lucide-react'
+import { enUS, es as esLocale } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
 
 import { useCurrentTenant } from '@/auth/hooks'
@@ -7,11 +8,13 @@ import { useMoney } from '@/hooks/use-money'
 import { useTenantPersistedJson } from '@/hooks/use-tenant-persisted-json'
 import { filterActiveAdsConnections, resolveAdsPageScope } from '@/lib/integrations/ads-scope'
 import { shellT } from '@/lib/i18n/shell-strings'
+import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { can } from '@/lib/permissions/can'
 import { cn } from '@/lib/utils'
 import { AdsChannelSpendChart } from '@/pages/ads/ads-channel-spend-chart'
 import { adsPlatformLabel } from '@/pages/ads/ads-platform-label'
 import { AdsTrendChart } from '@/pages/ads/ads-trend-chart'
+import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { useAdsChannels, useAdsKpis, useAdsSeries } from '@/pages/ads/use-ads-kpis'
 import { IntegrationsErrorState } from '@/pages/integrations/dashboard/integrations-error-state'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
@@ -109,6 +112,9 @@ export function AdsPage() {
   )
   const pickerStrings = dateRangePickerStrings((key) => shellT(lang, key))
   const t = (key: Parameters<typeof shellT>[1]) => shellT(lang, key)
+  const dateLocale = lang === 'en' ? enUS : esLocale
+  const [adsTrendGranularity, setAdsTrendGranularity] =
+    useState<RevenueSeriesGranularity>('day')
   const [adsTrendChartType, setAdsTrendChartType] = useState<SeriesChartView>('line')
   const [adsChannelChartType, setAdsChannelChartType] = useState<ShareChartView>('bar')
 
@@ -310,17 +316,28 @@ export function AdsPage() {
                 title={shellT(lang, 'adsChartTrendTitle')}
                 info={shellT(lang, 'adsChartTrendSubtitle')}
                 aside={
-                  <AppSeriesChartViewToggle
-                    value={adsTrendChartType}
-                    onChange={setAdsTrendChartType}
-                    t={t}
-                  />
+                  <>
+                    <ChartGranularityFilter
+                      value={adsTrendGranularity}
+                      onChange={setAdsTrendGranularity}
+                      t={t}
+                    />
+                    <AppSeriesChartViewToggle
+                      value={adsTrendChartType}
+                      onChange={setAdsTrendChartType}
+                      t={t}
+                    />
+                  </>
                 }
               />
               <AdsTrendChart
                 points={series.isError ? [] : (series.data?.points ?? [])}
                 lang={lang}
                 formatValue={formatDisplay}
+                startDate={filters.start}
+                endDate={filters.end}
+                granularity={adsTrendGranularity}
+                dateLocale={dateLocale}
                 isLoading={queryEnabled && series.isLoading}
                 chartType={adsTrendChartType}
               />

@@ -14,19 +14,23 @@ export function platformDisplayName(
   return formatPlatformSlug(slug)
 }
 
+export function alertPlatformSlug(
+  item: AlertItemApi,
+  connectionPlatformById: ReadonlyMap<string, string>,
+): string {
+  const direct = item.platform?.trim().toLowerCase()
+  if (direct) return direct
+  if (!item.platform_connection_id) return ''
+  return connectionPlatformById.get(item.platform_connection_id)?.trim().toLowerCase() ?? ''
+}
+
 export function alertChannelName(
   item: AlertItemApi,
   connectionPlatformById: ReadonlyMap<string, string>,
   t: (key: ShellStringKey) => string,
 ): string {
-  if (item.platform?.trim()) {
-    return platformDisplayName(t, item.platform)
-  }
-  if (item.platform_connection_id) {
-    const platform = connectionPlatformById.get(item.platform_connection_id)
-    if (platform) return platformDisplayName(t, platform)
-  }
-  return ''
+  const slug = alertPlatformSlug(item, connectionPlatformById)
+  return slug ? platformDisplayName(t, slug) : ''
 }
 
 export function alertTypeName(
@@ -42,13 +46,17 @@ export function alertTypeName(
   return t('homeAlertsSheetSeverityInformational')
 }
 
+export function alertProductTitle(item: AlertItemApi): string {
+  return item.title.trim() || item.entity_type
+}
+
 export function alertProductChannelLine(
   item: AlertItemApi,
   channelName: string,
 ): string {
   const product = item.title.trim()
   const channel = channelName.trim()
-  if (product && channel) return `${product} - ${channel}`
+  if (product && channel) return `${channel} · ${product}`
   return product || channel || item.entity_type
 }
 

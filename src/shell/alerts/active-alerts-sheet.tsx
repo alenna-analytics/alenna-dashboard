@@ -52,6 +52,8 @@ type ActiveAlertsSheetProps = {
   onOpenChange: (open: boolean) => void
   activeItems: AlertItemApi[]
   postponedItems: AlertItemApi[]
+  activeTotal: number
+  postponedTotal: number
   activeLoading: boolean
   postponedLoading: boolean
   isAdmin: boolean
@@ -468,6 +470,7 @@ function AlertListView({
   filters,
   onFiltersChange,
   items,
+  sectionTotal,
   loading,
   emptyLabel,
   filterEmptyLabel,
@@ -480,6 +483,7 @@ function AlertListView({
   filters: AlertsListFilters
   onFiltersChange: (patch: Partial<AlertsListFilters>) => void
   items: AlertItemApi[]
+  sectionTotal: number
   loading: boolean
   emptyLabel: string
   filterEmptyLabel: string
@@ -499,13 +503,14 @@ function AlertListView({
 
   const filtersNarrowList =
     filters.severity !== 'all' || filters.kind !== 'all' || filters.channel !== 'all'
+  const unfilteredCount = Math.max(sectionTotal, items.length)
   const countLabel = loading
     ? null
     : filtersNarrowList
       ? t('homeAlertsSheetCountFiltered')
           .replace('{shown}', String(filteredItems.length))
-          .replace('{total}', String(items.length))
-      : t('homeAlertsSheetCount').replace('{count}', String(items.length))
+          .replace('{total}', String(unfilteredCount))
+      : t('homeAlertsSheetCount').replace('{count}', String(unfilteredCount))
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -552,6 +557,8 @@ export function ActiveAlertsSheet({
   onOpenChange,
   activeItems,
   postponedItems,
+  activeTotal,
+  postponedTotal,
   activeLoading,
   postponedLoading,
   isAdmin,
@@ -576,6 +583,7 @@ export function ActiveAlertsSheet({
   }
 
   const items = filters.lifecycle === 'active' ? activeItems : postponedItems
+  const sectionTotal = filters.lifecycle === 'active' ? activeTotal : postponedTotal
   const loading = filters.lifecycle === 'active' ? activeLoading : postponedLoading
   const emptyLabel =
     filters.lifecycle === 'active'
@@ -618,6 +626,7 @@ export function ActiveAlertsSheet({
             filters={filters}
             onFiltersChange={handleFiltersChange}
             items={items}
+            sectionTotal={sectionTotal}
             loading={loading}
             emptyLabel={emptyLabel}
             filterEmptyLabel={filterEmptyLabel}

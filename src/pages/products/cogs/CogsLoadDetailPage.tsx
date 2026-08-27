@@ -1,43 +1,162 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo, type ReactNode } from 'react'
+import { getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 
+import { useMoney } from '@/hooks/use-money'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import { can } from '@/lib/permissions/can'
-import { useWorkspace } from '@/shell/providers/workspace-context'
-import { mergeLoadItemsIntoDraftStore } from '@/pages/products/bulk-cogs/bulk-cogs-draft-store'
-import { BulkCogsGrid } from '@/pages/products/bulk-cogs/bulk-cogs-grid'
+import type { CogsBulkLoadSummaryApi } from '@/lib/types/cogs-load'
+import { cn } from '@/lib/utils'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Button } from '@/ui/button'
+import { DataTable } from '@/ui/data-table/data-table'
+import { TableEmptyCell } from '@/ui/data-table/table-empty-cell'
+import { EmptyState } from '@/ui/empty-state'
+import { StatusPill } from '@/ui/status-pill'
 
+import { createCogsLoadDetailColumns } from './cogs-load-detail-columns'
 import { CogsLoadDetailLoadingSkeleton } from './cogs-load-editor-loading-skeleton'
+import {
+  cogsLoadStatusLabel,
+  cogsLoadStatusPillVariant,
+} from './cogs-loads-columns'
 import { useCloneCogsLoadMutation, useCogsLoadQuery } from './use-cogs-load-queries'
+
+type StatColumnProps = {
+  label: string
+  children: ReactNode
+  valueClassName?: string
+}
+
+function StatColumn({ label, children, valueClassName }: StatColumnProps) {
+  return (
+    <div className="flex shrink-0 flex-col gap-1">
+      <span className="whitespace-nowrap text-xs text-text-tertiary">{label}</span>
+      <div
+        className={cn(
+          'flex min-h-8 items-center text-sm font-normal text-text-primary',
+          valueClassName,
+        )}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
+type CogsLoadDetailStatsProps = {
+  load: CogsBulkLoadSummaryApi
+  productCount: number
+  appliedLabel: string
+  t: (key: ShellStringKey) => string
+}
+
+type CogsLoadDetailStatColumn = {
+  key: string
+  label: string
+  value: ReactNode
+  valueClassName?: string
+}
+
+function CogsLoadDetailStats({
+  load,
+  productCount,
+  appliedLabel,
+  t,
+}: CogsLoadDetailStatsProps) {
+  const columns: CogsLoadDetailStatColumn[] = [
+    {
+      key: 'status',
+      label: t('productsCogsLoadColStatus'),
+      value: (
+        <StatusPill variant={cogsLoadStatusPillVariant(load.status)}>
+          {cogsLoadStatusLabel(load.status, t)}
+        </StatusPill>
+      ),
+    },
+    {
+      key: 'appliedBy',
+      label: t('productsCogsLoadAppliedBy'),
+      value: load.applied_by_name ?? <TableEmptyCell />,
+    },
+    {
+      key: 'appliedAt',
+      label: t('productsCogsLoadAppliedAt'),
+      value: appliedLabel,
+    },
+    {
+      key: 'products',
+      label: t('productsCogsLoadColProducts'),
+      value: productCount,
+      valueClassName: 'tabular-nums',
+    },
+  ]
+
+  return (
+    <div className="grid w-full grid-cols-2 gap-x-4 gap-y-4 sm:inline-flex sm:max-w-full sm:flex-wrap sm:items-stretch">
+      {columns.map((col, index) => (
+        <div
+          key={col.key}
+          className={cn(
+            'flex shrink-0',
+            index > 0 && 'sm:border-l sm:border-border-subtle sm:pl-6',
+            index < columns.length - 1 && 'sm:pr-5',
+          )}
+        >
+          <StatColumn label={col.label} valueClassName={col.valueClassName}>
+            {col.value}
+          </StatColumn>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export function CogsLoadDetailPage() {
   const { loadId } = useParams<{ loadId: string }>()
   const navigate = useNavigate()
   const { lang } = useLanguage()
   const { me } = useWorkspace()
+  const { format: formatMoney } = useMoney()
   const canEditProducts = can(me, 'products.edit')
-  const t = (k: ShellStringKey) => shellT(lang, k)
+  const t = useCallback((k: ShellStringKey) => shellT(lang, k), [lang])
   const loadQuery = useCogsLoadQuery(loadId)
   const cloneMutation = useCloneCogsLoadMutation()
 
   const detail = loadQuery.data
+  const items = detail?.items ?? []
+  const baseCurrency = detail?.base_currency ?? 'MXN'
 
-  const draftStore = useMemo(() => {
-    if (!detail) return new Map()
-    return mergeLoadItemsIntoDraftStore(new Map(), detail.items, detail.base_currency)
-  }, [detail])
-
-  const gridRowIds = useMemo(
-    () => (detail ? detail.items.map((i) => i.product_id) : []),
-    [detail],
+  const formatCost = useCallback(
+    (value: number) =>
+      formatMoney(value, {
+        nativeCurrency: baseCurrency,
+        minimumFractionDigits: 4,
+        maximumFractionDigits: 4,
+      }),
+    [baseCurrency, formatMoney],
   )
+
+  const columns = useMemo(
+    () => createCogsLoadDetailColumns({ t, formatCost }),
+    [formatCost, t],
+  )
+
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
+  const table = useReactTable({
+    data: items,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getRowId: (row) => row.id,
+  })
 
   if (!loadId || loadQuery.isLoading) {
     return (
-      <DashboardPage className="flex h-full min-h-0 flex-col overflow-hidden">
+      <DashboardPage className="flex flex-1 flex-col gap-6">
         <CogsLoadDetailLoadingSkeleton />
       </DashboardPage>
     )
@@ -56,53 +175,46 @@ export function CogsLoadDetailPage() {
     : '—'
 
   return (
-    <DashboardPage className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
-      <header className="shrink-0 space-y-2">
-        <h1 className={pageTitleClassName}>{t('productsCogsLoadViewTitle')}</h1>
-        <dl className="grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <dt className="text-text-tertiary">{t('productsCogsLoadColStatus')}</dt>
-            <dd>{t('productsCogsLoadStatusApplied')}</dd>
-          </div>
-          <div>
-            <dt className="text-text-tertiary">{t('productsCogsLoadAppliedBy')}</dt>
-            <dd>{detail.load.applied_by_name ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-text-tertiary">{t('productsCogsLoadAppliedAt')}</dt>
-            <dd>{appliedLabel}</dd>
-          </div>
-          <div>
-            <dt className="text-text-tertiary">{t('productsCogsLoadColProducts')}</dt>
-            <dd>{detail.load.applied_product_count ?? detail.items.length}</dd>
-          </div>
-        </dl>
-        {canEditProducts ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="tiny"
-          loading={cloneMutation.isPending}
-          onClick={() => {
-            void cloneMutation.mutateAsync(loadId).then((cloned) => {
-              void navigate(`/dashboard/products/cogs/loads/${cloned.id}`)
-            })
-          }}
-        >
-          {t('productsCogsLoadClone')}
-        </Button>
-        ) : null}
+    <DashboardPage className="flex flex-1 flex-col gap-6">
+      <header className="flex flex-col gap-4 border-b border-border-subtle pb-6 sm:gap-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className={pageTitleClassName}>{t('productsCogsLoadViewTitle')}</h1>
+          {canEditProducts ? (
+            <Button
+              type="button"
+              variant="accent"
+              size="tiny"
+              className="shrink-0"
+              loading={cloneMutation.isPending}
+              onClick={() => {
+                void cloneMutation.mutateAsync(loadId).then((cloned) => {
+                  toast.success(t('productsCogsLoadCloned'))
+                  void navigate(`/dashboard/products/cogs/loads/${cloned.id}`)
+                })
+              }}
+            >
+              {t('productsCogsLoadClone')}
+            </Button>
+          ) : null}
+        </div>
+        <CogsLoadDetailStats
+          load={detail.load}
+          productCount={detail.load.applied_product_count ?? detail.items.length}
+          appliedLabel={appliedLabel}
+          t={t}
+        />
       </header>
 
-      <div className="min-h-0 flex-1 overflow-hidden">
-        <BulkCogsGrid
-          rowIds={gridRowIds}
-          draftStore={draftStore}
-          onPatchDraft={() => {}}
-          t={t}
-          readOnly
-        />
-      </div>
+      <DataTable
+        table={table}
+        isLoading={false}
+        isFetching={false}
+        hasEverLoaded
+        emptyContent={
+          <EmptyState icon="products" title={t('productsCogsLoadDetailEmpty')} />
+        }
+        scrollClassName="overflow-auto"
+      />
     </DashboardPage>
   )
 }

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { AlertItemApi } from '@/lib/types/alerts'
 
 import {
+  activeAlertsDisplayCount,
   alertChannelName,
   alertPlatformSlug,
   alertProductChannelLine,
@@ -61,5 +62,32 @@ describe('alertProductTitle', () => {
 describe('alertProductChannelLine', () => {
   it('puts the channel before the product', () => {
     expect(alertProductChannelLine(stockAlert(), 'Shopify')).toBe('Shopify · Gatunflas 1kg')
+  })
+})
+
+describe('activeAlertsDisplayCount', () => {
+  it('prefers total_active when present', () => {
+    expect(
+      activeAlertsDisplayCount({
+        total_active: 50,
+        critical_count: 40,
+        low_count: 9,
+        informational_count: 1,
+      }),
+    ).toBe(50)
+  })
+
+  it('includes informational alerts when total_active is missing', () => {
+    expect(
+      activeAlertsDisplayCount({
+        critical_count: 40,
+        low_count: 9,
+        informational_count: 1,
+      }),
+    ).toBe(50)
+  })
+
+  it('treats a zero total as empty', () => {
+    expect(activeAlertsDisplayCount({ total_active: 0, critical_count: 3 })).toBe(0)
   })
 })

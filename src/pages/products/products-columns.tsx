@@ -141,10 +141,10 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
       cell: ({ row }) => {
         const rowData = row.original
         return (
-          <div className="flex min-w-0 flex-col items-start gap-1">
+          <div className="flex min-w-0 items-center gap-1.5">
             <Link
               to={`/dashboard/products/${rowData.id}`}
-              className="line-clamp-2 max-w-full break-words text-sm font-normal text-primary hover:underline"
+              className="line-clamp-2 min-w-0 break-words text-sm font-normal text-primary hover:underline"
               title={rowData.title}
             >
               {rowData.title}
@@ -152,9 +152,12 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
             {rowData.link_group_id ? (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="inline-flex">
-                    <StatusPill variant="info" className="px-1.5">
-                      <AppIcon name="integrations" colorize className="size-3" />
+                  <span className="inline-flex shrink-0">
+                    <StatusPill
+                      variant="info"
+                      className="size-4 min-h-4 min-w-4 p-0 [&>img]:size-2.5 [&>svg]:size-2.5"
+                    >
+                      <AppIcon name="integrations" colorize className="size-2.5" />
                       <span className="sr-only">{t('productsVinculacionLinkedBadge')}</span>
                     </StatusPill>
                   </span>

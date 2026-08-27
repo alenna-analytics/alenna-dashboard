@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils'
 import { Skeleton } from '@/ui/skeleton'
 
 import { ProductListSkeleton } from './cogs-load-select-step'
@@ -57,21 +58,29 @@ export function CogsLoadEditorLoadingSkeleton() {
 
 export function CogsLoadDetailLoadingSkeleton() {
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
-      <header className="shrink-0 space-y-2">
-        <Skeleton className="h-4 w-48 max-w-full" />
-        <Skeleton className="h-8 w-56 max-w-full" />
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="flex flex-col gap-6">
+      <header className="flex flex-col gap-4 border-b border-border-subtle pb-6 sm:gap-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Skeleton className="h-8 w-56 max-w-full" />
+          <Skeleton className="h-[26px] w-20 shrink-0 rounded-md" />
+        </div>
+        <div className="grid w-full grid-cols-2 gap-x-4 gap-y-4 sm:inline-flex sm:flex-wrap">
           {Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className="space-y-1">
+            <div
+              key={index}
+              className={cn(
+                'flex shrink-0 flex-col gap-1',
+                index > 0 && 'sm:border-l sm:border-border-subtle sm:pl-6',
+                index < 3 && 'sm:pr-5',
+              )}
+            >
               <Skeleton className="h-3 w-20" />
-              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-8 w-28" />
             </div>
           ))}
         </div>
-        <Skeleton className="h-8 w-32 rounded-md" />
       </header>
-      <Skeleton className="min-h-[20rem] flex-1 rounded-md" />
+      <Skeleton className="h-64 w-full rounded-md" />
     </div>
   )
 }

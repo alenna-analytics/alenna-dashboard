@@ -63,9 +63,18 @@ export function alertProductChannelLine(
 
 export type AlertSeverityFilter = AlertSeverity | 'all'
 
-export function activeAlertsDisplayCount(
-  criticalCount: number | undefined,
-  lowCount: number | undefined,
-): number {
-  return (criticalCount ?? 0) + (lowCount ?? 0)
+export type AlertsCountSummary = {
+  total_active?: number
+  critical_count?: number
+  low_count?: number
+  informational_count?: number
+}
+
+export function activeAlertsDisplayCount(summary: AlertsCountSummary | undefined): number {
+  if (typeof summary?.total_active === 'number') return summary.total_active
+  return (
+    (summary?.critical_count ?? 0) +
+    (summary?.low_count ?? 0) +
+    (summary?.informational_count ?? 0)
+  )
 }

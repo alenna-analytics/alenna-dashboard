@@ -3,10 +3,10 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import { APP_ICONS } from '@/lib/icons/catalog'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import { Input } from '@/ui/input'
-import { ChannelBadge } from '@/ui/channel-badge'
+import { AppIcon } from '@/ui/app-icon'
+import { StatusPill } from '@/ui/status-pill'
 import { cn } from '@/lib/utils'
 
 import {
@@ -107,9 +107,10 @@ export function ProductDetailHeaderStats({
       label: t('productsDetailHeaderStatGroupLabel'),
       value: (
         <Link to={productsLinkingGroupPath(detail.link_group_id)} className="max-w-[14rem]">
-          <ChannelBadge logoSrc={APP_ICONS.integrations} className="max-w-full">
+          <StatusPill variant="neutral" className="max-w-full">
+            <AppIcon name="integrations" colorize className="size-3" />
             <span className="truncate">{groupTitle}</span>
-          </ChannelBadge>
+          </StatusPill>
         </Link>
       ),
     })

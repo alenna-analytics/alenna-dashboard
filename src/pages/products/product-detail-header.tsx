@@ -3,7 +3,6 @@ import type { ProductDetailApi } from '@/lib/types/catalog'
 import { pageTitleClassName } from '@/shell/layout/dashboard-page'
 
 import { ProductDetailHeaderStats } from './product-detail-header-stats'
-import { ProductDetailLinkBlock } from './product-detail-link-block'
 import { ProductDetailPlatformBadges } from './product-detail-platform-badges'
 import { ProductDetailStockAlert } from './product-detail-stock-alert'
 
@@ -21,7 +20,6 @@ type ProductDetailHeaderProps = {
   thumb: React.ReactNode
   skuDraft: string
   onSkuDraftChange?: (value: string) => void
-  fmtMoney: (value: number) => string
 }
 
 export function ProductDetailHeader({
@@ -32,7 +30,6 @@ export function ProductDetailHeader({
   thumb,
   skuDraft,
   onSkuDraftChange,
-  fmtMoney,
 }: ProductDetailHeaderProps) {
   const displayTitle = detail.variant_label ?? detail.title
 
@@ -55,8 +52,6 @@ export function ProductDetailHeader({
                 onSkuDraftChange={onSkuDraftChange}
               />
             </div>
-
-            {detail.brand ? <p className="text-sm text-text-secondary">{detail.brand}</p> : null}
           </div>
         </div>
         <div className="hidden shrink-0 sm:block">{thumb}</div>
@@ -73,7 +68,6 @@ export function ProductDetailHeader({
       </div>
 
       <ProductDetailStockAlert detail={detail} productId={productId} t={t} />
-      <ProductDetailLinkBlock detail={detail} t={t} fmtMoney={fmtMoney} />
     </div>
   )
 }

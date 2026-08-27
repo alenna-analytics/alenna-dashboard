@@ -16,6 +16,7 @@ import {
 import { fetchTeamMembers } from '@/lib/team/team-api'
 import { memberDisplayName } from '@/lib/team/member-display-name'
 import type { TeamMember } from '@/lib/types/team-types'
+import { cn } from '@/lib/utils'
 import { DeleteAccountDangerZone } from '@/pages/configuration/general/delete-account-danger-zone'
 import { DeleteAccountDialog } from '@/pages/configuration/general/delete-account-dialog'
 import {
@@ -31,6 +32,7 @@ import {
   SettingsCard,
   SettingsRow,
   SettingsSectionHeader,
+  settingsDescriptionClassName,
 } from '@/pages/configuration/settings-layout'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
@@ -281,7 +283,7 @@ export function GeneralConfigurationPage() {
           <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
             <div className="min-w-0">
               <p className="text-sm font-medium text-text-primary">{t('navTeam')}</p>
-              <p className="mt-0.5 text-sm leading-snug text-text-secondary">{accessSubtitle}</p>
+              <p className={cn('mt-1', settingsDescriptionClassName)}>{accessSubtitle}</p>
             </div>
             {canViewTeam ? (
               <Link
@@ -325,7 +327,7 @@ export function GeneralConfigurationPage() {
           <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
             <div className="min-w-0">
               <p className="text-sm font-medium text-text-primary">{planName}</p>
-              <p className="mt-0.5 text-sm leading-snug text-text-secondary">
+              <p className={cn('mt-1', settingsDescriptionClassName)}>
                 {planDescription ?? planDetail}
               </p>
             </div>

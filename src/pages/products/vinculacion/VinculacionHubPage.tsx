@@ -1,32 +1,41 @@
-import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useMemo, useState, type ReactNode } from 'react'
+import { AlertTriangle, Plus } from 'lucide-react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import { useAuth } from '@clerk/react'
-
-import { useCurrentTenant } from '@/auth/hooks'
 import { useMoney } from '@/hooks/use-money'
-import { shellT } from '@/lib/i18n/shell-strings'
+import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { can } from '@/lib/permissions/can'
+import { cn } from '@/lib/utils'
+import { usePnlAwareT } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
+import { settingsDescriptionClassName, SettingsSectionHeader, dangerActionCardClassName } from '@/pages/configuration/settings-layout'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Button } from '@/ui/button'
+import { dateRangePickerStrings } from '@/ui/date-range-picker'
 import { EmptyState } from '@/ui/empty-state'
 import { Input } from '@/ui/input'
-import { kpiCardGridClassName, KpiCard } from '@/ui/kpi-card'
+import { kpiCardGridClassName } from '@/ui/kpi-card'
 import { Skeleton } from '@/ui/skeleton'
 import { surfaceKpiClassName } from '@/ui/surface'
 
-import { ProductPlatformLogoName } from '../product-platform-logo-name'
-import { ProductTableThumb } from '../product-table-thumb'
+import { PRODUCTS_LINKING_PATH } from '../products-inner-nav'
 import { defaultProductInsightRange } from '../product-detail-range'
+import { VinculacionDissolveConfirmDialog } from './vinculacion-dissolve-confirm-dialog'
+import { VinculacionGroupAnalytics } from './vinculacion-group-analytics'
+import { VinculacionGroupMembersTable } from './vinculacion-group-members-table'
+import { VinculacionPickerSheet } from './VinculacionPickerSheet'
 import {
-  deleteProductLinkGroup,
-  deleteProductLinkMember,
+  useAddProductLinkMembersMutation,
+  useDissolveProductLinkGroupMutation,
   usePatchProductLinkGroupMutation,
   useProductLinkGroupQuery,
 } from './use-product-link-queries'
+
+type ShellT = (key: ShellStringKey) => string
+
+const MAX_GROUP_MEMBERS = 8
 
 export function VinculacionHubPage() {
   const { groupId } = useParams<{ groupId: string }>()
@@ -38,32 +47,18 @@ export function VinculacionHubPage() {
 
 function VinculacionHubSkeleton() {
   return (
-    <div className="flex flex-col gap-6" role="status">
+    <div className="flex flex-col gap-6 lg:gap-8" role="status">
       <div className="flex items-start justify-between gap-3">
-        <Skeleton className="h-9 w-64 max-w-full" />
-        <Skeleton className="h-[26px] w-28 rounded-md" />
+        <Skeleton className="h-8 w-64 max-w-full" />
+        <Skeleton className="h-7 w-36 shrink-0 rounded-md" />
       </div>
       <div className={kpiCardGridClassName}>
-        {Array.from({ length: 4 }).map((_, index) => (
+        {Array.from({ length: 6 }).map((_, index) => (
           <div key={index} className={surfaceKpiClassName}>
             <Skeleton className="h-3 w-20" />
             <Skeleton className="mt-3 h-7 w-28" />
           </div>
         ))}
-      </div>
-      <div className="overflow-hidden rounded-md border border-border-subtle">
-        <div className="space-y-0">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-3 border-t border-border-subtle px-3 py-3 first:border-t-0"
-            >
-              <Skeleton className="size-10 shrink-0 rounded-md" />
-              <Skeleton className="h-4 w-40 max-w-full" />
-              <Skeleton className="ml-auto h-4 w-16" />
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   )
@@ -73,20 +68,28 @@ function VinculacionHubBody({ groupId }: { groupId: string }) {
   const navigate = useNavigate()
   const { lang } = useLanguage()
   const { me } = useWorkspace()
-  const { tenantId } = useCurrentTenant()
-  const { getToken } = useAuth()
-  const t = (key: Parameters<typeof shellT>[1]) => shellT(lang, key)
-  const canEdit = can(me, 'products.edit')
-  const range = defaultProductInsightRange()
-  const groupQuery = useProductLinkGroupQuery(groupId, range.start, range.end)
+  const t = usePnlAwareT()
+  const canEditGroups = can(me, 'products.groups.edit')
+  const defaultInsight = useMemo(() => defaultProductInsightRange(), [])
+  const [insightStart, setInsightStart] = useState(defaultInsight.start)
+  const [insightEnd, setInsightEnd] = useState(defaultInsight.end)
+  const groupQuery = useProductLinkGroupQuery(groupId, insightStart, insightEnd)
   const patch = usePatchProductLinkGroupMutation(groupId)
+  const addMembers = useAddProductLinkMembersMutation(groupId)
+  const dissolve = useDissolveProductLinkGroupMutation()
   const group = groupQuery.data
-  const { format: formatMoney } = useMoney()
+  const baseCurrency = group?.base_currency ?? 'MXN'
+  const { format: formatMoney, formatKpi } = useMoney()
+  const fmtBase = (value: number) => formatMoney(value, { nativeCurrency: baseCurrency })
+  const fmtCard = (value: number) => formatKpi(value, { nativeCurrency: baseCurrency })
   const [titleDraft, setTitleDraft] = useState<string | null>(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [dissolveOpen, setDissolveOpen] = useState(false)
+  const pickerStrings = useMemo(() => dateRangePickerStrings(t), [t])
 
   if (groupQuery.isLoading) {
     return (
-      <DashboardPage className="flex flex-1 flex-col gap-6">
+      <DashboardPage className="flex min-h-full flex-1 flex-col gap-6 lg:gap-8">
         <VinculacionHubSkeleton />
       </DashboardPage>
     )
@@ -100,131 +103,163 @@ function VinculacionHubBody({ groupId }: { groupId: string }) {
   }
 
   const title = titleDraft ?? group.title
+  const platforms = uniqueMemberPlatforms(group.members.map((member) => member.platform))
+  const canAddMember = canEditGroups && group.members.length < MAX_GROUP_MEMBERS
 
   return (
-    <DashboardPage className="flex flex-1 flex-col gap-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1 space-y-2">
-          {canEdit ? (
-            <Input
-              value={title}
-              onChange={(event) => setTitleDraft(event.target.value)}
-              onBlur={() => {
-                const cleaned = title.trim()
-                if (!cleaned || cleaned === group.title) {
-                  setTitleDraft(null)
-                  return
-                }
-                void patch.mutateAsync(cleaned).then(() => setTitleDraft(null))
-              }}
-              className="max-w-xl text-lg font-semibold"
-            />
-          ) : (
-            <h1 className={pageTitleClassName}>{group.title}</h1>
-          )}
-        </div>
-        {canEdit ? (
+    <DashboardPage className="flex min-h-full flex-1 flex-col gap-6 lg:gap-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        {canEditGroups ? (
+          <Input
+            value={title}
+            onChange={(event) => setTitleDraft(event.target.value)}
+            onBlur={() => {
+              const cleaned = title.trim()
+              if (!cleaned || cleaned === group.title) {
+                setTitleDraft(null)
+                return
+              }
+              void patch.mutateAsync(cleaned).then(() => setTitleDraft(null))
+            }}
+            className={cn(pageTitleClassName, 'h-auto min-w-0 max-w-xl border-transparent px-0 shadow-none')}
+          />
+        ) : (
+          <h1 className={pageTitleClassName}>{group.title}</h1>
+        )}
+        {canAddMember ? (
           <Button
             type="button"
-            variant="outline"
+            variant="accent"
             size="tiny"
-            onClick={() => {
-              void deleteProductLinkGroup(getToken, tenantId, groupId)
-                .then(() => {
-                  void navigate('/dashboard/products/vinculacion')
-                })
-                .catch(() => toast.error(t('productsVinculacionLinkFailed')))
-            }}
+            className="shrink-0"
+            onClick={() => setPickerOpen(true)}
           >
-            {t('productsVinculacionDissolve')}
+            <Plus aria-hidden />
+            {t('productsVinculacionAddProduct')}
           </Button>
         ) : null}
-      </header>
+      </div>
 
-      <section className={kpiCardGridClassName}>
-        <KpiCard
-          label={t('productsVinculacionKpiUnits')}
-          value={String(group.period_net_units_sold)}
-          showComparison={false}
+      <HubSection
+        title={t('productsVinculacionSectionProducts')}
+        description={t('productsVinculacionMembersDescription')}
+      >
+        <VinculacionGroupMembersTable
+          members={group.members}
+          t={t}
+          isFetching={groupQuery.isFetching}
         />
-        <KpiCard
-          label={t('productsVinculacionKpiGross')}
-          value={formatMoney(group.period_gross_sales)}
-          showComparison={false}
-        />
-        <KpiCard
-          label={t('productsVinculacionKpiNet')}
-          value={formatMoney(group.period_net_sales)}
-          showComparison={false}
-        />
-        <KpiCard
-          label={t('productsVinculacionKpiOrders')}
-          value={String(group.period_orders)}
-          showComparison={false}
-        />
-      </section>
+      </HubSection>
 
-      <section className="overflow-x-auto rounded-md border border-border-subtle">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-left text-text-secondary">
-            <tr>
-              <th className="px-3 py-2 font-medium">{t('productsColProduct')}</th>
-              <th className="px-3 py-2 font-medium">{t('productsColChannels')}</th>
-              <th className="px-3 py-2 font-medium">{t('productsColCost')}</th>
-              <th className="px-3 py-2 font-medium">{t('productsDetailListingColStock')}</th>
-              <th className="px-3 py-2 font-medium">{t('productsVinculacionColPrice')}</th>
-              {canEdit ? <th className="px-3 py-2" /> : null}
-            </tr>
-          </thead>
-          <tbody>
-            {group.members.map((member) => (
-              <tr key={member.product_id} className="border-t border-border-subtle">
-                <td className="px-3 py-2">
-                  <Link
-                    to={`/dashboard/products/${member.product_id}`}
-                    className="flex items-center gap-2"
-                  >
-                    <ProductTableThumb url={member.image_url} alt={member.title} />
-                    <span className="truncate">{member.variant_label || member.title}</span>
-                  </Link>
-                </td>
-                <td className="px-3 py-2">
-                  <ProductPlatformLogoName platformSlug={member.platform} t={t} />
-                </td>
-                <td className="px-3 py-2 tabular-nums">
-                  {member.cost != null ? formatMoney(member.cost) : '—'}
-                </td>
-                <td className="px-3 py-2 tabular-nums">{member.stock_quantity ?? '—'}</td>
-                <td className="px-3 py-2 tabular-nums">
-                  {member.platform_price != null ? formatMoney(Number(member.platform_price)) : '—'}
-                </td>
-                {canEdit ? (
-                  <td className="px-3 py-2 text-right">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="tiny"
-                      onClick={() => {
-                        void deleteProductLinkMember(getToken, tenantId, groupId, member.product_id)
-                          .then(() => {
-                            if (group.members.length <= 2) {
-                              void navigate('/dashboard/products/vinculacion')
-                              return
-                            }
-                            void groupQuery.refetch()
-                          })
-                          .catch(() => toast.error(t('productsVinculacionLinkFailed')))
-                      }}
-                    >
-                      {t('productsVinculacionRemoveMember')}
-                    </Button>
-                  </td>
-                ) : null}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+      <HubSection
+        title={t('productsDetailTabAnalytics')}
+        description={t('productsDetailSectionInsightsDescription')}
+      >
+        <VinculacionGroupAnalytics
+          group={group}
+          lang={lang}
+          t={t}
+          baseCurrency={baseCurrency}
+          fmtBase={fmtBase}
+          fmtCard={fmtCard}
+          insightStart={insightStart}
+          insightEnd={insightEnd}
+          setInsightStart={setInsightStart}
+          setInsightEnd={setInsightEnd}
+          pickerStrings={pickerStrings}
+          insightsFetching={groupQuery.isFetching}
+        />
+      </HubSection>
+
+      {canEditGroups ? (
+        <HubSection title={t('productsVinculacionDangerTitle')}>
+          <VinculacionDangerZone t={t} loading={dissolve.isPending} onDissolve={() => setDissolveOpen(true)} />
+        </HubSection>
+      ) : null}
+
+      <VinculacionPickerSheet
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        t={t}
+        mode="add"
+        occupiedPlatforms={platforms}
+        adding={addMembers.isPending}
+        onAdd={(productIds) => addMembers.mutateAsync(productIds)}
+      />
+      <VinculacionDissolveConfirmDialog
+        open={dissolveOpen}
+        onOpenChange={setDissolveOpen}
+        pending={dissolve.isPending}
+        t={t}
+        onConfirm={() => {
+          void dissolve
+            .mutateAsync(groupId)
+            .then(() => {
+              setDissolveOpen(false)
+              void navigate(PRODUCTS_LINKING_PATH)
+            })
+            .catch(() => toast.error(t('productsVinculacionLinkFailed')))
+        }}
+      />
     </DashboardPage>
   )
+}
+
+type HubSectionProps = {
+  title: string
+  description?: string
+  children: ReactNode
+}
+
+function HubSection({ title, description, children }: HubSectionProps) {
+  return (
+    <section className="space-y-4">
+      <SettingsSectionHeader title={title} description={description} />
+      {children}
+    </section>
+  )
+}
+
+type VinculacionDangerZoneProps = {
+  t: ShellT
+  loading: boolean
+  onDissolve: () => void
+}
+
+function VinculacionDangerZone({ t, loading, onDissolve }: VinculacionDangerZoneProps) {
+  return (
+    <div className={dangerActionCardClassName}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+        <div
+          className="flex size-[23px] shrink-0 items-center justify-center rounded-md bg-[var(--status-red-500)] text-white"
+          aria-hidden
+        >
+          <AlertTriangle className="size-3.5" strokeWidth={2.25} />
+        </div>
+          <div className="min-w-0 flex-1 space-y-3">
+            <div>
+              <p className="text-sm font-semibold text-text-primary">{t('productsVinculacionDissolve')}</p>
+              <p className={cn('mt-1', settingsDescriptionClassName)}>
+                {t('productsVinculacionDangerDescription')}
+              </p>
+            </div>
+          <Button type="button" variant="destructive" size="tiny" loading={loading} onClick={onDissolve}>
+            {t('productsVinculacionDissolve')}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function uniqueMemberPlatforms(platforms: string[]): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const platform of platforms) {
+    const slug = platform.trim().toLowerCase()
+    if (!slug || seen.has(slug)) continue
+    seen.add(slug)
+    out.push(platform)
+  }
+  return out
 }

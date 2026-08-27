@@ -31,11 +31,17 @@ import {
   useProductLinkCandidatesQuery,
 } from './use-product-link-queries'
 
+type VinculacionPickerMode = 'create' | 'add'
+
 type VinculacionPickerSheetProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   t: (key: ShellStringKey) => string
-  onCreated: (groupId: string) => void
+  mode?: VinculacionPickerMode
+  occupiedPlatforms?: string[]
+  onCreated?: () => void
+  onAdd?: (productIds: string[]) => Promise<unknown>
+  adding?: boolean
 }
 
 type CandidateLabelProps = {
@@ -83,7 +89,11 @@ export function VinculacionPickerSheet({
   open,
   onOpenChange,
   t,
+  mode = 'create',
+  occupiedPlatforms = [],
   onCreated,
+  onAdd,
+  adding = false,
 }: VinculacionPickerSheetProps) {
   const [q, setQ] = useState('')
   const [filters, setFilters] = useState<ProductsListFiltersState>(EMPTY_PRODUCTS_LIST_FILTERS)
@@ -92,10 +102,22 @@ export function VinculacionPickerSheet({
   const create = useCreateProductLinkGroupMutation()
   const items = candidatesQuery.data?.items ?? []
 
+  const occupied = useMemo(
+    () => new Set(occupiedPlatforms.map((platform) => platform.trim().toLowerCase()).filter(Boolean)),
+    [occupiedPlatforms],
+  )
   const selectedPlatforms = useMemo(
-    () => new Set(selected.map((item) => item.platform)),
+    () => new Set(selected.map((item) => item.platform.trim().toLowerCase())),
     [selected],
   )
+  const blockedPlatforms = useMemo(() => {
+    const next = new Set(occupied)
+    for (const platform of selectedPlatforms) next.add(platform)
+    return next
+  }, [occupied, selectedPlatforms])
+  const isAdd = mode === 'add'
+  const minSelected = isAdd ? 1 : 2
+  const submitting = create.isPending || adding
 
   function resetPicker() {
     setQ('')
@@ -114,7 +136,11 @@ export function VinculacionPickerSheet({
       setSelected(selected.filter((row) => row.product_id !== item.product_id))
       return
     }
-    const withoutPlatform = selected.filter((row) => row.platform !== item.platform)
+    const slug = item.platform.trim().toLowerCase()
+    if (occupied.has(slug)) return
+    const withoutPlatform = selected.filter(
+      (row) => row.platform.trim().toLowerCase() !== slug,
+    )
     setSelected([...withoutPlatform, item])
   }
 
@@ -127,7 +153,9 @@ export function VinculacionPickerSheet({
       <SheetContent side="right" className="max-w-[min(64rem,100%)]">
         <div className="flex min-h-0 flex-1 flex-col">
           <SheetHeader>
-            <SheetTitle>{t('productsVinculacionPickerTitle')}</SheetTitle>
+            <SheetTitle>
+              {isAdd ? t('productsVinculacionPickerAddTitle') : t('productsVinculacionPickerTitle')}
+            </SheetTitle>
           </SheetHeader>
           <SheetBody className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
             <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_minmax(11rem,0.42fr)] md:grid-rows-none md:grid-cols-[minmax(0,1.65fr)_minmax(17rem,0.9fr)]">
@@ -157,7 +185,8 @@ export function VinculacionPickerSheet({
                   <ul className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
                     {items.map((item) => {
                       const isSelected = selected.some((row) => row.product_id === item.product_id)
-                      const platformTaken = selectedPlatforms.has(item.platform) && !isSelected
+                      const platformTaken =
+                        blockedPlatforms.has(item.platform.trim().toLowerCase()) && !isSelected
                       return (
                         <li key={item.product_id}>
                           <div
@@ -211,7 +240,11 @@ export function VinculacionPickerSheet({
                     <EmptyState
                       size="sm"
                       icon="products"
-                      title={t('productsVinculacionPickerSelectedEmpty')}
+                      title={t(
+                        isAdd
+                          ? 'productsVinculacionPickerAddEmpty'
+                          : 'productsVinculacionPickerSelectedEmpty',
+                      )}
                       className="min-h-[8rem] border-0 py-6"
                     />
                   </div>
@@ -248,19 +281,29 @@ export function VinculacionPickerSheet({
             <Button
               type="button"
               variant="accent"
-              disabled={selected.length < 2 || create.isPending}
-              loading={create.isPending}
+              disabled={selected.length < minSelected || submitting}
+              loading={submitting}
               onClick={() => {
+                const productIds = selected.map((item) => item.product_id)
+                if (isAdd) {
+                  void onAdd?.(productIds)
+                    .then(() => {
+                      resetPicker()
+                      handleOpenChange(false)
+                    })
+                    .catch(() => toast.error(t('productsVinculacionLinkFailed')))
+                  return
+                }
                 void create
-                  .mutateAsync(selected.map((item) => item.product_id))
-                  .then((group) => {
+                  .mutateAsync(productIds)
+                  .then(() => {
                     resetPicker()
-                    onCreated(group.id)
+                    onCreated?.()
                   })
                   .catch(() => toast.error(t('productsVinculacionLinkFailed')))
               }}
             >
-              {t('productsVinculacionConfirmLink')}
+              {isAdd ? t('productsVinculacionConfirmAdd') : t('productsVinculacionConfirmLink')}
             </Button>
           </SheetFooter>
         </div>

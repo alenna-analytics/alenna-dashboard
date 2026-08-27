@@ -14,6 +14,7 @@ import {
   formatListingInventoryDays,
   formatListingVelocityPerDay,
 } from './product-detail-listing-channel-format'
+import { productsLinkingGroupPath } from './products-inner-nav'
 import { productPlatformLabel } from './product-platform-label'
 import { ProductTableThumb } from './product-table-thumb'
 import {
@@ -139,7 +140,7 @@ export function createProductDetailVariantsColumns(
                 const slug = platform.trim().toLowerCase()
                 const ui = slug ? INTEGRATION_UI[slug] : undefined
                 const href = row.original.link_group_id
-                  ? `/dashboard/products/vinculacion/${row.original.link_group_id}`
+                  ? productsLinkingGroupPath(row.original.link_group_id)
                   : undefined
                 const badge = (
                   <ChannelBadge key={`link-${platform}`} logoSrc={ui?.logoSrc}>

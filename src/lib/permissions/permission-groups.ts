@@ -30,7 +30,7 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
     id: 'products',
     titleKey: 'permGroupProducts',
     viewKey: 'products.view',
-    actionKeys: ['products.edit'],
+    actionKeys: ['products.edit', 'products.groups.edit'],
   },
   {
     id: 'sales',

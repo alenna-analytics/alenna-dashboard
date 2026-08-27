@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Button } from '@/ui/button'
 import { Switch } from '@/ui/switch'
 import { cn } from '@/lib/utils'
+import { settingsDescriptionClassName } from '@/pages/configuration/settings-layout'
 
 type IntegrationEnableCardProps = {
   title: string
@@ -40,9 +41,9 @@ export function IntegrationEnableCard({
     >
       <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-3">
-          <div className="space-y-1">
+          <div>
             <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
-            <p className="text-sm leading-relaxed text-text-secondary">{description}</p>
+            <p className={cn('mt-1', settingsDescriptionClassName)}>{description}</p>
           </div>
           {children}
         </div>

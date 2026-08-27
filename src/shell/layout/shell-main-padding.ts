@@ -3,11 +3,14 @@ import { matchPath } from 'react-router-dom'
 import { configurationInnerSubmoduleCrumbs } from '@/pages/configuration/configuration-inner-submodule-crumbs'
 import { INTEGRATIONS_BASE_PATH } from '@/pages/integrations/dashboard/integrations-inner-nav'
 import { cogsBreadcrumbItems } from '@/pages/products/cogs/cogs-breadcrumb-crumbs'
-import { PRODUCTS_BASE_PATH } from '@/pages/products/products-inner-nav'
+import {
+  PRODUCTS_BASE_PATH,
+  PRODUCTS_LINKING_PATH,
+  PRODUCTS_RESERVED_SEGMENTS,
+} from '@/pages/products/products-inner-nav'
 import { cn } from '@/lib/utils'
 import { WORKSPACE_SHELL_COLUMN_CLASS } from '@/shell/layout/workspace-shell-column'
 
-const PRODUCT_DETAIL_EXCLUDED_IDS = new Set(['cogs', 'bulk-cogs', 'vinculacion'])
 const INTEGRATION_NAV_SLUGS = new Set(['ecommerce', 'ads'])
 
 export function pathnameHasPageBreadcrumb(pathname: string): boolean {
@@ -18,7 +21,13 @@ export function pathnameHasPageBreadcrumb(pathname: string): boolean {
 
   const product = matchPath({ path: `${PRODUCTS_BASE_PATH}/:productId`, end: true }, normalized)
   const productId = product?.params.productId
-  if (productId && !PRODUCT_DETAIL_EXCLUDED_IDS.has(productId)) return true
+  if (productId && !PRODUCTS_RESERVED_SEGMENTS.has(productId)) return true
+
+  const linkingGroup = matchPath(
+    { path: `${PRODUCTS_LINKING_PATH}/:groupId`, end: true },
+    normalized,
+  )
+  if (linkingGroup?.params.groupId) return true
 
   const integration = matchPath({ path: `${INTEGRATIONS_BASE_PATH}/:slug`, end: true }, normalized)
   const slug = integration?.params.slug

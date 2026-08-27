@@ -70,6 +70,7 @@ describe('permission-groups overlay preview', () => {
     expect(tree[0]?.actions).toEqual([
       { labelKey: 'permProductsView', granted: true },
       { labelKey: 'permProductsEdit', granted: true },
+      { labelKey: 'permProductsGroupsEdit', granted: false },
     ])
     expect(tree[1]?.granted).toBe(true)
     expect(tree[1]?.actions[0]).toEqual({ labelKey: 'permExpensesView', granted: true })

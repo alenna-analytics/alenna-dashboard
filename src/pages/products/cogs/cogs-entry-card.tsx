@@ -3,6 +3,7 @@ import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import { AppIcon } from '@/ui/app-icon'
 import { Button } from '@/ui/button'
 import { cn } from '@/lib/utils'
+import { settingsDescriptionClassName } from '@/pages/configuration/settings-layout'
 
 type CogsEntryCardProps = {
   lang: string
@@ -39,7 +40,7 @@ export function CogsEntryCard({
 
       <div className="min-w-0 flex-1">
         <h2 className="text-sm font-semibold text-text-primary">{shellT(lang, titleKey)}</h2>
-        <p className="mt-1 text-xs text-text-secondary">{shellT(lang, descriptionKey)}</p>
+        <p className={cn('mt-1', settingsDescriptionClassName)}>{shellT(lang, descriptionKey)}</p>
         {meta ? <p className="mt-1.5 text-sm text-text-tertiary">{meta}</p> : null}
       </div>
 

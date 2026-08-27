@@ -1,8 +1,12 @@
 import type { ReactNode } from 'react'
 
+import { Link } from 'react-router-dom'
+
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import { Input } from '@/ui/input'
+import { AppIcon } from '@/ui/app-icon'
+import { StatusPill } from '@/ui/status-pill'
 import { cn } from '@/lib/utils'
 
 import {
@@ -11,6 +15,7 @@ import {
   latestListingSyncIso,
   uniqueActivePlatforms,
 } from './product-detail-header-utils'
+import { productsLinkingGroupPath } from './products-inner-nav'
 
 type ProductDetailHeaderStatsProps = {
   detail: ProductDetailApi
@@ -94,6 +99,22 @@ export function ProductDetailHeaderStats({
       })(),
     },
   ]
+
+  if (detail.link_group_id) {
+    const groupTitle = detail.link_group_title?.trim() || t('productsVinculacionHubCrumb')
+    columns.push({
+      key: 'group',
+      label: t('productsDetailHeaderStatGroupLabel'),
+      value: (
+        <Link to={productsLinkingGroupPath(detail.link_group_id)} className="max-w-[14rem]">
+          <StatusPill variant="neutral" className="max-w-full">
+            <AppIcon name="integrations" colorize className="size-3" />
+            <span className="truncate">{groupTitle}</span>
+          </StatusPill>
+        </Link>
+      ),
+    })
+  }
 
   return (
     <div className="grid w-full grid-cols-2 gap-x-4 gap-y-4 sm:inline-flex sm:max-w-full sm:flex-wrap sm:items-stretch">

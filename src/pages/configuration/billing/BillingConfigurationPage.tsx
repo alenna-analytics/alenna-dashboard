@@ -37,6 +37,7 @@ import {
   usageProgressRatio,
 } from '@/lib/plan/plan-limit-ui'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
+import { settingsDescriptionClassName, settingsSectionTitleClassName } from '@/pages/configuration/settings-layout'
 import type { MeResponse } from '@/lib/types/me-types'
 import { cn } from '@/lib/utils'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
@@ -67,8 +68,8 @@ function BillingSection({
       )}
     >
       <div className="min-w-0">
-        <h2 className="text-sm font-medium text-text-primary">{label}</h2>
-        <div className="mt-1 text-sm leading-snug text-[#464646]">{description}</div>
+        <h2 className={settingsSectionTitleClassName}>{label}</h2>
+        <div className={cn('mt-1', settingsDescriptionClassName)}>{description}</div>
       </div>
       <div className="min-w-0">{children}</div>
     </section>
@@ -409,7 +410,7 @@ export function BillingConfigurationPage() {
                     ) : null}
                   </p>
                   {subscribedDescription ? (
-                    <p className="mt-1 text-xs leading-relaxed text-text-secondary">{subscribedDescription}</p>
+                    <p className={cn('mt-1', settingsDescriptionClassName)}>{subscribedDescription}</p>
                   ) : null}
                   {renewDate ? (
                     <p className="mt-1 text-sm text-text-tertiary">

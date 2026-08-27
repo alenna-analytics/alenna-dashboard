@@ -1,4 +1,6 @@
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
+import { cn } from '@/lib/utils'
+import { settingsDescriptionClassName } from '@/pages/configuration/settings-layout'
 import { AppIcon } from '@/ui/app-icon'
 import { Button } from '@/ui/button'
 import {
@@ -97,7 +99,7 @@ export function IntegrationConsentDialog({
                     <div className="min-w-0">
                       <p className="text-sm font-medium leading-snug text-text-primary">{label}</p>
                       {description ? (
-                        <p className="mt-0.5 text-xs leading-relaxed text-text-secondary">
+                        <p className={cn('mt-1', settingsDescriptionClassName)}>
                           {description}
                         </p>
                       ) : null}

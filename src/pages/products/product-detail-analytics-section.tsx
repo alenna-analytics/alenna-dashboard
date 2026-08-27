@@ -6,7 +6,8 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import { usePlatformConnectionsQuery } from '@/hooks/use-platform-connections-query'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
+import { SettingsSectionHeader, settingsDescriptionClassName } from '@/pages/configuration/settings-layout'
+import { Card, CardContent, CardHeader } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import type { FilterOption } from '@/ui/filters/types'
@@ -208,16 +209,12 @@ export function ProductDetailAnalyticsSection({
     <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
       <CardHeader className="flex flex-col gap-3 p-0">
         {showSectionTitle ? (
-          <div className="space-y-1">
-            <CardTitle className="text-xl">{t('productsDetailSectionInsightsTitle')}</CardTitle>
-            <CardDescription className="text-xs">
-              {t('productsDetailSectionInsightsDescription')}
-            </CardDescription>
-          </div>
+          <SettingsSectionHeader
+            title={t('productsDetailSectionInsightsTitle')}
+            description={t('productsDetailSectionInsightsDescription')}
+          />
         ) : (
-          <CardDescription className="text-xs">
-            {t('productsDetailSectionInsightsDescription')}
-          </CardDescription>
+          <p className={settingsDescriptionClassName}>{t('productsDetailSectionInsightsDescription')}</p>
         )}
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
           <DateRangePicker

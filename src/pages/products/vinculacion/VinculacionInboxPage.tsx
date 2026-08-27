@@ -1,74 +1,42 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import { shellT } from '@/lib/i18n/shell-strings'
+import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import { can } from '@/lib/permissions/can'
-import type { ProductLinkSuggestionApi } from '@/lib/types/product-links'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { AppIcon } from '@/ui/app-icon'
 import { Button } from '@/ui/button'
-import { Card, CardContent } from '@/ui/card'
-import { EmptyState } from '@/ui/empty-state'
-import { Skeleton } from '@/ui/skeleton'
-import { StatusPill } from '@/ui/status-pill'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs'
 
-import { ProductPlatformLogoName } from '../product-platform-logo-name'
-import { ProductTableThumb } from '../product-table-thumb'
+import { VinculacionDissolveConfirmDialog } from './vinculacion-dissolve-confirm-dialog'
+import { VinculacionLinkedGroupsTable } from './vinculacion-linked-groups-table'
 import { VinculacionPickerSheet } from './VinculacionPickerSheet'
+import { VinculacionSuggestionsTable } from './vinculacion-suggestions-table'
 import {
   useAcceptProductLinkSuggestionMutation,
+  useDissolveProductLinkGroupMutation,
+  useProductLinkGroupsQuery,
   useProductLinkRefreshOnEnter,
   useProductLinkSuggestionsQuery,
   useRejectProductLinkSuggestionMutation,
 } from './use-product-link-queries'
 
-function VinculacionInboxSkeleton({ label }: { label: string }) {
-  return (
-    <ul className="flex flex-col gap-3" role="status" aria-label={label}>
-      {Array.from({ length: 4 }).map((_, index) => (
-        <li key={index}>
-          <Card size="sm" variant="solid">
-            <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-                <SuggestionProductSkeleton />
-                <span className="hidden text-text-tertiary sm:inline">↔</span>
-                <SuggestionProductSkeleton />
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Skeleton className="h-5 w-28 rounded-full" />
-                <Skeleton className="h-[26px] w-16 rounded-md" />
-                <Skeleton className="h-[26px] w-16 rounded-md" />
-              </div>
-            </CardContent>
-          </Card>
-        </li>
-      ))}
-    </ul>
-  )
-}
+type VinculacionTabId = 'matches' | 'linked'
+type ShellT = (key: ShellStringKey) => string
 
-function SuggestionProductSkeleton() {
-  return (
-    <div className="flex min-w-0 flex-1 items-center gap-2">
-      <Skeleton className="size-10 shrink-0 rounded-md" />
-      <div className="min-w-0 flex-1 space-y-1.5">
-        <Skeleton className="h-4 w-40 max-w-full" />
-        <Skeleton className="h-3 w-24" />
-      </div>
-    </div>
-  )
+function isVinculacionTabId(value: string | number | null): value is VinculacionTabId {
+  return value === 'matches' || value === 'linked'
 }
 
 export function VinculacionInboxPage() {
-  const navigate = useNavigate()
   const { lang } = useLanguage()
   const { me } = useWorkspace()
-  const t = (key: Parameters<typeof shellT>[1]) => shellT(lang, key)
-  const canEdit = can(me, 'products.edit')
+  const t: ShellT = (key) => shellT(lang, key)
+  const canEdit = can(me, 'products.groups.edit')
   const suggestionsQuery = useProductLinkSuggestionsQuery()
+  const groupsQuery = useProductLinkGroupsQuery()
   const page = suggestionsQuery.data
   const { searching, refresh } = useProductLinkRefreshOnEnter(
     page?.stale,
@@ -77,9 +45,18 @@ export function VinculacionInboxPage() {
   )
   const accept = useAcceptProductLinkSuggestionMutation()
   const reject = useRejectProductLinkSuggestionMutation()
+  const dissolve = useDissolveProductLinkGroupMutation()
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [unlinkGroupId, setUnlinkGroupId] = useState<string | null>(null)
+  const [tab, setTab] = useState<VinculacionTabId>('matches')
 
   const items = page?.items ?? []
+  const groups = groupsQuery.data?.items ?? []
+  const acceptId = accept.isPending ? (accept.variables ?? null) : null
+  const rejectId = reject.isPending ? (reject.variables ?? null) : null
+  const busy = acceptId !== null || rejectId !== null
+  const matchesCount = suggestionsQuery.isSuccess ? items.length : null
+  const linkedCount = groupsQuery.isSuccess ? groups.length : null
 
   return (
     <DashboardPage className="flex flex-1 flex-col gap-6">
@@ -119,114 +96,91 @@ export function VinculacionInboxPage() {
         </div>
       </header>
 
-      {suggestionsQuery.isLoading && page === undefined ? (
-        <VinculacionInboxSkeleton label={t('productsVinculacionLoading')} />
-      ) : items.length === 0 ? (
-        <EmptyState
-          icon="products"
-          title={t('productsVinculacionEmptyTitle')}
-          description={t('productsVinculacionEmptyDescription')}
-        />
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {items.map((item) => (
-            <li key={item.id}>
-              <SuggestionCard
-                item={item}
-                t={t}
-                canEdit={canEdit}
-                accepting={accept.isPending}
-                rejecting={reject.isPending}
-                onAccept={() => {
-                  void accept.mutateAsync(item.id).then((group) => {
-                    void navigate(`/dashboard/products/vinculacion/${group.id}`)
-                  })
-                }}
-                onReject={() => {
-                  void reject.mutateAsync(item.id)
-                }}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
+      <Tabs
+        value={tab}
+        onValueChange={(value) => {
+          if (isVinculacionTabId(value)) setTab(value)
+        }}
+      >
+        <TabsList variant="line">
+          <TabsTrigger value="matches">
+            {t('productsVinculacionTabMatches')}
+            {matchesCount != null ? ` (${matchesCount})` : ''}
+          </TabsTrigger>
+          <TabsTrigger value="linked">
+            {t('productsVinculacionTabLinked')}
+            {linkedCount != null ? ` (${linkedCount})` : ''}
+          </TabsTrigger>
+        </TabsList>
+
+        <div className="relative mt-6 grid w-full grid-cols-1 overflow-hidden">
+          <TabsContent value="matches">
+            <VinculacionSuggestionsTable
+              items={items}
+              t={t}
+              canEdit={canEdit}
+              isLoading={suggestionsQuery.isLoading && page === undefined}
+              isFetching={suggestionsQuery.isFetching}
+              hasEverLoaded={page !== undefined}
+              busy={busy}
+              acceptingId={acceptId}
+              rejectingId={rejectId}
+              onAccept={(suggestionId) => {
+                void accept
+                  .mutateAsync(suggestionId)
+                  .then(() => setTab('linked'))
+                  .catch(() => toast.error(t('productsVinculacionLinkFailed')))
+              }}
+              onReject={(suggestionId) => {
+                void reject
+                  .mutateAsync(suggestionId)
+                  .catch(() => toast.error(t('productsVinculacionLinkFailed')))
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="linked">
+            <VinculacionLinkedGroupsTable
+              groups={groups}
+              t={t}
+              canEdit={canEdit}
+              isLoading={groupsQuery.isLoading}
+              isFetching={groupsQuery.isFetching}
+              hasEverLoaded={groupsQuery.data !== undefined}
+              unlinkingId={dissolve.isPending ? (dissolve.variables ?? unlinkGroupId) : unlinkGroupId}
+              onUnlink={(groupId) => {
+                setUnlinkGroupId(groupId)
+              }}
+            />
+          </TabsContent>
+        </div>
+      </Tabs>
 
       <VinculacionPickerSheet
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         t={t}
-        onCreated={(groupId) => {
+        onCreated={() => {
           setPickerOpen(false)
-          void navigate(`/dashboard/products/vinculacion/${groupId}`)
+          setTab('linked')
+        }}
+      />
+      <VinculacionDissolveConfirmDialog
+        open={unlinkGroupId !== null}
+        onOpenChange={(open) => {
+          if (!open) setUnlinkGroupId(null)
+        }}
+        pending={dissolve.isPending}
+        t={t}
+        onConfirm={() => {
+          if (!unlinkGroupId) return
+          void dissolve
+            .mutateAsync(unlinkGroupId)
+            .then(() => setUnlinkGroupId(null))
+            .catch(() => toast.error(t('productsVinculacionUnlinkFailed')))
         }}
       />
     </DashboardPage>
   )
 }
 
-function SuggestionCard({
-  item,
-  t,
-  canEdit,
-  accepting,
-  rejecting,
-  onAccept,
-  onReject,
-}: {
-  item: ProductLinkSuggestionApi
-  t: (key: Parameters<typeof shellT>[1]) => string
-  canEdit: boolean
-  accepting: boolean
-  rejecting: boolean
-  onAccept: () => void
-  onReject: () => void
-}) {
-  const kindLabel =
-    item.kind === 'sku' ? t('productsVinculacionKindSku') : t('productsVinculacionKindName')
-  return (
-    <Card size="sm" variant="solid">
-      <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-          <SuggestionProduct product={item.product_a} t={t} />
-          <span className="hidden text-text-tertiary sm:inline">↔</span>
-          <SuggestionProduct product={item.product_b} t={t} />
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusPill variant="neutral">{kindLabel}</StatusPill>
-          {canEdit ? (
-            <>
-              <Button type="button" variant="outline" size="tiny" disabled={rejecting} onClick={onReject}>
-                {t('productsVinculacionReject')}
-              </Button>
-              <Button type="button" variant="default" size="tiny" disabled={accepting} onClick={onAccept}>
-                {t('productsVinculacionAccept')}
-              </Button>
-            </>
-          ) : null}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function SuggestionProduct({
-  product,
-  t,
-}: {
-  product: ProductLinkSuggestionApi['product_a']
-  t: (key: Parameters<typeof shellT>[1]) => string
-}) {
-  const slug = product.platform.trim().toLowerCase()
-  return (
-    <Link
-      to={`/dashboard/products/${product.product_id}`}
-      className="flex min-w-0 flex-1 items-center gap-2"
-    >
-      <ProductTableThumb url={product.image_url} alt={product.title} />
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-text-primary">{product.title}</p>
-        <ProductPlatformLogoName platformSlug={slug} t={t} className="mt-1" />
-      </div>
-    </Link>
-  )
-}

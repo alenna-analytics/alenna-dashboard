@@ -5,6 +5,7 @@ import type { ProductDetailApi } from '@/lib/types/catalog'
 import { ChannelBadge } from '@/ui/channel-badge'
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 
+import { productsLinkingGroupPath } from './products-inner-nav'
 import { productPlatformLabel } from './product-platform-label'
 
 type ProductDetailLinkBlockProps = {
@@ -21,7 +22,7 @@ export function ProductDetailLinkBlock({ detail, t, fmtMoney }: ProductDetailLin
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-medium text-text-primary">{t('productsVinculacionTambienEn')}</p>
         <Link
-          to={`/dashboard/products/vinculacion/${detail.link_group_id}`}
+          to={productsLinkingGroupPath(detail.link_group_id)}
           className="text-sm text-primary hover:underline"
         >
           {t('productsVinculacionViewGroup')}

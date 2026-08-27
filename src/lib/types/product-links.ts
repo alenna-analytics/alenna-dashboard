@@ -48,12 +48,12 @@ export type ProductLinkCandidatesPageApi = {
 
 export type ProductLinkGroupMemberApi = {
   product_id: string
-  platform: string
   title: string
-  variant_label: string | null
+  platform: string
   image_url: string | null
   platform_title: string | null
   platform_sku: string | null
+  variant_label: string | null
   cost: number | null
   listings_count: number
   stock_quantity: number | null
@@ -64,6 +64,12 @@ export type ProductLinkGroupMemberApi = {
   period_gross_sales: number
   period_net_sales: number
   period_orders: number
+  period_cogs: number
+  period_gross_profit: number
+  period_net_profit: number
+  velocity_units_per_day_90d: number | null
+  consolidated_stock_quantity: number | null
+  inventory_days: number | null
 }
 
 export type ProductLinkGroupApi = {
@@ -75,7 +81,20 @@ export type ProductLinkGroupApi = {
   period_gross_sales: number
   period_net_sales: number
   period_orders: number
+  period_cogs: number
+  period_gross_profit: number
+  period_net_profit: number
+  velocity_units_per_day_90d: number | null
+  consolidated_stock_quantity: number | null
+  inventory_days: number | null
   period_start: string | null
   period_end: string | null
   base_currency: string
+}
+
+export type ProductLinkGroupsPageApi = {
+  items: ProductLinkGroupApi[]
+  total: number
+  limit: number
+  offset: number
 }

@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 
@@ -9,6 +9,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type {
   ProductLinkCandidatesPageApi,
   ProductLinkGroupApi,
+  ProductLinkGroupsPageApi,
   ProductLinkSuggestionsPageApi,
 } from '@/lib/types/product-links'
 import { invalidateAlertsQueries } from '@/pages/dashboard/use-alerts-queries'
@@ -18,6 +19,10 @@ export function productLinkSuggestionsQueryKey(tenantId: string | null) {
   return ['catalog', 'product-link-suggestions', tenantId] as const
 }
 
+export function productLinkGroupsQueryKey(tenantId: string | null) {
+  return ['catalog', 'product-link-groups', tenantId] as const
+}
+
 export function productLinkGroupQueryKey(
   tenantId: string | null,
   groupId: string,
@@ -25,6 +30,16 @@ export function productLinkGroupQueryKey(
   periodEnd: string,
 ) {
   return ['catalog', 'product-link-group', tenantId, groupId, periodStart, periodEnd] as const
+}
+
+function invalidateProductLinkQueries(qc: QueryClient, tenantId: string | null) {
+  void qc.invalidateQueries({ queryKey: productLinkSuggestionsQueryKey(tenantId) })
+  void qc.invalidateQueries({ queryKey: productLinkGroupsQueryKey(tenantId) })
+  void qc.invalidateQueries({ queryKey: ['catalog', 'product-link-group', tenantId] })
+  void qc.invalidateQueries({ queryKey: ['catalog', 'product-link-candidates', tenantId] })
+  void qc.invalidateQueries({ queryKey: ['catalog', 'product', tenantId] })
+  void qc.invalidateQueries({ queryKey: ['catalog', 'products', tenantId] })
+  invalidateAlertsQueries(qc, tenantId)
 }
 
 export function useProductLinkSuggestionsQuery() {
@@ -43,6 +58,26 @@ export function useProductLinkSuggestionsQuery() {
       )
       if (!res.ok) throw new Error(await res.text())
       return (await res.json()) as ProductLinkSuggestionsPageApi
+    },
+  })
+}
+
+export function useProductLinkGroupsQuery() {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+
+  return useQuery({
+    queryKey: productLinkGroupsQueryKey(tenantId),
+    enabled: Boolean(tenantId),
+    queryFn: async (): Promise<ProductLinkGroupsPageApi> => {
+      const res = await apiFetch(
+        '/catalog/product-link-groups?limit=50&offset=0',
+        (a) => getToken(a),
+        {},
+        tenantId,
+      )
+      if (!res.ok) throw new Error(await res.text())
+      return (await res.json()) as ProductLinkGroupsPageApi
     },
   })
 }
@@ -143,9 +178,30 @@ export function useAcceptProductLinkSuggestionMutation() {
       if (!res.ok) throw new Error(await res.text())
       return (await res.json()) as ProductLinkGroupApi
     },
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['catalog', tenantId] })
-      invalidateAlertsQueries(qc, tenantId)
+    onSuccess: (group, suggestionId) => {
+      qc.setQueryData<ProductLinkSuggestionsPageApi>(
+        productLinkSuggestionsQueryKey(tenantId),
+        (page) => {
+          if (!page) return page
+          return {
+            ...page,
+            items: page.items.filter((item) => item.id !== suggestionId),
+            total: Math.max(0, page.total - 1),
+          }
+        },
+      )
+      qc.setQueryData<ProductLinkGroupsPageApi>(productLinkGroupsQueryKey(tenantId), (page) => {
+        if (!page) {
+          return { items: [group], total: 1, limit: 50, offset: 0 }
+        }
+        if (page.items.some((item) => item.id === group.id)) return page
+        return {
+          ...page,
+          items: [group, ...page.items],
+          total: page.total + 1,
+        }
+      })
+      invalidateProductLinkQueries(qc, tenantId)
     },
   })
 }
@@ -166,7 +222,18 @@ export function useRejectProductLinkSuggestionMutation() {
       )
       if (!res.ok) throw new Error(await res.text())
     },
-    onSuccess: () => {
+    onSuccess: (_voidResult, suggestionId) => {
+      qc.setQueryData<ProductLinkSuggestionsPageApi>(
+        productLinkSuggestionsQueryKey(tenantId),
+        (page) => {
+          if (!page) return page
+          return {
+            ...page,
+            items: page.items.filter((item) => item.id !== suggestionId),
+            total: Math.max(0, page.total - 1),
+          }
+        },
+      )
       void qc.invalidateQueries({ queryKey: productLinkSuggestionsQueryKey(tenantId) })
       invalidateAlertsQueries(qc, tenantId)
     },
@@ -190,9 +257,19 @@ export function useCreateProductLinkGroupMutation() {
       if (!res.ok) throw new Error(await res.text())
       return (await res.json()) as ProductLinkGroupApi
     },
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['catalog', tenantId] })
-      invalidateAlertsQueries(qc, tenantId)
+    onSuccess: (group) => {
+      qc.setQueryData<ProductLinkGroupsPageApi>(productLinkGroupsQueryKey(tenantId), (page) => {
+        if (!page) {
+          return { items: [group], total: 1, limit: 50, offset: 0 }
+        }
+        if (page.items.some((item) => item.id === group.id)) return page
+        return {
+          ...page,
+          items: [group, ...page.items],
+          total: page.total + 1,
+        }
+      })
+      invalidateProductLinkQueries(qc, tenantId)
     },
   })
 }
@@ -216,6 +293,30 @@ export function usePatchProductLinkGroupMutation(groupId: string) {
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['catalog', 'product-link-group', tenantId, groupId] })
+      void qc.invalidateQueries({ queryKey: productLinkGroupsQueryKey(tenantId) })
+    },
+  })
+}
+
+export function useDissolveProductLinkGroupMutation() {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (groupId: string) => {
+      await deleteProductLinkGroup(getToken, tenantId, groupId)
+    },
+    onSuccess: (_voidResult, groupId) => {
+      qc.setQueryData<ProductLinkGroupsPageApi>(productLinkGroupsQueryKey(tenantId), (page) => {
+        if (!page) return page
+        return {
+          ...page,
+          items: page.items.filter((item) => item.id !== groupId),
+          total: Math.max(0, page.total - 1),
+        }
+      })
+      invalidateProductLinkQueries(qc, tenantId)
     },
   })
 }
@@ -275,6 +376,7 @@ export function useProductLinkRefreshOnEnter(
   useEffect(() => {
     if (jobQuery.data?.status !== 'succeeded') return
     void qc.invalidateQueries({ queryKey: productLinkSuggestionsQueryKey(tenantId) })
+    void qc.invalidateQueries({ queryKey: productLinkGroupsQueryKey(tenantId) })
     invalidateAlertsQueries(qc, tenantId)
   }, [jobQuery.data?.status, qc, tenantId])
 

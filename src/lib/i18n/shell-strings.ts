@@ -1845,6 +1845,13 @@ const SHELL_STRINGS = {
     productsVinculacionEmptyTitle: 'No hay sugerencias pendientes',
     productsVinculacionEmptyDescription:
       'Busca coincidencias o vincula dos productos de distinta plataforma.',
+    productsVinculacionTabMatches: 'Coincidencias encontradas',
+    productsVinculacionTabLinked: 'Productos vinculados',
+    productsVinculacionLinkedEmptyTitle: 'No hay productos vinculados',
+    productsVinculacionLinkedEmptyDescription:
+      'Acepta una coincidencia o vincula productos de distinta plataforma.',
+    productsVinculacionUnlink: 'Desvincular',
+    productsVinculacionUnlinkFailed: 'No se pudo desvincular.',
     productsVinculacionKindSku: 'Coincidencia por SKU',
     productsVinculacionKindName: 'Coincidencia por nombre',
     productsVinculacionAccept: 'Aceptar',
@@ -1860,6 +1867,10 @@ const SHELL_STRINGS = {
     productsVinculacionGroupMissing: 'No encontramos este grupo.',
     productsVinculacionHubCrumb: 'Grupo',
     productsVinculacionDissolve: 'Disolver grupo',
+    productsVinculacionDangerTitle: 'Zona de riesgo',
+    productsVinculacionDangerDescription:
+      'Disolver el grupo quita la vinculación entre estos productos. No se eliminan del catálogo.',
+    productsVinculacionMembersDescription: 'Productos vinculados en este grupo',
     productsVinculacionRemoveMember: 'Quitar',
     productsVinculacionKpiUnits: 'Unidades netas',
     productsVinculacionKpiGross: 'Ventas brutas',
@@ -3816,6 +3827,13 @@ const SHELL_STRINGS = {
     productsVinculacionEmptyTitle: 'No pending suggestions',
     productsVinculacionEmptyDescription:
       'Find matches or link two products from different platforms.',
+    productsVinculacionTabMatches: 'Matches found',
+    productsVinculacionTabLinked: 'Linked products',
+    productsVinculacionLinkedEmptyTitle: 'No linked products',
+    productsVinculacionLinkedEmptyDescription:
+      'Accept a match or link products from different platforms.',
+    productsVinculacionUnlink: 'Unlink',
+    productsVinculacionUnlinkFailed: 'Could not unlink.',
     productsVinculacionKindSku: 'SKU match',
     productsVinculacionKindName: 'Name match',
     productsVinculacionAccept: 'Accept',
@@ -3831,6 +3849,10 @@ const SHELL_STRINGS = {
     productsVinculacionGroupMissing: 'We could not find this group.',
     productsVinculacionHubCrumb: 'Group',
     productsVinculacionDissolve: 'Dissolve group',
+    productsVinculacionDangerTitle: 'Danger zone',
+    productsVinculacionDangerDescription:
+      'Dissolving the group unlinks these products. They stay in your catalog.',
+    productsVinculacionMembersDescription: 'Linked products in this group',
     productsVinculacionRemoveMember: 'Remove',
     productsVinculacionKpiUnits: 'Net units',
     productsVinculacionKpiGross: 'Gross sales',

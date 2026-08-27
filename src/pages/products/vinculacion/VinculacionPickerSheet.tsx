@@ -35,7 +35,7 @@ type VinculacionPickerSheetProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   t: (key: ShellStringKey) => string
-  onCreated: (groupId: string) => void
+  onCreated: () => void
 }
 
 type CandidateLabelProps = {
@@ -253,9 +253,9 @@ export function VinculacionPickerSheet({
               onClick={() => {
                 void create
                   .mutateAsync(selected.map((item) => item.product_id))
-                  .then((group) => {
+                  .then(() => {
                     resetPicker()
-                    onCreated(group.id)
+                    onCreated()
                   })
                   .catch(() => toast.error(t('productsVinculacionLinkFailed')))
               }}

@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/react'
-import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 
@@ -128,6 +128,7 @@ export function useProductLinkGroupQuery(
   return useQuery({
     queryKey: productLinkGroupQueryKey(tenantId, groupId ?? '', periodStart, periodEnd),
     enabled: Boolean(tenantId && groupId),
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<ProductLinkGroupApi> => {
       const sp = new URLSearchParams({ period_start: periodStart, period_end: periodEnd })
       const res = await apiFetch(

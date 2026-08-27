@@ -87,7 +87,7 @@ function VinculacionHubBody({ groupId }: { groupId: string }) {
   const [dissolveOpen, setDissolveOpen] = useState(false)
   const pickerStrings = useMemo(() => dateRangePickerStrings(t), [t])
 
-  if (groupQuery.isLoading) {
+  if (!group && groupQuery.isPending) {
     return (
       <DashboardPage className="flex min-h-full flex-1 flex-col gap-6 lg:gap-8">
         <VinculacionHubSkeleton />
@@ -147,7 +147,7 @@ function VinculacionHubBody({ groupId }: { groupId: string }) {
         <VinculacionGroupMembersTable
           members={group.members}
           t={t}
-          isFetching={groupQuery.isFetching}
+          isFetching={false}
         />
       </HubSection>
 

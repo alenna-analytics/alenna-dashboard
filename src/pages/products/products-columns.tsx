@@ -6,6 +6,7 @@ import { Eye, MoreVertical } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ShellStringKey } from "@/lib/i18n/shell-strings"
 import type { ProductSummaryApi } from "@/lib/types/catalog"
+import { AppIcon } from "@/ui/app-icon"
 import { StatusPill } from "@/ui/status-pill"
 import { Checkbox } from "@/ui/checkbox"
 import { CopyTextButton } from "@/ui/copy-text-button"
@@ -20,16 +21,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/ui/tooltip"
 
 import { ProductCostInlineCell } from "./product-cost-inline-cell"
 import { ProductPlatformLogoName } from "./product-platform-logo-name"
+import { productsLinkingGroupPath } from "./products-inner-nav"
 import { ProductStockAlertBadge } from "./product-stock-alert-ui"
 import { ProductTableThumb } from "./product-table-thumb"
 
-/** Same width for Marca + SKU so both columns line up. */
-const META_BRAND_SKU_COL = {
+const META_SKU_COL = {
   headerClassName: "w-44 min-w-44 max-w-44",
   cellClassName: "w-44 min-w-44 max-w-44 overflow-hidden align-middle whitespace-normal",
+} as const
+
+const META_BRAND_COL = {
+  headerClassName: "w-28 min-w-28 max-w-28",
+  cellClassName: "w-28 min-w-28 max-w-28 overflow-hidden align-middle whitespace-normal",
 } as const
 
 export type ProductTableSelectionBinding = {
@@ -143,7 +150,47 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
               {rowData.title}
             </Link>
             {rowData.link_group_id ? (
-              <StatusPill variant="info">{t('productsVinculacionLinkedBadge')}</StatusPill>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex">
+                    <StatusPill variant="info" className="px-1.5">
+                      <AppIcon name="integrations" colorize className="size-3" />
+                      <span className="sr-only">{t('productsVinculacionLinkedBadge')}</span>
+                    </StatusPill>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">{t('productsVinculacionLinkedBadge')}</TooltipContent>
+              </Tooltip>
+            ) : null}
+          </div>
+        )
+      },
+      enableHiding: true,
+    },
+    {
+      accessorKey: "internal_sku",
+      meta: META_SKU_COL,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={t("productsColSku")} />,
+      cell: ({ row }) => {
+        const rawSku = row.original.internal_sku
+        const sku = tableTextOrEmpty(rawSku)
+        const hasSku = sku !== TABLE_EMPTY_CELL
+        if (!hasSku) return <TableEmptyCell />
+        return (
+          <div className="flex min-w-0 items-center gap-1">
+            <span
+              className="min-w-0 flex-1 truncate font-mono text-text-secondary"
+              title={sku}
+            >
+              {sku}
+            </span>
+            {rawSku ? (
+              <CopyTextButton
+                text={rawSku.trim()}
+                copiedLabel={t("productsCopyFeedback")}
+                failedLabel={t("productsCopyFailed")}
+                copyAriaLabel={t("productsTableCopySku")}
+              />
             ) : null}
           </div>
         )
@@ -159,16 +206,6 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
           <StatusPill variant={statusPillVariant(st)}>{statusLabel(t, st)}</StatusPill>
         )
       },
-      enableHiding: true,
-    },
-    {
-      accessorKey: "stock_alert",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t("productsDetailListingColAlert")} />
-      ),
-      cell: ({ row }) => (
-        <ProductStockAlertBadge level={row.original.stock_alert ?? "none"} t={t} />
-      ),
       enableHiding: true,
     },
     {
@@ -196,8 +233,18 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
       enableHiding: true,
     },
     {
+      accessorKey: "stock_alert",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t("productsDetailListingColAlert")} />
+      ),
+      cell: ({ row }) => (
+        <ProductStockAlertBadge level={row.original.stock_alert ?? "none"} t={t} />
+      ),
+      enableHiding: true,
+    },
+    {
       accessorKey: "brand",
-      meta: META_BRAND_SKU_COL,
+      meta: META_BRAND_COL,
       header: ({ column }) => <DataTableColumnHeader column={column} title={t("productsColBrand")} />,
       cell: ({ row }) => {
         const brand = tableTextOrEmpty(row.original.brand)
@@ -240,36 +287,6 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
       enableHiding: true,
     },
     {
-      accessorKey: "internal_sku",
-      meta: META_BRAND_SKU_COL,
-      header: ({ column }) => <DataTableColumnHeader column={column} title={t("productsColSku")} />,
-      cell: ({ row }) => {
-        const rawSku = row.original.internal_sku
-        const sku = tableTextOrEmpty(rawSku)
-        const hasSku = sku !== TABLE_EMPTY_CELL
-        if (!hasSku) return <TableEmptyCell />
-        return (
-          <div className="flex min-w-0 items-center gap-1">
-            <span
-              className="min-w-0 flex-1 truncate font-mono text-text-secondary"
-              title={sku}
-            >
-              {sku}
-            </span>
-            {rawSku ? (
-              <CopyTextButton
-                text={rawSku.trim()}
-                copiedLabel={t("productsCopyFeedback")}
-                failedLabel={t("productsCopyFailed")}
-                copyAriaLabel={t("productsTableCopySku")}
-              />
-            ) : null}
-          </div>
-        )
-      },
-      enableHiding: true,
-    },
-    {
       accessorKey: "listing_count",
       header: ({ column }) => (
         <DataTableColumnHeader className="justify-end" column={column} title={t("productsColListings")} />
@@ -287,6 +304,28 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
           {new Date(row.original.created_at).toLocaleDateString()}
         </span>
       ),
+      enableHiding: true,
+    },
+    {
+      id: 'link_group',
+      accessorFn: (row) => row.link_group_title ?? '',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsDetailHeaderStatGroupLabel')} />
+      ),
+      cell: ({ row }) => {
+        const groupId = row.original.link_group_id
+        if (!groupId) return <TableEmptyCell />
+        const groupTitle =
+          row.original.link_group_title?.trim() || t('productsVinculacionHubCrumb')
+        return (
+          <Link to={productsLinkingGroupPath(groupId)} className="max-w-[14rem]">
+            <StatusPill variant="info" className="max-w-full">
+              <AppIcon name="integrations" colorize className="size-3" />
+              <span className="truncate">{groupTitle}</span>
+            </StatusPill>
+          </Link>
+        )
+      },
       enableHiding: true,
     },
     {

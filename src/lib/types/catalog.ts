@@ -102,6 +102,7 @@ export type ProductSummaryApi = {
   created_at: string
   updated_at: string
   link_group_id?: string | null
+  link_group_title?: string | null
   linked_platforms?: string[]
 }
 

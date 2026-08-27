@@ -107,7 +107,7 @@ export function ProductDetailHeaderStats({
       label: t('productsDetailHeaderStatGroupLabel'),
       value: (
         <Link to={productsLinkingGroupPath(detail.link_group_id)} className="max-w-[14rem]">
-          <StatusPill variant="neutral" className="max-w-full">
+          <StatusPill variant="info" className="max-w-full">
             <AppIcon name="integrations" colorize className="size-3" />
             <span className="truncate">{groupTitle}</span>
           </StatusPill>

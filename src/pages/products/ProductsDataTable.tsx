@@ -55,6 +55,7 @@ export function ProductsDataTable({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     created_at: false,
     listing_count: false,
+    status: false,
   })
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [bulkAllMatching, setBulkAllMatching] = useState(false)

@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
@@ -19,6 +19,25 @@ import {
 } from './product-detail-pnl-waterfall-segments'
 import { ProductDetailWaterfallBlock } from './product-detail-waterfall-block'
 import type { ProductCostPriceChartData } from './product-cost-chart-points'
+
+type ProductDetailTabId =
+  | 'analytics'
+  | 'variants'
+  | 'channels'
+  | 'cogs'
+  | 'related'
+  | 'platform-payment'
+
+function isProductDetailTabId(value: string | number | null): value is ProductDetailTabId {
+  return (
+    value === 'analytics' ||
+    value === 'variants' ||
+    value === 'channels' ||
+    value === 'cogs' ||
+    value === 'related' ||
+    value === 'platform-payment'
+  )
+}
 
 type ProductDetailSectionsProps = {
   productId: string
@@ -78,6 +97,16 @@ export function ProductDetailSections({
   const showChannelsTab = !hasVariants
   const showCogsTab = !hasVariants
   const showRelatedTab = Boolean(detail.link_group_id)
+  const [tab, setTab] = useState<ProductDetailTabId>('analytics')
+  const visibleTabs: ProductDetailTabId[] = [
+    'analytics',
+    ...(showVariantsTab ? (['variants'] as const) : []),
+    ...(showChannelsTab ? (['channels'] as const) : []),
+    ...(showCogsTab ? (['cogs'] as const) : []),
+    ...(showRelatedTab ? (['related'] as const) : []),
+    'platform-payment',
+  ]
+  const activeTab = visibleTabs.includes(tab) ? tab : 'analytics'
   const periodLabel =
     detail.period_start && detail.period_end
       ? `${detail.period_start} — ${detail.period_end}`
@@ -98,7 +127,12 @@ export function ProductDetailSections({
         </Card>
       ) : null}
 
-      <Tabs defaultValue="analytics">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          if (isProductDetailTabId(value)) setTab(value)
+        }}
+      >
         <TabsList variant="line">
           <TabsTrigger value="analytics">{t('productsDetailTabAnalytics')}</TabsTrigger>
           {showVariantsTab ? (

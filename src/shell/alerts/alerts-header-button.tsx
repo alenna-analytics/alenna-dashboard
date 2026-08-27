@@ -12,7 +12,7 @@ export function AlertsHeaderButton({ className }: { className?: string }) {
   const { lang } = useLanguage()
   const { openSheet } = useAlertsSheet()
   const { data } = useAlertsSummaryQuery()
-  const count = activeAlertsDisplayCount(data?.critical_count, data?.low_count)
+  const count = activeAlertsDisplayCount(data)
 
   return (
     <button

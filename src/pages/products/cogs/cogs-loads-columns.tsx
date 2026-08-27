@@ -24,7 +24,10 @@ export type CogsLoadsColumnActions = {
   canEdit: boolean
 }
 
-function statusLabel(status: CogsBulkLoadStatus, t: (key: ShellStringKey) => string): string {
+export function cogsLoadStatusLabel(
+  status: CogsBulkLoadStatus,
+  t: (key: ShellStringKey) => string,
+): string {
   switch (status) {
     case 'draft':
       return t('productsCogsLoadStatusDraft')
@@ -37,7 +40,9 @@ function statusLabel(status: CogsBulkLoadStatus, t: (key: ShellStringKey) => str
   }
 }
 
-function statusPillVariant(status: CogsBulkLoadStatus): ComponentProps<typeof StatusPill>['variant'] {
+export function cogsLoadStatusPillVariant(
+  status: CogsBulkLoadStatus,
+): ComponentProps<typeof StatusPill>['variant'] {
   switch (status) {
     case 'draft':
       return 'warning'
@@ -78,8 +83,8 @@ export function createCogsLoadsColumns(
       accessorKey: 'status',
       header: t('productsCogsLoadColStatus'),
       cell: ({ row }) => (
-        <StatusPill variant={statusPillVariant(row.original.status)}>
-          {statusLabel(row.original.status, t)}
+        <StatusPill variant={cogsLoadStatusPillVariant(row.original.status)}>
+          {cogsLoadStatusLabel(row.original.status, t)}
         </StatusPill>
       ),
     },

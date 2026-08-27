@@ -10,6 +10,7 @@ import type { PlatformConnection } from '@/lib/types/connectors'
 import {
   invalidateAlertsQueries,
   useAlertsListQuery,
+  useAlertsSummaryQuery,
   usePostponeAlertMutation,
 } from '@/pages/dashboard/use-alerts-queries'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
@@ -17,6 +18,7 @@ import { useLanguage } from '@/shell/providers/language-provider'
 
 import { ActiveAlertsSheet } from './active-alerts-sheet'
 import { useAlertsSheet } from './alerts-sheet-context'
+
 export function ActiveAlertsSheetHost() {
   const { lang } = useLanguage()
   const { getToken } = useAuth()
@@ -26,6 +28,7 @@ export function ActiveAlertsSheetHost() {
   const { me } = useAppBootstrap()
   const canViewAlerts = can(me, 'alerts.view')
   const isAdmin = can(me, 'alerts.manage')
+  const summaryQuery = useAlertsSummaryQuery()
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -67,6 +70,18 @@ export function ActiveAlertsSheetHost() {
       onOpenChange={handleOpenChange}
       activeItems={activeAlertsQuery.data?.items ?? []}
       postponedItems={postponedAlertsQuery.data?.items ?? []}
+      activeTotal={
+        summaryQuery.data?.total_active ??
+        activeAlertsQuery.data?.total ??
+        activeAlertsQuery.data?.items.length ??
+        0
+      }
+      postponedTotal={
+        summaryQuery.data?.postponed_count ??
+        postponedAlertsQuery.data?.total ??
+        postponedAlertsQuery.data?.items.length ??
+        0
+      }
       activeLoading={activeAlertsQuery.isLoading}
       postponedLoading={postponedAlertsQuery.isLoading}
       isAdmin={isAdmin}

@@ -221,7 +221,7 @@ function LinkedGroupExpandedDetail({
   t: ShellT
 }) {
   return (
-    <ul className="divide-y divide-border-subtle">
+    <ul className="divide-y divide-border-subtle border-b border-border-subtle">
       {group.members.map((member) => (
         <li key={member.product_id}>
           <LinkedMemberLine product={member} t={t} />

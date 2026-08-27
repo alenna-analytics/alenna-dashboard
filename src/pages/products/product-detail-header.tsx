@@ -52,8 +52,6 @@ export function ProductDetailHeader({
                 onSkuDraftChange={onSkuDraftChange}
               />
             </div>
-
-            {detail.brand ? <p className="text-sm text-text-secondary">{detail.brand}</p> : null}
           </div>
         </div>
         <div className="hidden shrink-0 sm:block">{thumb}</div>

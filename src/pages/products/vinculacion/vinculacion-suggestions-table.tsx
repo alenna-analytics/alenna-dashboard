@@ -179,7 +179,7 @@ function SuggestionExpandedDetail({
 }: SuggestionExpandedDetailProps) {
   const products = suggestionProducts(item)
   return (
-    <div>
+    <div className="border-b border-border-subtle">
       <ul className="divide-y divide-border-subtle">
         {products.map((product) => (
           <li key={product.product_id}>

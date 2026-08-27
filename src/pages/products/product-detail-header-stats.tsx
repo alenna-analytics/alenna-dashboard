@@ -3,8 +3,10 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import { APP_ICONS } from '@/lib/icons/catalog'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import { Input } from '@/ui/input'
+import { ChannelBadge } from '@/ui/channel-badge'
 import { cn } from '@/lib/utils'
 
 import {
@@ -78,24 +80,6 @@ export function ProductDetailHeaderStats({
       value: channelCount,
       valueClassName: 'tabular-nums',
     },
-  ]
-
-  if (detail.link_group_id) {
-    columns.push({
-      key: 'group',
-      label: t('productsDetailHeaderStatGroupLabel'),
-      value: (
-        <Link
-          to={productsLinkingGroupPath(detail.link_group_id)}
-          className="max-w-[12rem] truncate text-sm text-primary hover:underline"
-        >
-          {detail.link_group_title?.trim() || t('productsVinculacionHubCrumb')}
-        </Link>
-      ),
-    })
-  }
-
-  columns.push(
     {
       key: 'created',
       label: t('productsDetailHeaderStatCreatedLabel'),
@@ -114,7 +98,22 @@ export function ProductDetailHeaderStats({
         return syncIso ? formatProductDetailDateTime(syncIso, lang) : '—'
       })(),
     },
-  )
+  ]
+
+  if (detail.link_group_id) {
+    const groupTitle = detail.link_group_title?.trim() || t('productsVinculacionHubCrumb')
+    columns.push({
+      key: 'group',
+      label: t('productsDetailHeaderStatGroupLabel'),
+      value: (
+        <Link to={productsLinkingGroupPath(detail.link_group_id)} className="max-w-[14rem]">
+          <ChannelBadge logoSrc={APP_ICONS.integrations} className="max-w-full">
+            <span className="truncate">{groupTitle}</span>
+          </ChannelBadge>
+        </Link>
+      ),
+    })
+  }
 
   return (
     <div className="grid w-full grid-cols-2 gap-x-4 gap-y-4 sm:inline-flex sm:max-w-full sm:flex-wrap sm:items-stretch">

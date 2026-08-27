@@ -77,6 +77,7 @@ export function ProductsListPage() {
             }
             searchQ={q}
             onSearchQChange={setQ}
+            hideStatusFilter
             t={t}
           />
         </div>

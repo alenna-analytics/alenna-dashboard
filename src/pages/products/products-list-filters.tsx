@@ -28,6 +28,7 @@ type ProductsListFiltersProps = {
   searchQ?: string
   onSearchQChange?: (value: string) => void
   searchPlaceholderKey?: ShellStringKey
+  hideStatusFilter?: boolean
 }
 
 export function ProductsListFilters({
@@ -38,6 +39,7 @@ export function ProductsListFilters({
   searchQ,
   onSearchQChange,
   searchPlaceholderKey = 'productsSearchPlaceholder',
+  hideStatusFilter = false,
 }: ProductsListFiltersProps) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
@@ -117,6 +119,7 @@ export function ProductsListFilters({
       ) : null}
       {!channelsOnly ? (
         <>
+          {hideStatusFilter ? null : (
           <FilterComboboxMulti
             label={t('productsColStatus')}
             options={statusOptions}
@@ -128,6 +131,7 @@ export function ProductsListFilters({
             selectAllLabel={t('homeFilterSelectAll')}
             deselectAllLabel={t('homeFilterDeselectAll')}
           />
+          )}
           <FilterComboboxMulti
             label={t('productsDetailListingColAlert')}
             options={alertOptions}

@@ -2024,6 +2024,7 @@ const SHELL_STRINGS = {
     productsCogsLoadViewTitle: 'Detalle de carga',
     productsCogsLoadAppliedBy: 'Aplicado por',
     productsCogsLoadAppliedAt: 'Aplicado',
+    productsCogsLoadDetailEmpty: 'Esta carga no tiene productos.',
   },
   en: {
     navMain: 'Navigation',
@@ -4023,6 +4024,7 @@ const SHELL_STRINGS = {
     productsCogsLoadViewTitle: 'Load detail',
     productsCogsLoadAppliedBy: 'Applied by',
     productsCogsLoadAppliedAt: 'Applied at',
+    productsCogsLoadDetailEmpty: 'This load has no products.',
   },
 } as const
 

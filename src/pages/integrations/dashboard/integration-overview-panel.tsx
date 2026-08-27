@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 
 import type { ManagedIntegration } from '@/lib/integrations/catalog'
-import { integrationCategory } from '@/pages/integrations/dashboard/integration-display'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { StatusPill } from '@/ui/status-pill'
 
@@ -15,7 +14,7 @@ function MetaItem({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="min-w-0">
       <p className="text-[11px] font-medium uppercase tracking-wide text-text-tertiary">{label}</p>
-      <div className="mt-1 text-sm text-text-primary">{value}</div>
+      <div className="mt-1.5 text-sm text-text-primary">{value}</div>
     </div>
   )
 }
@@ -51,26 +50,23 @@ export function IntegrationOverviewPanel({
   lang,
   connected,
 }: IntegrationOverviewPanelProps) {
-  const category = integrationCategory(lang, integration)
-
   return (
-    <div className="flex w-full flex-col gap-6">
-      <div className="grid gap-6 sm:grid-cols-3">
-        <MetaItem label={shellT(lang, 'integrationDetailBuiltBy')} value="Alenna Analytics" />
-        {category ? (
-          <MetaItem label={shellT(lang, 'integrationDetailCategoryLabel')} value={category} />
-        ) : null}
-        <MetaItem
-          label={shellT(lang, 'integrationDetailStatusLabel')}
-          value={
-            <IntegrationStatusPill
-              lang={lang}
-              connected={connected}
-              available={integration.available}
-            />
-          }
-        />
-      </div>
-    </div>
+    <aside className="flex flex-col gap-6 lg:border-l lg:border-border-subtle lg:pl-8">
+      <MetaItem
+        label={shellT(lang, 'integrationDetailTypeLabel')}
+        value={shellT(lang, 'integrationDetailTypeOauth')}
+      />
+      <MetaItem label={shellT(lang, 'integrationDetailBuiltBy')} value="Alenna Analytics" />
+      <MetaItem
+        label={shellT(lang, 'integrationDetailStatusLabel')}
+        value={
+          <IntegrationStatusPill
+            lang={lang}
+            connected={connected}
+            available={integration.available}
+          />
+        }
+      />
+    </aside>
   )
 }

@@ -7,6 +7,7 @@ import type { ProductListingApi, StockAlertLevel } from '@/lib/types/catalog'
 import { cn } from '@/lib/utils'
 import { CopyTextButton } from '@/ui/copy-text-button'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { TableEmptyCell } from '@/ui/data-table/table-empty-cell'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import {
   DropdownMenu,
@@ -89,7 +90,7 @@ function ProductListingPublicationCell({
   const copyText = variantTooltip ?? variantLabel ?? listPrice
 
   if (!variantLabel && !listPrice) {
-    return <span className="text-sm text-text-tertiary">—</span>
+    return <TableEmptyCell />
   }
 
   if (!variantLabel && listPrice) {
@@ -210,7 +211,8 @@ export function createProductDetailChannelsColumns(
         <DataTableColumnHeader column={column} title={t('productsDetailListingColSku')} />
       ),
       cell: ({ row }) => {
-        const sku = row.original.platform_sku
+        const sku = row.original.platform_sku?.trim()
+        if (!sku) return <TableEmptyCell />
         return (
           <div className="flex min-w-0 items-center gap-1">
             <ProductListingSkuLabel sku={sku} />
@@ -280,11 +282,11 @@ export function createProductDetailChannelsColumns(
             />
           </div>
         ),
-        cell: ({ row }) => (
-          <span className="text-sm tabular-nums">
-            {formatListingVelocityPerDay(row.original.velocity_units_per_day_90d)}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const formatted = formatListingVelocityPerDay(row.original.velocity_units_per_day_90d)
+          if (!formatted) return <TableEmptyCell />
+          return <span className="tabular-nums">{formatted}</span>
+        },
       },
       {
         id: 'inventory_days',
@@ -334,7 +336,7 @@ export function createProductDetailChannelsColumns(
       cell: ({ row }) => {
         const payout = row.original.period_settlement?.estimated_payout
         if (payout === null || payout === undefined) {
-          return <span className="text-sm text-text-tertiary">—</span>
+          return <TableEmptyCell />
         }
         return <span className="text-sm tabular-nums">{fmtBase(payout)}</span>
       },

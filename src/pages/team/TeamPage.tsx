@@ -306,7 +306,7 @@ export function TeamPage() {
           <table className="w-full min-w-lg text-left text-sm">
             {showSkeleton || filtered.length > 0 ? (
             <thead>
-              <tr className="border-b border-border-subtle text-[11px] font-medium uppercase tracking-wide text-text-tertiary">
+              <tr className="border-b border-border-subtle font-numeric text-[11px] font-medium uppercase tracking-wide text-text-tertiary">
                 <th className="px-4 py-3">{t('teamColumnMember')}</th>
                 <th className="px-4 py-3">{t('teamColumnRole')}</th>
                 <th className="px-4 py-3">{t('teamColumnStatus')}</th>

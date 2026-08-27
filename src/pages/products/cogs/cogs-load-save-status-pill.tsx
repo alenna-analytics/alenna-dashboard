@@ -29,7 +29,7 @@ export function CogsLoadSaveStatusPill({
           <Button
             type="button"
             variant="outline"
-            size="sm"
+            size="tiny"
             disabled={retryPending}
             onClick={onRetry}
           >

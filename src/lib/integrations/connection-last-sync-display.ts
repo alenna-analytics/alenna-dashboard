@@ -6,7 +6,9 @@ import type { PlatformConnection } from '@/lib/types/connectors'
 export type ConnectionLastSyncLine =
   | { kind: 'syncing' }
   | { kind: 'never' }
-  | { kind: 'relative'; timing: SyncFreshnessPillTiming }
+  | { kind: 'relative'; timing: SyncFreshnessPillTiming; ageMs: number }
+
+export { connectionSyncAgePillVariant as headerConnectionSyncAgePillVariant } from '@/lib/integrations/sync-freshness-age'
 
 /** Last successful platform sync (`last_synced_at` is only set after success). */
 export function resolveConnectionLastSuccessfulSyncLine(
@@ -29,9 +31,11 @@ export function resolveConnectionLastSuccessfulSyncLine(
   }
 
   const now = options?.nowMs ?? Date.now()
+  const ageMs = now - ms
   return {
     kind: 'relative',
-    timing: deriveSyncFreshnessAgeDisplay(now - ms),
+    timing: deriveSyncFreshnessAgeDisplay(ageMs),
+    ageMs,
   }
 }
 

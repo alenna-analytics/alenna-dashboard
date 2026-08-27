@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 import { useState } from 'react'
 
+import { IntegrationConnectPanel } from '@/pages/integrations/dashboard/integration-connect-panel'
 import { IntegrationConsentDialog } from '@/pages/integrations/dashboard/integration-consent-dialog'
 import { IntegrationDetailSkeleton } from '@/pages/integrations/dashboard/integration-detail-skeleton'
 import type { AdsPlatformSlug } from '@/pages/integrations/details/use-ads-integration'
@@ -89,12 +90,6 @@ export function AdsManageBody({
 
   return (
     <div className="flex w-full flex-col gap-4">
-      {ads.caseA ? (
-        <p className="text-sm text-text-secondary">{shellT(lang, 'integrationAdsCaseA')}</p>
-      ) : null}
-      {ads.caseC ? (
-        <p className="text-sm text-text-secondary">{shellT(lang, 'integrationAdsCaseC')}</p>
-      ) : null}
       {planSyncPaused ? <PlanLimitSyncAlert /> : null}
       {ads.needsAccountSelection ? (
         <div className="space-y-4">
@@ -173,8 +168,11 @@ export function AdsManageBody({
           )}
         </div>
       ) : !ads.connected ? (
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">{shellT(lang, introKey)}</p>
+        <IntegrationConnectPanel
+          description={shellT(lang, introKey)}
+          title={shellT(lang, 'integrationConnectSectionTitle')}
+          disclaimer={shellT(lang, 'integrationDetailAdsHelper')}
+        >
           <Button
             type="button"
             variant="accent"
@@ -185,8 +183,7 @@ export function AdsManageBody({
           >
             {connectLabel}
           </Button>
-          <p className="text-xs text-muted-foreground">{shellT(lang, 'integrationDetailAdsHelper')}</p>
-        </div>
+        </IntegrationConnectPanel>
       ) : (
         <div className="flex w-full flex-col gap-4">
           <IntegrationEnableCard

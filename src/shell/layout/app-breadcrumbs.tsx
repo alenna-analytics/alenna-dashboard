@@ -1,11 +1,17 @@
 import { useLocation } from 'react-router-dom'
 
+import { usePlatformConnectionsQuery } from '@/hooks/use-platform-connections-query'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
+import { configurationInnerSubmoduleCrumbs } from '@/pages/configuration/configuration-inner-submodule-crumbs'
+import { findActiveConnection } from '@/pages/integrations/dashboard/integration-connection'
+import { integrationDetailSlugFromPath } from '@/pages/integrations/dashboard/integrations-inner-nav'
 import { cogsBreadcrumbItems } from '@/pages/products/cogs/cogs-breadcrumb-crumbs'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useProductDetailQuery } from '@/pages/products/use-catalog-queries'
 import { PageBreadcrumb, type PageBreadcrumbItem } from '@/ui/page-breadcrumb'
+import { StatusPill } from '@/ui/status-pill'
+import { cn } from '@/lib/utils'
 
 type Crumb = PageBreadcrumbItem
 
@@ -64,12 +70,8 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
   if (normalized === '/dashboard/alarms') {
     return [{ label: shellT(lang, 'navAlarms') }]
   }
-  if (normalized === '/dashboard/alarms/stock') {
-    return [
-      { label: shellT(lang, 'navAlarms'), to: '/dashboard/alarms' },
-      { label: shellT(lang, 'alarmsStockTypeTitle') },
-    ]
-  }
+  const alarmCrumbs = configurationInnerSubmoduleCrumbs(normalized, lang)
+  if (alarmCrumbs) return alarmCrumbs
   if (normalized === '/dashboard/integrations') {
     return [{ label: shellT(lang, 'navIntegrations') }]
   }
@@ -84,6 +86,15 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
   }
   if (normalized === '/dashboard/products/cogs') {
     return [{ label: shellT(lang, 'productsNavCogs') }]
+  }
+  if (normalized === '/dashboard/products/vinculacion') {
+    return [{ label: shellT(lang, 'productsNavVinculacion') }]
+  }
+  if (/^\/dashboard\/products\/vinculacion\/[^/]+$/.test(normalized)) {
+    return [
+      { label: shellT(lang, 'productsNavVinculacion'), to: '/dashboard/products/vinculacion' },
+      { label: shellT(lang, 'productsVinculacionHubCrumb') },
+    ]
   }
   const cogsCrumbs = cogsBreadcrumbItems(normalized, lang)
   if (cogsCrumbs) {
@@ -129,6 +140,7 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
 export function AppBreadcrumbs({ className }: { className?: string }) {
   const { pathname } = useLocation()
   const { lang } = useLanguage()
+  const connectionsQuery = usePlatformConnectionsQuery()
 
   const productMatch = pathname.match(/^\/dashboard\/products\/(?!bulk-cogs$)([^/]+)$/)
   const productId = productMatch?.[1]
@@ -142,11 +154,21 @@ export function AppBreadcrumbs({ className }: { className?: string }) {
     parentTitle: detail?.parent_title ?? undefined,
   })
 
+  const integrationSlug = integrationDetailSlugFromPath(pathname)
+  const integrationInstalled = Boolean(
+    integrationSlug && findActiveConnection(connectionsQuery.data ?? [], integrationSlug),
+  )
+
   return (
-    <PageBreadcrumb
-      items={items}
-      ariaLabel={shellT(lang, 'ariaBreadcrumb')}
-      className={className}
-    />
+    <div className={cn('flex min-w-0 items-center gap-2', className)}>
+      <PageBreadcrumb
+        items={items}
+        ariaLabel={shellT(lang, 'ariaBreadcrumb')}
+        className="min-w-0 flex-1"
+      />
+      {integrationInstalled ? (
+        <StatusPill variant="success">{shellT(lang, 'integrationDetailInstalledBadge')}</StatusPill>
+      ) : null}
+    </div>
   )
 }

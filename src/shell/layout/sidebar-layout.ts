@@ -26,6 +26,13 @@ export const sidebarInsetPaddingClassName = 'p-2'
 export const internalSidebarAsideClassName =
   'hidden h-full w-[var(--shell-inner-sidebar-width)] min-w-[var(--shell-inner-sidebar-width)] shrink-0 flex-col overflow-x-hidden overflow-y-auto border-r border-[var(--shell-divider)] bg-white lg:flex'
 
+/** Inner sidebar title row + main breadcrumb bar share this height so their borders meet. */
+export const internalSidebarHeaderRowClassName =
+  'box-border flex h-[var(--shell-inner-header-height)] max-h-[var(--shell-inner-header-height)] min-h-[var(--shell-inner-header-height)] shrink-0 items-center border-b border-[var(--shell-divider)] bg-white px-4'
+
+export const internalPageBreadcrumbBarClassName =
+  'box-border flex h-[var(--shell-inner-header-height)] max-h-[var(--shell-inner-header-height)] min-h-[var(--shell-inner-header-height)] shrink-0 items-center overflow-hidden border-b border-[var(--shell-divider)] bg-white px-4 lg:px-5'
+
 /** Inner sidebar title: 16px. */
 export const internalSidebarHeaderTitleClassName =
   'truncate text-[16px] font-semibold leading-none text-text-primary'

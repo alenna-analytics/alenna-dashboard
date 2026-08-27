@@ -10,6 +10,7 @@ import { StatusPill } from "@/ui/status-pill"
 import { Checkbox } from "@/ui/checkbox"
 import { CopyTextButton } from "@/ui/copy-text-button"
 import { DataTableColumnHeader } from "@/ui/data-table/data-table-column-header"
+import { TABLE_EMPTY_CELL, TableEmptyCell, tableTextOrEmpty } from "@/ui/data-table/table-empty-cell"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,15 +25,6 @@ import { ProductCostInlineCell } from "./product-cost-inline-cell"
 import { ProductPlatformLogoName } from "./product-platform-logo-name"
 import { ProductStockAlertBadge } from "./product-stock-alert-ui"
 import { ProductTableThumb } from "./product-table-thumb"
-
-const EMPTY_CELL = "—"
-
-function tableTextOrEmpty(raw: string | null | undefined): string {
-  const s = raw?.trim() ?? ""
-  if (!s) return EMPTY_CELL
-  if (/^\p{Pd}+$/u.test(s)) return EMPTY_CELL
-  return s
-}
 
 /** Same width for Marca + SKU so both columns line up. */
 const META_BRAND_SKU_COL = {
@@ -142,13 +134,18 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
       cell: ({ row }) => {
         const rowData = row.original
         return (
-          <Link
-            to={`/dashboard/products/${rowData.id}`}
-            className="line-clamp-2 max-w-full break-words text-sm font-normal text-primary hover:underline"
-            title={rowData.title}
-          >
-            {rowData.title}
-          </Link>
+          <div className="flex min-w-0 flex-col items-start gap-1">
+            <Link
+              to={`/dashboard/products/${rowData.id}`}
+              className="line-clamp-2 max-w-full break-words text-sm font-normal text-primary hover:underline"
+              title={rowData.title}
+            >
+              {rowData.title}
+            </Link>
+            {rowData.link_group_id ? (
+              <StatusPill variant="info">{t('productsVinculacionLinkedBadge')}</StatusPill>
+            ) : null}
+          </div>
         )
       },
       enableHiding: true,
@@ -181,7 +178,7 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
       cell: ({ row }) => {
         const plats = row.original.platforms
         if (!plats.length) {
-          return <span className="text-text-tertiary">{EMPTY_CELL}</span>
+          return <TableEmptyCell />
         }
         return (
           <div className="flex max-w-[16rem] flex-col gap-1.5">
@@ -203,10 +200,11 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
       meta: META_BRAND_SKU_COL,
       header: ({ column }) => <DataTableColumnHeader column={column} title={t("productsColBrand")} />,
       cell: ({ row }) => {
-        const b = tableTextOrEmpty(row.original.brand)
+        const brand = tableTextOrEmpty(row.original.brand)
+        if (brand === TABLE_EMPTY_CELL) return <TableEmptyCell />
         return (
-          <span className="block truncate text-text-secondary" title={b === EMPTY_CELL ? undefined : b}>
-            {b}
+          <span className="block truncate text-text-secondary" title={brand}>
+            {brand}
           </span>
         )
       },
@@ -214,6 +212,10 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
     },
     {
       accessorKey: "cost",
+      meta: {
+        headerClassName: "justify-end",
+        cellClassName: "text-right",
+      },
       header: ({ column }) => (
         <DataTableColumnHeader className="justify-end" column={column} title={t("productsColCost")} />
       ),
@@ -244,16 +246,17 @@ export function createProductColumns(labels: ProductTableColumnLabels): ColumnDe
       cell: ({ row }) => {
         const rawSku = row.original.internal_sku
         const sku = tableTextOrEmpty(rawSku)
-        const hasSku = sku !== EMPTY_CELL
+        const hasSku = sku !== TABLE_EMPTY_CELL
+        if (!hasSku) return <TableEmptyCell />
         return (
           <div className="flex min-w-0 items-center gap-1">
             <span
               className="min-w-0 flex-1 truncate font-mono text-text-secondary"
-              title={hasSku ? sku : undefined}
+              title={sku}
             >
               {sku}
             </span>
-            {hasSku && rawSku ? (
+            {rawSku ? (
               <CopyTextButton
                 text={rawSku.trim()}
                 copiedLabel={t("productsCopyFeedback")}

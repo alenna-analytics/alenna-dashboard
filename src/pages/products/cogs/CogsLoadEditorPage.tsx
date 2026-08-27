@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate, useParams, Navigate } from 'react-router-dom'
 import { ChevronLeft, Info } from 'lucide-react'
 import { toast } from 'sonner'
@@ -9,6 +9,7 @@ import { BulkCogsApplyStep } from '@/pages/products/bulk-cogs/bulk-cogs-apply-st
 import { BulkCogsUnsavedLeaveDialog } from '@/pages/products/bulk-cogs/bulk-cogs-unsaved-leave-dialog'
 import {
   mergeLoadItemsIntoDraftStore,
+  syncLoadDraftStoreMembership,
   type BulkCogsDraftStore,
 } from '@/pages/products/bulk-cogs/bulk-cogs-draft-store'
 import { BulkCogsGrid } from '@/pages/products/bulk-cogs/bulk-cogs-grid'
@@ -17,7 +18,7 @@ import { useBulkCogsViewportLock } from '@/pages/products/bulk-cogs/bulk-cogs-vi
 import { patchDraftField, resolveDraftCostValues } from '@/pages/products/bulk-cogs/bulk-cogs-validation'
 import { mapCostApplyUiModeToApi, willBulkSaveEnqueueBackfill } from '@/pages/products/product-cost-apply-mode-api'
 import { isCostApplyModeValid, useCostApplyModeDefaults } from '@/pages/products/product-cost-apply-mode-fields'
-import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import {
   GLOBAL_ACTIVITY_COGS_BULK_BACKFILL_ID,
   useGlobalActivity,
@@ -28,7 +29,6 @@ import { Button } from '@/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 import { CogsLoadEditorLoadingSkeleton } from './cogs-load-editor-loading-skeleton'
-import { CogsPageBreadcrumb } from './cogs-page-breadcrumb'
 import { CogsLoadReviewStep } from './cogs-load-review-step'
 import { countLoadReviewStates } from './cogs-load-review-utils'
 import { CogsLoadSelectStep } from './cogs-load-select-step'
@@ -46,9 +46,23 @@ import {
 
 type WizardStep = 'select' | 'grid' | 'review' | 'apply'
 
+const WIZARD_STEP_TOTAL = 4
 const footerClassName = 'flex shrink-0 items-center border-t border-border-subtle bg-white px-0 py-3'
 const AUTOSAVE_MS = 1500
 const AUTOSAVE_SAVED_MS = 3000
+
+function wizardStepIndex(step: WizardStep): number {
+  switch (step) {
+    case 'select':
+      return 1
+    case 'grid':
+      return 2
+    case 'review':
+      return 3
+    case 'apply':
+      return 4
+  }
+}
 
 function WizardBackButton({
   ariaLabel,
@@ -58,9 +72,26 @@ function WizardBackButton({
   onClick: () => void
 }) {
   return (
-    <Button type="button" variant="outline" size="icon-sm" aria-label={ariaLabel} onClick={onClick}>
-      <ChevronLeft className="size-4 shrink-0" aria-hidden />
+    <Button type="button" variant="outline" size="icon-xs" aria-label={ariaLabel} onClick={onClick}>
+      <ChevronLeft aria-hidden />
     </Button>
+  )
+}
+
+function WizardFooter({
+  progress,
+  action,
+}: {
+  progress: string
+  action: ReactNode
+}) {
+  return (
+    <footer className={footerClassName}>
+      <div className="flex w-full items-center justify-between gap-3">
+        <p className="shrink-0 text-xs text-text-tertiary">{progress}</p>
+        <div className="flex items-center gap-2">{action}</div>
+      </div>
+    </footer>
   )
 }
 
@@ -153,9 +184,16 @@ export function CogsLoadEditorPage() {
 
   useEffect(() => {
     if (!detail) return
-    loadUpdatedAtRef.current = detail.load.updated_at
+    if (
+      !loadUpdatedAtRef.current ||
+      detail.load.updated_at >= loadUpdatedAtRef.current
+    ) {
+      loadUpdatedAtRef.current = detail.load.updated_at
+    }
     setDraftStore((prev) =>
-      mergeLoadItemsIntoDraftStore(prev, detail.items, detail.base_currency),
+      prev.size === 0
+        ? mergeLoadItemsIntoDraftStore(prev, detail.items, detail.base_currency)
+        : syncLoadDraftStoreMembership(prev, detail.items, detail.base_currency),
     )
   }, [detail])
 
@@ -187,7 +225,6 @@ export function CogsLoadEditorPage() {
           updated_at: loadUpdatedAtRef.current,
         })
         loadUpdatedAtRef.current = data.load.updated_at
-        setDraftStore((prev) => mergeLoadItemsIntoDraftStore(prev, data.items, data.base_currency))
         setFailedProductIds((prev) => prev.filter((id) => id !== productId))
       } catch (error) {
         setFailedProductIds((prev) =>
@@ -269,6 +306,11 @@ export function CogsLoadEditorPage() {
     }
   }, [step, t])
 
+  const stepProgress = shellT(lang, 'productsCogsLoadStepProgress', {
+    current: wizardStepIndex(step),
+    total: WIZARD_STEP_TOTAL,
+  })
+
   const handleApply = async () => {
     const apiApply = mapCostApplyUiModeToApi(applyMode, effectiveFromDate, rangeStart, rangeEnd)
     try {
@@ -298,7 +340,6 @@ export function CogsLoadEditorPage() {
   if (!loadId || loadQuery.isLoading) {
     return (
       <DashboardPage className="flex h-full min-h-0 flex-col overflow-hidden">
-        <CogsPageBreadcrumb />
         <CogsLoadEditorLoadingSkeleton />
       </DashboardPage>
     )
@@ -324,19 +365,28 @@ export function CogsLoadEditorPage() {
         }}
       />
 
-      <header className="shrink-0 space-y-1 pb-3 pt-1">
-        <CogsPageBreadcrumb className="mb-0" />
+      <header className="flex shrink-0 flex-col gap-4 pb-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1">
-            <h1 className={pageTitleClassName}>{t('productsCogsLoadEditorTitle')}</h1>
-            <p className="text-xs text-text-tertiary">{stepLabel}</p>
+          <div className="min-w-0 space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className={pageTitleClassName}>{t('productsCogsLoadEditorTitle')}</h1>
+              {isDraft ? (
+                <CogsLoadSaveStatusPill
+                  status={autosaveStatus}
+                  t={t}
+                  onRetry={() => void retryFailedSaves()}
+                  retryPending={pendingSaves > 0}
+                />
+              ) : null}
+            </div>
+            <p className={pageSubtitleClassName}>{stepLabel}</p>
           </div>
           {step === 'grid' && isDraft ? (
             <div className="flex shrink-0 items-center gap-1.5">
               <Button
                 type="button"
                 variant="accent"
-                size="sm"
+                size="tiny"
                 loading={prefillMutation.isPending}
                 disabled={detail.items.length === 0}
                 onClick={() => {
@@ -353,10 +403,10 @@ export function CogsLoadEditorPage() {
               <Tooltip>
                 <TooltipTrigger
                   type="button"
-                  className="inline-flex size-8 items-center justify-center rounded-full text-text-secondary outline-none hover:bg-muted hover:text-text-primary focus-visible:ring-2 focus-visible:ring-ring/30"
+                  className="inline-flex size-[26px] items-center justify-center rounded-full text-text-secondary outline-none hover:bg-muted hover:text-text-primary focus-visible:ring-2 focus-visible:ring-ring/30"
                   aria-label={t('productsCogsLoadPrefillDbTooltip')}
                 >
-                  <Info className="size-4 shrink-0" aria-hidden />
+                  <Info className="size-3.5 shrink-0" aria-hidden />
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs">
                   {t('productsCogsLoadPrefillDbTooltip')}
@@ -376,17 +426,20 @@ export function CogsLoadEditorPage() {
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <CogsLoadSelectStep loadId={loadId} detail={detail} t={t} />
             </div>
-            <footer className={footerClassName}>
-              <div className="flex w-full items-center justify-end">
+            <WizardFooter
+              progress={stepProgress}
+              action={
                 <Button
                   type="button"
+                  variant="accent"
+                  size="tiny"
                   onClick={() => setStep('grid')}
                   disabled={detail.items.length === 0 || !isDraft}
                 >
                   {t('productsCogsLoadContinueGrid')}
                 </Button>
-              </div>
-            </footer>
+              }
+            />
           </>
         ) : null}
 
@@ -408,31 +461,28 @@ export function CogsLoadEditorPage() {
                 }
               />
             </div>
-            <footer className={footerClassName}>
-              <div className="flex w-full items-center justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-2">
+            <WizardFooter
+              progress={stepProgress}
+              action={
+                <>
                   <WizardBackButton
                     ariaLabel={t('productsCogsLoadBackSelect')}
                     onClick={() => setStep('select')}
                   />
-                  <CogsLoadSaveStatusPill
-                    status={autosaveStatus}
-                    t={t}
-                    onRetry={() => void retryFailedSaves()}
-                    retryPending={pendingSaves > 0}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  onClick={() => setStep('review')}
-                  disabled={
-                    detail.items.length === 0 || pendingSaves > 0 || debouncingSaves > 0
-                  }
-                >
-                  {t('productsBulkCogsContinueReview')}
-                </Button>
-              </div>
-            </footer>
+                  <Button
+                    type="button"
+                    variant="accent"
+                    size="tiny"
+                    onClick={() => setStep('review')}
+                    disabled={
+                      detail.items.length === 0 || pendingSaves > 0 || debouncingSaves > 0
+                    }
+                  >
+                    {t('productsBulkCogsContinueReview')}
+                  </Button>
+                </>
+              }
+            />
           </>
         ) : null}
 
@@ -445,27 +495,32 @@ export function CogsLoadEditorPage() {
                 t={t}
               />
             </div>
-            <footer className={footerClassName}>
-              <div className="flex w-full items-center justify-between gap-2">
-                <WizardBackButton
-                  ariaLabel={t('productsBulkCogsBackEdit')}
-                  onClick={() => setStep('grid')}
-                />
-                <Button
-                  type="button"
-                  onClick={() => setStep('apply')}
-                  disabled={
-                    reviewCounts.invalid > 0 ||
-                    reviewCounts.ready === 0 ||
-                    pendingSaves > 0 ||
-                    debouncingSaves > 0 ||
-                    !isDraft
-                  }
-                >
-                  {t('productsBulkCogsContinueApply')}
-                </Button>
-              </div>
-            </footer>
+            <WizardFooter
+              progress={stepProgress}
+              action={
+                <>
+                  <WizardBackButton
+                    ariaLabel={t('productsBulkCogsBackEdit')}
+                    onClick={() => setStep('grid')}
+                  />
+                  <Button
+                    type="button"
+                    variant="accent"
+                    size="tiny"
+                    onClick={() => setStep('apply')}
+                    disabled={
+                      reviewCounts.invalid > 0 ||
+                      reviewCounts.ready === 0 ||
+                      pendingSaves > 0 ||
+                      debouncingSaves > 0 ||
+                      !isDraft
+                    }
+                  >
+                    {t('productsBulkCogsContinueApply')}
+                  </Button>
+                </>
+              }
+            />
           </>
         ) : null}
 
@@ -487,27 +542,32 @@ export function CogsLoadEditorPage() {
                 hidePrimaryAction
               />
             </div>
-            <footer className={footerClassName}>
-              <div className="flex w-full items-center justify-between gap-2">
-                <WizardBackButton
-                  ariaLabel={t('productsBulkCogsBackReview')}
-                  onClick={() => setStep('review')}
-                />
-                <Button
-                  type="button"
-                  loading={applyMutation.isPending}
-                  onClick={() => void handleApply()}
-                  disabled={
-                    pendingSaves > 0 ||
-                    debouncingSaves > 0 ||
-                    !isDraft ||
-                    !isCostApplyModeValid(applyMode, effectiveFromDate, rangeStart, rangeEnd)
-                  }
-                >
-                  {t('productsBulkCogsApplySave')}
-                </Button>
-              </div>
-            </footer>
+            <WizardFooter
+              progress={stepProgress}
+              action={
+                <>
+                  <WizardBackButton
+                    ariaLabel={t('productsBulkCogsBackReview')}
+                    onClick={() => setStep('review')}
+                  />
+                  <Button
+                    type="button"
+                    variant="accent"
+                    size="tiny"
+                    loading={applyMutation.isPending}
+                    onClick={() => void handleApply()}
+                    disabled={
+                      pendingSaves > 0 ||
+                      debouncingSaves > 0 ||
+                      !isDraft ||
+                      !isCostApplyModeValid(applyMode, effectiveFromDate, rangeStart, rangeEnd)
+                    }
+                  >
+                    {t('productsBulkCogsApplySave')}
+                  </Button>
+                </>
+              }
+            />
           </>
         ) : null}
       </div>

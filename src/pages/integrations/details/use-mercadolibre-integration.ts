@@ -205,7 +205,7 @@ export function useMercadoLibreIntegration() {
         phase: 'success',
         title: shellT(lang, 'meliSyncProgressTitle'),
         subtitle: summaryLine || shellT(lang, 'meliSyncToastSuccess'),
-        href: '/dashboard/integrations/mercadolibre?tab=settings',
+        href: '/dashboard/integrations/mercadolibre',
         minimized: false,
       })
       toast.success(shellT(lang, 'meliSyncToastSuccess'))
@@ -229,7 +229,7 @@ export function useMercadoLibreIntegration() {
         phase: 'error',
         title: shellT(lang, 'meliSyncFailedTitle'),
         subtitle: failedMessage,
-        href: '/dashboard/integrations/mercadolibre?tab=settings',
+        href: '/dashboard/integrations/mercadolibre',
         minimized: false,
       })
       toast.error(shellT(lang, 'meliSyncToastFailed'))
@@ -350,7 +350,7 @@ export function useMercadoLibreIntegration() {
         phase: 'loading',
         title: shellT(lang, 'meliSyncProgressTitle'),
         subtitle: shellT(lang, 'meliSyncProgressQueued'),
-        href: '/dashboard/integrations/mercadolibre?tab=settings',
+        href: '/dashboard/integrations/mercadolibre',
         minimized: false,
       })
       setSyncPanel({
@@ -371,7 +371,7 @@ export function useMercadoLibreIntegration() {
         phase: 'error',
         title: shellT(lang, 'meliSyncFailedTitle'),
         subtitle: message,
-        href: '/dashboard/integrations/mercadolibre?tab=settings',
+        href: '/dashboard/integrations/mercadolibre',
         minimized: false,
       })
     },
@@ -388,7 +388,7 @@ export function useMercadoLibreIntegration() {
           phase: 'loading',
           title: shellT(lang, 'meliSyncProgressTitle'),
           subtitle: shellT(lang, 'meliSyncProgressQueued'),
-          href: '/dashboard/integrations/mercadolibre?tab=settings',
+          href: '/dashboard/integrations/mercadolibre',
           minimized: false,
         })
         setSyncPanel({

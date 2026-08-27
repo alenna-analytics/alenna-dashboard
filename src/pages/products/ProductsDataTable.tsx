@@ -27,7 +27,7 @@ import {
 } from "./products-list-filter-state"
 import { useProductListQuery } from "./use-catalog-queries"
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 15
 
 const EMPTY_ITEMS: ProductSummaryApi[] = []
 
@@ -309,6 +309,7 @@ export function ProductsDataTable({
         hasEverLoaded={listQuery.data !== undefined}
         emptyContent={emptyContent}
         skeletonRowCount={PAGE_SIZE}
+        scrollClassName="overflow-x-auto"
         selectionBanner={
           hasSelection ? (
             <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">

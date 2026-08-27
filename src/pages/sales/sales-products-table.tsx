@@ -10,9 +10,10 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { TopProductRow } from '@/lib/types/reports'
 import { truncateListingLabel } from '@/pages/products/product-detail-listing-channel-format'
 import { ProductTableThumb } from '@/pages/products/product-table-thumb'
+import { CopyTextButton } from '@/ui/copy-text-button'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
-import { CopyTextButton } from '@/ui/copy-text-button'
+import { TableEmptyCell } from '@/ui/data-table/table-empty-cell'
 import { EmptyState } from '@/ui/empty-state'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { SectionContainer, SectionHeader } from '@/pages/reports/report-ui'
@@ -75,7 +76,7 @@ export function SalesProductsTable({
         cell: ({ getValue }) => {
           const sku = getValue()?.trim()
           if (!sku) {
-            return <span className="text-text-tertiary">—</span>
+            return <TableEmptyCell />
           }
           return (
             <div className="flex min-w-0 items-center gap-1">

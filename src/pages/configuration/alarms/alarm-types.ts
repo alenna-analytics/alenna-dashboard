@@ -19,6 +19,6 @@ export const CONFIGURABLE_ALARM_TYPES: readonly ConfigurableAlarmType[] = [
     titleKey: 'alarmsStockTypeTitle',
     descriptionKey: 'alarmsStockTypeDescription',
     path: `${ALARMS_BASE_PATH}/stock`,
-    icon: 'products',
+    icon: 'orders',
   },
 ] as const

@@ -29,7 +29,7 @@ export function useIntegrationOAuthReturn() {
 
     if (googleAdsSelect === '1') {
       toast.info(shellT(lang, 'integrationGoogleAdsSelectToast'))
-      navigate('/dashboard/integrations/google_ads?tab=settings', { replace: true })
+      navigate('/dashboard/integrations/google_ads', { replace: true })
       return
     }
 

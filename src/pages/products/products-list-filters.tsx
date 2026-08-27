@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/react'
 import { Search, X } from 'lucide-react'
 
 import { useCurrentTenant } from '@/auth/hooks'
+import { filterEcommerceConnections } from '@/lib/integrations/ads-scope'
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { apiFetch } from '@/lib/api'
@@ -26,6 +27,7 @@ type ProductsListFiltersProps = {
   channelsOnly?: boolean
   searchQ?: string
   onSearchQChange?: (value: string) => void
+  searchPlaceholderKey?: ShellStringKey
 }
 
 export function ProductsListFilters({
@@ -35,6 +37,7 @@ export function ProductsListFilters({
   channelsOnly = false,
   searchQ,
   onSearchQChange,
+  searchPlaceholderKey = 'productsSearchPlaceholder',
 }: ProductsListFiltersProps) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
@@ -67,7 +70,7 @@ export function ProductsListFilters({
   )
 
   const platformOptions = useMemo((): FilterOption[] => {
-    const connections = connectionsQuery.data ?? []
+    const connections = filterEcommerceConnections(connectionsQuery.data ?? [])
     const seen = new Set<string>()
     const options: FilterOption[] = []
     for (const connection of connections) {
@@ -94,8 +97,8 @@ export function ProductsListFilters({
           <Input
             value={searchQ ?? ''}
             onChange={(e) => onSearchQChange(e.target.value)}
-            placeholder={t('productsSearchPlaceholder')}
-            aria-label={t('productsSearchPlaceholder')}
+            placeholder={t(searchPlaceholderKey)}
+            aria-label={t(searchPlaceholderKey)}
             className="h-7 border-border-default bg-white pl-8 text-xs placeholder:text-xs focus-visible:border-border-emphasis focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           {searchQ?.trim() ? (

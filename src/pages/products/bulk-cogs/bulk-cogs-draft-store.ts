@@ -71,6 +71,19 @@ export function mergeLoadItemsIntoDraftStore(
   return next
 }
 
+export function syncLoadDraftStoreMembership(
+  store: BulkCogsDraftStore,
+  items: Parameters<typeof createDraftFromLoadItem>[0][],
+  baseCurrency: string,
+): BulkCogsDraftStore {
+  const next = new Map<string, BulkCogsDraft>()
+  for (const item of items) {
+    const existing = store.get(item.product_id)
+    next.set(item.product_id, existing ?? createDraftFromLoadItem(item, baseCurrency))
+  }
+  return next
+}
+
 export function mergeRowsIntoDraftStore(
   store: BulkCogsDraftStore,
   rows: ProductCostBulkRowApi[],

@@ -79,6 +79,8 @@ export type ProductVariantSummaryApi = {
   period_units_sold: number
   velocity_units_per_day_90d: number | null
   inventory_days: number | null
+  link_group_id?: string | null
+  linked_platforms?: string[]
 }
 
 export type ProductSummaryApi = {
@@ -99,6 +101,8 @@ export type ProductSummaryApi = {
   cost_missing: boolean
   created_at: string
   updated_at: string
+  link_group_id?: string | null
+  linked_platforms?: string[]
 }
 
 export type ProductStockAlertCountsApi = {
@@ -205,6 +209,23 @@ export type ProductDetailApi = {
   cost_history: ProductCostHistorySegmentApi[]
   listing_price_history: ProductListingPriceSegmentApi[]
   cost_breakdown?: ProductCostBreakdownApi | null
+  link_group_id?: string | null
+  link_group_title?: string | null
+  linked_platforms?: string[]
+  link_siblings?: ProductLinkSiblingApi[]
+  link_group_gross_units_sold?: number | null
+  link_group_net_units_sold?: number | null
+  link_group_gross_sales?: number | null
+  link_group_net_sales?: number | null
+  link_group_orders?: number | null
+}
+
+export type ProductLinkSiblingApi = {
+  product_id: string
+  platform: string
+  title: string
+  image_url: string | null
+  platform_title: string | null
 }
 
 export type CatalogJobStatus = 'queued' | 'running' | 'succeeded' | 'failed'
@@ -214,6 +235,7 @@ export type CatalogJobKind =
   | 'product_import'
   | 'platform_sync'
   | 'listing_price_history_backfill'
+  | 'product_match_refresh'
 
 export type CatalogJobApi = {
   id: string
@@ -244,6 +266,7 @@ export type ProductCostBulkRowApi = {
   freight_value: number | null
   packaging_value: number | null
   computed_total: number | null
+  platforms?: string[]
 }
 
 export type ProductCostBulkRowsResponse = {

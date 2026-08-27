@@ -5,6 +5,7 @@ import {
   CONNECTORS_SYNC_BASELINE_REFETCH_MS,
   connectorsQueryRefetchIntervalMs,
   deriveConnectionSyncFreshness,
+  syncFreshnessPillBadgeVariant,
 } from '@/lib/integrations/sync-freshness'
 import type { PlatformConnection } from '@/lib/types/connectors'
 
@@ -135,5 +136,40 @@ describe('connectorsQueryRefetchIntervalMs', () => {
         baseConnection({ status: 'inactive', connection_status: 'inactive' }),
       ]),
     ).toBe(false)
+  })
+})
+
+describe('syncFreshnessPillBadgeVariant', () => {
+  it('keeps syncing as info', () => {
+    expect(
+      syncFreshnessPillBadgeVariant({ kind: 'syncing', freshnessState: 'syncing' }),
+    ).toBe('info')
+  })
+
+  it('colors last-sync age with the 6 hour promise and 1 week critical', () => {
+    expect(
+      syncFreshnessPillBadgeVariant({
+        kind: 'hours_ago',
+        hours: 1,
+        freshnessState: 'outdated',
+        ageMs: 60 * 60 * 1000,
+      }),
+    ).toBe('success')
+    expect(
+      syncFreshnessPillBadgeVariant({
+        kind: 'days_ago',
+        days: 5,
+        freshnessState: 'outdated',
+        ageMs: 5 * 24 * 60 * 60 * 1000,
+      }),
+    ).toBe('warning')
+    expect(
+      syncFreshnessPillBadgeVariant({
+        kind: 'days_ago',
+        days: 8,
+        freshnessState: 'outdated',
+        ageMs: 8 * 24 * 60 * 60 * 1000,
+      }),
+    ).toBe('error')
   })
 })

@@ -10,8 +10,9 @@ import type { PnlRow, PnlRowId } from '@/pages/reports/reports-pnl-rows'
 import { SectionSplit } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
-import { EmptyState } from '@/ui/empty-state'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { TableEmptyCell } from '@/ui/data-table/table-empty-cell'
+import { EmptyState } from '@/ui/empty-state'
 
 const columnHelper = createColumnHelper<PnlRow>()
 
@@ -22,14 +23,12 @@ type ReportsPnlTableProps = {
   labelForRow: (id: PnlRowId) => string
 }
 
-function fmtPct(n: number | null): string {
-  if (n === null) return '—'
+function fmtPct(n: number): string {
   const sign = n > 0 ? '+' : ''
   return `${sign}${n.toFixed(1)}%`
 }
 
-function fmtDeltaMoney(n: number | null, formatMoney: (v: number) => string): string {
-  if (n === null) return '—'
+function fmtDeltaMoney(n: number, formatMoney: (v: number) => string): string {
   const sign = n > 0 ? '+' : ''
   return `${sign}${formatMoney(n)}`
 }
@@ -115,7 +114,7 @@ export function ReportsPnlTable({
             r.previous === null ? null : r.isDeduction ? -Math.abs(r.previous) : r.previous
           return (
             <span className="w-full text-right font-numeric tabular-nums text-text-secondary">
-              {displayPrevious === null ? '—' : formatMoney(displayPrevious)}
+              {displayPrevious === null ? <TableEmptyCell /> : formatMoney(displayPrevious)}
             </span>
           )
         },
@@ -143,7 +142,7 @@ export function ReportsPnlTable({
                 r.deltaAbs !== null && r.deltaAbs > 0 && 'text-emerald-700',
               )}
             >
-              {fmtDeltaMoney(r.deltaAbs, formatMoney)}
+              {r.deltaAbs === null ? <TableEmptyCell /> : fmtDeltaMoney(r.deltaAbs, formatMoney)}
             </span>
           )
         },
@@ -171,7 +170,7 @@ export function ReportsPnlTable({
                 r.deltaPct !== null && r.deltaPct > 0 && 'text-emerald-700',
               )}
             >
-              {fmtPct(r.deltaPct)}
+              {r.deltaPct === null ? <TableEmptyCell /> : fmtPct(r.deltaPct)}
             </span>
           )
         },
@@ -199,7 +198,7 @@ export function ReportsPnlTable({
                 r.yoyDeltaPct !== null && r.yoyDeltaPct > 0 && 'text-emerald-700',
               )}
             >
-              {fmtPct(r.yoyDeltaPct)}
+              {r.yoyDeltaPct === null ? <TableEmptyCell /> : fmtPct(r.yoyDeltaPct)}
             </span>
           )
         },

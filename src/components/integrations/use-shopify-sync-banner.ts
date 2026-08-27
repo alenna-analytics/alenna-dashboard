@@ -176,7 +176,7 @@ export function useShopifySyncBanner(
             job.error_code,
             lang,
           ),
-          href: '/dashboard/integrations/shopify?tab=settings',
+          href: '/dashboard/integrations/shopify',
           dismissKey: sig,
         })
         if (!cancelled) {
@@ -198,7 +198,7 @@ export function useShopifySyncBanner(
           phase: 'success',
           title: shellT(lang, 'shopifySyncProgressTitle'),
           subtitle: buildShopifySuccessSubtitle(job, lang),
-          href: '/dashboard/integrations/shopify?tab=settings',
+          href: '/dashboard/integrations/shopify',
           dismissKey: sig,
         })
         toast.success(shellT(lang, 'shopifySyncToastSuccess'))
@@ -228,7 +228,7 @@ export function useShopifySyncBanner(
           phase: 'success',
           title: shellT(lang, 'shopifySyncProgressTitle'),
           subtitle: buildCompletedSyncSubtitle(completedConn, lang),
-          href: '/dashboard/integrations/shopify?tab=settings',
+          href: '/dashboard/integrations/shopify',
           dismissKey: sig,
         })
         toast.success(shellT(lang, 'shopifySyncToastSuccess'))
@@ -249,7 +249,7 @@ export function useShopifySyncBanner(
           phase: 'error',
           title: shellT(lang, 'shopifySyncFailedTitle'),
           subtitle,
-          href: '/dashboard/integrations/shopify?tab=settings',
+          href: '/dashboard/integrations/shopify',
           dismissKey,
         })
         return
@@ -278,7 +278,7 @@ export function useShopifySyncBanner(
       phase: 'loading',
       title: shellT(lang, 'shopifySyncProgressTitle'),
       subtitle,
-      href: '/dashboard/integrations/shopify?tab=settings',
+      href: '/dashboard/integrations/shopify',
       jobId: pollJobId ?? undefined,
     })
   }, [

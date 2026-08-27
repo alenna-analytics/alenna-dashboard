@@ -24,6 +24,9 @@ import { CogsLoadsListPage } from '@/pages/products/cogs/CogsLoadsListPage'
 import { CogsLoadEditorPage } from '@/pages/products/cogs/CogsLoadEditorPage'
 import { CogsLoadDetailPage } from '@/pages/products/cogs/CogsLoadDetailPage'
 import { CogsPlatformSyncPage } from '@/pages/products/cogs/CogsPlatformSyncPage'
+import { VinculacionInboxPage } from '@/pages/products/vinculacion/VinculacionInboxPage'
+import { VinculacionHubPage } from '@/pages/products/vinculacion/VinculacionHubPage'
+import { VinculacionShellLayout } from '@/pages/products/vinculacion/vinculacion-shell-layout'
 import { SalesPage } from '@/pages/sales/SalesPage'
 import { AdsPage } from '@/pages/ads/AdsPage'
 import { SimulationsPage } from '@/pages/simulations/SimulationsPage'
@@ -69,6 +72,10 @@ function App() {
               <Route path="loads/:loadId" element={<CogsLoadEditorPage />} />
               <Route path="loads/:loadId/view" element={<CogsLoadDetailPage />} />
               <Route path="sync" element={<CogsPlatformSyncPage />} />
+            </Route>
+            <Route path="vinculacion" element={<VinculacionShellLayout />}>
+              <Route index element={<VinculacionInboxPage />} />
+              <Route path=":groupId" element={<VinculacionHubPage />} />
             </Route>
             <Route path=":productId" element={<ProductDetailPage />} />
           </Route>

@@ -7,6 +7,7 @@ import {
 } from '@/pages/integrations/dashboard/integrations-inner-nav'
 import {
   internalSidebarAsideClassName,
+  internalSidebarHeaderRowClassName,
   internalSidebarHeaderTitleClassName,
   internalSidebarNavItemClassName,
   internalSidebarNavLabelClassName,
@@ -47,7 +48,7 @@ export function IntegrationsInternalSidebar() {
 
   return (
     <aside className={internalSidebarAsideClassName} aria-label={t('navIntegrations')}>
-      <div className="flex h-[var(--shell-inner-header-height)] shrink-0 items-center border-b border-[var(--shell-divider)] bg-white px-4">
+      <div className={internalSidebarHeaderRowClassName}>
         <p className={internalSidebarHeaderTitleClassName}>
           {t('navIntegrations')}
         </p>

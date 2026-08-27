@@ -119,13 +119,13 @@ export function BulkCogsGrid({
                   <Button
                     type="button"
                     variant="ghost"
-                    size="icon-sm"
+                    size="icon-xs"
                     className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => onRemoveRow(productId)}
                     disabled={readOnly}
                     aria-label={t('productsCogsLoadRemove')}
                   >
-                    <Trash2 className="size-4 shrink-0" aria-hidden />
+                    <Trash2 aria-hidden />
                   </Button>
                 ) : null}
               </div>

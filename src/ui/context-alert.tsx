@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import { ChevronDown } from 'lucide-react'
-import { useId, useState, type ReactNode } from 'react'
+import { isValidElement, useId, useState, type ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -21,7 +21,7 @@ const iconClassByTone: Record<ContextAlertTone, string> = {
 type ContextAlertCardProps = {
   title: string
   subtitle?: string
-  icon: LucideIcon
+  icon: LucideIcon | ReactNode
   tone?: ContextAlertTone
   action?: ReactNode
   className?: string
@@ -30,11 +30,14 @@ type ContextAlertCardProps = {
 function ContextAlertCard({
   title,
   subtitle,
-  icon: Icon,
+  icon,
   tone = 'warning',
   action,
   className,
 }: ContextAlertCardProps) {
+  const iconClassName = cn('size-4', iconClassByTone[tone])
+  const iconElement = isValidElement(icon) ? icon : null
+  const Icon = iconElement ? null : (icon as LucideIcon)
   return (
     <article
       role="status"
@@ -49,7 +52,13 @@ function ContextAlertCard({
           iconWrapClassByTone[tone],
         )}
       >
-        <Icon className={cn('size-4', iconClassByTone[tone])} aria-hidden />
+        {Icon ? (
+          <Icon className={iconClassName} aria-hidden />
+        ) : (
+          <span className={cn('inline-flex items-center justify-center', iconClassName)}>
+            {iconElement}
+          </span>
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <p

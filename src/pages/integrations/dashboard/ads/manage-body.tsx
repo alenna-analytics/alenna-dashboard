@@ -17,6 +17,8 @@ import { GLOBAL_ACTIVITY_ADS_SYNC_ID } from '@/shell/providers/global-activity-p
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
+import { cn } from '@/lib/utils'
+import { settingsDescriptionClassName } from '@/pages/configuration/settings-layout'
 import type { SyncPlan } from '@/lib/types/connectors'
 import { Button } from '@/ui/button'
 import { Label } from '@/ui/label'
@@ -93,11 +95,11 @@ export function AdsManageBody({
       {planSyncPaused ? <PlanLimitSyncAlert /> : null}
       {ads.needsAccountSelection ? (
         <div className="space-y-4">
-          <div className="space-y-1">
+          <div>
             <h3 className="text-sm font-semibold text-text-primary">
               {shellT(lang, 'integrationGoogleAdsSelectTitle')}
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className={cn('mt-1', settingsDescriptionClassName)}>
               {shellT(lang, 'integrationGoogleAdsSelectDescription')}
             </p>
           </div>

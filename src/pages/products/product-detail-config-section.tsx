@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Pencil } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import { SettingsSectionHeader } from '@/pages/configuration/settings-layout'
 import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card'
@@ -44,9 +45,7 @@ export function ProductDetailConfigSection({
   return (
     <div className="flex flex-col gap-4">
       {showSectionTitle ? (
-        <h2 className="text-xl font-semibold tracking-tight text-text-primary">
-          {t('productsDetailSectionProductConfigTitle')}
-        </h2>
+        <SettingsSectionHeader title={t('productsDetailSectionProductConfigTitle')} />
       ) : null}
 
       <Card className="border-none p-0 shadow-none hover:shadow-none">

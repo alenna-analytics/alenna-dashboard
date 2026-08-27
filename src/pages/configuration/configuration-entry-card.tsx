@@ -5,6 +5,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { AppIcon } from '@/ui/app-icon'
 import type { AppIconName } from '@/lib/icons/catalog'
 import { cn } from '@/lib/utils'
+import { settingsDescriptionClassName } from '@/pages/configuration/settings-layout'
 
 type ConfigurationEntryCardProps = {
   lang: string
@@ -37,7 +38,7 @@ export function ConfigurationEntryCard({
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-semibold text-text-primary">{shellT(lang, titleKey)}</h2>
-          <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-text-secondary">
+          <p className={cn('mt-1 line-clamp-3', settingsDescriptionClassName)}>
             {shellT(lang, descriptionKey)}
           </p>
         </div>

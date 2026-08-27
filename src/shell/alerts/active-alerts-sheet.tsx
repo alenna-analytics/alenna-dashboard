@@ -15,6 +15,7 @@ import {
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { AlertItemApi, AlertPostponeDuration } from '@/lib/types/alerts'
+import { PRODUCTS_LINKING_PATH } from '@/pages/products/products-inner-nav'
 import { cn } from '@/lib/utils'
 import { StatusPill } from '@/ui/status-pill'
 import { Button, buttonVariants } from '@/ui/button'
@@ -358,7 +359,7 @@ function AlertDetailView({
   const sold = payloadNumber(item.payload, 'prev_month_units_sold')
   const isMatch = item.alert_type === 'match_suggestion'
   const productHref = isMatch
-    ? '/dashboard/products/vinculacion'
+    ? PRODUCTS_LINKING_PATH
     : item.product_id
       ? `/dashboard/products/${item.product_id}`
       : null

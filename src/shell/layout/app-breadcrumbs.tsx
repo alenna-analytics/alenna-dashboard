@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom'
+import { matchPath, useLocation } from 'react-router-dom'
 
 import { usePlatformConnectionsQuery } from '@/hooks/use-platform-connections-query'
 import { shellT } from '@/lib/i18n/shell-strings'
@@ -7,6 +7,9 @@ import { configurationInnerSubmoduleCrumbs } from '@/pages/configuration/configu
 import { findActiveConnection } from '@/pages/integrations/dashboard/integration-connection'
 import { integrationDetailSlugFromPath } from '@/pages/integrations/dashboard/integrations-inner-nav'
 import { cogsBreadcrumbItems } from '@/pages/products/cogs/cogs-breadcrumb-crumbs'
+import { PRODUCTS_LINKING_PATH } from '@/pages/products/products-inner-nav'
+import { defaultProductInsightRange } from '@/pages/products/product-detail-range'
+import { useProductLinkGroupQuery } from '@/pages/products/vinculacion/use-product-link-queries'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useProductDetailQuery } from '@/pages/products/use-catalog-queries'
 import { PageBreadcrumb, type PageBreadcrumbItem } from '@/ui/page-breadcrumb'
@@ -22,7 +25,12 @@ type ProductDetailCrumb = {
   parentTitle?: string
 }
 
-function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDetailCrumb): Crumb[] {
+function crumbsForPath(
+  pathname: string,
+  lang: string,
+  productDetail?: ProductDetailCrumb,
+  groupTitle?: string,
+): Crumb[] {
   const normalized = pathname.replace(/\/$/, '') || '/'
 
   if (normalized === '/dashboard') {
@@ -87,13 +95,14 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
   if (normalized === '/dashboard/products/cogs') {
     return [{ label: shellT(lang, 'productsNavCogs') }]
   }
-  if (normalized === '/dashboard/products/vinculacion') {
+  if (normalized === PRODUCTS_LINKING_PATH) {
     return [{ label: shellT(lang, 'productsNavVinculacion') }]
   }
-  if (/^\/dashboard\/products\/vinculacion\/[^/]+$/.test(normalized)) {
+  const linkingGroup = matchPath({ path: `${PRODUCTS_LINKING_PATH}/:groupId`, end: true }, normalized)
+  if (linkingGroup?.params.groupId) {
     return [
-      { label: shellT(lang, 'productsNavVinculacion'), to: '/dashboard/products/vinculacion' },
-      { label: shellT(lang, 'productsVinculacionHubCrumb') },
+      { label: shellT(lang, 'productsNavVinculacion'), to: PRODUCTS_LINKING_PATH },
+      { label: groupTitle?.trim() || shellT(lang, 'productsVinculacionHubCrumb') },
     ]
   }
   const cogsCrumbs = cogsBreadcrumbItems(normalized, lang)
@@ -141,18 +150,30 @@ export function AppBreadcrumbs({ className }: { className?: string }) {
   const { pathname } = useLocation()
   const { lang } = useLanguage()
   const connectionsQuery = usePlatformConnectionsQuery()
+  const range = defaultProductInsightRange()
 
-  const productMatch = pathname.match(/^\/dashboard\/products\/(?!bulk-cogs$)([^/]+)$/)
+  const linkingGroupMatch = matchPath({ path: `${PRODUCTS_LINKING_PATH}/:groupId`, end: true }, pathname)
+  const groupId = linkingGroupMatch?.params.groupId
+  const groupQuery = useProductLinkGroupQuery(groupId, range.start, range.end)
+
+  const productMatch = linkingGroupMatch
+    ? null
+    : pathname.match(/^\/dashboard\/products\/(?!bulk-cogs$|linking$|vinculacion$)([^/]+)$/)
   const productId = productMatch?.[1]
   const detailQuery = useProductDetailQuery(productId)
   const detail = detailQuery.data
 
-  const items = crumbsForPath(pathname, lang, {
-    prefix: shellT(lang, 'productsDetailTitlePrefix'),
-    title: detail?.variant_label ?? detail?.title,
-    parentId: detail?.parent_product_id ?? undefined,
-    parentTitle: detail?.parent_title ?? undefined,
-  })
+  const items = crumbsForPath(
+    pathname,
+    lang,
+    {
+      prefix: shellT(lang, 'productsDetailTitlePrefix'),
+      title: detail?.variant_label ?? detail?.title,
+      parentId: detail?.parent_product_id ?? undefined,
+      parentTitle: detail?.parent_title ?? undefined,
+    },
+    groupQuery.data?.title,
+  )
 
   const integrationSlug = integrationDetailSlugFromPath(pathname)
   const integrationInstalled = Boolean(

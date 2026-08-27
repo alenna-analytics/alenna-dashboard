@@ -1,7 +1,9 @@
 import { AlertTriangle } from 'lucide-react'
 
 import { shellT } from '@/lib/i18n/shell-strings'
+import { settingsDescriptionClassName, SettingsSectionHeader, dangerActionCardClassName } from '@/pages/configuration/settings-layout'
 import { Button } from '@/ui/button'
+import { cn } from '@/lib/utils'
 
 type DeleteAccountDangerZoneProps = {
   lang: string
@@ -24,30 +26,26 @@ export function DeleteAccountDangerZone({
 
   return (
     <section className="space-y-6">
-      <div>
-        <h2 className="text-base font-semibold tracking-[-0.01em] text-text-primary">
-          {shellT(lang, 'settingsDangerZoneTitle')}
-        </h2>
-        <p className="mt-1 text-sm text-text-secondary">
-          {shellT(lang, 'settingsDangerZoneSubtitle')}
-        </p>
-      </div>
+      <SettingsSectionHeader
+        title={shellT(lang, 'settingsDangerZoneTitle')}
+        description={shellT(lang, 'settingsDangerZoneSubtitle')}
+      />
 
-      <div className="rounded-lg border border-border-card bg-white p-4">
+      <div className={dangerActionCardClassName}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <div
-            className="flex size-10 shrink-0 items-center justify-center rounded-md bg-[var(--status-red-500)] text-white"
+            className="flex size-[23px] shrink-0 items-center justify-center rounded-md bg-[var(--status-red-500)] text-white"
             aria-hidden
           >
-            <AlertTriangle className="size-5" strokeWidth={2.25} />
+            <AlertTriangle className="size-3.5" strokeWidth={2.25} />
           </div>
 
           <div className="min-w-0 flex-1 space-y-3">
-            <div className="space-y-1">
+            <div>
               <p className="text-sm font-semibold text-text-primary">
                 {shellT(lang, 'settingsDeleteAccountCardTitle')}
               </p>
-              <p className="text-sm leading-relaxed text-text-secondary">
+              <p className={cn('mt-1', settingsDescriptionClassName)}>
                 {shellT(lang, descriptionKey, { count: otherMemberCount })}
               </p>
             </div>

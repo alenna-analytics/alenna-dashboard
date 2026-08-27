@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
+import {
+  settingsDescriptionClassName,
+  SettingsSectionHeader,
+} from '@/pages/configuration/settings-layout'
 import { InfoTooltip } from '@/ui/info-tooltip'
 import { KpiCard as KpiCardUi } from '@/ui/kpi-card'
 import { surfaceSectionClassName } from '@/ui/surface'
@@ -44,10 +48,7 @@ export function SectionSplit({
       )}
     >
       <div className="min-w-0">
-        <h2 className="text-base font-medium text-text-primary">{title}</h2>
-        {description ? (
-          <p className="mt-1 text-xs leading-snug text-text-secondary">{description}</p>
-        ) : null}
+        <SettingsSectionHeader title={title} description={description} />
       </div>
       <div className="min-w-0">{children}</div>
     </section>
@@ -66,17 +67,12 @@ export function SectionHeader({
   aside?: ReactNode
 }) {
   return (
-    <div className={cn('mb-4 space-y-1', className)}>
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-text-primary">
-          {title}
-        </h2>
-        {aside}
-      </div>
-      {description ? (
-        <p className="max-w-2xl text-xs leading-relaxed text-[var(--color-text-muted)]">{description}</p>
-      ) : null}
-    </div>
+    <SettingsSectionHeader
+      title={title}
+      description={description}
+      aside={aside}
+      className={cn('mb-4', className)}
+    />
   )
 }
 
@@ -110,7 +106,8 @@ export function InsightText({ children, className }: { children: ReactNode; clas
   return (
     <p
       className={cn(
-        'mb-4 max-w-2xl text-xs leading-relaxed text-[var(--color-text-muted)]',
+        'mb-4 max-w-2xl',
+        settingsDescriptionClassName,
         className,
       )}
     >

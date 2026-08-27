@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
 
 import { AppAuthBoundary } from '@/shell/app-auth-boundary'
 import { AppShellLayout } from '@/shell/layout/app-shell-layout'
@@ -24,6 +24,7 @@ import { CogsLoadsListPage } from '@/pages/products/cogs/CogsLoadsListPage'
 import { CogsLoadEditorPage } from '@/pages/products/cogs/CogsLoadEditorPage'
 import { CogsLoadDetailPage } from '@/pages/products/cogs/CogsLoadDetailPage'
 import { CogsPlatformSyncPage } from '@/pages/products/cogs/CogsPlatformSyncPage'
+import { PRODUCTS_LINKING_LEGACY_SEGMENT, PRODUCTS_LINKING_PATH, PRODUCTS_LINKING_SEGMENT } from '@/pages/products/products-inner-nav'
 import { VinculacionInboxPage } from '@/pages/products/vinculacion/VinculacionInboxPage'
 import { VinculacionHubPage } from '@/pages/products/vinculacion/VinculacionHubPage'
 import { VinculacionShellLayout } from '@/pages/products/vinculacion/vinculacion-shell-layout'
@@ -46,6 +47,15 @@ import { RequireModule } from '@/shell/require-module'
 function BillingLegacyRedirect() {
   const { search } = useLocation()
   return <Navigate to={`/dashboard/billing${search}`} replace />
+}
+
+function ProductsLinkingLegacyRedirect() {
+  const { groupId } = useParams()
+  const { search } = useLocation()
+  if (groupId) {
+    return <Navigate to={`${PRODUCTS_LINKING_PATH}/${groupId}${search}`} replace />
+  }
+  return <Navigate to={`${PRODUCTS_LINKING_PATH}${search}`} replace />
 }
 
 function App() {
@@ -73,10 +83,12 @@ function App() {
               <Route path="loads/:loadId/view" element={<CogsLoadDetailPage />} />
               <Route path="sync" element={<CogsPlatformSyncPage />} />
             </Route>
-            <Route path="vinculacion" element={<VinculacionShellLayout />}>
+            <Route path={PRODUCTS_LINKING_SEGMENT} element={<VinculacionShellLayout />}>
               <Route index element={<VinculacionInboxPage />} />
               <Route path=":groupId" element={<VinculacionHubPage />} />
             </Route>
+            <Route path={PRODUCTS_LINKING_LEGACY_SEGMENT} element={<ProductsLinkingLegacyRedirect />} />
+            <Route path={`${PRODUCTS_LINKING_LEGACY_SEGMENT}/:groupId`} element={<ProductsLinkingLegacyRedirect />} />
             <Route path=":productId" element={<ProductDetailPage />} />
           </Route>
           <Route path="integrations/ecommerce" element={<RequireModule moduleId="integrations"><IntegrationsListPage category="ecommerce" /></RequireModule>} />

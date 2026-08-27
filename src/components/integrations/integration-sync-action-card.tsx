@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { Button } from '@/ui/button'
 import { cn } from '@/lib/utils'
+import { settingsDescriptionClassName } from '@/pages/configuration/settings-layout'
 
 type IntegrationSyncActionCardProps = {
   title: string
@@ -46,12 +47,12 @@ export function IntegrationSyncActionCard({
       )}
     >
       <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1 space-y-1">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
             {badge}
           </div>
-          <p className="text-sm leading-relaxed text-text-secondary">{description}</p>
+          <p className={cn('mt-1', settingsDescriptionClassName)}>{description}</p>
         </div>
         {hideAction && !(secondaryActionLabel && onSecondaryAction) ? null : (
           <div className="flex shrink-0 flex-col gap-2 self-start sm:flex-row">

@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { StockOverrideApi } from '@/lib/types/alert-rules'
 import { lowStockRuleEffectiveEnabled } from '@/pages/configuration/alarms/stock/stock-alert-config-helpers'
+import { SettingsSectionHeader } from '@/pages/configuration/settings-layout'
 import { Button } from '@/ui/button'
 import { EmptyState } from '@/ui/empty-state'
 import { StatusPill } from '@/ui/status-pill'
@@ -48,25 +49,23 @@ export function LowStockRulesTable({
 }: LowStockRulesTableProps) {
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-2xl">
-          <h2 className="text-sm font-semibold text-text-primary">
-            {shellT(lang, 'alarmsCustomRulesTitle')}
-          </h2>
-          <p className="mt-1 text-sm text-text-secondary">
-            {shellT(lang, 'alarmsCustomRulesDescription')}
+      <div>
+        <SettingsSectionHeader
+          title={shellT(lang, 'alarmsCustomRulesTitle')}
+          description={shellT(lang, 'alarmsCustomRulesDescription')}
+          aside={
+            isAdmin ? (
+              <Button type="button" variant="accent" size="tiny" onClick={onAdd}>
+                <Plus aria-hidden />
+                {shellT(lang, 'alarmsAddRule')}
+              </Button>
+            ) : undefined
+          }
+        />
+        {!globalLowStockEnabled ? (
+          <p className="mt-2 text-sm text-[var(--status-amber-900)]">
+            {shellT(lang, 'alarmsCustomRulesGlobalDisabledHint')}
           </p>
-          {!globalLowStockEnabled ? (
-            <p className="mt-2 text-sm text-[var(--status-amber-900)]">
-              {shellT(lang, 'alarmsCustomRulesGlobalDisabledHint')}
-            </p>
-          ) : null}
-        </div>
-        {isAdmin ? (
-          <Button type="button" variant="accent" size="tiny" onClick={onAdd}>
-            <Plus aria-hidden />
-            {shellT(lang, 'alarmsAddRule')}
-          </Button>
         ) : null}
       </div>
 

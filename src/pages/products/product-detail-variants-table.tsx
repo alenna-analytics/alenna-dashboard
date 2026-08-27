@@ -3,7 +3,8 @@ import { getCoreRowModel, useReactTable } from '@tanstack/react-table'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductVariantSummaryApi } from '@/lib/types/catalog'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
+import { SettingsSectionHeader, settingsDescriptionClassName } from '@/pages/configuration/settings-layout'
+import { Card, CardContent, CardHeader } from '@/ui/card'
 import { DataTable } from '@/ui/data-table/data-table'
 import { EmptyState } from '@/ui/empty-state'
 
@@ -64,12 +65,12 @@ export function ProductDetailVariantsTable({
     >
       <CardHeader className="p-0">
         {showSectionTitle ? (
-          <>
-            <CardTitle className="text-xl">{t('productsDetailVariantsTitle')}</CardTitle>
-            <CardDescription className="text-xs">{t('productsDetailVariantsDescription')}</CardDescription>
-          </>
+          <SettingsSectionHeader
+            title={t('productsDetailVariantsTitle')}
+            description={t('productsDetailVariantsDescription')}
+          />
         ) : (
-          <CardDescription className="text-xs">{t('productsDetailVariantsDescription')}</CardDescription>
+          <p className={settingsDescriptionClassName}>{t('productsDetailVariantsDescription')}</p>
         )}
       </CardHeader>
       <CardContent className="p-0">

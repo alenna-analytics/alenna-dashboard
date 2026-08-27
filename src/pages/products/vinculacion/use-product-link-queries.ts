@@ -298,6 +298,29 @@ export function usePatchProductLinkGroupMutation(groupId: string) {
   })
 }
 
+export function useAddProductLinkMembersMutation(groupId: string) {
+  const { getToken } = useAuth()
+  const { tenantId } = useCurrentTenant()
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (productIds: string[]) => {
+      const res = await apiPostJson(
+        `/catalog/product-link-groups/${groupId}/members`,
+        (a) => getToken(a),
+        { product_ids: productIds },
+        {},
+        tenantId,
+      )
+      if (!res.ok) throw new Error(await res.text())
+      return (await res.json()) as ProductLinkGroupApi
+    },
+    onSuccess: () => {
+      invalidateProductLinkQueries(qc, tenantId)
+    },
+  })
+}
+
 export function useDissolveProductLinkGroupMutation() {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
@@ -328,21 +351,6 @@ export async function deleteProductLinkGroup(
 ): Promise<void> {
   const res = await apiFetch(
     `/catalog/product-link-groups/${groupId}`,
-    (a) => getToken(a),
-    { method: 'DELETE' },
-    tenantId,
-  )
-  if (!res.ok) throw new Error(await res.text())
-}
-
-export async function deleteProductLinkMember(
-  getToken: GetTokenFn,
-  tenantId: string | null,
-  groupId: string,
-  productId: string,
-): Promise<void> {
-  const res = await apiFetch(
-    `/catalog/product-link-groups/${groupId}/members/${productId}`,
     (a) => getToken(a),
     { method: 'DELETE' },
     tenantId,

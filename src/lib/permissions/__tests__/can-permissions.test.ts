@@ -32,6 +32,7 @@ const FROZEN_API_KEYS = [
   'pnl_labels.manage',
   'pnl_labels.view',
   'products.edit',
+  'products.groups.edit',
   'products.view',
   'reports.view',
   'sales.view',
@@ -98,6 +99,12 @@ describe('can-permissions', () => {
     const products = PERMISSION_GROUPS.find((g) => g.id === 'products')!
     const next = toggleGroupAction([], products, 'products.edit', true)
     expect(next).toEqual(expect.arrayContaining(['products.view', 'products.edit']))
+  })
+
+  it('toggling groups.edit without view adds view', () => {
+    const products = PERMISSION_GROUPS.find((g) => g.id === 'products')!
+    const next = toggleGroupAction([], products, 'products.groups.edit', true)
+    expect(next).toEqual(expect.arrayContaining(['products.view', 'products.groups.edit']))
   })
 
   it('groups cover every assignable key except hidden FX', () => {

@@ -2,7 +2,8 @@ import { useMemo, type ReactNode } from 'react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
-import { Card, CardContent, CardDescription, CardHeader } from '@/ui/card'
+import { settingsDescriptionClassName } from '@/pages/configuration/settings-layout'
+import { Card, CardContent, CardHeader } from '@/ui/card'
 import { EmptyState } from '@/ui/empty-state'
 import type { DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs'
@@ -11,6 +12,7 @@ import { ProductDetailChannelsTable } from './product-detail-channels-table'
 import { ProductDetailPlatformPaymentSection } from './product-detail-platform-payment-section'
 import { ProductDetailVariantsTable } from './product-detail-variants-table'
 import { ProductDetailConfigSection } from './product-detail-config-section'
+import { ProductDetailRelatedSection } from './product-detail-related-section'
 import {
   buildProductPnlWaterfallSegments,
   productPnlWaterfallSourceFromDetail,
@@ -75,6 +77,7 @@ export function ProductDetailSections({
   const showVariantsTab = hasVariants
   const showChannelsTab = !hasVariants
   const showCogsTab = !hasVariants
+  const showRelatedTab = Boolean(detail.link_group_id)
   const periodLabel =
     detail.period_start && detail.period_end
       ? `${detail.period_start} — ${detail.period_end}`
@@ -106,6 +109,9 @@ export function ProductDetailSections({
           ) : null}
           {showCogsTab ? (
             <TabsTrigger value="cogs">{t('productsDetailTabCogs')}</TabsTrigger>
+          ) : null}
+          {showRelatedTab ? (
+            <TabsTrigger value="related">{t('productsDetailTabRelated')}</TabsTrigger>
           ) : null}
           <TabsTrigger value="platform-payment">{t('productsDetailTabPlatformPayment')}</TabsTrigger>
         </TabsList>
@@ -164,9 +170,9 @@ export function ProductDetailSections({
               className="scroll-mt-24 rounded-none border-none p-0 shadow-none hover:shadow-none"
             >
               <CardHeader className="p-0">
-                <CardDescription className="text-xs">
+                <p className={settingsDescriptionClassName}>
                   {t('productsDetailSectionChannelsDescription')}
-                </CardDescription>
+                </p>
               </CardHeader>
               <CardContent className="p-0 pt-4">
                 <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
@@ -203,6 +209,12 @@ export function ProductDetailSections({
               onEditCost={onEditCost}
               showSectionTitle={false}
             />
+          </TabsContent>
+        ) : null}
+
+        {showRelatedTab ? (
+          <TabsContent value="related">
+            <ProductDetailRelatedSection detail={detail} t={t} />
           </TabsContent>
         ) : null}
 

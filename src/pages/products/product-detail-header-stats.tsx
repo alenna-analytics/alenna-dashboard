@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import { Link } from 'react-router-dom'
+
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import { Input } from '@/ui/input'
@@ -11,6 +13,7 @@ import {
   latestListingSyncIso,
   uniqueActivePlatforms,
 } from './product-detail-header-utils'
+import { productsLinkingGroupPath } from './products-inner-nav'
 
 type ProductDetailHeaderStatsProps = {
   detail: ProductDetailApi
@@ -75,6 +78,24 @@ export function ProductDetailHeaderStats({
       value: channelCount,
       valueClassName: 'tabular-nums',
     },
+  ]
+
+  if (detail.link_group_id) {
+    columns.push({
+      key: 'group',
+      label: t('productsDetailHeaderStatGroupLabel'),
+      value: (
+        <Link
+          to={productsLinkingGroupPath(detail.link_group_id)}
+          className="max-w-[12rem] truncate text-sm text-primary hover:underline"
+        >
+          {detail.link_group_title?.trim() || t('productsVinculacionHubCrumb')}
+        </Link>
+      ),
+    })
+  }
+
+  columns.push(
     {
       key: 'created',
       label: t('productsDetailHeaderStatCreatedLabel'),
@@ -93,7 +114,7 @@ export function ProductDetailHeaderStats({
         return syncIso ? formatProductDetailDateTime(syncIso, lang) : '—'
       })(),
     },
-  ]
+  )
 
   return (
     <div className="grid w-full grid-cols-2 gap-x-4 gap-y-4 sm:inline-flex sm:max-w-full sm:flex-wrap sm:items-stretch">

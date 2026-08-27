@@ -1,5 +1,6 @@
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import { settingsDescriptionClassName } from '@/pages/configuration/settings-layout'
 import { AppIcon } from '@/ui/app-icon'
 import { Button } from '@/ui/button'
 import { StatusPill } from '@/ui/status-pill'
@@ -64,12 +65,7 @@ export function StockAlertTypeCard({
             <StatusPill variant="warning">{shellT(lang, 'alarmsStatusInactive')}</StatusPill>
           )}
         </div>
-        <p
-          className={cn(
-            'mt-1 text-sm',
-            active ? 'text-text-secondary' : 'text-text-tertiary',
-          )}
-        >
+        <p className={cn('mt-1', settingsDescriptionClassName)}>
           {shellT(lang, descriptionKey)}
         </p>
         {currentValue && currentValueLabelKey ? (

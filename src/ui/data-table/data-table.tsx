@@ -233,11 +233,9 @@ export function DataTable<TData>({
                     {isExpanded && renderExpandedContent ? (
                       <TableRow
                         key={`${row.id}-detail`}
-                        className={cn(
-                          isPlain ? 'bg-transparent' : 'bg-[color-mix(in_srgb,var(--bg-section)_80%,white)]',
-                        )}
+                        className="bg-white hover:bg-white"
                       >
-                        <TableCell colSpan={colSpan} className="py-3">
+                        <TableCell colSpan={colSpan} className="p-0">
                           {renderExpandedContent(row.original)}
                         </TableCell>
                       </TableRow>

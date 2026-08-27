@@ -18,6 +18,7 @@ export type AssignablePermissionKey =
   | 'pnl_labels.manage'
   | 'pnl_labels.view'
   | 'products.edit'
+  | 'products.groups.edit'
   | 'products.view'
   | 'reports.view'
   | 'sales.view'
@@ -43,6 +44,7 @@ export const ASSIGNABLE_PERMISSION_KEYS: readonly AssignablePermissionKey[] = [
   'pnl_labels.manage',
   'pnl_labels.view',
   'products.edit',
+  'products.groups.edit',
   'products.view',
   'reports.view',
   'sales.view',

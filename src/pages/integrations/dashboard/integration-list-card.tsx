@@ -10,6 +10,7 @@ import {
 import { shellT } from '@/lib/i18n/shell-strings'
 import { StatusPill } from '@/ui/status-pill'
 import { cn } from '@/lib/utils'
+import { settingsDescriptionClassName } from '@/pages/configuration/settings-layout'
 
 type IntegrationListCardProps = {
   integration: ManagedIntegration
@@ -64,7 +65,7 @@ export function IntegrationListCard({
 
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-semibold text-text-primary">{name}</h2>
-          <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-text-secondary">{desc}</p>
+          <p className={cn('mt-1 line-clamp-2', settingsDescriptionClassName)}>{desc}</p>
         </div>
 
         <div className="mt-4 flex items-end justify-between gap-3">

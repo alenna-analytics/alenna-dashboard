@@ -9,7 +9,7 @@ import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
-import { Card, CardContent, CardDescription, CardHeader } from '@/ui/card'
+import { Card, CardContent, CardHeader } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import type { FilterOption } from '@/ui/filters/types'
@@ -264,9 +264,6 @@ export function VinculacionGroupAnalytics({
   return (
     <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
       <CardHeader className="flex flex-col gap-3 p-0">
-        <CardDescription className="text-xs">
-          {t('productsDetailSectionInsightsDescription')}
-        </CardDescription>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
           <DateRangePicker
             strings={pickerStrings}

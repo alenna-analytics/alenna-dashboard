@@ -7,6 +7,7 @@ import {
 } from '@/pages/team/team-inner-nav'
 import {
   internalSidebarAsideClassName,
+  internalSidebarHeaderRowClassName,
   internalSidebarHeaderTitleClassName,
   internalSidebarNavItemClassName,
   internalSidebarNavLabelClassName,
@@ -31,7 +32,7 @@ export function TeamInternalSidebar() {
 
   return (
     <aside className={internalSidebarAsideClassName} aria-label={t('navTeam')}>
-      <div className="flex h-[var(--shell-inner-header-height)] shrink-0 items-center border-b border-[var(--shell-divider)] bg-white px-4">
+      <div className={internalSidebarHeaderRowClassName}>
         <p className={internalSidebarHeaderTitleClassName}>{t('navTeam')}</p>
       </div>
 

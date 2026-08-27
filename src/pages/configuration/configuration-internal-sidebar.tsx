@@ -4,6 +4,7 @@ import { useEnabledWorkspaceConfigSubmodules } from '@/lib/modules/use-workspace
 import { shellT } from '@/lib/i18n/shell-strings'
 import {
   internalSidebarAsideClassName,
+  internalSidebarHeaderRowClassName,
   internalSidebarHeaderTitleClassName,
   internalSidebarNavItemClassName,
   internalSidebarNavLabelClassName,
@@ -47,7 +48,7 @@ export function ConfigurationInternalSidebar() {
 
   return (
     <aside className={internalSidebarAsideClassName} aria-label={t('navWorkspaceConfiguration')}>
-      <div className="flex h-[var(--shell-inner-header-height)] shrink-0 items-center border-b border-[var(--shell-divider)] bg-white px-4">
+      <div className={internalSidebarHeaderRowClassName}>
         <p className={internalSidebarHeaderTitleClassName}>
           {t('navWorkspaceConfiguration')}
         </p>

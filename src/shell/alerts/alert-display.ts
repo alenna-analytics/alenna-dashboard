@@ -41,6 +41,7 @@ export function alertTypeName(
     if (item.severity === 'critical') return t('homeAlertsSheetAlertNameCritical')
     if (item.severity === 'low') return t('homeAlertsSheetAlertNameLow')
   }
+  if (item.alert_type === 'match_suggestion') return t('homeAlertsSheetAlertNameMatch')
   if (item.severity === 'critical') return t('homeAlertsSheetSeverityCritical')
   if (item.severity === 'low') return t('homeAlertsSheetSeverityLow')
   return t('homeAlertsSheetSeverityInformational')

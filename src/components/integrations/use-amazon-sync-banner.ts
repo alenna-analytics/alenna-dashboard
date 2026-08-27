@@ -113,7 +113,7 @@ function upsertFailedBanner(args: {
     phase: 'error',
     title: amazonSyncFailedTitle(lang, jobErrorCode, jobError),
     subtitle: amazonSyncErrorSubtitle(conn, jobError, jobErrorCode, lang),
-    href: '/dashboard/integrations/amazon?tab=settings',
+    href: '/dashboard/integrations/amazon',
     dismissKey,
   })
 }
@@ -228,7 +228,7 @@ export function useAmazonSyncBanner(connections: PlatformConnection[] | undefine
           phase: 'success',
           title: shellT(lang, 'amazonSyncProgressTitle'),
           subtitle,
-          href: '/dashboard/integrations/amazon?tab=settings',
+          href: '/dashboard/integrations/amazon',
           dismissKey: sig,
         })
         toast.success(shellT(lang, 'amazonSyncToastSuccess'))
@@ -260,7 +260,7 @@ export function useAmazonSyncBanner(connections: PlatformConnection[] | undefine
         phase: 'loading',
         title: shellT(lang, 'amazonSyncProgressTitle'),
         subtitle,
-        href: '/dashboard/integrations/amazon?tab=settings',
+        href: '/dashboard/integrations/amazon',
         jobId: pollJobId ?? undefined,
       })
       return
@@ -296,7 +296,7 @@ export function useAmazonSyncBanner(connections: PlatformConnection[] | undefine
               phase: 'success',
               title: shellT(lang, 'amazonSyncProgressTitle'),
               subtitle: buildCompletedSyncSubtitle(completedConn, lang),
-              href: '/dashboard/integrations/amazon?tab=settings',
+              href: '/dashboard/integrations/amazon',
               dismissKey: sig,
             })
           }
@@ -317,7 +317,7 @@ export function useAmazonSyncBanner(connections: PlatformConnection[] | undefine
         phase: 'error',
         title: shellT(lang, 'amazonSyncFailedTitle'),
         subtitle,
-        href: '/dashboard/integrations/amazon?tab=settings',
+        href: '/dashboard/integrations/amazon',
         dismissKey,
       })
     }

@@ -8,19 +8,17 @@ import {
   isIntegrationConnected,
 } from '@/pages/integrations/dashboard/integration-connection'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
-import { IntegrationDetailBreadcrumb } from '@/pages/integrations/dashboard/integration-detail-breadcrumb'
 import { IntegrationDetailLayout } from '@/pages/integrations/dashboard/integration-detail-layout'
 import { IntegrationDetailSkeleton } from '@/pages/integrations/dashboard/integration-detail-skeleton'
-import { IntegrationOverviewPanel } from '@/pages/integrations/dashboard/integration-overview-panel'
-import { IntegrationsDisconnectConfirmDialog } from '@/pages/integrations/dashboard/integrations-disconnect-confirm-dialog'
-import {
-  IntegrationsDisconnectDataDialog,
-  type DisconnectDataChoice,
-} from '@/pages/integrations/dashboard/integrations-disconnect-data-dialog'
 import {
   integrationDescription,
   integrationTitle,
 } from '@/pages/integrations/dashboard/integration-display'
+import {
+  IntegrationsDisconnectDataDialog,
+  type DisconnectDataChoice,
+} from '@/pages/integrations/dashboard/integrations-disconnect-data-dialog'
+import { IntegrationsDisconnectConfirmDialog } from '@/pages/integrations/dashboard/integrations-disconnect-confirm-dialog'
 import { AdsManageBody } from '@/pages/integrations/dashboard/ads/manage-body'
 import { MercadoLibreManageBody } from '@/pages/integrations/dashboard/mercadolibre/manage-body'
 import { AmazonManageBody } from '@/pages/integrations/dashboard/amazon/manage-body'
@@ -94,7 +92,6 @@ export function IntegrationDetailPage() {
   if (!integration) {
     return (
       <DashboardPage className="space-y-6">
-        <IntegrationDetailBreadcrumb slug={slug} />
         <IntegrationDetailSkeleton />
       </DashboardPage>
     )
@@ -147,14 +144,11 @@ export function IntegrationDetailPage() {
       : null
 
   const titleBadges = connected ? (
-    <>
-      <StatusPill variant="success">{shellT(lang, 'integrationDetailInstalledBadge')}</StatusPill>
-      {needsInitialSync ? (
-        <StatusPill variant="warning">{shellT(lang, 'integrationCardSyncPending')}</StatusPill>
-      ) : syncPill ? (
-        <SyncFreshnessPillBadge pill={syncPill} lang={lang} />
-      ) : null}
-    </>
+    needsInitialSync ? (
+      <StatusPill variant="warning">{shellT(lang, 'integrationCardSyncPending')}</StatusPill>
+    ) : syncPill ? (
+      <SyncFreshnessPillBadge pill={syncPill} lang={lang} />
+    ) : null
   ) : null
 
   const settingsBody = !integration.available ? (
@@ -206,20 +200,14 @@ export function IntegrationDetailPage() {
   )
 
   return (
-    <DashboardPage className="space-y-6">
-      <IntegrationDetailBreadcrumb slug={slug} />
+    <DashboardPage>
       <IntegrationDetailLayout
         definition={integration}
         title={title}
         description={description}
         titleBadges={titleBadges}
-        overview={
-          <IntegrationOverviewPanel
-            integration={integration}
-            lang={lang}
-            connected={connected}
-          />
-        }
+        lang={lang}
+        connected={connected}
         settings={settingsBody}
       />
 

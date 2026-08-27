@@ -1,8 +1,8 @@
-import { Info } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { cn } from '@/lib/utils'
+import { AppIcon } from '@/ui/app-icon'
 
 type HomeStockInventoryAlertsProps = {
   lowCount: number
@@ -35,7 +35,7 @@ function AlertBanner({
       role="status"
     >
       <div className="flex min-w-0 items-center gap-2">
-        <Info className="size-4 shrink-0 opacity-80" aria-hidden />
+        <AppIcon name="orders" colorize className="size-4 shrink-0" />
         <span className="min-w-0 leading-snug">{message}</span>
       </div>
       <Link

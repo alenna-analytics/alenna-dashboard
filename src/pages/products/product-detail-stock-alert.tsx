@@ -1,4 +1,4 @@
-import { Calendar, CalendarDays, ChevronDown, Clock, Gauge, Package, type LucideIcon } from 'lucide-react'
+import { Calendar, CalendarDays, ChevronDown, Clock, type LucideIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/ui/dropdown-menu'
 import { buttonVariants } from '@/ui/button'
-import { LoadingIcon } from '@/ui/app-icon'
+import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 import { ContextAlertCard, ContextAlertsGroup } from '@/ui/context-alert'
 import { Skeleton } from '@/ui/skeleton'
 import { cn } from '@/lib/utils'
@@ -145,13 +145,12 @@ function ProductDetailStockAlertCard({
 }) {
   const isOut = row.level === 'out'
   const title = isOut ? t('productsDetailStockAlertOut') : t('productsDetailStockAlertLow')
-  const Icon = isOut ? Package : Gauge
 
   return (
     <ContextAlertCard
       title={title}
       subtitle={row.platformLabel}
-      icon={Icon}
+      icon={<AppIcon name="orders" colorize className="size-4" />}
       tone={isOut ? 'critical' : 'warning'}
       action={
         isAdmin ? (

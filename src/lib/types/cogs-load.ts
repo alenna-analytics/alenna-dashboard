@@ -35,6 +35,7 @@ export type CogsBulkLoadItemApi = {
   packaging_value: number | null
   computed_total: number | null
   sort_order: number
+  platforms?: string[]
 }
 
 export type CogsBulkLoadDetailApi = {
@@ -71,4 +72,5 @@ export type CogsBulkLoadAddByFilterBody = {
   platform?: string[]
   stock_alert?: string[]
   cost_missing?: boolean
+  exclude_product_ids?: string[]
 }

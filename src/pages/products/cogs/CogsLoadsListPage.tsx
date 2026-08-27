@@ -14,7 +14,6 @@ import { Button } from '@/ui/button'
 import { DataTable } from '@/ui/data-table/data-table'
 import { EmptyState } from '@/ui/empty-state'
 
-import { CogsPageBreadcrumb } from './cogs-page-breadcrumb'
 import { cogsLoadOpenPath, createCogsLoadsColumns } from './cogs-loads-columns'
 import {
   useCloneCogsLoadMutation,
@@ -95,7 +94,6 @@ export function CogsLoadsListPage() {
     <DashboardPage className="flex flex-1 flex-col gap-5">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
-          <CogsPageBreadcrumb />
           <h1 className={pageTitleClassName}>{t('productsCogsLoadsTitle')}</h1>
           <p className={pageSubtitleClassName}>{t('productsCogsLoadsSubtitle')}</p>
         </div>

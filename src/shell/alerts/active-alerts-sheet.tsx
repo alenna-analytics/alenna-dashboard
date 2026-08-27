@@ -20,7 +20,7 @@ import { StatusPill } from '@/ui/status-pill'
 import { Button, buttonVariants } from '@/ui/button'
 import { EmptyState } from '@/ui/empty-state'
 import { ProductPlatformLogoName } from '@/pages/products/product-platform-logo-name'
-import { LoadingIcon } from '@/ui/app-icon'
+import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 import { EmbeddedShellPanel } from '@/ui/embedded-shell-panel'
 import { Skeleton } from '@/ui/skeleton'
 import { SheetRowButton, sheetRowButtonClassName } from '@/ui/sheet-row'
@@ -161,6 +161,7 @@ function AlertListToolbar({
   filters,
   onFiltersChange,
   channelSlugs,
+  countLabel,
   onClose,
   closeAriaLabel,
   t,
@@ -168,32 +169,42 @@ function AlertListToolbar({
   filters: AlertsListFilters
   onFiltersChange: (patch: Partial<AlertsListFilters>) => void
   channelSlugs: string[]
+  countLabel: string | null
   onClose: () => void
   closeAriaLabel: string
   t: (key: ShellStringKey) => string
 }) {
   return (
-    <div className="flex min-h-12 shrink-0 items-center gap-2 border-b border-border-subtle px-6 py-3">
-      <div className="min-w-0 flex-1 overflow-x-auto">
-        <div className="flex min-w-max items-center">
-          <AlertsFiltersToolbar
-            filters={filters}
-            onFiltersChange={onFiltersChange}
-            channelSlugs={channelSlugs}
-            t={t}
-          />
+    <div className="shrink-0">
+      <div className="flex min-h-10 shrink-0 items-center gap-2 border-b border-border-subtle px-6 py-2">
+        <div className="min-w-0 flex-1 overflow-x-auto">
+          <div className="flex min-w-max items-center">
+            <AlertsFiltersToolbar
+              filters={filters}
+              onFiltersChange={onFiltersChange}
+              channelSlugs={channelSlugs}
+              t={t}
+            />
+          </div>
         </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className={alertPanelIconButtonClassName}
+          onClick={onClose}
+          aria-label={closeAriaLabel}
+        >
+          <X className="size-4" aria-hidden />
+        </Button>
       </div>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-sm"
-        className={alertPanelIconButtonClassName}
-        onClick={onClose}
-        aria-label={closeAriaLabel}
-      >
-        <X className="size-4" aria-hidden />
-      </Button>
+      {countLabel ? (
+        <div className="flex h-8 shrink-0 items-center border-b border-border-subtle px-6">
+          <p className="min-w-0 truncate font-numeric text-xs tabular-nums text-text-tertiary">
+            {countLabel}
+          </p>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -209,22 +220,21 @@ function AlertListRow({
   onSelect: (id: string) => void
   t: (key: ShellStringKey) => string
 }) {
-  const Icon = item.severity === 'critical' ? Package : Gauge
   const headline = alertTypeName(t, item)
+  const iconToneClass =
+    item.severity === 'critical'
+      ? 'text-[var(--stock-alert-critical)]'
+      : item.severity === 'low'
+        ? 'text-[var(--stock-alert-warning)]'
+        : 'text-[var(--info)]'
 
   return (
     <SheetRowButton onClick={() => onSelect(item.id)}>
-      <Icon
-        className={cn(
-          'size-4 shrink-0',
-          item.severity === 'critical'
-            ? 'text-[var(--stock-alert-critical)]'
-            : item.severity === 'low'
-              ? 'text-[var(--stock-alert-warning)]'
-              : 'text-[var(--info)]',
-        )}
-        aria-hidden
-      />
+      {item.alert_type === 'stock' ? (
+        <AppIcon name="orders" colorize className={cn('size-4 shrink-0', iconToneClass)} />
+      ) : (
+        <Gauge className={cn('size-4 shrink-0', iconToneClass)} aria-hidden />
+      )}
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs font-bold text-foreground">{headline}</p>
         <AlertProductChannelLine
@@ -346,7 +356,12 @@ function AlertDetailView({
 }) {
   const stock = payloadNumber(item.payload, 'stock_quantity')
   const sold = payloadNumber(item.payload, 'prev_month_units_sold')
-  const productHref = item.product_id ? `/dashboard/products/${item.product_id}` : null
+  const isMatch = item.alert_type === 'match_suggestion'
+  const productHref = isMatch
+    ? '/dashboard/products/vinculacion'
+    : item.product_id
+      ? `/dashboard/products/${item.product_id}`
+      : null
   const headline = alertTypeName(t, item)
   const productTitle = alertProductTitle(item)
   const channelSlug = alertPlatformSlug(item, connectionPlatformById)
@@ -413,10 +428,12 @@ function AlertDetailView({
           </AlertDetailSection>
         ) : null}
 
-        <AlertDetailSection title={t('homeAlertsSheetIssue')}>{issueText}</AlertDetailSection>
+        {!isMatch ? (
+          <AlertDetailSection title={t('homeAlertsSheetIssue')}>{issueText}</AlertDetailSection>
+        ) : null}
 
         <AlertDetailSection title={t('homeAlertsSheetDescription')}>
-          {t('homeAlertsSheetDescriptionStock')}
+          {isMatch ? t('productsVinculacionSubtitle') : t('homeAlertsSheetDescriptionStock')}
         </AlertDetailSection>
 
         {isPostponedSection && item.postponed_until ? (
@@ -436,7 +453,7 @@ function AlertDetailView({
             ) : null}
             {productHref ? (
               <Button variant="accent" size="tiny" render={<Link to={productHref} />}>
-                {t('homeAlertsDialogViewProduct')}
+                {isMatch ? t('homeAlertsDialogViewMatches') : t('homeAlertsDialogViewProduct')}
               </Button>
             ) : null}
           </div>
@@ -479,12 +496,23 @@ function AlertListView({
   const listEmptyLabel =
     items.length > 0 && filteredItems.length === 0 ? filterEmptyLabel : emptyLabel
 
+  const filtersNarrowList =
+    filters.severity !== 'all' || filters.kind !== 'all' || filters.channel !== 'all'
+  const countLabel = loading
+    ? null
+    : filtersNarrowList
+      ? t('homeAlertsSheetCountFiltered')
+          .replace('{shown}', String(filteredItems.length))
+          .replace('{total}', String(items.length))
+      : t('homeAlertsSheetCount').replace('{count}', String(items.length))
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <AlertListToolbar
         filters={filters}
         onFiltersChange={onFiltersChange}
         channelSlugs={channelSlugs}
+        countLabel={countLabel}
         onClose={onClose}
         closeAriaLabel={t('productsDetailSheetCancel')}
         t={t}

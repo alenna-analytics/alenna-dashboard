@@ -4,7 +4,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 
 export const PRODUCTS_BASE_PATH = '/dashboard/products'
 
-export type ProductsNavItemId = 'catalog' | 'cogs'
+export type ProductsNavItemId = 'catalog' | 'cogs' | 'vinculacion'
 
 export type ProductsNavItem = {
   id: ProductsNavItemId
@@ -15,6 +15,7 @@ export type ProductsNavItem = {
 export const PRODUCTS_INNER_NAV: ProductsNavItem[] = [
   { id: 'catalog', path: PRODUCTS_BASE_PATH, labelKey: 'productsNavCatalog' },
   { id: 'cogs', path: `${PRODUCTS_BASE_PATH}/cogs`, labelKey: 'productsNavCogs' },
+  { id: 'vinculacion', path: `${PRODUCTS_BASE_PATH}/vinculacion`, labelKey: 'productsNavVinculacion' },
 ]
 
 export function isProductsRoute(pathname: string): boolean {
@@ -30,7 +31,7 @@ export function isProductsNavItemActive(item: ProductsNavItem, pathname: string)
   if (item.id === 'catalog') {
     if (normalized === PRODUCTS_BASE_PATH) return true
     const detail = matchPath({ path: `${PRODUCTS_BASE_PATH}/:productId`, end: true }, normalized)
-    if (detail?.params.productId && detail.params.productId !== 'cogs') return true
+    if (detail?.params.productId && detail.params.productId !== 'cogs' && detail.params.productId !== 'vinculacion') return true
     return false
   }
   return normalized === item.path || normalized.startsWith(`${item.path}/`)

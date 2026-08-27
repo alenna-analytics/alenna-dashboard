@@ -1,13 +1,13 @@
-import { CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useState } from 'react'
 
-import { LoadingIcon } from '@/ui/app-icon'
+import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 import { PlanLimitSyncAlert } from '@/components/integrations/plan-limit-sync-alert'
 import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
 import { isPlanLimitSyncPaused } from '@/lib/plan/plan-limit-ui'
 import { IntegrationEnableCard } from '@/components/integrations/integration-enable-card'
 import { IntegrationSyncActionCard } from '@/components/integrations/integration-sync-action-card'
+import { IntegrationConnectPanel } from '@/pages/integrations/dashboard/integration-connect-panel'
 import { IntegrationConsentDialog } from '@/pages/integrations/dashboard/integration-consent-dialog'
 import { formatMercadoLibreSyncUserError } from '@/lib/integrations/mercadolibre-sync-user-error'
 import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
@@ -39,14 +39,6 @@ function lifecycleButtonLabelKey(syncPlan: SyncPlan | null): ShellStringKey {
   if (status === 'synced' || status === 'partial') return 'syncRefreshBtn'
   if (status === 'failed') return 'syncRetryBtn'
   return 'syncRunBtn'
-}
-
-function MercadoLibreIntroCopy({ lang }: { lang: string }) {
-  return (
-    <p className="text-sm text-muted-foreground">
-      {shellT(lang, 'integrationSheetMercadoLibreConnectIntro')}
-    </p>
-  )
 }
 
 function MercadoLibreSyncSection({
@@ -170,7 +162,7 @@ function MercadoLibreSyncSection({
         onAction={() => (isFixture ? fixtureBlocked() : syncMutation.mutate())}
         actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
         actionLoading={syncMutation.isPending}
-        badge={<CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />}
+        badge={<AppIcon name="validation" colorize className="size-4 shrink-0 text-success" />}
         footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
         className="w-full"
       />
@@ -249,8 +241,11 @@ export function MercadoLibreManageBody({
           {meli.error instanceof Error ? meli.error.message : String(meli.error)}
         </p>
       ) : !meli.connected ? (
-        <div className="space-y-4">
-          <MercadoLibreIntroCopy lang={lang} />
+        <IntegrationConnectPanel
+          description={shellT(lang, 'integrationSheetMercadoLibreConnectIntro')}
+          title={shellT(lang, 'integrationConnectSectionTitle')}
+          disclaimer={shellT(lang, 'integrationDetailMercadoLibreHelper')}
+        >
           <Button
             type="button"
             variant="accent"
@@ -267,10 +262,7 @@ export function MercadoLibreManageBody({
           >
             {shellT(lang, 'integrationConnectWithMercadoLibre')}
           </Button>
-          <p className="text-xs text-muted-foreground">
-            {shellT(lang, 'integrationDetailMercadoLibreHelper')}
-          </p>
-        </div>
+        </IntegrationConnectPanel>
       ) : (
         <div className="flex w-full flex-col gap-4">
           <IntegrationEnableCard

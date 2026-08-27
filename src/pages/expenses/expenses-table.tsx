@@ -16,6 +16,7 @@ import {
 } from '@/pages/expenses/expenses-helpers'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { TableEmptyCell } from '@/ui/data-table/table-empty-cell'
 import { EmptyState } from '@/ui/empty-state'
 import { Button } from '@/ui/button'
 import {
@@ -133,11 +134,13 @@ export function ExpensesTable({
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t('expensesEndDateField')} />
         ),
-        cell: ({ getValue }) => (
-          <span className="font-numeric tabular-nums text-text-secondary">
-            {getValue() ?? '—'}
-          </span>
-        ),
+        cell: ({ getValue }) => {
+          const endDate = getValue()
+          if (!endDate) return <TableEmptyCell />
+          return (
+            <span className="font-numeric tabular-nums text-text-secondary">{endDate}</span>
+          )
+        },
         enableColumnFilter: false,
       }),
       columnHelper.display({

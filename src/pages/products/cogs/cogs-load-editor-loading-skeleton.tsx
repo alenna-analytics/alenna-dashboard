@@ -2,11 +2,14 @@ import { Skeleton } from '@/ui/skeleton'
 
 import { ProductListSkeleton } from './cogs-load-select-step'
 
-function PanelSkeleton({ actionCount = 2 }: { actionCount?: number }) {
+function PanelSkeleton({ actionCount = 1 }: { actionCount?: number }) {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-border-subtle">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border-subtle bg-muted/30 px-3 py-2">
-        <Skeleton className="h-4 w-36" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="size-4 shrink-0 rounded-[4px]" />
+          <Skeleton className="h-4 w-36" />
+        </div>
         <div className="flex flex-wrap gap-2">
           {Array.from({ length: actionCount }, (_, index) => (
             <Skeleton key={index} className="h-8 w-28 rounded-md" />
@@ -23,18 +26,20 @@ function PanelSkeleton({ actionCount = 2 }: { actionCount?: number }) {
 export function CogsLoadEditorLoadingSkeleton() {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <header className="shrink-0 space-y-2 pb-3 pt-1">
+      <header className="flex shrink-0 flex-col gap-4 pb-5">
         <Skeleton className="h-4 w-56 max-w-full" />
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <Skeleton className="h-8 w-64 max-w-full" />
           <Skeleton className="h-3 w-40" />
         </div>
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
-        <div className="shrink-0 space-y-3 px-1">
-          <Skeleton className="h-9 w-full max-w-md" />
-          <Skeleton className="h-9 w-full" />
+        <div className="shrink-0 px-1 pb-5">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-7 w-72 shrink-0 rounded-md" />
+            <Skeleton className="h-7 w-24 shrink-0 rounded-md" />
+          </div>
         </div>
         <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
           <PanelSkeleton />
@@ -42,8 +47,9 @@ export function CogsLoadEditorLoadingSkeleton() {
         </div>
       </div>
 
-      <footer className="flex shrink-0 items-center justify-end border-t border-border-subtle bg-white py-3">
-        <Skeleton className="h-9 w-32 rounded-md" />
+      <footer className="flex shrink-0 items-center justify-between border-t border-border-subtle bg-white py-3">
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-[26px] w-24 rounded-md" />
       </footer>
     </div>
   )

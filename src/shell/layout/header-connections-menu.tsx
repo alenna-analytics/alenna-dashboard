@@ -3,15 +3,13 @@ import { Link } from 'react-router-dom'
 
 import {
   connectionDisplaySubtitle,
+  headerConnectionSyncAgePillVariant,
   resolveConnectionLastSuccessfulSyncLine,
 } from '@/lib/integrations/connection-last-sync-display'
 import { isAdsPlatform } from '@/lib/integrations/ads-scope'
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 import { formatRelativeAgeLabel } from '@/lib/integrations/sync-freshness-pill-label'
-import {
-  deriveConnectionSyncFreshness,
-  filterActiveHeaderConnections,
-} from '@/lib/integrations/sync-freshness'
+import { filterActiveHeaderConnections } from '@/lib/integrations/sync-freshness'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { usePlatformConnectionsQuery } from '@/hooks/use-platform-connections-query'
@@ -49,13 +47,8 @@ function ConnectionLastSyncPill({
     )
   }
 
-  const freshness = deriveConnectionSyncFreshness(conn)
-  let variant: 'success' | 'info' | 'warning' = 'success'
-  if (freshness === 'syncing') variant = 'info'
-  else if (freshness === 'outdated') variant = 'warning'
-
   return (
-    <StatusPill variant={variant}>
+    <StatusPill variant={headerConnectionSyncAgePillVariant(line.ageMs)}>
       {formatRelativeAgeLabel(lang, line.timing)}
     </StatusPill>
   )
@@ -74,7 +67,7 @@ function ConnectionHoverRow({
 
   return (
     <Link
-      to={`/dashboard/integrations/${conn.platform}?tab=settings`}
+      to={`/dashboard/integrations/${conn.platform}`}
       className="flex items-center gap-2.5 rounded-md px-2 py-2 transition-colors hover:bg-[var(--sidebar-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45"
     >
       {ui?.logoSrc ? (

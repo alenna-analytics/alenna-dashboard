@@ -1,7 +1,7 @@
 import { useState, type AnimationEvent } from 'react'
-import { AlertCircle, CheckCircle2, X } from 'lucide-react'
+import { AlertCircle, X } from 'lucide-react'
 
-import { LoadingIcon } from '@/ui/app-icon'
+import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 import { Link } from 'react-router-dom'
 
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
@@ -58,7 +58,7 @@ function PhaseGlyph({ phase }: { phase: GlobalActivityPhase }) {
     return <LoadingIcon className={glyphClass} />
   }
   if (phase === 'success') {
-    return <CheckCircle2 className={glyphClass} aria-hidden />
+    return <AppIcon name="validation" colorize className={glyphClass} />
   }
   return <AlertCircle className={glyphClass} aria-hidden />
 }

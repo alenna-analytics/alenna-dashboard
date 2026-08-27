@@ -43,7 +43,7 @@ export function useSyncFreshnessHeaderPill(): SyncFreshnessPillViewModel | null 
       phase: 'loading',
       title: shellT(lang, 'shopifySyncProgressTitle'),
       subtitle: shellT(lang, 'shopifySyncProgressQueued'),
-      href: '/dashboard/integrations/shopify?tab=settings',
+      href: '/dashboard/integrations/shopify',
       minimized: false,
     })
     restoreAllActivities()

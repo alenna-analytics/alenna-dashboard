@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Sparkles } from 'lucide-react'
 
 import { AdjustPlanSheet } from '@/components/billing/adjust-plan-sheet'
 import {
@@ -9,6 +8,7 @@ import {
   type UpgradeTarget,
 } from '@/lib/plan/plan-limit-ui'
 import type { MeResponse } from '@/lib/types/me-types'
+import { AppIcon } from '@/ui/app-icon'
 import { Button } from '@/ui/button'
 import type { Language } from '@/shell/providers/language-provider'
 
@@ -51,7 +51,7 @@ export function PlanUpgradeCta({
           setSheetOpen(true)
         }}
       >
-        <Sparkles className="size-3.5 shrink-0" aria-hidden />
+        <AppIcon name="ai" colorize className="size-3.5 shrink-0" />
         {label}
       </Button>
       {onClick ? null : (

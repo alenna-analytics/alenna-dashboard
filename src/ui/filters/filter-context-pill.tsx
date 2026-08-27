@@ -1,5 +1,5 @@
 import { Check, ChevronDown, CircleX, type LucideIcon } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { isValidElement, useState, type ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/popover'
@@ -12,7 +12,7 @@ export type FilterContextOption = {
 
 export type FilterContextPillProps = {
   label: string
-  triggerIcon: LucideIcon
+  triggerIcon: LucideIcon | ReactNode
   value: string
   /** When value matches, pill uses the inactive style unless `alwaysShowValue`. */
   defaultValue?: string
@@ -86,6 +86,13 @@ export function FilterContextPill({
     setOpen(false)
   }
 
+  const triggerIconClassName = cn(
+    'size-3.5 shrink-0',
+    isActive ? 'text-[var(--firefly-base)]' : 'text-text-secondary',
+  )
+  const triggerElement = isValidElement(TriggerIcon) ? TriggerIcon : null
+  const TriggerGlyph = triggerElement ? null : (TriggerIcon as LucideIcon)
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <div
@@ -129,13 +136,18 @@ export function FilterContextPill({
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45',
           )}
         >
-          <TriggerIcon
-            className={cn(
-              'size-3.5 shrink-0',
-              isActive ? 'text-[var(--firefly-base)]' : 'text-text-secondary',
-            )}
-            aria-hidden
-          />
+          {TriggerGlyph ? (
+            <TriggerGlyph className={triggerIconClassName} aria-hidden />
+          ) : (
+            <span
+              className={cn(
+                'inline-flex size-3.5 shrink-0 items-center justify-center [&_svg]:size-3.5',
+                isActive ? 'text-[var(--firefly-base)]' : 'text-text-secondary',
+              )}
+            >
+              {triggerElement}
+            </span>
+          )}
           {isActive ? (
             valueOnlyWhenActive ? (
               <span className="max-w-[10rem] truncate font-medium">{valueLabel}</span>

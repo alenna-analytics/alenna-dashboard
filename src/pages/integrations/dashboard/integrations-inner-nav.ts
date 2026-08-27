@@ -24,6 +24,14 @@ export const INTEGRATIONS_INNER_NAV: IntegrationsNavItem[] = [
 
 const INTEGRATION_DETAIL_SLUG_PATTERN = `${INTEGRATIONS_BASE_PATH}/:slug`
 
+export function integrationDetailSlugFromPath(pathname: string): string | null {
+  const normalized = pathname.replace(/\/$/, '') || '/'
+  const detailMatch = matchPath({ path: INTEGRATION_DETAIL_SLUG_PATTERN, end: true }, normalized)
+  const slug = detailMatch?.params.slug
+  if (!slug || slug === 'ecommerce' || slug === 'ads') return null
+  return slug
+}
+
 export function isIntegrationsRoute(pathname: string): boolean {
   const normalized = pathname.replace(/\/$/, '') || '/'
   return (

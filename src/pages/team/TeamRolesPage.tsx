@@ -137,7 +137,7 @@ export function TeamRolesPage() {
           <table className="w-full min-w-lg text-left text-sm">
             {showSkeleton || roles.length > 0 ? (
               <thead>
-                <tr className="border-b border-border-subtle text-[11px] font-medium uppercase tracking-wide text-text-tertiary">
+                <tr className="border-b border-border-subtle font-numeric text-[11px] font-medium uppercase tracking-wide text-text-tertiary">
                   <th className="px-4 py-3">{t('teamRolesNameLabel')}</th>
                   <th className="px-4 py-3">{t('teamColumnType')}</th>
                   <th className="px-4 py-3">{t('teamColumnMembers')}</th>

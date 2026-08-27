@@ -239,7 +239,7 @@ export function useShopifyIntegration() {
         phase: 'success',
         title: shellT(lang, 'shopifySyncProgressTitle'),
         subtitle: buildShopifySuccessSubtitle(job, lang),
-        href: '/dashboard/integrations/shopify?tab=settings',
+        href: '/dashboard/integrations/shopify',
         minimized: false,
       })
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
@@ -261,7 +261,7 @@ export function useShopifyIntegration() {
         phase: 'error',
         title: shellT(lang, 'shopifySyncFailedTitle'),
         subtitle: failedMessage,
-        href: '/dashboard/integrations/shopify?tab=settings',
+        href: '/dashboard/integrations/shopify',
         minimized: false,
       })
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
@@ -289,7 +289,7 @@ export function useShopifyIntegration() {
       phase: 'error',
       title: shellT(lang, 'shopifySyncFailedTitle'),
       subtitle: message,
-      href: '/dashboard/integrations/shopify?tab=settings',
+      href: '/dashboard/integrations/shopify',
       minimized: false,
     })
   }, [
@@ -396,7 +396,7 @@ export function useShopifyIntegration() {
         phase: 'loading',
         title: shellT(lang, 'shopifySyncProgressTitle'),
         subtitle: shellT(lang, 'shopifySyncProgressQueued'),
-        href: '/dashboard/integrations/shopify?tab=settings',
+        href: '/dashboard/integrations/shopify',
         minimized: false,
       })
       setSyncPanel({
@@ -435,7 +435,7 @@ export function useShopifyIntegration() {
         phase: 'error',
         title: shellT(lang, 'shopifySyncFailedTitle'),
         subtitle: e.message,
-        href: '/dashboard/integrations/shopify?tab=settings',
+        href: '/dashboard/integrations/shopify',
         minimized: false,
       })
     },
@@ -452,7 +452,7 @@ export function useShopifyIntegration() {
           phase: 'loading',
           title: shellT(lang, 'shopifySyncProgressTitle'),
           subtitle: shellT(lang, 'shopifySyncProgressQueued'),
-          href: '/dashboard/integrations/shopify?tab=settings',
+          href: '/dashboard/integrations/shopify',
           minimized: false,
         })
         setSyncPanel({

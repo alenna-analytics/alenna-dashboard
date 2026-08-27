@@ -3,6 +3,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { StockAlertLevel } from '@/lib/types/catalog'
 import { useEffectiveStockAlertLevel } from '@/pages/configuration/alarms/stock/use-stock-alert-display'
 import { StatusPill } from '@/ui/status-pill'
+import { TableEmptyCell } from '@/ui/data-table/table-empty-cell'
 import { cn } from '@/lib/utils'
 
 import { stockAlertShortLabel } from './product-stock-alert-label'
@@ -19,7 +20,7 @@ export function ProductStockAlertBadge({
   const effectiveLevel = useEffectiveStockAlertLevel(level)
 
   if (effectiveLevel === 'none') {
-    return <span className={cn('text-sm text-text-tertiary', className)}>—</span>
+    return <TableEmptyCell className={className} />
   }
   return (
     <StatusPill
@@ -46,7 +47,11 @@ export function ProductStockQuantityCell({
   const display = displayStockQuantity(quantity)
   return (
     <div className={cn('flex w-full justify-end', className)}>
-      <span className="text-sm tabular-nums">{display != null ? display : '—'}</span>
+      {display != null ? (
+        <span className="tabular-nums">{display}</span>
+      ) : (
+        <TableEmptyCell />
+      )}
     </div>
   )
 }

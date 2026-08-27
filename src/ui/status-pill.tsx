@@ -38,7 +38,8 @@ function StatusPill({
     props: mergeProps<"span">(
       {
         className: cn(statusPillVariants({ variant }), className),
-      },
+        'data-slot': 'status-pill',
+      } as useRender.ComponentProps<'span'>,
       props,
     ),
     render,

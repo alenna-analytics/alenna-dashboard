@@ -6,6 +6,7 @@ import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 import type { ProductVariantSummaryApi, StockAlertLevel } from '@/lib/types/catalog'
 import { ChannelBadge } from '@/ui/channel-badge'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { TableEmptyCell } from '@/ui/data-table/table-empty-cell'
 
 import { ProductCostInlineCell } from './product-cost-inline-cell'
 import { ProductDetailColumnHeaderWithHelp } from './product-detail-column-header-with-help'
@@ -119,7 +120,7 @@ export function createProductDetailVariantsColumns(
       cell: ({ row }) => {
         const platforms = row.original.platforms ?? []
         if (platforms.length === 0) {
-          return <span className="text-sm text-text-tertiary">—</span>
+          return <TableEmptyCell />
         }
         return (
           <div className="flex flex-wrap gap-1">
@@ -132,6 +133,27 @@ export function createProductDetailVariantsColumns(
                 </ChannelBadge>
               )
             })}
+            {(row.original.linked_platforms ?? [])
+              .filter((platform) => !platforms.includes(platform))
+              .map((platform) => {
+                const slug = platform.trim().toLowerCase()
+                const ui = slug ? INTEGRATION_UI[slug] : undefined
+                const href = row.original.link_group_id
+                  ? `/dashboard/products/vinculacion/${row.original.link_group_id}`
+                  : undefined
+                const badge = (
+                  <ChannelBadge key={`link-${platform}`} logoSrc={ui?.logoSrc}>
+                    {productPlatformLabel(platform, t)}
+                  </ChannelBadge>
+                )
+                return href ? (
+                  <Link key={`link-${platform}`} to={href}>
+                    {badge}
+                  </Link>
+                ) : (
+                  badge
+                )
+              })}
           </div>
         )
       },
@@ -172,11 +194,11 @@ export function createProductDetailVariantsColumns(
           />
         </div>
       ),
-      cell: ({ row }) => (
-        <span className="text-sm tabular-nums">
-          {formatListingVelocityPerDay(row.original.velocity_units_per_day_90d)}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const formatted = formatListingVelocityPerDay(row.original.velocity_units_per_day_90d)
+        if (!formatted) return <TableEmptyCell />
+        return <span className="tabular-nums">{formatted}</span>
+      },
     },
     {
       id: 'inventory_days',

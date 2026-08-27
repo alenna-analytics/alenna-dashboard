@@ -1,6 +1,6 @@
-import { AlertCircle, CheckCircle2 } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 
-import { LoadingIcon } from '@/ui/app-icon'
+import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 
 import { shellT } from '@/lib/i18n/shell-strings'
 import {
@@ -44,7 +44,7 @@ export function GlobalActivityHeaderIndicator() {
       {phase === 'loading' ? (
         <LoadingIcon className="size-3 shrink-0" />
       ) : phase === 'success' ? (
-        <CheckCircle2 className="size-3 shrink-0" aria-hidden />
+        <AppIcon name="validation" colorize className="size-3 shrink-0" />
       ) : (
         <AlertCircle className="size-3 shrink-0" aria-hidden />
       )}

@@ -91,6 +91,36 @@ describe('filterAlertsByListFilters', () => {
     ]
     expect(filterAlertsByListFilters(items, filters(), connections)).toHaveLength(2)
   })
+
+  it('filters match suggestions by payload platforms', () => {
+    const items = [
+      stockAlert({
+        id: 'm',
+        alert_type: 'match_suggestion',
+        platform: null,
+        payload: { platforms: ['shopify', 'mercadolibre'] },
+      }),
+      stockAlert({ id: 'a', platform: 'amazon' }),
+    ]
+    expect(
+      filterAlertsByListFilters(items, filters({ channel: 'shopify' }), connections).map((item) => item.id),
+    ).toEqual(['m'])
+  })
+
+  it('keeps only match suggestions when kind is match_suggestion', () => {
+    const items = [
+      stockAlert({
+        id: 'm',
+        alert_type: 'match_suggestion',
+        severity: 'informational',
+        platform: null,
+      }),
+      stockAlert({ id: 'a', platform: 'amazon' }),
+    ]
+    expect(
+      filterAlertsByListFilters(items, filters({ kind: 'match_suggestion' }), connections).map((item) => item.id),
+    ).toEqual(['m'])
+  })
 })
 
 describe('countActiveAlertsFilters', () => {

@@ -1,5 +1,5 @@
 import { Show, useAuth, useUser } from '@clerk/react'
-import { ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -22,7 +22,7 @@ import { AuthShell } from '@/shell/auth/auth-shell'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
-import { LoadingIcon } from '@/ui/app-icon'
+import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 
 type Step = 1 | 2 | 3
 type StepDirection = 'forward' | 'back'
@@ -301,10 +301,10 @@ function OnboardingWizard() {
               <ul className="flex flex-col gap-2 text-sm text-text-primary">
                 {(signupIntent === 'growth' ? GROWTH_PLAN_BULLETS : TRIAL_PLAN_BULLETS).map((key) => (
                   <li key={key} className="flex items-start gap-2">
-                    <CheckCircle2
+                    <AppIcon
+                      name="validation"
+                      colorize
                       className="mt-0.5 size-4 shrink-0 text-success"
-                      aria-hidden
-                      strokeWidth={2}
                     />
                     <span>{t(key)}</span>
                   </li>

@@ -9,6 +9,7 @@ import { BulkCogsApplyStep } from '@/pages/products/bulk-cogs/bulk-cogs-apply-st
 import { BulkCogsUnsavedLeaveDialog } from '@/pages/products/bulk-cogs/bulk-cogs-unsaved-leave-dialog'
 import {
   mergeLoadItemsIntoDraftStore,
+  syncLoadDraftStoreMembership,
   type BulkCogsDraftStore,
 } from '@/pages/products/bulk-cogs/bulk-cogs-draft-store'
 import { BulkCogsGrid } from '@/pages/products/bulk-cogs/bulk-cogs-grid'
@@ -71,29 +72,24 @@ function WizardBackButton({
   onClick: () => void
 }) {
   return (
-    <Button type="button" variant="outline" size="icon-sm" aria-label={ariaLabel} onClick={onClick}>
-      <ChevronLeft className="size-4 shrink-0" aria-hidden />
+    <Button type="button" variant="outline" size="icon-xs" aria-label={ariaLabel} onClick={onClick}>
+      <ChevronLeft aria-hidden />
     </Button>
   )
 }
 
 function WizardFooter({
   progress,
-  leading,
   action,
 }: {
   progress: string
-  leading?: ReactNode
   action: ReactNode
 }) {
   return (
     <footer className={footerClassName}>
       <div className="flex w-full items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <p className="shrink-0 text-xs text-text-tertiary">{progress}</p>
-          {leading}
-        </div>
-        {action}
+        <p className="shrink-0 text-xs text-text-tertiary">{progress}</p>
+        <div className="flex items-center gap-2">{action}</div>
       </div>
     </footer>
   )
@@ -188,9 +184,16 @@ export function CogsLoadEditorPage() {
 
   useEffect(() => {
     if (!detail) return
-    loadUpdatedAtRef.current = detail.load.updated_at
+    if (
+      !loadUpdatedAtRef.current ||
+      detail.load.updated_at >= loadUpdatedAtRef.current
+    ) {
+      loadUpdatedAtRef.current = detail.load.updated_at
+    }
     setDraftStore((prev) =>
-      mergeLoadItemsIntoDraftStore(prev, detail.items, detail.base_currency),
+      prev.size === 0
+        ? mergeLoadItemsIntoDraftStore(prev, detail.items, detail.base_currency)
+        : syncLoadDraftStoreMembership(prev, detail.items, detail.base_currency),
     )
   }, [detail])
 
@@ -222,7 +225,6 @@ export function CogsLoadEditorPage() {
           updated_at: loadUpdatedAtRef.current,
         })
         loadUpdatedAtRef.current = data.load.updated_at
-        setDraftStore((prev) => mergeLoadItemsIntoDraftStore(prev, data.items, data.base_currency))
         setFailedProductIds((prev) => prev.filter((id) => id !== productId))
       } catch (error) {
         setFailedProductIds((prev) =>
@@ -365,8 +367,18 @@ export function CogsLoadEditorPage() {
 
       <header className="flex shrink-0 flex-col gap-4 pb-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1.5">
-            <h1 className={pageTitleClassName}>{t('productsCogsLoadEditorTitle')}</h1>
+          <div className="min-w-0 space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className={pageTitleClassName}>{t('productsCogsLoadEditorTitle')}</h1>
+              {isDraft ? (
+                <CogsLoadSaveStatusPill
+                  status={autosaveStatus}
+                  t={t}
+                  onRetry={() => void retryFailedSaves()}
+                  retryPending={pendingSaves > 0}
+                />
+              ) : null}
+            </div>
             <p className={pageSubtitleClassName}>{stepLabel}</p>
           </div>
           {step === 'grid' && isDraft ? (
@@ -374,7 +386,7 @@ export function CogsLoadEditorPage() {
               <Button
                 type="button"
                 variant="accent"
-                size="sm"
+                size="tiny"
                 loading={prefillMutation.isPending}
                 disabled={detail.items.length === 0}
                 onClick={() => {
@@ -391,10 +403,10 @@ export function CogsLoadEditorPage() {
               <Tooltip>
                 <TooltipTrigger
                   type="button"
-                  className="inline-flex size-8 items-center justify-center rounded-full text-text-secondary outline-none hover:bg-muted hover:text-text-primary focus-visible:ring-2 focus-visible:ring-ring/30"
+                  className="inline-flex size-[26px] items-center justify-center rounded-full text-text-secondary outline-none hover:bg-muted hover:text-text-primary focus-visible:ring-2 focus-visible:ring-ring/30"
                   aria-label={t('productsCogsLoadPrefillDbTooltip')}
                 >
-                  <Info className="size-4 shrink-0" aria-hidden />
+                  <Info className="size-3.5 shrink-0" aria-hidden />
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs">
                   {t('productsCogsLoadPrefillDbTooltip')}
@@ -451,32 +463,24 @@ export function CogsLoadEditorPage() {
             </div>
             <WizardFooter
               progress={stepProgress}
-              leading={
+              action={
                 <>
                   <WizardBackButton
                     ariaLabel={t('productsCogsLoadBackSelect')}
                     onClick={() => setStep('select')}
                   />
-                  <CogsLoadSaveStatusPill
-                    status={autosaveStatus}
-                    t={t}
-                    onRetry={() => void retryFailedSaves()}
-                    retryPending={pendingSaves > 0}
-                  />
+                  <Button
+                    type="button"
+                    variant="accent"
+                    size="tiny"
+                    onClick={() => setStep('review')}
+                    disabled={
+                      detail.items.length === 0 || pendingSaves > 0 || debouncingSaves > 0
+                    }
+                  >
+                    {t('productsBulkCogsContinueReview')}
+                  </Button>
                 </>
-              }
-              action={
-                <Button
-                  type="button"
-                  variant="accent"
-                  size="tiny"
-                  onClick={() => setStep('review')}
-                  disabled={
-                    detail.items.length === 0 || pendingSaves > 0 || debouncingSaves > 0
-                  }
-                >
-                  {t('productsBulkCogsContinueReview')}
-                </Button>
               }
             />
           </>
@@ -493,28 +497,28 @@ export function CogsLoadEditorPage() {
             </div>
             <WizardFooter
               progress={stepProgress}
-              leading={
-                <WizardBackButton
-                  ariaLabel={t('productsBulkCogsBackEdit')}
-                  onClick={() => setStep('grid')}
-                />
-              }
               action={
-                <Button
-                  type="button"
-                  variant="accent"
-                  size="tiny"
-                  onClick={() => setStep('apply')}
-                  disabled={
-                    reviewCounts.invalid > 0 ||
-                    reviewCounts.ready === 0 ||
-                    pendingSaves > 0 ||
-                    debouncingSaves > 0 ||
-                    !isDraft
-                  }
-                >
-                  {t('productsBulkCogsContinueApply')}
-                </Button>
+                <>
+                  <WizardBackButton
+                    ariaLabel={t('productsBulkCogsBackEdit')}
+                    onClick={() => setStep('grid')}
+                  />
+                  <Button
+                    type="button"
+                    variant="accent"
+                    size="tiny"
+                    onClick={() => setStep('apply')}
+                    disabled={
+                      reviewCounts.invalid > 0 ||
+                      reviewCounts.ready === 0 ||
+                      pendingSaves > 0 ||
+                      debouncingSaves > 0 ||
+                      !isDraft
+                    }
+                  >
+                    {t('productsBulkCogsContinueApply')}
+                  </Button>
+                </>
               }
             />
           </>
@@ -540,28 +544,28 @@ export function CogsLoadEditorPage() {
             </div>
             <WizardFooter
               progress={stepProgress}
-              leading={
-                <WizardBackButton
-                  ariaLabel={t('productsBulkCogsBackReview')}
-                  onClick={() => setStep('review')}
-                />
-              }
               action={
-                <Button
-                  type="button"
-                  variant="accent"
-                  size="tiny"
-                  loading={applyMutation.isPending}
-                  onClick={() => void handleApply()}
-                  disabled={
-                    pendingSaves > 0 ||
-                    debouncingSaves > 0 ||
-                    !isDraft ||
-                    !isCostApplyModeValid(applyMode, effectiveFromDate, rangeStart, rangeEnd)
-                  }
-                >
-                  {t('productsBulkCogsApplySave')}
-                </Button>
+                <>
+                  <WizardBackButton
+                    ariaLabel={t('productsBulkCogsBackReview')}
+                    onClick={() => setStep('review')}
+                  />
+                  <Button
+                    type="button"
+                    variant="accent"
+                    size="tiny"
+                    loading={applyMutation.isPending}
+                    onClick={() => void handleApply()}
+                    disabled={
+                      pendingSaves > 0 ||
+                      debouncingSaves > 0 ||
+                      !isDraft ||
+                      !isCostApplyModeValid(applyMode, effectiveFromDate, rangeStart, rangeEnd)
+                    }
+                  >
+                    {t('productsBulkCogsApplySave')}
+                  </Button>
+                </>
               }
             />
           </>

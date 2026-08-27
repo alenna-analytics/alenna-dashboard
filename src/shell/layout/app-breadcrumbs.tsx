@@ -1,12 +1,17 @@
 import { useLocation } from 'react-router-dom'
 
+import { usePlatformConnectionsQuery } from '@/hooks/use-platform-connections-query'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 import { configurationInnerSubmoduleCrumbs } from '@/pages/configuration/configuration-inner-submodule-crumbs'
+import { findActiveConnection } from '@/pages/integrations/dashboard/integration-connection'
+import { integrationDetailSlugFromPath } from '@/pages/integrations/dashboard/integrations-inner-nav'
 import { cogsBreadcrumbItems } from '@/pages/products/cogs/cogs-breadcrumb-crumbs'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useProductDetailQuery } from '@/pages/products/use-catalog-queries'
 import { PageBreadcrumb, type PageBreadcrumbItem } from '@/ui/page-breadcrumb'
+import { StatusPill } from '@/ui/status-pill'
+import { cn } from '@/lib/utils'
 
 type Crumb = PageBreadcrumbItem
 
@@ -135,6 +140,7 @@ function crumbsForPath(pathname: string, lang: string, productDetail?: ProductDe
 export function AppBreadcrumbs({ className }: { className?: string }) {
   const { pathname } = useLocation()
   const { lang } = useLanguage()
+  const connectionsQuery = usePlatformConnectionsQuery()
 
   const productMatch = pathname.match(/^\/dashboard\/products\/(?!bulk-cogs$)([^/]+)$/)
   const productId = productMatch?.[1]
@@ -148,11 +154,21 @@ export function AppBreadcrumbs({ className }: { className?: string }) {
     parentTitle: detail?.parent_title ?? undefined,
   })
 
+  const integrationSlug = integrationDetailSlugFromPath(pathname)
+  const integrationInstalled = Boolean(
+    integrationSlug && findActiveConnection(connectionsQuery.data ?? [], integrationSlug),
+  )
+
   return (
-    <PageBreadcrumb
-      items={items}
-      ariaLabel={shellT(lang, 'ariaBreadcrumb')}
-      className={className}
-    />
+    <div className={cn('flex min-w-0 items-center gap-2', className)}>
+      <PageBreadcrumb
+        items={items}
+        ariaLabel={shellT(lang, 'ariaBreadcrumb')}
+        className="min-w-0 flex-1"
+      />
+      {integrationInstalled ? (
+        <StatusPill variant="success">{shellT(lang, 'integrationDetailInstalledBadge')}</StatusPill>
+      ) : null}
+    </div>
   )
 }

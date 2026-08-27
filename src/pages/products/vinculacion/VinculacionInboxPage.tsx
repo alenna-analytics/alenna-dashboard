@@ -91,7 +91,7 @@ export function VinculacionInboxPage() {
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
-            variant="default"
+            variant="outline"
             size="tiny"
             loading={searching}
             icon={<AppIcon name="ai" colorize />}

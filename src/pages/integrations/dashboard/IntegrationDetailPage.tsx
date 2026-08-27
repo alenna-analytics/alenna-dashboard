@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Navigate, useParams, useSearchParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 
 import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
 import { connectionNeedsInitialSync } from '@/lib/integrations/sync-freshness'
@@ -10,10 +10,8 @@ import {
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
 import { IntegrationDetailLayout } from '@/pages/integrations/dashboard/integration-detail-layout'
 import { IntegrationDetailSkeleton } from '@/pages/integrations/dashboard/integration-detail-skeleton'
-import { integrationDetailTabFromSearch } from '@/pages/integrations/dashboard/integration-detail-tab'
 import {
   integrationDescription,
-  integrationOverviewCopy,
   integrationTitle,
 } from '@/pages/integrations/dashboard/integration-display'
 import {
@@ -49,8 +47,6 @@ function IntegrationPlaceholderSettings({ lang }: { lang: string }) {
 export function IntegrationDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { lang } = useLanguage()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const tab = integrationDetailTabFromSearch(searchParams.get('tab'))
   const [disconnectDataDialogOpen, setDisconnectDataDialogOpen] = useState(false)
   const [disconnectConfirmDialogOpen, setDisconnectConfirmDialogOpen] = useState(false)
   const [purgeDataOnDisconnect, setPurgeDataOnDisconnect] = useState(false)
@@ -148,14 +144,11 @@ export function IntegrationDetailPage() {
       : null
 
   const titleBadges = connected ? (
-    <>
-      <StatusPill variant="success">{shellT(lang, 'integrationDetailInstalledBadge')}</StatusPill>
-      {needsInitialSync ? (
-        <StatusPill variant="warning">{shellT(lang, 'integrationCardSyncPending')}</StatusPill>
-      ) : syncPill ? (
-        <SyncFreshnessPillBadge pill={syncPill} lang={lang} />
-      ) : null}
-    </>
+    needsInitialSync ? (
+      <StatusPill variant="warning">{shellT(lang, 'integrationCardSyncPending')}</StatusPill>
+    ) : syncPill ? (
+      <SyncFreshnessPillBadge pill={syncPill} lang={lang} />
+    ) : null
   ) : null
 
   const settingsBody = !integration.available ? (
@@ -215,18 +208,6 @@ export function IntegrationDetailPage() {
         titleBadges={titleBadges}
         lang={lang}
         connected={connected}
-        tab={tab}
-        onTabChange={(next) => {
-          const params = new URLSearchParams(searchParams)
-          if (next === 'overview') params.delete('tab')
-          else params.set('tab', next)
-          setSearchParams(params, { replace: true })
-        }}
-        overview={
-          <p className="max-w-2xl text-sm leading-relaxed text-text-secondary">
-            {integrationOverviewCopy(lang, integration)}
-          </p>
-        }
         settings={settingsBody}
       />
 

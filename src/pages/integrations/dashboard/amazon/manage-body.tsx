@@ -7,6 +7,7 @@ import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness
 import { isPlanLimitSyncPaused } from '@/lib/plan/plan-limit-ui'
 import { IntegrationEnableCard } from '@/components/integrations/integration-enable-card'
 import { IntegrationSyncActionCard } from '@/components/integrations/integration-sync-action-card'
+import { IntegrationConnectPanel } from '@/pages/integrations/dashboard/integration-connect-panel'
 import { IntegrationConsentDialog } from '@/pages/integrations/dashboard/integration-consent-dialog'
 import { IntegrationDetailSkeleton } from '@/pages/integrations/dashboard/integration-detail-skeleton'
 import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
@@ -39,19 +40,6 @@ function lifecycleButtonLabelKey(syncPlan: SyncPlan | null): ShellStringKey {
   if (status === 'synced' || status === 'partial') return 'syncRefreshBtn'
   if (status === 'failed') return 'syncRetryBtn'
   return 'syncRunBtn'
-}
-
-function AmazonIntroCopy({ lang, sandboxConnect }: { lang: string; sandboxConnect: boolean }) {
-  return (
-    <div className="space-y-2">
-      <p className="text-sm text-muted-foreground">
-        {shellT(lang, 'integrationSheetAmazonConnectIntro')}
-      </p>
-      {sandboxConnect ? (
-        <p className="text-xs text-muted-foreground">{shellT(lang, 'integrationAmazonSandboxHint')}</p>
-      ) : null}
-    </div>
-  )
 }
 
 function AmazonSyncSection({
@@ -257,8 +245,18 @@ export function AmazonManageBody({
           {shellT(lang, 'integrationAmazonLoadFailed')}
         </p>
       ) : !amazon.hasConnection ? (
-        <div className="space-y-4">
-          <AmazonIntroCopy lang={lang} sandboxConnect={amazon.sandboxConnect} />
+        <IntegrationConnectPanel
+          description={shellT(lang, 'integrationSheetAmazonConnectIntro')}
+          title={shellT(lang, 'integrationConnectSectionTitle')}
+          disclaimer={shellT(lang, 'integrationDetailAmazonHelper')}
+          disclaimerExtra={
+            amazon.sandboxConnect ? (
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                {shellT(lang, 'integrationAmazonSandboxHint')}
+              </p>
+            ) : null
+          }
+        >
           <Button
             type="button"
             variant="accent"
@@ -275,10 +273,7 @@ export function AmazonManageBody({
           >
             {connectLabel}
           </Button>
-          <p className="text-xs text-muted-foreground">
-            {shellT(lang, 'integrationDetailAmazonHelper')}
-          </p>
-        </div>
+        </IntegrationConnectPanel>
       ) : (
         <div className="flex w-full flex-col gap-4">
           <IntegrationEnableCard

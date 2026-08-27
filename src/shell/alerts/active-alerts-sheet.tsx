@@ -161,6 +161,7 @@ function AlertListToolbar({
   filters,
   onFiltersChange,
   channelSlugs,
+  countLabel,
   onClose,
   closeAriaLabel,
   t,
@@ -168,32 +169,42 @@ function AlertListToolbar({
   filters: AlertsListFilters
   onFiltersChange: (patch: Partial<AlertsListFilters>) => void
   channelSlugs: string[]
+  countLabel: string | null
   onClose: () => void
   closeAriaLabel: string
   t: (key: ShellStringKey) => string
 }) {
   return (
-    <div className="flex min-h-12 shrink-0 items-center gap-2 border-b border-border-subtle px-6 py-3">
-      <div className="min-w-0 flex-1 overflow-x-auto">
-        <div className="flex min-w-max items-center">
-          <AlertsFiltersToolbar
-            filters={filters}
-            onFiltersChange={onFiltersChange}
-            channelSlugs={channelSlugs}
-            t={t}
-          />
+    <div className="shrink-0">
+      <div className="flex min-h-10 shrink-0 items-center gap-2 border-b border-border-subtle px-6 py-2">
+        <div className="min-w-0 flex-1 overflow-x-auto">
+          <div className="flex min-w-max items-center">
+            <AlertsFiltersToolbar
+              filters={filters}
+              onFiltersChange={onFiltersChange}
+              channelSlugs={channelSlugs}
+              t={t}
+            />
+          </div>
         </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className={alertPanelIconButtonClassName}
+          onClick={onClose}
+          aria-label={closeAriaLabel}
+        >
+          <X className="size-4" aria-hidden />
+        </Button>
       </div>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-sm"
-        className={alertPanelIconButtonClassName}
-        onClick={onClose}
-        aria-label={closeAriaLabel}
-      >
-        <X className="size-4" aria-hidden />
-      </Button>
+      {countLabel ? (
+        <div className="flex h-8 shrink-0 items-center border-b border-border-subtle px-6">
+          <p className="min-w-0 truncate font-numeric text-xs tabular-nums text-text-tertiary">
+            {countLabel}
+          </p>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -485,12 +496,23 @@ function AlertListView({
   const listEmptyLabel =
     items.length > 0 && filteredItems.length === 0 ? filterEmptyLabel : emptyLabel
 
+  const filtersNarrowList =
+    filters.severity !== 'all' || filters.kind !== 'all' || filters.channel !== 'all'
+  const countLabel = loading
+    ? null
+    : filtersNarrowList
+      ? t('homeAlertsSheetCountFiltered')
+          .replace('{shown}', String(filteredItems.length))
+          .replace('{total}', String(items.length))
+      : t('homeAlertsSheetCount').replace('{count}', String(items.length))
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <AlertListToolbar
         filters={filters}
         onFiltersChange={onFiltersChange}
         channelSlugs={channelSlugs}
+        countLabel={countLabel}
         onClose={onClose}
         closeAriaLabel={t('productsDetailSheetCancel')}
         t={t}

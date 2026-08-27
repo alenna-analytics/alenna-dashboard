@@ -31,7 +31,7 @@ export type GoogleAdsPendingCandidate = {
 }
 
 function adsActivityHref(slug: AdsPlatformSlug): string {
-  return `/dashboard/integrations/${slug}?tab=settings`
+  return `/dashboard/integrations/${slug}`
 }
 
 function adsAuthUrl(slug: AdsPlatformSlug): string {

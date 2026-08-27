@@ -14,12 +14,7 @@ export function IntegrationDetailSkeleton() {
         </div>
       </div>
 
-      <div className="flex gap-6 border-b border-border-subtle pb-3">
-        <Skeleton className="h-5 w-20 rounded" />
-        <Skeleton className="h-5 w-28 rounded" />
-      </div>
-
-      <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_15.5rem]">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_15.5rem]">
         <div className="space-y-4">
           <Skeleton className="h-4 w-full max-w-2xl rounded" />
           <Skeleton className="h-4 w-full max-w-xl rounded" />

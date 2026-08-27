@@ -230,7 +230,7 @@ export function useAmazonIntegration() {
         phase: 'success',
         title: shellT(lang, 'amazonSyncProgressTitle'),
         subtitle: summaryLine,
-        href: '/dashboard/integrations/amazon?tab=settings',
+        href: '/dashboard/integrations/amazon',
         minimized: true,
         dismissKey: `${job.id}:succeeded:${job.finished_at ?? ''}`,
       })
@@ -253,7 +253,7 @@ export function useAmazonIntegration() {
         phase: 'error',
         title: amazonSyncFailedTitle(lang, job.error_code, job.error_message),
         subtitle: message,
-        href: '/dashboard/integrations/amazon?tab=settings',
+        href: '/dashboard/integrations/amazon',
         minimized: false,
       })
       void queryClient.invalidateQueries({ queryKey: ['connectors', tenantId] })
@@ -451,7 +451,7 @@ export function useAmazonIntegration() {
         phase: 'loading',
         title: shellT(lang, 'amazonSyncProgressTitle'),
         subtitle: shellT(lang, 'amazonSyncProgressQueued'),
-        href: '/dashboard/integrations/amazon?tab=settings',
+        href: '/dashboard/integrations/amazon',
         minimized: false,
         jobId: data.job_id,
       })
@@ -495,7 +495,7 @@ export function useAmazonIntegration() {
         phase: 'error',
         title: shellT(lang, 'amazonSyncFailedTitle'),
         subtitle: message,
-        href: '/dashboard/integrations/amazon?tab=settings',
+        href: '/dashboard/integrations/amazon',
         minimized: false,
       })
     },
@@ -512,7 +512,7 @@ export function useAmazonIntegration() {
           phase: 'loading',
           title: shellT(lang, 'amazonSyncProgressTitle'),
           subtitle: shellT(lang, 'amazonSyncProgressQueued'),
-          href: '/dashboard/integrations/amazon?tab=settings',
+          href: '/dashboard/integrations/amazon',
           minimized: false,
           jobId: fid,
         })

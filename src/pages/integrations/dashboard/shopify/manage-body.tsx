@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 import { useMemo, useRef, useState } from 'react'
 
+import { IntegrationConnectPanel } from '@/pages/integrations/dashboard/integration-connect-panel'
 import { IntegrationConsentDialog } from '@/pages/integrations/dashboard/integration-consent-dialog'
 import type { ShopifyIntegrationHook } from '@/pages/integrations/details/use-shopify-integration'
 import { useCancelPlatformSyncJob } from '@/hooks/use-cancel-platform-sync-job'
@@ -331,7 +332,11 @@ export function ShopifyManageBody({
             {error instanceof Error ? error.message : String(error)}
           </p>
         ) : !connected ? (
-          <div className="space-y-4">
+          <IntegrationConnectPanel
+            description={shellT(lang, 'integrationSheetShopifyConnectIntro')}
+            title={shellT(lang, 'integrationConnectSectionTitle')}
+            disclaimer={shellT(lang, 'integrationDetailHeroHelper')}
+          >
             <div className="space-y-2">
               <Label htmlFor={storeId}>{shellT(lang, 'connectionsConnectShopLabel')}</Label>
               <div
@@ -369,10 +374,7 @@ export function ShopifyManageBody({
                 {previewMessage}
               </p>
             ) : null}
-            <p className="text-xs text-muted-foreground">
-              {shellT(lang, 'integrationDetailHeroHelper')}
-            </p>
-          </div>
+          </IntegrationConnectPanel>
         ) : (
           <div className="flex w-full flex-col gap-4">
             <IntegrationEnableCard

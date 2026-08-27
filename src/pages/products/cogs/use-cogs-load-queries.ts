@@ -59,6 +59,8 @@ export function useCogsLoadQuery(loadId: string | undefined) {
       return (await res.json()) as CogsBulkLoadDetailApi
     },
     enabled: Boolean(tenantId && loadId),
+    staleTime: 15_000,
+    refetchOnWindowFocus: false,
   })
 }
 
@@ -618,29 +620,138 @@ export type CogsLoadItemPatchPayload = {
   supplier_price?: number | null
   freight_value?: number | null
   packaging_value?: number | null
-  updated_at: string
+  updated_at?: string
+}
+
+const cogsLoadPatchTail = new Map<string, Promise<void>>()
+
+function enqueueCogsLoadPatch<T>(loadId: string, task: () => Promise<T>): Promise<T> {
+  const previous = cogsLoadPatchTail.get(loadId) ?? Promise.resolve()
+  const next = previous.then(task, task)
+  cogsLoadPatchTail.set(
+    loadId,
+    next.then(
+      () => undefined,
+      () => undefined,
+    ),
+  )
+  return next
+}
+
+function isNewerLoadTimestamp(incoming: string, current: string | undefined): boolean {
+  if (!current) return true
+  return incoming >= current
+}
+
+function patchLoadItemInDetail(
+  detail: CogsBulkLoadDetailApi,
+  payload: CogsLoadItemPatchPayload,
+): CogsBulkLoadDetailApi {
+  return {
+    ...detail,
+    items: detail.items.map((item) => {
+      if (item.product_id !== payload.productId) return item
+      const supplierPrice = payload.supplier_price ?? item.supplier_price
+      const freightValue = payload.freight_value ?? item.freight_value
+      const packagingValue = payload.packaging_value ?? item.packaging_value
+      const computedTotal =
+        supplierPrice == null
+          ? item.computed_total
+          : supplierPrice + (freightValue ?? 0) + (packagingValue ?? 0)
+      return {
+        ...item,
+        supplier_price: supplierPrice,
+        freight_value: freightValue,
+        packaging_value: packagingValue,
+        computed_total: computedTotal,
+      }
+    }),
+  }
+}
+
+type CogsLoadItemPatchContext = {
+  productId: string
+  previousItem: CogsBulkLoadItemApi | undefined
 }
 
 export function usePatchCogsLoadItemMutation(loadId: string) {
   const qc = useQueryClient()
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const detailKey = cogsLoadKey(tenantId, loadId)
 
   return useMutation({
     mutationFn: async (payload: CogsLoadItemPatchPayload) => {
-      const { productId, ...body } = payload
-      const res = await apiPatchJson(
-        `/catalog/cogs-loads/${loadId}/items/${productId}`,
-        (a) => getToken(a),
-        body,
-        {},
-        tenantId,
-      )
-      if (!res.ok) throw new Error('Failed to save item')
-      return (await res.json()) as CogsBulkLoadDetailApi
+      return enqueueCogsLoadPatch(loadId, async () => {
+        const sendPatch = async (updatedAt: string | undefined) => {
+          const { productId, ...fields } = payload
+          return apiPatchJson(
+            `/catalog/cogs-loads/${loadId}/items/${productId}`,
+            (a) => getToken(a),
+            { ...fields, updated_at: updatedAt },
+            {},
+            tenantId,
+          )
+        }
+
+        const cached = qc.getQueryData<CogsBulkLoadDetailApi>(detailKey)
+        let updatedAt = cached?.load.updated_at ?? payload.updated_at
+        let res = await sendPatch(updatedAt)
+
+        if (res.status === 409) {
+          const freshRes = await apiFetch(
+            `/catalog/cogs-loads/${loadId}`,
+            (a) => getToken(a),
+            {},
+            tenantId,
+          )
+          if (freshRes.ok) {
+            const fresh = (await freshRes.json()) as CogsBulkLoadDetailApi
+            qc.setQueryData<CogsBulkLoadDetailApi>(detailKey, (current) =>
+              mergeServerDetail(current, fresh),
+            )
+            updatedAt = fresh.load.updated_at
+            res = await sendPatch(updatedAt)
+          }
+        }
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => null)
+          throw new Error(parseApiErrorDetail(err, 'Failed to save item'))
+        }
+        return (await res.json()) as CogsBulkLoadDetailApi
+      })
+    },
+    onMutate: async (payload): Promise<CogsLoadItemPatchContext> => {
+      await qc.cancelQueries({ queryKey: detailKey })
+      const previous = qc.getQueryData<CogsBulkLoadDetailApi>(detailKey)
+      const previousItem = previous?.items.find((item) => item.product_id === payload.productId)
+      if (previous) {
+        qc.setQueryData(detailKey, patchLoadItemInDetail(previous, payload))
+      }
+      return { productId: payload.productId, previousItem }
+    },
+    onError: (_error, _payload, context) => {
+      const previousItem = context?.previousItem
+      if (!previousItem || !context) return
+      qc.setQueryData<CogsBulkLoadDetailApi>(detailKey, (current) => {
+        if (!current) return current
+        return {
+          ...current,
+          items: current.items.map((item) =>
+            item.product_id === context.productId ? previousItem : item,
+          ),
+        }
+      })
     },
     onSuccess: (data) => {
-      qc.setQueryData(cogsLoadKey(tenantId, loadId), data)
+      qc.setQueryData<CogsBulkLoadDetailApi>(detailKey, (current) => {
+        if (!current) return data
+        if (!isNewerLoadTimestamp(data.load.updated_at, current.load.updated_at)) {
+          return current
+        }
+        return mergeServerDetail(current, data)
+      })
     },
   })
 }

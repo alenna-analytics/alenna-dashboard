@@ -166,7 +166,7 @@ export function useMercadoLibreSyncBanner(
             job.error_code,
             lang,
           ),
-          href: '/dashboard/integrations/mercadolibre?tab=settings',
+          href: '/dashboard/integrations/mercadolibre',
           dismissKey: sig,
         })
         if (!cancelled) {
@@ -193,7 +193,7 @@ export function useMercadoLibreSyncBanner(
           phase: 'success',
           title: shellT(lang, 'meliSyncProgressTitle'),
           subtitle,
-          href: '/dashboard/integrations/mercadolibre?tab=settings',
+          href: '/dashboard/integrations/mercadolibre',
           dismissKey: sig,
         })
         toast.success(shellT(lang, 'meliSyncToastSuccess'))
@@ -223,7 +223,7 @@ export function useMercadoLibreSyncBanner(
           phase: 'success',
           title: shellT(lang, 'meliSyncProgressTitle'),
           subtitle: buildCompletedSyncSubtitle(completedConn, lang),
-          href: '/dashboard/integrations/mercadolibre?tab=settings',
+          href: '/dashboard/integrations/mercadolibre',
           dismissKey: sig,
         })
         toast.success(shellT(lang, 'meliSyncToastSuccess'))
@@ -244,7 +244,7 @@ export function useMercadoLibreSyncBanner(
           phase: 'error',
           title: shellT(lang, 'meliSyncFailedTitle'),
           subtitle,
-          href: '/dashboard/integrations/mercadolibre?tab=settings',
+          href: '/dashboard/integrations/mercadolibre',
           dismissKey,
         })
         return
@@ -277,7 +277,7 @@ export function useMercadoLibreSyncBanner(
       phase: 'loading',
       title: shellT(lang, 'meliSyncProgressTitle'),
       subtitle,
-      href: '/dashboard/integrations/mercadolibre?tab=settings',
+      href: '/dashboard/integrations/mercadolibre',
       jobId: pollJobId ?? undefined,
     })
   }, [

@@ -60,7 +60,7 @@ export function ProductDetailRelatedSection({ detail, t }: ProductDetailRelatedS
         aside={
           <Link
             to={productsLinkingGroupPath(groupId)}
-            className={buttonVariants({ variant: 'outline', size: 'tiny' })}
+            className={buttonVariants({ variant: 'accent', size: 'tiny' })}
           >
             {t('productsVinculacionViewGroup')}
           </Link>

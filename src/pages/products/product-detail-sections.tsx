@@ -103,8 +103,8 @@ export function ProductDetailSections({
     ...(showVariantsTab ? (['variants'] as const) : []),
     ...(showChannelsTab ? (['channels'] as const) : []),
     ...(showCogsTab ? (['cogs'] as const) : []),
-    ...(showRelatedTab ? (['related'] as const) : []),
     'platform-payment',
+    ...(showRelatedTab ? (['related'] as const) : []),
   ]
   const activeTab = visibleTabs.includes(tab) ? tab : 'analytics'
   const periodLabel =
@@ -144,10 +144,10 @@ export function ProductDetailSections({
           {showCogsTab ? (
             <TabsTrigger value="cogs">{t('productsDetailTabCogs')}</TabsTrigger>
           ) : null}
+          <TabsTrigger value="platform-payment">{t('productsDetailTabPlatformPayment')}</TabsTrigger>
           {showRelatedTab ? (
             <TabsTrigger value="related">{t('productsDetailTabRelated')}</TabsTrigger>
           ) : null}
-          <TabsTrigger value="platform-payment">{t('productsDetailTabPlatformPayment')}</TabsTrigger>
         </TabsList>
 
         <div className="relative mt-6 grid w-full grid-cols-1 overflow-hidden">
@@ -246,12 +246,6 @@ export function ProductDetailSections({
           </TabsContent>
         ) : null}
 
-        {showRelatedTab ? (
-          <TabsContent value="related">
-            <ProductDetailRelatedSection detail={detail} t={t} />
-          </TabsContent>
-        ) : null}
-
         <TabsContent value="platform-payment">
           <ProductDetailPlatformPaymentSection
             detail={detail}
@@ -267,6 +261,12 @@ export function ProductDetailSections({
             pickerStrings={pickerStrings}
           />
         </TabsContent>
+
+        {showRelatedTab ? (
+          <TabsContent value="related">
+            <ProductDetailRelatedSection detail={detail} t={t} />
+          </TabsContent>
+        ) : null}
         </div>
       </Tabs>
     </div>

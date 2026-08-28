@@ -41,7 +41,7 @@ import { useProductReports } from '@/pages/reports/use-product-reports'
 import { useReports } from '@/pages/reports/use-reports'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
-import { includesAmazonWithUnavailableFees } from '@/lib/integrations/amazon-fees-notice'
+import { resolveAmazonFeesNoticeState } from '@/lib/integrations/amazon-fees-notice'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { dateRangePickerStrings, presetDateRangeYmd } from '@/ui/date-range-picker'
@@ -222,7 +222,7 @@ export function ReportsPage() {
   )
 
   const queriesEnabled = activeConnectionIds.length > 0
-  const showAmazonFeesNotice = includesAmazonWithUnavailableFees(
+  const amazonFeesNoticeState = resolveAmazonFeesNoticeState(
     activeConnections,
     activeConnectionIds,
   )
@@ -348,10 +348,14 @@ export function ReportsPage() {
       tone: ContextAlertTone
     }
     const items: PageAlertItem[] = []
-    if (showAmazonFeesNotice) {
+    if (amazonFeesNoticeState !== 'none') {
       items.push({
         key: 'amazon-fees',
-        title: t('integrationAmazonFeesUnavailableBanner'),
+        title: t(
+          amazonFeesNoticeState === 'partial'
+            ? 'integrationAmazonFeesPartialBanner'
+            : 'integrationAmazonFeesUnavailableBanner',
+        ),
         icon: AlertTriangle,
         tone: 'warning',
       })
@@ -365,7 +369,7 @@ export function ReportsPage() {
       })
     }
     return items
-  }, [showAmazonFeesNotice, productMode, displayKpi?.cogs_incomplete, t])
+  }, [amazonFeesNoticeState, productMode, displayKpi?.cogs_incomplete, t])
 
   const currency =
     (productMode ? pkpi?.currency : displayKpi?.currency) ?? baseCurrency

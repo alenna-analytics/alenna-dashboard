@@ -23,7 +23,7 @@ import {
   type ChannelPlatform,
 } from '@/pages/channels/channels-platform-aggregate'
 import { useChannelsPageFilters } from '@/pages/channels/use-channels-page-filters'
-import { includesAmazonWithUnavailableFees } from '@/lib/integrations/amazon-fees-notice'
+import { resolveAmazonFeesNoticeState } from '@/lib/integrations/amazon-fees-notice'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
@@ -194,7 +194,7 @@ export function ChannelsPage() {
     [kpis, displayedPlatforms],
   )
   const cmIncomplete = Boolean(kpis?.cm_incomplete)
-  const showAmazonFeesNotice = includesAmazonWithUnavailableFees(
+  const amazonFeesNoticeState = resolveAmazonFeesNoticeState(
     connections,
     activeConnectionIds,
   )
@@ -207,10 +207,14 @@ export function ChannelsPage() {
       tone: ContextAlertTone
     }
     const items: PageAlertItem[] = []
-    if (showAmazonFeesNotice) {
+    if (amazonFeesNoticeState !== 'none') {
       items.push({
         key: 'amazon-fees',
-        title: t('integrationAmazonFeesUnavailableBanner'),
+        title: t(
+          amazonFeesNoticeState === 'partial'
+            ? 'integrationAmazonFeesPartialBanner'
+            : 'integrationAmazonFeesUnavailableBanner',
+        ),
         icon: AlertTriangle,
         tone: 'warning',
       })
@@ -224,7 +228,7 @@ export function ChannelsPage() {
       })
     }
     return items
-  }, [showAmazonFeesNotice, cmIncomplete, t])
+  }, [amazonFeesNoticeState, cmIncomplete, t])
 
   const isInitialLoad =
     connectorsLoading || (queriesEnabled && kpisLoading && !kpis)

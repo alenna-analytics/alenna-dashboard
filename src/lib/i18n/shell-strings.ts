@@ -830,6 +830,8 @@ const SHELL_STRINGS = {
     integrationAmazonAccountLabel: 'Cuenta conectada',
     integrationAmazonFeesUnavailableBanner:
       'Comisiones Amazon pendientes — los datos de pedidos no son comparables en P&L multicanal todavía.',
+    integrationAmazonFeesPartialBanner:
+      'Comisiones Amazon parciales — faltan fees en parte del histórico; compara P&L multicanal con cautela.',
     integrationAmazonSandboxHint: 'Modo sandbox: usa la ficha del portal de Amazon SP-API.',
     integrationAmazonSandboxConnected: 'Amazon sandbox conectado.',
     integrationAmazonOAuthConnected: 'Amazon conectado. Ejecuta una sincronización para importar pedidos.',
@@ -1186,7 +1188,7 @@ const SHELL_STRINGS = {
     platformSyncWorkerDiedMessage:
       'La sincronización se detuvo inesperadamente. Puedes reintentar en unos momentos.',
     platformSyncProgressCatalog: 'Actualizando catálogo (imágenes e inventario)...',
-    platformSyncProgressOrders: 'Pedidos importados',
+    platformSyncProgressOrders: 'Pedidos procesados',
     platformSyncRetry: 'Reintentar',
     platformSyncBlockedHint: 'Última ejecución terminó correctamente.',
     shopifySyncToastFailed: 'La sincronización de Shopify falló.',
@@ -2845,6 +2847,8 @@ const SHELL_STRINGS = {
     integrationAmazonAccountLabel: 'Connected account',
     integrationAmazonFeesUnavailableBanner:
       'Amazon fees pending — order data is not yet comparable in multichannel P&L.',
+    integrationAmazonFeesPartialBanner:
+      'Amazon fees are partial — some historical orders still lack fees; treat multichannel P&L with caution.',
     integrationAmazonSandboxHint: 'Sandbox mode: uses the Amazon SP-API portal refresh token.',
     integrationAmazonSandboxConnected: 'Amazon sandbox connected.',
     integrationAmazonOAuthConnected: 'Amazon connected. Run a sync to import orders.',
@@ -3194,7 +3198,7 @@ const SHELL_STRINGS = {
     platformSyncWorkerDiedMessage:
       'The sync stopped unexpectedly. You can try again in a few moments.',
     platformSyncProgressCatalog: 'Updating catalog (images & stock)...',
-    platformSyncProgressOrders: 'Orders imported',
+    platformSyncProgressOrders: 'Orders processed',
     platformSyncRetry: 'Retry',
     platformSyncBlockedHint: 'Last run finished successfully.',
     shopifySyncToastFailed: 'Shopify sync failed.',

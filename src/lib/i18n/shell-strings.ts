@@ -1789,7 +1789,7 @@ const SHELL_STRINGS = {
     productsStatusDeleted: 'Eliminado',
     productsCatalogEmptyTitle: 'Sin productos para mostrar',
     productsCatalogEmptyHint:
-      'El catálogo se alimenta al sincronizar pedidos desde tus canales conectados (Shopify, Amazon, Mercado Libre, etc.): Integraciones → tu tienda → Sincronizar. Las líneas de pedido crean productos y publicaciones con SKU. Conecta una integración para empezar a ver tus productos en alenna.',
+      'Conecta una integración para empezar a ver tus productos en alenna.',
     productsCatalogEmptySearchHint:
       'Prueba limpiar el filtro de búsqueda o usar otro término.',
     productsCatalogLoadError:
@@ -3812,7 +3812,7 @@ const SHELL_STRINGS = {
     productsStatusDeleted: 'Deleted',
     productsCatalogEmptyTitle: 'No products to show',
     productsCatalogEmptyHint:
-      'Your catalog fills when orders sync from your connected channels (Shopify, Amazon, Mercado Libre, and more): Integrations → your store → Sync. Order lines create products and listings keyed by SKU. Connect an integration to start seeing your products in alenna.',
+      'Connect an integration to start seeing your products in alenna.',
     productsCatalogEmptySearchHint: 'Try clearing search or using different keywords.',
     productsCatalogLoadError: 'Could not load the catalog. Check your connection or sign in again.',
     productsTableSelectAll: 'Select all on page',

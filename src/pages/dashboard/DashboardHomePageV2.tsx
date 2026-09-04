@@ -75,7 +75,7 @@ import { useReports } from '@/pages/reports/use-reports'
 import { useChannelBreakdown } from '@/pages/reports/use-channel-breakdown'
 import { useTopProducts } from '@/pages/reports/use-top-products'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
-import { useAlertsSheet } from '@/shell/alerts/alerts-sheet-context'
+import { useMatchSuggestionsSheet } from '@/pages/dashboard/match-suggestions-sheet-context'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
@@ -250,7 +250,7 @@ export function DashboardHomePageV2() {
   const { tenantId } = useCurrentTenant()
   const { me } = useWorkspace()
   const t = usePnlAwareT()
-  const { openSheet } = useAlertsSheet()
+  const { openSheet: openMatchSuggestionsSheet } = useMatchSuggestionsSheet()
   const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
   const {
     canSalesHome,
@@ -968,7 +968,7 @@ export function DashboardHomePageV2() {
           {canAlertsHome ? (
             <HomeMatchSuggestionAlerts
               matchCount={matchSuggestionCount}
-              onReview={() => openSheet({ kind: 'match_suggestion' })}
+              onReview={openMatchSuggestionsSheet}
               t={t}
             />
           ) : null}

@@ -519,9 +519,12 @@ const SHELL_STRINGS = {
     homeAlertsSheetAlertNameCritical: 'Sin inventario',
     homeAlertsSheetAlertNameLow: 'Bajo inventario',
     homeAlertsSheetAlertNameMatch: 'Posible coincidencia de productos encontrada',
+    homeAlertsSheetMatchEntity: 'Posible coincidencia de productos',
+    homeAlertsSheetReviewMatchDetail: 'Revisar detalle',
     homeMatchSuggestionBanner:
       '{count} posibles coincidencias de productos encontradas',
     homeMatchSuggestionBannerView: 'Revisar coincidencias',
+    homeMatchSuggestionsSheetTitle: 'Posibles coincidencias de productos',
     homeRoleEmptyTitle: 'Nada que mostrar en Inicio',
     homeRoleEmptyDescription:
       'Tu rol no incluye widgets de ventas, canales o publicidad en esta página.',
@@ -2561,8 +2564,11 @@ const SHELL_STRINGS = {
     homeAlertsSheetAlertNameCritical: 'Out of stock',
     homeAlertsSheetAlertNameLow: 'Low stock.',
     homeAlertsSheetAlertNameMatch: 'Possible product match found',
+    homeAlertsSheetMatchEntity: 'Possible product match',
+    homeAlertsSheetReviewMatchDetail: 'Review details',
     homeMatchSuggestionBanner: '{count} possible product matches found',
     homeMatchSuggestionBannerView: 'Review matches',
+    homeMatchSuggestionsSheetTitle: 'Possible product matches',
     homeRoleEmptyTitle: 'Nothing to show on Home',
     homeRoleEmptyDescription:
       'Your role does not include sales, channel, or ads widgets on this page.',

@@ -17,6 +17,8 @@ import { FixtureTenantBanner } from '@/shell/fixture-tenant-banner'
 import { ActiveAlertsSheetHost } from '@/shell/alerts/active-alerts-sheet-host'
 import { AlertsInvalidationHost } from '@/shell/alerts/alerts-invalidation-host'
 import { AlertsSheetProvider } from '@/shell/alerts/alerts-sheet-context'
+import { MatchSuggestionsReviewSheetHost } from '@/pages/dashboard/match-suggestions-review-sheet-host'
+import { MatchSuggestionsSheetProvider } from '@/pages/dashboard/match-suggestions-sheet-context'
 import { GlobalActivityBar } from '@/shell/layout/global-activity-bar'
 import { CogsBackfillActivityPollers } from '@/shell/layout/cogs-backfill-activity-pollers'
 import { PlatformSyncActivityHost } from '@/shell/layout/platform-sync-activity-host'
@@ -219,72 +221,75 @@ export function AppShellLayout() {
           <CogsBackfillActivityPollers />
           <PlatformSyncActivityHost />
           <AlertsSheetProvider>
-            <AlertsInvalidationHost />
-            <TooltipProvider delayDuration={200}>
-              <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh flex-col overflow-hidden bg-white">
-                <div className="z-40 shrink-0">
-                  <GlobalActivityBar />
-                </div>
-                <div className="sticky top-0 z-30 shrink-0 bg-white">
-                  {me?.is_fixture ? <FixtureTenantBanner /> : null}
-                  <PlanLimitShellBanner />
-                  <AccountDeletionPendingShellBanner />
-                  <AppHeader
-                    onOpenMobileNav={openMobileNav}
-                    companyName={companyName}
-                    me={me}
-                  />
-                </div>
-                <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-                  <AppSidebar
-                    className="hidden lg:flex"
-                    collapsed={sidebarCollapsed}
-                    controlMode={sidebarControlMode}
-                    onControlModeChange={setSidebarControlModePersisted}
-                    onMouseEnter={onSidebarMouseEnter}
-                    onMouseLeave={onSidebarMouseLeave}
-                  />
-                  <AppSidebarDrawer
-                    open={mobileNavOpen}
-                    onOpenChange={setMobileNavOpen}
-                  />
+            <MatchSuggestionsSheetProvider>
+              <AlertsInvalidationHost />
+              <TooltipProvider delayDuration={200}>
+                <div className="motion-safe:animate-[boot-shell-enter_0.4s_ease-out] flex h-svh flex-col overflow-hidden bg-white">
+                  <div className="z-40 shrink-0">
+                    <GlobalActivityBar />
+                  </div>
+                  <div className="sticky top-0 z-30 shrink-0 bg-white">
+                    {me?.is_fixture ? <FixtureTenantBanner /> : null}
+                    <PlanLimitShellBanner />
+                    <AccountDeletionPendingShellBanner />
+                    <AppHeader
+                      onOpenMobileNav={openMobileNav}
+                      companyName={companyName}
+                      me={me}
+                    />
+                  </div>
                   <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-                    {showConfigurationInnerSidebar ? <ConfigurationInternalSidebar /> : null}
-                    {showIntegrationsInnerSidebar ? <IntegrationsInternalSidebar /> : null}
-                    {showProductsInnerSidebar ? <ProductsInternalSidebar /> : null}
-                    {showTeamInnerSidebar ? <TeamInternalSidebar /> : null}
+                    <AppSidebar
+                      className="hidden lg:flex"
+                      collapsed={sidebarCollapsed}
+                      controlMode={sidebarControlMode}
+                      onControlModeChange={setSidebarControlModePersisted}
+                      onMouseEnter={onSidebarMouseEnter}
+                      onMouseLeave={onSidebarMouseLeave}
+                    />
+                    <AppSidebarDrawer
+                      open={mobileNavOpen}
+                      onOpenChange={setMobileNavOpen}
+                    />
                     <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-                      <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
-                        {showPageBreadcrumb ? (
-                          <div className={internalPageBreadcrumbBarClassName}>
-                            <AppBreadcrumbs />
-                          </div>
-                        ) : null}
-                        <main
-                          ref={mainRef}
-                          className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
-                        >
-                          <div className={shellMainColumnClassName(location.pathname)}>
-                            {!tenantId && tenants.length > 1 ? (
-                              <p className="mb-4 text-sm text-text-secondary">
-                                Select a workspace in your account menu if prompted.
-                              </p>
-                            ) : null}
-                            <div
-                              key={location.pathname}
-                              className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150 motion-safe:fill-mode-both"
-                            >
-                              <Outlet />
+                      {showConfigurationInnerSidebar ? <ConfigurationInternalSidebar /> : null}
+                      {showIntegrationsInnerSidebar ? <IntegrationsInternalSidebar /> : null}
+                      {showProductsInnerSidebar ? <ProductsInternalSidebar /> : null}
+                      {showTeamInnerSidebar ? <TeamInternalSidebar /> : null}
+                      <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+                        <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
+                          {showPageBreadcrumb ? (
+                            <div className={internalPageBreadcrumbBarClassName}>
+                              <AppBreadcrumbs />
                             </div>
-                          </div>
-                        </main>
-                      </section>
-                      <ActiveAlertsSheetHost />
+                          ) : null}
+                          <main
+                            ref={mainRef}
+                            className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
+                          >
+                            <div className={shellMainColumnClassName(location.pathname)}>
+                              {!tenantId && tenants.length > 1 ? (
+                                <p className="mb-4 text-sm text-text-secondary">
+                                  Select a workspace in your account menu if prompted.
+                                </p>
+                              ) : null}
+                              <div
+                                key={location.pathname}
+                                className="flex min-h-full w-full flex-col motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150 motion-safe:fill-mode-both"
+                              >
+                                <Outlet />
+                              </div>
+                            </div>
+                          </main>
+                        </section>
+                        <ActiveAlertsSheetHost />
+                        <MatchSuggestionsReviewSheetHost />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </TooltipProvider>
+              </TooltipProvider>
+            </MatchSuggestionsSheetProvider>
           </AlertsSheetProvider>
         </GlobalActivityProvider>
       </DisplayCurrencyProvider>

@@ -54,8 +54,24 @@ describe('alertChannelName', () => {
 
 describe('alertProductTitle', () => {
   it('uses the product title and falls back to entity type', () => {
-    expect(alertProductTitle(stockAlert())).toBe('Gatunflas 1kg')
-    expect(alertProductTitle(stockAlert({ title: '  ' }))).toBe('product_listing')
+    const t = (key: string) => key
+    expect(alertProductTitle(stockAlert(), t)).toBe('Gatunflas 1kg')
+    expect(alertProductTitle(stockAlert({ title: '  ' }), t)).toBe('product_listing')
+  })
+
+  it('localizes match suggestion entity instead of raw API English title', () => {
+    const t = (key: string) =>
+      key === 'homeAlertsSheetMatchEntity' ? 'Posible coincidencia de productos' : key
+    expect(
+      alertProductTitle(
+        stockAlert({
+          alert_type: 'match_suggestion',
+          severity: 'informational',
+          title: 'Possible product match',
+        }),
+        t,
+      ),
+    ).toBe('Posible coincidencia de productos')
   })
 })
 

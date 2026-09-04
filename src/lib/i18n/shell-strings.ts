@@ -472,7 +472,7 @@ const SHELL_STRINGS = {
     homeKpiNetSalesHelp:
       'Ingresos por producto después de descuentos, devoluciones y cancelaciones. Incluye pedidos pagados en tránsito.',
     homeKpiGrossSalesHelp:
-      'Ingresos por producto antes de descuentos, devoluciones y cancelaciones.',
+      'Igual a “Ventas de productos pedidos” en Seller Central (Sales & Traffic) cuando el filtro es Amazon. Otros canales usan mercancía de pedidos. Descuentos y devoluciones se restan en ventas netas.',
     kpiSalesMetricBasisShowGross: 'Mostrar Ventas/Utilidad Bruta',
     kpiSalesMetricBasisToggleAria: 'Mostrar ventas y utilidad en bruto',
     reportsNetProfit: 'Utilidad neta',
@@ -1322,16 +1322,19 @@ const SHELL_STRINGS = {
     reportsCardOrders: 'Pedidos',
     reportsCardVolume: 'Volumen',
     reportsKpiHelpOrders: 'Pedidos con venta registrada en el periodo, por fecha de compra.',
-    reportsKpiHelpUnits: 'Unidades de producto vendidas en el periodo seleccionado.',
     reportsSectionRevenueBreakdown: 'Cascada P&L',
     reportsLastUpdated: 'Actualizado',
     reportsVsPreviousPeriod: 'vs periodo anterior',
     reportsComparisonUnavailable: 'Comparación no disponible',
     reportsComparisonNoBaseline: 'Sin base',
     reportsKpiHelpGrossRevenue:
-      'Ingresos por producto antes de descuentos, devoluciones y cancelaciones. En Amazon incluye IVA y créditos de envío al cliente; los descuentos/promos se restan aparte. Las tarifas FBA van en fees de plataforma, no en envío merchant.',
+      'Igual a “Ventas de productos pedidos” en Seller Central (Sales & Traffic). En Amazon el KPI usa el reporte diario de Amazon; otros canales usan mercancía de pedidos. Descuentos y devoluciones se restan aparte en ventas netas.',
     reportsKpiHelpNetRevenue:
       'Ingresos por producto después de descuentos, devoluciones y cancelaciones. Incluye pedidos pagados en tránsito.',
+    reportsKpiHelpUnits:
+      'Unidades de producto vendidas en el periodo. En Amazon (solo Amazon) coincide con unitsOrdered de Sales & Traffic cuando el sync está completo.',
+    reportsKpiHelpOrderItems:
+      'Artículos de pedido (Seller Central totalOrderItems) cuando el filtro es solo Amazon y hay datos de Sales & Traffic.',
     reportsKpiHelpGrossProfit: 'Ventas netas menos el costo de los productos vendidos (COGS).',
     reportsKpiHelpGrossProfitOnGrossSales:
       'Ventas brutas menos el costo de los productos vendidos (COGS).',
@@ -1344,6 +1347,7 @@ const SHELL_STRINGS = {
     reportsOrdersRefunded: 'Reembolsados',
     reportsOrdersExpired: 'Expirados',
     reportsUnitsSoldLabel: 'Unidades vendidas',
+    reportsOrderItemsShort: 'artículos',
     reportsOfOrders: 'del total',
     reportsWaterfallPctOfGross: '{pct}% de ventas brutas',
     reportsWaterfallFinalHint: 'Resultado EBITDA del periodo',
@@ -2534,7 +2538,7 @@ const SHELL_STRINGS = {
     homeKpiNetSalesHelp:
       'Product revenue after discounts, returns, and cancellations. Includes paid in-transit orders.',
     homeKpiGrossSalesHelp:
-      'Product revenue before discounts, returns, and cancellations.',
+      'Matches Seller Central “Ordered product sales” (Sales & Traffic) when the filter is Amazon. Other channels use order merchandise. Discounts and returns are subtracted in net sales.',
     kpiSalesMetricBasisShowGross: 'Show gross sales/profit',
     kpiSalesMetricBasisToggleAria: 'Show gross sales and profit',
     reportsNetProfit: 'Net profit',
@@ -3370,16 +3374,19 @@ const SHELL_STRINGS = {
     reportsCardOrders: 'Orders',
     reportsCardVolume: 'Volume',
     reportsKpiHelpOrders: 'Orders with recorded sales in the period, by purchase date.',
-    reportsKpiHelpUnits: 'Product units sold in the selected period.',
     reportsSectionRevenueBreakdown: 'P&L waterfall',
     reportsLastUpdated: 'Updated',
     reportsVsPreviousPeriod: 'vs prior period',
     reportsComparisonUnavailable: 'Comparison unavailable',
     reportsComparisonNoBaseline: 'No baseline',
     reportsKpiHelpGrossRevenue:
-      'Product revenue before discounts, returns, and cancellations. For Amazon this includes tax and customer shipping credits; promos are subtracted separately. FBA fees sit in platform fees, not merchant shipping.',
+      'Matches Seller Central “Ordered product sales” (Sales & Traffic). For Amazon, Home KPIs use Amazon’s daily report; other channels use order merchandise. Discounts and returns are subtracted in net sales.',
     reportsKpiHelpNetRevenue:
       'Product revenue after discounts, returns, and cancellations. Includes paid in-transit orders.',
+    reportsKpiHelpUnits:
+      'Product units sold in the period. For Amazon-only filters, aligns with Sales & Traffic unitsOrdered when sync is complete.',
+    reportsKpiHelpOrderItems:
+      'Order items (Seller Central totalOrderItems) when the filter is Amazon-only and Sales & Traffic data is present.',
     reportsKpiHelpGrossProfit: 'Net sales minus cost of products sold (COGS).',
     reportsKpiHelpGrossProfitOnGrossSales: 'Gross sales minus cost of products sold (COGS).',
     reportsKpiHelpGrossMargin: 'Gross profit divided by net sales.',
@@ -3391,6 +3398,7 @@ const SHELL_STRINGS = {
     reportsOrdersRefunded: 'Refunded',
     reportsOrdersExpired: 'Expired',
     reportsUnitsSoldLabel: 'Units sold',
+    reportsOrderItemsShort: 'items',
     reportsOfOrders: 'of total',
     reportsWaterfallPctOfGross: '{pct}% of gross sales',
     reportsWaterfallFinalHint: 'EBITDA result for this period',

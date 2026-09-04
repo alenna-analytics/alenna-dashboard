@@ -522,6 +522,10 @@ export function DashboardHomePageV2() {
   const salesCurrent = productMode
     ? productKpiSales(displayProductKpi ?? zeroProductKpi(currency), salesMetricBasis)
     : orderKpiSales(displayKpi ?? zeroKpiResponse(currency), salesMetricBasis)
+  const amazonOrderItems =
+    !productMode && displayKpi?.total_order_items != null && displayKpi.total_order_items > 0
+      ? displayKpi.total_order_items
+      : null
   const profitCurrent = productMode
     ? productKpiProfit(displayProductKpi ?? zeroProductKpi(currency), salesMetricBasis)
     : orderKpiProfit(displayKpi ?? zeroKpiResponse(currency), salesMetricBasis)
@@ -828,8 +832,16 @@ export function DashboardHomePageV2() {
               dragHandle={dragHandle}
               {...sparklineControl}
               label={t('reportsUnits')}
-              helpText={t('reportsKpiHelpUnits')}
-              value={unitsCurrent.toLocaleString()}
+              helpText={
+                amazonOrderItems != null
+                  ? `${t('reportsKpiHelpUnits')} ${t('reportsKpiHelpOrderItems')}`
+                  : t('reportsKpiHelpUnits')
+              }
+              value={
+                amazonOrderItems != null
+                  ? `${unitsCurrent.toLocaleString()} · ${amazonOrderItems.toLocaleString()} ${t('reportsOrderItemsShort')}`
+                  : unitsCurrent.toLocaleString()
+              }
               numericValue={unitsCurrent}
               pct={unitsDelta!.pct}
               trend={unitsDelta!.trend}
@@ -900,6 +912,7 @@ export function DashboardHomePageV2() {
       ebitdaDelta,
       unitsCurrent,
       unitsDelta,
+      amazonOrderItems,
       orders,
       ordersDelta,
       aov,

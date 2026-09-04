@@ -50,10 +50,12 @@ export type KpiResponse = {
   ebitda_margin_pct: number
   units_sold: number
   order_count: number
+  total_order_items?: number | null
   currency: string
   cogs_incomplete: boolean
   order_status_counts: Record<string, number>
   settlement: SettlementBreakdown
+  kpi_source_completeness?: string | null
 }
 
 export type ProductKpiResponse = {

@@ -6,7 +6,11 @@ import {
   ShopifySyncInProgressError,
   ShopifySyncTenantBusyError,
 } from '@/lib/types/connectors'
-import { buildPlatformFullSyncTypedError } from '@/lib/integrations/platform-full-sync-error'
+import {
+  buildPlatformFullSyncTypedError,
+  formatRetryAfterHoursLabel,
+  secondsToCeilHours,
+} from '@/lib/integrations/platform-full-sync-error'
 
 describe('buildPlatformFullSyncTypedError', () => {
   it('maps full sync in progress', () => {
@@ -33,5 +37,22 @@ describe('buildPlatformFullSyncTypedError', () => {
 
   it('returns null for unrelated errors', () => {
     expect(buildPlatformFullSyncTypedError(409, 'platform_sync_in_progress', null)).toBeNull()
+  })
+})
+
+describe('formatRetryAfterHoursLabel', () => {
+  it('shows sub-hour remainder instead of 0h', () => {
+    expect(formatRetryAfterHoursLabel(45)).toBe('<1 (1m)')
+    expect(formatRetryAfterHoursLabel(120)).toBe('<1 (2m)')
+  })
+
+  it('ceils whole hours', () => {
+    expect(formatRetryAfterHoursLabel(3601)).toBe('2')
+    expect(secondsToCeilHours(3601)).toBe(2)
+  })
+
+  it('returns 0 when elapsed', () => {
+    expect(formatRetryAfterHoursLabel(0)).toBe('0')
+    expect(formatRetryAfterHoursLabel(null)).toBe('0')
   })
 })

@@ -53,3 +53,13 @@ export function secondsToCeilHours(seconds: number | null): number {
   if (seconds == null || seconds <= 0) return 0
   return Math.max(1, Math.ceil(seconds / 3600))
 }
+
+/** Prefer minutes when less than an hour so toast never shows "0h". */
+export function formatRetryAfterHoursLabel(seconds: number | null): string {
+  if (seconds == null || seconds <= 0) return '0'
+  if (seconds < 3600) {
+    const mins = Math.max(1, Math.ceil(seconds / 60))
+    return `<1 (${mins}m)`
+  }
+  return String(Math.max(1, Math.ceil(seconds / 3600)))
+}

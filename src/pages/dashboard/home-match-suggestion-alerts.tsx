@@ -1,6 +1,9 @@
+import { GitMerge } from 'lucide-react'
+
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import { buttonVariants } from '@/ui/button'
+import { ContextAlertCard } from '@/ui/context-alert'
 import { cn } from '@/lib/utils'
-import { AppIcon } from '@/ui/app-icon'
 
 type HomeMatchSuggestionAlertsProps = {
   /** Active informational alerts (today only match_suggestion uses this severity). */
@@ -16,27 +19,22 @@ export function HomeMatchSuggestionAlerts({
 }: HomeMatchSuggestionAlertsProps) {
   if (matchCount <= 0) return null
 
-  const message = t('homeMatchSuggestionBanner').replace('{count}', String(matchCount))
+  const title = t('homeMatchSuggestionBanner').replace('{count}', String(matchCount))
 
   return (
-    <div
-      className={cn(
-        'flex flex-wrap items-center justify-between gap-3 rounded-md border px-3 py-3 text-sm',
-        'border-border-subtle bg-muted/40 text-foreground',
-      )}
-      role="status"
-    >
-      <div className="flex min-w-0 items-center gap-2">
-        <AppIcon name="orders" colorize className="size-4 shrink-0" />
-        <span className="min-w-0 leading-snug">{message}</span>
-      </div>
-      <button
-        type="button"
-        onClick={onReview}
-        className="shrink-0 text-sm font-medium text-foreground underline underline-offset-2"
-      >
-        {t('homeMatchSuggestionBannerView')}
-      </button>
-    </div>
+    <ContextAlertCard
+      title={title}
+      icon={GitMerge}
+      tone="info"
+      action={
+        <button
+          type="button"
+          onClick={onReview}
+          className={cn(buttonVariants({ variant: 'outline', size: 'xs' }), 'px-2.5')}
+        >
+          {t('homeMatchSuggestionBannerView')}
+        </button>
+      }
+    />
   )
 }

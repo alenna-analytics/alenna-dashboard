@@ -47,7 +47,13 @@ export function alertTypeName(
   return t('homeAlertsSheetSeverityInformational')
 }
 
-export function alertProductTitle(item: AlertItemApi): string {
+export function alertProductTitle(
+  item: AlertItemApi,
+  t: (key: ShellStringKey) => string,
+): string {
+  if (item.alert_type === 'match_suggestion') {
+    return t('homeAlertsSheetMatchEntity')
+  }
   return item.title.trim() || item.entity_type
 }
 

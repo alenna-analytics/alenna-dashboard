@@ -12,10 +12,11 @@ import { shellT, type ShellStringKey, type ShellStringVars } from '@/lib/i18n/sh
 import type { IntegrationPlatformRow } from '@/lib/types/connectors'
 import type { Expense } from '@/lib/types/expenses'
 import {
-  EXPENSE_CURRENCIES,
   type ExpenseCurrencyCode,
   type ExpensesFilters,
   filterExpenses,
+  isExpenseCurrencyLocked,
+  resolveExpenseCurrencies,
   summarizeExpenses,
 } from '@/pages/expenses/expenses-helpers'
 import { ExpensesAmountFilter } from '@/pages/expenses/expenses-amount-filter'
@@ -110,8 +111,13 @@ export function ExpensesPage() {
   const [filters, setFilters] = useState<ExpensesFilters>(defaultFilters)
   const [searchQ, setSearchQ] = useState('')
 
-  const defaultCurrency: ExpenseCurrencyCode =
-    baseCurrency.trim().toUpperCase() === 'USD' ? 'USD' : 'MXN'
+  const expenseCurrencies = resolveExpenseCurrencies({
+    expenseCurrencies: me?.currency?.expense_currencies,
+    baseCurrency: me?.currency?.base_currency ?? baseCurrency,
+    fallbackBase: baseCurrency,
+  })
+  const defaultCurrency: ExpenseCurrencyCode = expenseCurrencies[0] ?? baseCurrency
+  const currencyLocked = isExpenseCurrencyLocked(expenseCurrencies)
 
   const platformsQuery = useQuery({
     queryKey: ['integration-platforms', tenantId],
@@ -171,7 +177,7 @@ export function ExpensesPage() {
     { value: 'monthly', label: t('expensesRecurrenceMonthly') },
   ]
 
-  const currencyOptions: FilterOption[] = EXPENSE_CURRENCIES.map((code) => ({
+  const currencyOptions: FilterOption[] = expenseCurrencies.map((code) => ({
     value: code,
     label: code,
   }))
@@ -392,6 +398,8 @@ export function ExpensesPage() {
         expense={editing}
         platforms={platforms}
         defaultCurrency={defaultCurrency}
+        currencyOptions={currencyOptions}
+        currencyLocked={currencyLocked}
         onCreate={async (body) => {
           await expenses.createMutation.mutateAsync(body)
         }}

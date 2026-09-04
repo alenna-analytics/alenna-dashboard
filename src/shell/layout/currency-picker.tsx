@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from 'lucide-react'
 
-import { useDisplayCurrency, type DisplayCurrencyCode } from '@/shell/providers/display-currency-provider'
+import { CurrencyIndicator } from '@/shell/layout/currency-indicator'
+import { useDisplayCurrency } from '@/shell/providers/display-currency-provider'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { shellT } from '@/lib/i18n/shell-strings'
 import {
@@ -13,24 +14,29 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { chromeTextButtonClassName } from '@/ui/surface'
 
-const SUPPORTED: DisplayCurrencyCode[] = ['MXN', 'USD']
-
 export function CurrencyPicker({ className }: { className?: string }) {
   const { lang } = useLanguage()
   const {
     baseCurrency,
     displayCurrency,
     effectiveDisplayCurrency,
+    multiCurrencyEnabled,
+    displayCurrencies,
     latestFx,
     setDisplayCurrency,
     isUpdating,
   } = useDisplayCurrency()
+
+  if (!multiCurrencyEnabled) {
+    return <CurrencyIndicator className={className} />
+  }
 
   const ariaLabel = shellT(lang, 'ariaDisplayCurrency')
   const baseUpper = baseCurrency.toUpperCase()
   const effectiveUpper = effectiveDisplayCurrency.toUpperCase()
   const displayUpper = displayCurrency?.toUpperCase() ?? baseUpper
   const noFxRate = effectiveUpper !== baseUpper && latestFx === null
+  const optionCodes = displayCurrencies.filter((code) => code !== baseUpper)
 
   if (noFxRate) {
     return (
@@ -62,12 +68,12 @@ export function CurrencyPicker({ className }: { className?: string }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={6} className="w-auto min-w-32">
         <DropdownMenuItem
-          aria-checked={displayCurrency === null}
+          aria-checked={displayUpper === baseUpper}
           onClick={() => void setDisplayCurrency(null)}
         >
           {shellT(lang, 'displayCurrencyOptionBase').replace('{code}', baseUpper)}
         </DropdownMenuItem>
-        {SUPPORTED.map((code) => (
+        {optionCodes.map((code) => (
           <DropdownMenuItem
             key={code}
             aria-checked={displayUpper === code}

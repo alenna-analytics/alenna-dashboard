@@ -24,6 +24,12 @@ function meWith(permissions: string[]): MeResponse {
     permissions,
     is_owner: false,
     base_currency: 'MXN',
+  currency: {
+    multi_currency_enabled: false,
+    base_currency: 'MXN',
+    expense_currencies: ['MXN'],
+    display_currencies: ['MXN'],
+  },
     display_currency: null,
     latest_fx_for_display: null,
     signup_intent: 'trial',

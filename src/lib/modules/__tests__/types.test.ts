@@ -29,5 +29,17 @@ describe('module ids', () => {
       'general',
       'pnl-terms',
     ])
+    expect(
+      visibleWorkspaceConfigSubmodules(['workspace-config'], {
+        multiCurrencyEnabled: false,
+        canViewFx: true,
+      }).map((s) => s.id),
+    ).toEqual(['general', 'pnl-terms'])
+    expect(
+      visibleWorkspaceConfigSubmodules(['workspace-config'], {
+        multiCurrencyEnabled: true,
+        canViewFx: true,
+      }).map((s) => s.id),
+    ).toEqual(['general', 'pnl-terms', 'fx-rates'])
   })
 })

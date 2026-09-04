@@ -12,14 +12,14 @@ import { useAuth } from '@clerk/react'
 import { apiFetch } from '@/lib/api'
 import type { LatestFxForDisplay, MeResponse } from '@/lib/types/me-types'
 
-export type DisplayCurrencyCode = 'MXN' | 'USD'
-
 type DisplayCurrencyContextValue = {
   baseCurrency: string
   displayCurrency: string
   effectiveDisplayCurrency: string
+  multiCurrencyEnabled: boolean
+  displayCurrencies: string[]
   latestFx: LatestFxForDisplay | null
-  setDisplayCurrency: (code: DisplayCurrencyCode | null) => Promise<void>
+  setDisplayCurrency: (code: string | null) => Promise<void>
   isUpdating: boolean
 }
 
@@ -46,19 +46,21 @@ function normalizeLatestFx(
   }
 }
 
-function readStoredOverride(): DisplayCurrencyCode | null {
+function readStoredOverride(): string | null {
   if (typeof window === 'undefined') return null
   const raw = window.localStorage.getItem(STORAGE_KEY)
-  return raw === 'MXN' || raw === 'USD' ? raw : null
+  if (!raw) return null
+  const code = raw.trim().toUpperCase()
+  return code.length === 3 ? code : null
 }
 
-function writeStoredOverride(code: DisplayCurrencyCode | null): void {
+function writeStoredOverride(code: string | null): void {
   if (typeof window === 'undefined') return
   if (code === null) {
     window.localStorage.removeItem(STORAGE_KEY)
     return
   }
-  window.localStorage.setItem(STORAGE_KEY, code)
+  window.localStorage.setItem(STORAGE_KEY, code.trim().toUpperCase())
 }
 
 export function DisplayCurrencyProvider({
@@ -71,28 +73,41 @@ export function DisplayCurrencyProvider({
   children: ReactNode
 }) {
   const { getToken } = useAuth()
-  const baseCurrency = (me?.base_currency ?? 'MXN').toUpperCase()
+  const baseCurrency = (me?.currency?.base_currency ?? me?.base_currency ?? '').toUpperCase() || 'MXN'
+  const multiCurrencyEnabled = Boolean(me?.currency?.multi_currency_enabled)
+  const displayCurrencies = useMemo(
+    () => me?.currency?.display_currencies ?? [baseCurrency],
+    [baseCurrency, me?.currency?.display_currencies],
+  )
   const serverDisplay = me?.display_currency ?? null
-  const [override, setOverride] = useState<DisplayCurrencyCode | null>(() => readStoredOverride())
+  const [override, setOverride] = useState<string | null>(() => readStoredOverride())
   const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
-    if (serverDisplay === 'MXN' || serverDisplay === 'USD') {
-      setOverride(serverDisplay)
-      writeStoredOverride(serverDisplay)
+    if (!multiCurrencyEnabled) {
+      setOverride(null)
+      writeStoredOverride(null)
+      return
+    }
+    if (serverDisplay) {
+      const code = serverDisplay.trim().toUpperCase()
+      setOverride(code)
+      writeStoredOverride(code)
     } else if (serverDisplay === null && me !== null) {
       setOverride(null)
       writeStoredOverride(null)
     }
-  }, [serverDisplay, me])
+  }, [serverDisplay, me, multiCurrencyEnabled])
 
-  const effectiveDisplayCurrency = (override ?? baseCurrency).toUpperCase()
-  const displayCurrency = override ?? baseCurrency
+  const effectiveDisplayCurrency = multiCurrencyEnabled
+    ? (override ?? baseCurrency).toUpperCase()
+    : baseCurrency
+  const displayCurrency = multiCurrencyEnabled ? (override ?? baseCurrency) : baseCurrency
 
   const setDisplayCurrency = useCallback(
-    async (code: DisplayCurrencyCode | null) => {
-      const normalized = code === null ? null : (code.toUpperCase() as DisplayCurrencyCode)
-      // Optimistic update so the UI repaints immediately.
+    async (code: string | null) => {
+      if (!multiCurrencyEnabled) return
+      const normalized = code === null ? null : code.trim().toUpperCase()
       setOverride(normalized)
       writeStoredOverride(normalized)
       setIsUpdating(true)
@@ -115,7 +130,7 @@ export function DisplayCurrencyProvider({
         setIsUpdating(false)
       }
     },
-    [getToken, me?.tenant_id, refetchMe],
+    [getToken, me?.tenant_id, multiCurrencyEnabled, refetchMe],
   )
 
   const value = useMemo<DisplayCurrencyContextValue>(
@@ -123,6 +138,8 @@ export function DisplayCurrencyProvider({
       baseCurrency,
       displayCurrency: displayCurrency.toUpperCase(),
       effectiveDisplayCurrency,
+      multiCurrencyEnabled,
+      displayCurrencies: displayCurrencies.map((c) => c.toUpperCase()),
       latestFx: normalizeLatestFx(me?.latest_fx_for_display),
       setDisplayCurrency,
       isUpdating,
@@ -131,6 +148,8 @@ export function DisplayCurrencyProvider({
       baseCurrency,
       displayCurrency,
       effectiveDisplayCurrency,
+      multiCurrencyEnabled,
+      displayCurrencies,
       me?.latest_fx_for_display,
       setDisplayCurrency,
       isUpdating,

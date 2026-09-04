@@ -114,7 +114,8 @@ export function VinculacionInboxPage() {
         </TabsList>
 
         <div className="relative mt-6 grid w-full grid-cols-1 overflow-hidden">
-          <TabsContent value="matches">
+          <TabsContent value="matches" className="space-y-4">
+            <p className={pageSubtitleClassName}>{t('productsVinculacionTabMatchesDescription')}</p>
             <VinculacionSuggestionsTable
               items={items}
               t={t}
@@ -139,7 +140,8 @@ export function VinculacionInboxPage() {
             />
           </TabsContent>
 
-          <TabsContent value="linked">
+          <TabsContent value="linked" className="space-y-4">
+            <p className={pageSubtitleClassName}>{t('productsVinculacionTabLinkedDescription')}</p>
             <VinculacionLinkedGroupsTable
               groups={groups}
               t={t}

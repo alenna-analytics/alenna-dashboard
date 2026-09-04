@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { useAuth } from '@clerk/react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { apiFetch } from '@/lib/api'
@@ -13,6 +14,10 @@ import {
   useAlertsSummaryQuery,
   usePostponeAlertMutation,
 } from '@/pages/dashboard/use-alerts-queries'
+import {
+  useAcceptProductLinkSuggestionMutation,
+  useRejectProductLinkSuggestionMutation,
+} from '@/pages/products/vinculacion/use-product-link-queries'
 import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
 import { useLanguage } from '@/shell/providers/language-provider'
 
@@ -24,11 +29,14 @@ export function ActiveAlertsSheetHost() {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const queryClient = useQueryClient()
-  const { open, setOpen } = useAlertsSheet()
+  const { open, setOpen, pendingKind, clearPendingKind } = useAlertsSheet()
   const { me } = useAppBootstrap()
   const canViewAlerts = can(me, 'alerts.view')
   const isAdmin = can(me, 'alerts.manage')
+  const canLinkProducts = can(me, 'products.groups.edit')
   const summaryQuery = useAlertsSummaryQuery()
+  const acceptMatch = useAcceptProductLinkSuggestionMutation()
+  const rejectMatch = useRejectProductLinkSuggestionMutation()
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -60,6 +68,8 @@ export function ActiveAlertsSheetHost() {
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       invalidateAlertsQueries(queryClient, tenantId)
+    } else {
+      clearPendingKind()
     }
     setOpen(nextOpen)
   }
@@ -85,10 +95,27 @@ export function ActiveAlertsSheetHost() {
       activeLoading={activeAlertsQuery.isLoading}
       postponedLoading={postponedAlertsQuery.isLoading}
       isAdmin={isAdmin}
+      canLinkProducts={canLinkProducts}
       postponePending={postponeAlertMutation.isPending}
+      linkPending={acceptMatch.isPending}
+      rejectPending={rejectMatch.isPending}
       connectionPlatformById={connectionPlatformById}
+      initialKind={pendingKind}
+      onInitialKindConsumed={clearPendingKind}
       onPostpone={(alertId, duration) => {
         postponeAlertMutation.mutate({ alertId, duration })
+      }}
+      onAcceptMatch={(suggestionId) => {
+        void acceptMatch
+          .mutateAsync(suggestionId)
+          .then(() => toast.success(t('homeAlertsSheetLinkSuccess')))
+          .catch(() => toast.error(t('homeAlertsSheetLinkFailed')))
+      }}
+      onRejectMatch={(suggestionId) => {
+        void rejectMatch
+          .mutateAsync(suggestionId)
+          .then(() => toast.success(t('homeAlertsSheetRejectSuccess')))
+          .catch(() => toast.error(t('homeAlertsSheetLinkFailed')))
       }}
       t={t}
     />

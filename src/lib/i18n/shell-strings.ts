@@ -518,7 +518,23 @@ const SHELL_STRINGS = {
     homeAlertsSheetSeverityTabsAria: 'Filtrar por severidad',
     homeAlertsSheetAlertNameCritical: 'Sin inventario',
     homeAlertsSheetAlertNameLow: 'Bajo inventario',
-    homeAlertsSheetAlertNameMatch: 'Posible producto duplicado',
+    homeAlertsSheetAlertNameMatch: 'Posible coincidencia de productos encontrada',
+    homeMatchSuggestionBanner:
+      '{count} posibles coincidencias de productos encontradas',
+    homeMatchSuggestionBannerView: 'Revisar coincidencias',
+    homeRoleEmptyTitle: 'Nada que mostrar en Inicio',
+    homeRoleEmptyDescription:
+      'Tu rol no incluye widgets de ventas, canales o publicidad en esta página.',
+    homeRoleEmptyAdsCta: 'Ir a Publicidad',
+    homeAdsEmptyOnHomeTitle: 'Sin conexiones de publicidad',
+    homeAdsEmptyOnHomeDescription:
+      'Conecta una cuenta de ads para ver gasto y ROAS en Inicio.',
+    homeAdsEmptyOnHomeCta: 'Conectar publicidad',
+    homeAlertsSheetLinkProducts: 'Vincular',
+    homeAlertsSheetRejectMatch: 'Descartar',
+    homeAlertsSheetLinkSuccess: 'Productos vinculados.',
+    homeAlertsSheetRejectSuccess: 'Coincidencia descartada.',
+    homeAlertsSheetLinkFailed: 'No se pudo completar la acción.',
     homeAlertsSheetFilterAria: 'Filtrar por tipo de alerta',
     homeStockAlertOutBanner: '{count} productos no tienen inventario',
     homeStockAlertLowBanner: '{count} productos tienen bajo inventario',
@@ -1773,7 +1789,7 @@ const SHELL_STRINGS = {
     productsStatusDeleted: 'Eliminado',
     productsCatalogEmptyTitle: 'Sin productos para mostrar',
     productsCatalogEmptyHint:
-      'El catálogo se alimenta al sincronizar pedidos desde Shopify: Integraciones → tu tienda → Sincronizar. Las líneas de pedido crean productos y publicaciones con SKU.',
+      'Conecta una integración para empezar a ver tus productos en alenna.',
     productsCatalogEmptySearchHint:
       'Prueba limpiar el filtro de búsqueda o usar otro término.',
     productsCatalogLoadError:
@@ -1854,7 +1870,11 @@ const SHELL_STRINGS = {
     productsVinculacionEmptyDescription:
       'Busca coincidencias o vincula dos productos de distinta plataforma.',
     productsVinculacionTabMatches: 'Coincidencias encontradas',
+    productsVinculacionTabMatchesDescription:
+      'Revisa los productos que pueden ser una coincidencia entre plataformas.',
     productsVinculacionTabLinked: 'Productos vinculados',
+    productsVinculacionTabLinkedDescription:
+      'Tus grupos de productos vinculados por ti de diferentes plataformas.',
     productsVinculacionLinkedEmptyTitle: 'No hay productos vinculados',
     productsVinculacionLinkedEmptyDescription:
       'Acepta una coincidencia o vincula productos de distinta plataforma.',
@@ -2540,7 +2560,21 @@ const SHELL_STRINGS = {
     homeAlertsSheetSeverityTabsAria: 'Filter by severity',
     homeAlertsSheetAlertNameCritical: 'Out of stock',
     homeAlertsSheetAlertNameLow: 'Low stock.',
-    homeAlertsSheetAlertNameMatch: 'Possible matching product',
+    homeAlertsSheetAlertNameMatch: 'Possible product match found',
+    homeMatchSuggestionBanner: '{count} possible product matches found',
+    homeMatchSuggestionBannerView: 'Review matches',
+    homeRoleEmptyTitle: 'Nothing to show on Home',
+    homeRoleEmptyDescription:
+      'Your role does not include sales, channel, or ads widgets on this page.',
+    homeRoleEmptyAdsCta: 'Go to Ads',
+    homeAdsEmptyOnHomeTitle: 'No ads connections',
+    homeAdsEmptyOnHomeDescription: 'Connect an ads account to see spend and ROAS on Home.',
+    homeAdsEmptyOnHomeCta: 'Connect ads',
+    homeAlertsSheetLinkProducts: 'Link',
+    homeAlertsSheetRejectMatch: 'Dismiss',
+    homeAlertsSheetLinkSuccess: 'Products linked.',
+    homeAlertsSheetRejectSuccess: 'Match dismissed.',
+    homeAlertsSheetLinkFailed: 'Could not complete the action.',
     homeAlertsSheetFilterAria: 'Filter by alert type',
     homeStockAlertOutBanner: '{count} products are out of stock',
     homeStockAlertLowBanner: '{count} products have low inventory',
@@ -3778,7 +3812,7 @@ const SHELL_STRINGS = {
     productsStatusDeleted: 'Deleted',
     productsCatalogEmptyTitle: 'No products to show',
     productsCatalogEmptyHint:
-      'Your catalog fills when Shopify orders sync: Integrations → your store → Sync. Order lines create products and listings keyed by SKU.',
+      'Connect an integration to start seeing your products in alenna.',
     productsCatalogEmptySearchHint: 'Try clearing search or using different keywords.',
     productsCatalogLoadError: 'Could not load the catalog. Check your connection or sign in again.',
     productsTableSelectAll: 'Select all on page',
@@ -3856,7 +3890,11 @@ const SHELL_STRINGS = {
     productsVinculacionEmptyDescription:
       'Find matches or link two products from different platforms.',
     productsVinculacionTabMatches: 'Matches found',
+    productsVinculacionTabMatchesDescription:
+      'Review products that may match across platforms.',
     productsVinculacionTabLinked: 'Linked products',
+    productsVinculacionTabLinkedDescription:
+      'Your product groups linked by you across different platforms.',
     productsVinculacionLinkedEmptyTitle: 'No linked products',
     productsVinculacionLinkedEmptyDescription:
       'Accept a match or link products from different platforms.',

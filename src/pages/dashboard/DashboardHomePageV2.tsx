@@ -27,10 +27,13 @@ import type { KpiResponse, ProductKpiResponse, RevenueSeriesGranularity } from '
 import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { HomeChannelShareSection } from '@/pages/dashboard/home-channel-donut-chart'
+import { HomeMatchSuggestionAlerts } from '@/pages/dashboard/home-match-suggestion-alerts'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
+import { resolveHomePermissionFlags } from '@/pages/dashboard/home-permission-flags'
 import { HomeProductFilter } from '@/pages/dashboard/home-product-filter'
 import { HomeTopProductsChart } from '@/pages/dashboard/home-top-products-chart'
 import { getTopProductsChartHeightPx } from '@/pages/dashboard/home-top-products-chart-layout'
+import { useAlertsSummaryQuery } from '@/pages/dashboard/use-alerts-queries'
 import {
   HOME_V2_KPI_DEFAULT_ORDER,
   HOME_V2_KPI_ORDER_KEY,
@@ -72,17 +75,20 @@ import { useReports } from '@/pages/reports/use-reports'
 import { useChannelBreakdown } from '@/pages/reports/use-channel-breakdown'
 import { useTopProducts } from '@/pages/reports/use-top-products'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
+import { useAlertsSheet } from '@/shell/alerts/alerts-sheet-context'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { dateRangePickerStrings, presetDateRangeYmd } from '@/ui/date-range-picker'
+import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
 import { SalesMetricBasisToggle } from '@/ui/sales-metric-basis-toggle'
 import { chromeIconButtonClassName } from '@/ui/surface'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
+import { buttonVariants } from '@/ui/button'
 import { cn } from '@/lib/utils'
-import { can } from '@/lib/permissions/can'
 import { useWorkspace } from '@/shell/providers/workspace-context'
+import { Link } from 'react-router-dom'
 
 type HomeV2FiltersState = {
   startDate: string
@@ -244,11 +250,19 @@ export function DashboardHomePageV2() {
   const { tenantId } = useCurrentTenant()
   const { me } = useWorkspace()
   const t = usePnlAwareT()
+  const { openSheet } = useAlertsSheet()
   const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
-  const canHomeKpis =
-    can(me, 'reports.view') || can(me, 'sales.view') || can(me, 'products.view')
-  const canChannelWidgets = can(me, 'channels.view') || can(me, 'reports.view')
-  const canConnectors = can(me, 'integrations.view')
+  const {
+    canSalesHome,
+    canAdsHome,
+    canChannelHome,
+    canAlertsHome,
+    canFetchConnectors,
+    hasAnyHomeWidget,
+  } = useMemo(() => resolveHomePermissionFlags(me), [me])
+  const alertsSummaryQuery = useAlertsSummaryQuery()
+  // informational_count is match_suggestion-only today (stock uses critical/low).
+  const matchSuggestionCount = alertsSummaryQuery.data?.informational_count ?? 0
 
   const defaultKpiOrder = useMemo(
     (): HomeV2KpiOrderState => ({
@@ -300,7 +314,7 @@ export function DashboardHomePageV2() {
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
-    enabled: Boolean(tenantId) && canConnectors,
+    enabled: Boolean(tenantId) && canFetchConnectors,
     queryFn: async (): Promise<PlatformConnection[]> => {
       const res = await apiFetch('/connectors', (a) => getToken(a), {}, tenantId)
       if (!res.ok) throw new Error(await res.text())
@@ -341,13 +355,13 @@ export function DashboardHomePageV2() {
     connectionIds: activeConnectionIds,
     startDate,
     endDate,
-    enabled: canHomeKpis && !productMode,
+    enabled: canSalesHome && !productMode,
   })
   const { data: kpiPrev, isLoading: kpiPrevLoading } = useReports({
     connectionIds: activeConnectionIds,
     startDate: prevPeriod?.start ?? '',
     endDate: prevPeriod?.end ?? '',
-    enabled: canHomeKpis && !productMode && Boolean(prevPeriod) && kpiReady,
+    enabled: canSalesHome && !productMode && Boolean(prevPeriod) && kpiReady,
   })
   const adsScope = useMemo(
     () =>
@@ -361,10 +375,9 @@ export function DashboardHomePageV2() {
     connectionIds: adsScope.queryConnectionIds,
     startDate,
     endDate,
-    enabled: canHomeKpis && !productMode && can(me, 'ads.view') && adsScope.hasAdsConnections,
+    enabled: canAdsHome && !productMode && adsScope.hasAdsConnections,
   })
-  const adsSeriesEnabled =
-    canHomeKpis && !productMode && can(me, 'ads.view') && adsScope.hasAdsConnections
+  const adsSeriesEnabled = canAdsHome && !productMode && adsScope.hasAdsConnections
   const {
     data: adsSeries,
     isLoading: adsSeriesLoading,
@@ -381,14 +394,14 @@ export function DashboardHomePageV2() {
     productIds,
     startDate,
     endDate,
-    enabled: canHomeKpis && productMode,
+    enabled: canSalesHome && productMode,
   })
   const { data: pkpiPrev, isLoading: pkpiPrevLoading } = useProductReports({
     connectionIds: activeConnectionIds,
     productIds,
     startDate: prevPeriod?.start ?? '',
     endDate: prevPeriod?.end ?? '',
-    enabled: canHomeKpis && productMode && Boolean(prevPeriod) && pkpiReady,
+    enabled: canSalesHome && productMode && Boolean(prevPeriod) && pkpiReady,
   })
 
   const { data: sparklineSeries } = useMonthlyRevenueSeries({
@@ -397,7 +410,7 @@ export function DashboardHomePageV2() {
     startDate,
     endDate,
     granularity: sparkGranularity,
-    enabled: canHomeKpis && activeConnectionIds.length > 0,
+    enabled: canSalesHome && activeConnectionIds.length > 0,
   })
 
   const { data: salesTrendSeries, isError: salesTrendError } = useMonthlyRevenueSeries({
@@ -406,7 +419,7 @@ export function DashboardHomePageV2() {
     startDate,
     endDate,
     granularity: salesTrendGranularity,
-    enabled: canHomeKpis && activeConnectionIds.length > 0,
+    enabled: canSalesHome && activeConnectionIds.length > 0,
   })
 
   const { data: channelBreakdown, isPending: channelDonutPending } = useChannelBreakdown({
@@ -414,7 +427,7 @@ export function DashboardHomePageV2() {
     productIds,
     startDate,
     endDate,
-    enabled: canChannelWidgets && activeConnectionIds.length > 0,
+    enabled: canChannelHome && activeConnectionIds.length > 0,
   })
 
   const { data: topProducts, isPending: topProductsPending } = useTopProducts({
@@ -423,7 +436,7 @@ export function DashboardHomePageV2() {
     startDate,
     endDate,
     limit: 10,
-    enabled: canHomeKpis && activeConnectionIds.length > 0,
+    enabled: canSalesHome && activeConnectionIds.length > 0,
   })
 
   const pairedChartBodyPx = useMemo(() => getTopProductsChartHeightPx(), [])
@@ -437,20 +450,38 @@ export function DashboardHomePageV2() {
   } = useMoney()
 
   const displayKpi = useMemo((): KpiResponse | null => {
+    if (!canSalesHome) return null
     if (productMode) return null
     if (connectorsLoading) return null
     if (activeConnectionIds.length > 0 && kpiLoading) return null
     return kpi ?? zeroKpiResponse(baseCurrency)
-  }, [productMode, connectorsLoading, activeConnectionIds, kpiLoading, kpi, baseCurrency])
+  }, [
+    canSalesHome,
+    productMode,
+    connectorsLoading,
+    activeConnectionIds,
+    kpiLoading,
+    kpi,
+    baseCurrency,
+  ])
 
   const displayProductKpi = useMemo((): ProductKpiResponse | null => {
+    if (!canSalesHome) return null
     if (!productMode) return null
     if (connectorsLoading) return null
     if (activeConnectionIds.length > 0 && pkpiLoading) return null
     return pkpi ?? zeroProductKpi(baseCurrency)
-  }, [productMode, connectorsLoading, activeConnectionIds, pkpiLoading, pkpi, baseCurrency])
+  }, [
+    canSalesHome,
+    productMode,
+    connectorsLoading,
+    activeConnectionIds,
+    pkpiLoading,
+    pkpi,
+    baseCurrency,
+  ])
 
-  const showKpiCards = Boolean(productMode ? displayProductKpi : displayKpi)
+  const showKpiCards = canSalesHome && Boolean(productMode ? displayProductKpi : displayKpi)
   const currency = displayKpi?.currency ?? displayProductKpi?.currency ?? baseCurrency
 
   const convertFromBase = useCallback(
@@ -647,9 +678,10 @@ export function DashboardHomePageV2() {
 
   const isInitialLoad =
     connectorsLoading ||
-    (productMode
-      ? activeConnectionIds.length > 0 && pkpiLoading
-      : displayKpi === null)
+    (canSalesHome &&
+      (productMode
+        ? activeConnectionIds.length > 0 && pkpiLoading
+        : displayKpi === null))
 
   const isDefaultKpiOrder = useMemo(
     () =>
@@ -877,6 +909,13 @@ export function DashboardHomePageV2() {
     ],
   )
 
+  const showSalesTrend = canSalesHome
+  const showAnalysis =
+    (canChannelHome && activeConnectionIds.length > 0) || canSalesHome
+  const showAdsEmpty =
+    canAdsHome && !productMode && !adsScope.hasAdsConnections && !connectorsLoading
+  const showRoleEmpty = !hasAnyHomeWidget
+
   return (
     <DashboardPage className={cn('flex flex-1 flex-col', hasNoIntegrations ? 'gap-0' : 'gap-4')}>
       {!hasNoIntegrations ? (
@@ -886,40 +925,53 @@ export function DashboardHomePageV2() {
               {t('navHome')}
             </h1>
           </div>
-          <div className="flex w-full flex-wrap items-center gap-2">
-            <FilterDates
-              strings={pickerStrings}
-              startValue={startDate}
-              endValue={endDate}
-              onStartChange={(v) => v && setFilters({ startDate: v })}
-              onEndChange={(v) => v && setFilters({ endDate: v })}
+          {canSalesHome || canChannelHome || canAdsHome ? (
+            <div className="flex w-full flex-wrap items-center gap-2">
+              <FilterDates
+                strings={pickerStrings}
+                startValue={startDate}
+                endValue={endDate}
+                onStartChange={(v) => v && setFilters({ startDate: v })}
+                onEndChange={(v) => v && setFilters({ endDate: v })}
+              />
+              {canSalesHome || canChannelHome ? (
+                <FilterComboboxMulti
+                  label={t('homeFilterChannels')}
+                  options={channelOptions}
+                  values={connectionIds}
+                  onValuesChange={(next) => setFilters({ connectionIds: next })}
+                  searchPlaceholder={t('homeFilterChannelsSearch')}
+                  emptyLabel={t('homeFilterChannelsEmpty')}
+                  clearAriaLabel={t('filterClear')}
+                  selectAllLabel={t('homeFilterSelectAll')}
+                  deselectAllLabel={t('homeFilterDeselectAll')}
+                />
+              ) : null}
+              {canSalesHome ? (
+                <HomeProductFilter
+                  values={productIds}
+                  onValuesChange={(next) => setFilters({ productIds: next })}
+                  label={t('homeFilterProduct')}
+                  searchPlaceholder={t('homeFilterProductSearch')}
+                  emptyLabel={t('homeFilterProductEmpty')}
+                  loadingLabel={t('homeFilterProductLoading')}
+                  selectAllLabel={t('homeFilterSelectAll')}
+                  deselectAllLabel={t('homeFilterDeselectAll')}
+                  selectAllContainingLabel={t('homeFilterSelectAllContaining')}
+                  deselectAllContainingLabel={t('homeFilterDeselectAllContaining')}
+                  allContainingSummaryLabel={t('homeFilterAllContainingSummary')}
+                  selectAllClearsFilter
+                />
+              ) : null}
+            </div>
+          ) : null}
+          {canAlertsHome ? (
+            <HomeMatchSuggestionAlerts
+              matchCount={matchSuggestionCount}
+              onReview={() => openSheet({ kind: 'match_suggestion' })}
+              t={t}
             />
-            <FilterComboboxMulti
-              label={t('homeFilterChannels')}
-              options={channelOptions}
-              values={connectionIds}
-              onValuesChange={(next) => setFilters({ connectionIds: next })}
-              searchPlaceholder={t('homeFilterChannelsSearch')}
-              emptyLabel={t('homeFilterChannelsEmpty')}
-              clearAriaLabel={t('filterClear')}
-              selectAllLabel={t('homeFilterSelectAll')}
-              deselectAllLabel={t('homeFilterDeselectAll')}
-            />
-            <HomeProductFilter
-              values={productIds}
-              onValuesChange={(next) => setFilters({ productIds: next })}
-              label={t('homeFilterProduct')}
-              searchPlaceholder={t('homeFilterProductSearch')}
-              emptyLabel={t('homeFilterProductEmpty')}
-              loadingLabel={t('homeFilterProductLoading')}
-              selectAllLabel={t('homeFilterSelectAll')}
-              deselectAllLabel={t('homeFilterDeselectAll')}
-              selectAllContainingLabel={t('homeFilterSelectAllContaining')}
-              deselectAllContainingLabel={t('homeFilterDeselectAllContaining')}
-              allContainingSummaryLabel={t('homeFilterAllContainingSummary')}
-              selectAllClearsFilter
-            />
-          </div>
+          ) : null}
         </header>
       ) : null}
 
@@ -927,6 +979,12 @@ export function DashboardHomePageV2() {
         <HomeNoIntegrationsState lang={lang} />
       ) : isInitialLoad ? (
         <HomeV2LoadingSkeleton />
+      ) : showRoleEmpty ? (
+        <EmptyState
+          icon="home"
+          title={t('homeRoleEmptyTitle')}
+          description={t('homeRoleEmptyDescription')}
+        />
       ) : (
         <>
           {showKpiCards ? (
@@ -997,6 +1055,7 @@ export function DashboardHomePageV2() {
             </div>
           ) : null}
 
+          {showSalesTrend ? (
           <SectionContainer framed className="mt-6 mb-8">
             <ChartSectionHeader
               title={t('homeMetricsTrendTitle')}
@@ -1045,9 +1104,12 @@ export function DashboardHomePageV2() {
               />
             )}
           </SectionContainer>
+          ) : null}
 
+          {showAnalysis ? (
           <PageSection heading={t('homeAnalysisSectionTitle')}>
             <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2 lg:items-stretch">
+              {canChannelHome ? (
               <div className="flex min-h-0 min-w-0 lg:h-full">
                 <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
                   <HomeChannelShareSection
@@ -1063,6 +1125,8 @@ export function DashboardHomePageV2() {
                   />
                 </SectionContainer>
               </div>
+              ) : null}
+              {canSalesHome ? (
               <div className="flex min-h-0 min-w-0 lg:h-full">
                 <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
                   <ChartSectionHeader
@@ -1084,8 +1148,26 @@ export function DashboardHomePageV2() {
                   </div>
                 </SectionContainer>
               </div>
+              ) : null}
             </div>
           </PageSection>
+          ) : null}
+
+          {showAdsEmpty ? (
+            <EmptyState
+              icon="ads"
+              title={t('homeAdsEmptyOnHomeTitle')}
+              description={t('homeAdsEmptyOnHomeDescription')}
+              action={
+                <Link
+                  to="/dashboard/integrations/ads"
+                  className={buttonVariants({ variant: 'accent', size: 'tiny' })}
+                >
+                  {t('homeAdsEmptyOnHomeCta')}
+                </Link>
+              }
+            />
+          ) : null}
 
           {adsSeriesEnabled ? (
             <SectionContainer framed className="mt-6 overflow-visible">
@@ -1121,7 +1203,7 @@ export function DashboardHomePageV2() {
             </SectionContainer>
           ) : null}
 
-          {settlementWaterfallSegments.length > 0 ? (
+          {canSalesHome && settlementWaterfallSegments.length > 0 ? (
             <SectionContainer framed className="mt-6 mb-8 overflow-visible">
               <ChartSectionHeader
                 title={t('reportsSectionSettlementTitle')}

@@ -29,9 +29,9 @@ import { extractShopifyJobProgressInfo, buildShopifySuccessSubtitle } from '@/li
 import { formatShopifySyncUserError } from '@/lib/integrations/shopify-sync-user-error'
 import {
   buildPlatformFullSyncTypedError,
+  formatRetryAfterHoursLabel,
   readApiErrorDetail,
   readRetryAfterSeconds,
-  secondsToCeilHours,
 } from '@/lib/integrations/platform-full-sync-error'
 
 export type ShopifyIntegrationHook = ReturnType<typeof useShopifyIntegration>
@@ -420,13 +420,13 @@ export function useShopifyIntegration() {
         return
       }
       if (e instanceof ShopifySyncCooldownError) {
-        const hours = secondsToCeilHours(e.retryAfterSeconds)
-        toast.error(shellT(lang, 'syncCooldownToast', { hours: String(hours) }))
+        const hours = formatRetryAfterHoursLabel(e.retryAfterSeconds)
+        toast.error(shellT(lang, 'syncCooldownToast', { hours }))
         return
       }
       if (e instanceof ShopifySyncFailedRetryCapError) {
-        const hours = secondsToCeilHours(e.retryAfterSeconds)
-        toast.error(shellT(lang, 'syncFailedRetryCapToast', { hours: String(hours) }))
+        const hours = formatRetryAfterHoursLabel(e.retryAfterSeconds)
+        toast.error(shellT(lang, 'syncFailedRetryCapToast', { hours }))
         return
       }
       setSyncMessage(e.message)

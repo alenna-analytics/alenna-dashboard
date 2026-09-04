@@ -22,12 +22,7 @@ import { DeleteAccountDialog } from '@/pages/configuration/general/delete-accoun
 import {
   useDeleteAccountMutation,
 } from '@/pages/configuration/general/use-account-deletion-mutations'
-import {
-  isWorkspaceCurrencyCode,
-  patchWorkspace,
-  type WorkspaceCurrencyCode,
-  type WorkspacePatch,
-} from '@/pages/configuration/general/workspace-api'
+import { patchWorkspace, type WorkspacePatch } from '@/pages/configuration/general/workspace-api'
 import {
   SettingsCard,
   SettingsRow,
@@ -76,7 +71,6 @@ export function GeneralConfigurationPage() {
   const [confirmName, setConfirmName] = useState('')
   const [understood, setUnderstood] = useState(false)
   const [workspaceNameDraft, setWorkspaceNameDraft] = useState('')
-  const [currencyDraft, setCurrencyDraft] = useState<WorkspaceCurrencyCode>('MXN')
 
   const companyName = useMemo(() => {
     const fromMe = me?.tenant_name?.trim()
@@ -89,11 +83,6 @@ export function GeneralConfigurationPage() {
   }, [companyName])
 
   const workspaceCurrency = (me?.base_currency ?? 'MXN').toUpperCase()
-  useEffect(() => {
-    if (isWorkspaceCurrencyCode(workspaceCurrency)) {
-      setCurrencyDraft(workspaceCurrency)
-    }
-  }, [workspaceCurrency])
 
   const isWorkspaceAdmin = isOwner(me)
   const canEditName = isWorkspaceAdmin && !me?.is_fixture && me?.account_deletion_status !== 'pending'
@@ -104,21 +93,12 @@ export function GeneralConfigurationPage() {
   const canSeeBilling = canViewBilling(me)
   const canManageBilling = isBillingOwner(me)
   const nameDirty = workspaceNameDraft.trim() !== companyName.trim()
-  const currencyDirty =
-    isWorkspaceCurrencyCode(workspaceCurrency) && currencyDraft !== workspaceCurrency
-  const generalDirty = nameDirty || currencyDirty
+  const generalDirty = nameDirty
 
   const languageOptions = useMemo(
     () => [
       { value: 'es', label: t('settingsLanguageEs') },
       { value: 'en', label: t('settingsLanguageEn') },
-    ],
-    [t],
-  )
-  const currencyOptions = useMemo(
-    () => [
-      { value: 'MXN', label: t('settingsCurrencyMxn') },
-      { value: 'USD', label: t('settingsCurrencyUsd') },
     ],
     [t],
   )
@@ -163,7 +143,6 @@ export function GeneralConfigurationPage() {
     mutationFn: () => {
       const payload: WorkspacePatch = {}
       if (nameDirty) payload.name = workspaceNameDraft.trim()
-      if (currencyDirty) payload.base_currency = currencyDraft
       return patchWorkspace(getToken, tenantId!, payload)
     },
     onSuccess: async () => {
@@ -239,26 +218,7 @@ export function GeneralConfigurationPage() {
             label={t('settingsCurrencyLabel')}
             description={t('settingsCurrencyDescription')}
           >
-            {canEditName ? (
-              <FilterComboboxSingle
-                label=""
-                options={currencyOptions}
-                value={currencyDraft}
-                onValueChange={(value) => {
-                  if (isWorkspaceCurrencyCode(value)) setCurrencyDraft(value)
-                }}
-                searchPlaceholder={t('settingsCurrencyLabel')}
-                emptyLabel={t('filterComingSoon')}
-                allowClear={false}
-                labelLayout="stacked"
-                triggerClassName="w-full"
-              />
-            ) : (
-              <p className="text-sm font-medium text-text-primary">
-                {currencyOptions.find((option) => option.value === currencyDraft)?.label ??
-                  currencyDraft}
-              </p>
-            )}
+            <p className="text-sm font-medium text-text-primary">{workspaceCurrency}</p>
           </SettingsRow>
           {canEditName ? (
             <div className="flex justify-end px-4 py-3">

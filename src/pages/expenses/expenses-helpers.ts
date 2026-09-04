@@ -2,11 +2,28 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { Expense, ExpenseCategory, ExpenseRecurrence } from '@/lib/types/expenses'
 import type { LatestFxForDisplay } from '@/lib/types/me-types'
 
-export const EXPENSE_CURRENCIES = ['MXN', 'USD'] as const
-export type ExpenseCurrencyCode = (typeof EXPENSE_CURRENCIES)[number]
+export type ExpenseCurrencyCode = string
 
 export const CHARGE_DAY_MIN = 1
 export const CHARGE_DAY_MAX = 31
+
+/** Options for expense create/edit from `/me` currency capabilities. */
+export function resolveExpenseCurrencies(input: {
+  expenseCurrencies?: readonly string[] | null
+  baseCurrency?: string | null
+  fallbackBase?: string
+}): string[] {
+  const fallback = (input.fallbackBase ?? input.baseCurrency ?? '').trim().toUpperCase() || 'MXN'
+  const base = (input.baseCurrency ?? fallback).trim().toUpperCase() || fallback
+  if (input.expenseCurrencies?.length) {
+    return input.expenseCurrencies.map((c) => c.trim().toUpperCase()).filter(Boolean)
+  }
+  return [base]
+}
+
+export function isExpenseCurrencyLocked(codes: readonly string[]): boolean {
+  return codes.length <= 1
+}
 
 export function sanitizeChargeDayInput(raw: string, previous: string): string {
   if (raw.trim() === '') return ''

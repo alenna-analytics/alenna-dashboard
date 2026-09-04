@@ -7,6 +7,7 @@ import {
   shouldShowWorkspaceConfigNav,
   visibleWorkspaceConfigSubmodules,
 } from '@/lib/modules/workspace-config-submodules'
+import { can } from '@/lib/permissions/can'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 
 export function useEnabledWorkspaceConfigSubmodules() {
@@ -16,7 +17,14 @@ export function useEnabledWorkspaceConfigSubmodules() {
     [me?.modules],
   )
 
-  return useMemo(() => visibleWorkspaceConfigSubmodules(moduleIds), [moduleIds])
+  return useMemo(
+    () =>
+      visibleWorkspaceConfigSubmodules(moduleIds, {
+        multiCurrencyEnabled: Boolean(me?.currency?.multi_currency_enabled),
+        canViewFx: can(me, 'fx.view'),
+      }),
+    [moduleIds, me],
+  )
 }
 
 export function useConfigSectionModules(): ModuleState[] {
@@ -65,5 +73,8 @@ export function useWorkspaceConfigNavEnabled(): boolean {
     () => parseModuleIds(me?.modules ?? []),
     [me?.modules],
   )
-  return shouldShowWorkspaceConfigNav(moduleIds)
+  return shouldShowWorkspaceConfigNav(moduleIds, {
+    multiCurrencyEnabled: Boolean(me?.currency?.multi_currency_enabled),
+    canViewFx: can(me, 'fx.view'),
+  })
 }

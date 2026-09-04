@@ -1294,7 +1294,7 @@ const SHELL_STRINGS = {
     reportsComparisonUnavailable: 'Comparación no disponible',
     reportsComparisonNoBaseline: 'Sin base',
     reportsKpiHelpGrossRevenue:
-      'Ingresos por producto antes de descuentos, devoluciones y cancelaciones.',
+      'Ingresos por producto antes de descuentos, devoluciones y cancelaciones. En Amazon no incluye IVA; Seller Central puede mostrar totales con impuestos.',
     reportsKpiHelpNetRevenue:
       'Ingresos por producto después de descuentos, devoluciones y cancelaciones. Incluye pedidos pagados en tránsito.',
     reportsKpiHelpGrossProfit: 'Ventas netas menos el costo de los productos vendidos (COGS).',
@@ -3304,7 +3304,7 @@ const SHELL_STRINGS = {
     reportsComparisonUnavailable: 'Comparison unavailable',
     reportsComparisonNoBaseline: 'No baseline',
     reportsKpiHelpGrossRevenue:
-      'Product revenue before discounts, returns, and cancellations.',
+      'Product revenue before discounts, returns, and cancellations. For Amazon this excludes tax; Seller Central may show totals with tax included.',
     reportsKpiHelpNetRevenue:
       'Product revenue after discounts, returns, and cancellations. Includes paid in-transit orders.',
     reportsKpiHelpGrossProfit: 'Net sales minus cost of products sold (COGS).',

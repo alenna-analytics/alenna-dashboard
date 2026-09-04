@@ -15,8 +15,6 @@ import {
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { AlertItemApi, AlertPostponeDuration } from '@/lib/types/alerts'
-import { matchSuggestionIdFromPayload } from '@/pages/dashboard/home-permission-flags'
-import { PRODUCTS_LINKING_PATH } from '@/pages/products/products-inner-nav'
 import { cn } from '@/lib/utils'
 import { StatusPill } from '@/ui/status-pill'
 import { Button, buttonVariants } from '@/ui/button'
@@ -59,14 +57,11 @@ type ActiveAlertsSheetProps = {
   activeLoading: boolean
   postponedLoading: boolean
   isAdmin: boolean
-  canLinkProducts?: boolean
   postponePending: boolean
-  linkPending?: boolean
-  rejectPending?: boolean
   connectionPlatformById: ReadonlyMap<string, string>
   onPostpone: (alertId: string, duration: AlertPostponeDuration) => void
-  onAcceptMatch?: (suggestionId: string) => void
-  onRejectMatch?: (suggestionId: string) => void
+  /** Close alerts and open the product-match review sheet. */
+  onReviewMatchDetail?: () => void
   /** Apply this kind filter when the sheet opens (e.g. from Home match banner). */
   initialKind?: AlertKindFilter | null
   onInitialKindConsumed?: () => void
@@ -165,7 +160,7 @@ function AlertProductChannelLine({
           </span>
         </>
       ) : null}
-      <p className="min-w-0 truncate">{alertProductTitle(item)}</p>
+      <p className="min-w-0 truncate">{alertProductTitle(item, t)}</p>
     </div>
   )
 }
@@ -350,46 +345,33 @@ function AlertDetailView({
   item,
   connectionPlatformById,
   isAdmin,
-  canLinkProducts,
   postponePending,
-  linkPending,
-  rejectPending,
   isPostponedSection,
   onBack,
   onClosePanel,
   onPostpone,
-  onAcceptMatch,
-  onRejectMatch,
+  onReviewMatchDetail,
   t,
 }: {
   item: AlertItemApi
   connectionPlatformById: ReadonlyMap<string, string>
   isAdmin: boolean
-  canLinkProducts: boolean
   postponePending: boolean
-  linkPending: boolean
-  rejectPending: boolean
   isPostponedSection: boolean
   onBack: () => void
   onClosePanel: () => void
   onPostpone: (alertId: string, duration: AlertPostponeDuration) => void
-  onAcceptMatch: (suggestionId: string) => void
-  onRejectMatch: (suggestionId: string) => void
+  onReviewMatchDetail?: () => void
   t: (key: ShellStringKey) => string
 }) {
   const stock = payloadNumber(item.payload, 'stock_quantity')
   const sold = payloadNumber(item.payload, 'prev_month_units_sold')
   const isMatch = item.alert_type === 'match_suggestion'
-  const suggestionId = isMatch ? matchSuggestionIdFromPayload(item.payload) : null
-  const productHref = isMatch
-    ? PRODUCTS_LINKING_PATH
-    : item.product_id
-      ? `/dashboard/products/${item.product_id}`
-      : null
+  const productHref =
+    !isMatch && item.product_id ? `/dashboard/products/${item.product_id}` : null
   const headline = alertTypeName(t, item)
-  const productTitle = alertProductTitle(item)
+  const productTitle = alertProductTitle(item, t)
   const channelSlug = alertPlatformSlug(item, connectionPlatformById)
-  const showMatchActions = isMatch && canLinkProducts && suggestionId !== null && !isPostponedSection
 
   const issueText =
     item.severity === 'critical'
@@ -476,35 +458,13 @@ function AlertDetailView({
                 t={t}
               />
             ) : null}
-            {showMatchActions ? (
-              <>
-                <Button
-                  variant="outline"
-                  size="tiny"
-                  loading={rejectPending}
-                  disabled={linkPending || rejectPending}
-                  onClick={() => onRejectMatch(suggestionId)}
-                >
-                  {t('homeAlertsSheetRejectMatch')}
-                </Button>
-                <Button
-                  variant="accent"
-                  size="tiny"
-                  loading={linkPending}
-                  disabled={linkPending || rejectPending}
-                  onClick={() => onAcceptMatch(suggestionId)}
-                >
-                  {t('homeAlertsSheetLinkProducts')}
-                </Button>
-              </>
-            ) : null}
-            {productHref ? (
-              <Button
-                variant={showMatchActions ? 'outline' : 'accent'}
-                size="tiny"
-                render={<Link to={productHref} />}
-              >
-                {isMatch ? t('homeAlertsDialogViewMatches') : t('homeAlertsDialogViewProduct')}
+            {isMatch ? (
+              <Button variant="accent" size="tiny" onClick={() => onReviewMatchDetail?.()}>
+                {t('homeAlertsSheetReviewMatchDetail')}
+              </Button>
+            ) : productHref ? (
+              <Button variant="accent" size="tiny" render={<Link to={productHref} />}>
+                {t('homeAlertsDialogViewProduct')}
               </Button>
             ) : null}
           </div>
@@ -610,14 +570,10 @@ export function ActiveAlertsSheet({
   activeLoading,
   postponedLoading,
   isAdmin,
-  canLinkProducts = false,
   postponePending,
-  linkPending = false,
-  rejectPending = false,
   connectionPlatformById,
   onPostpone,
-  onAcceptMatch,
-  onRejectMatch,
+  onReviewMatchDetail,
   initialKind = null,
   onInitialKindConsumed,
   t,
@@ -676,14 +632,9 @@ export function ActiveAlertsSheet({
     setFilters((prev) => ({ ...prev, lifecycle: 'postponed' }))
   }
 
-  const handleAcceptMatch = (suggestionId: string) => {
-    onAcceptMatch?.(suggestionId)
-    setSelectedId(null)
-  }
-
-  const handleRejectMatch = (suggestionId: string) => {
-    onRejectMatch?.(suggestionId)
-    setSelectedId(null)
+  const handleReviewMatchDetail = () => {
+    handleOpenChange(false)
+    onReviewMatchDetail?.()
   }
 
   const showDetail = selectedItem !== null
@@ -729,16 +680,12 @@ export function ActiveAlertsSheet({
               item={selectedItem}
               connectionPlatformById={connectionPlatformById}
               isAdmin={isAdmin}
-              canLinkProducts={canLinkProducts}
               postponePending={postponePending}
-              linkPending={linkPending}
-              rejectPending={rejectPending}
               isPostponedSection={filters.lifecycle === 'postponed'}
               onBack={() => setSelectedId(null)}
               onClosePanel={() => handleOpenChange(false)}
               onPostpone={handlePostpone}
-              onAcceptMatch={handleAcceptMatch}
-              onRejectMatch={handleRejectMatch}
+              onReviewMatchDetail={handleReviewMatchDetail}
               t={t}
             />
           ) : null}

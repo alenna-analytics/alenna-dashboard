@@ -42,13 +42,14 @@ function invalidateProductLinkQueries(qc: QueryClient, tenantId: string | null) 
   invalidateAlertsQueries(qc, tenantId)
 }
 
-export function useProductLinkSuggestionsQuery() {
+export function useProductLinkSuggestionsQuery(options?: { enabled?: boolean }) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const enabled = options?.enabled ?? true
 
   return useQuery({
     queryKey: productLinkSuggestionsQueryKey(tenantId),
-    enabled: Boolean(tenantId),
+    enabled: Boolean(tenantId) && enabled,
     queryFn: async (): Promise<ProductLinkSuggestionsPageApi> => {
       const res = await apiFetch(
         '/catalog/product-link-suggestions?status=pending&limit=50&offset=0',

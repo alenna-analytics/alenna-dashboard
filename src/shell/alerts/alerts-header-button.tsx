@@ -19,7 +19,7 @@ export function AlertsHeaderButton({ className }: { className?: string }) {
       type="button"
       className={cn(chromeIconButtonClassName, 'relative cursor-pointer overflow-visible', className)}
       aria-label={shellT(lang, 'shellAlertsOpenAria')}
-      onClick={openSheet}
+      onClick={() => openSheet()}
     >
       <AppIcon name="notifications" tone="muted" className="size-4" />
       {count > 0 ? (

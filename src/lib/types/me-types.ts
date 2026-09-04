@@ -1,18 +1,17 @@
 import type { ModuleId } from '@/lib/modules/types'
 
-/**
- * Latest FX rate for display / multi-currency conversion.
- *
- * When display differs from base: base→display pair.
- * When display equals base (MXN or USD): `/me` still returns the USD↔MXN pair
- * so surfaces like Expenses can convert foreign amounts into base.
- * Null when no matching `fx_rates` row exists.
- */
 export type LatestFxForDisplay = {
   rate: string
   rate_date: string
   from: string
   to: string
+}
+
+export type MeCurrencyCapabilities = {
+  multi_currency_enabled: boolean
+  base_currency: string
+  expense_currencies: string[]
+  display_currencies: string[]
 }
 
 export type AccountDeletionUiStatus = 'active' | 'pending'
@@ -38,7 +37,8 @@ export type MeResponse = {
   roles_limit?: number | null
   base_currency: string
   display_currency: string | null
-  /** See `LatestFxForDisplay` — may be set even when display equals base (USD↔MXN). */
+  currency?: MeCurrencyCapabilities
+  /** See `LatestFxForDisplay` — may be set even when display equals base. */
   latest_fx_for_display: LatestFxForDisplay | null
   account_deletion_status?: AccountDeletionUiStatus | null
   deletion_requested_at?: string | null
@@ -70,5 +70,5 @@ export type AccountDeletionStatusResponse = {
 }
 
 export type UserPreferencesPatch = {
-  display_currency: 'MXN' | 'USD' | null
+  display_currency: string | null
 }

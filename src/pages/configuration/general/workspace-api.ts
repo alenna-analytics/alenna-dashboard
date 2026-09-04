@@ -2,15 +2,8 @@ import type { GetTokenFn } from '@/lib/api/client'
 import { apiPatchJson } from '@/lib/api/client'
 import type { MeResponse } from '@/lib/types/me-types'
 
-export type WorkspaceCurrencyCode = 'MXN' | 'USD'
-
 export type WorkspacePatch = {
   name?: string
-  base_currency?: WorkspaceCurrencyCode
-}
-
-export function isWorkspaceCurrencyCode(value: string): value is WorkspaceCurrencyCode {
-  return value === 'MXN' || value === 'USD'
 }
 
 export async function patchWorkspace(

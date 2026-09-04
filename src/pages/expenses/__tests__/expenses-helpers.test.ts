@@ -4,7 +4,9 @@ import type { Expense } from '@/lib/types/expenses'
 import type { LatestFxForDisplay } from '@/lib/types/me-types'
 import {
   filterExpenses,
+  isExpenseCurrencyLocked,
   prorateExpenseAmount,
+  resolveExpenseCurrencies,
   sanitizeChargeDayInput,
   summarizeExpenses,
   type ExpensesFilters,
@@ -184,6 +186,28 @@ describe('filterExpenses amount FX', () => {
       'MXN',
     )
     expect(filtered.map((r) => r.id)).toEqual(['mxn'])
+  })
+})
+
+describe('resolveExpenseCurrencies', () => {
+  it('uses me.currency.expense_currencies when present', () => {
+    expect(
+      resolveExpenseCurrencies({
+        expenseCurrencies: ['mxn', 'usd'],
+        baseCurrency: 'MXN',
+      }),
+    ).toEqual(['MXN', 'USD'])
+  })
+
+  it('falls back to base only when list empty (non-Growth)', () => {
+    expect(
+      resolveExpenseCurrencies({
+        expenseCurrencies: [],
+        baseCurrency: 'MXN',
+      }),
+    ).toEqual(['MXN'])
+    expect(isExpenseCurrencyLocked(['MXN'])).toBe(true)
+    expect(isExpenseCurrencyLocked(['MXN', 'USD'])).toBe(false)
   })
 })
 

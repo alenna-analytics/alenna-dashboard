@@ -5,7 +5,6 @@ import type { Expense, ExpenseCategory, ExpenseCreate, ExpenseRecurrence } from 
 import {
   CHARGE_DAY_MAX,
   CHARGE_DAY_MIN,
-  EXPENSE_CURRENCIES,
   sanitizeChargeDayInput,
   type ExpenseCurrencyCode,
 } from '@/pages/expenses/expenses-helpers'
@@ -39,6 +38,8 @@ type ExpensesSheetProps = {
   expense: Expense | null
   platforms: Platform[]
   defaultCurrency: ExpenseCurrencyCode
+  currencyOptions: FilterOption[]
+  currencyLocked?: boolean
   onCreate: (body: ExpenseCreate) => Promise<void>
   onUpdate: (id: string, body: Partial<ExpenseCreate>) => Promise<void>
   isBusy?: boolean
@@ -137,6 +138,8 @@ export function ExpensesSheet({
   expense,
   platforms,
   defaultCurrency,
+  currencyOptions,
+  currencyLocked = false,
   onCreate,
   onUpdate,
   isBusy,
@@ -157,12 +160,6 @@ export function ExpensesSheet({
     { value: 'ads', label: t('expensesCatAds') },
     { value: 'other', label: t('expensesCatOther') },
   ]
-
-  const currencyOptions: FilterOption[] = EXPENSE_CURRENCIES.map((code) => ({
-    value: code,
-    label: code,
-  }))
-
   const platformOptions: FilterOption[] = [
     { value: GLOBAL_PLATFORM, label: t('expensesGlobalPlatform') },
     ...platforms.map((p) => ({ value: p.slug, label: p.name })),
@@ -245,22 +242,26 @@ export function ExpensesSheet({
             </FormRow>
 
             <FormRow label={t('expensesCurrencyField')}>
-              <FilterComboboxSingle
-                label={t('expensesCurrencyField')}
-                options={currencyOptions}
-                value={form.currency}
-                onValueChange={(value) =>
-                  setForm((f) => ({
-                    ...f,
-                    currency: normalizeCurrency(value, defaultCurrency),
-                  }))
-                }
-                searchPlaceholder={searchPlaceholder}
-                emptyLabel={emptyLabel}
-                allowClear={false}
-                labelLayout="control"
-                popoverSide="bottom"
-              />
+              {currencyLocked ? (
+                <Input value={form.currency} disabled readOnly />
+              ) : (
+                <FilterComboboxSingle
+                  label={t('expensesCurrencyField')}
+                  options={currencyOptions}
+                  value={form.currency}
+                  onValueChange={(value) =>
+                    setForm((f) => ({
+                      ...f,
+                      currency: normalizeCurrency(value, defaultCurrency),
+                    }))
+                  }
+                  searchPlaceholder={searchPlaceholder}
+                  emptyLabel={emptyLabel}
+                  allowClear={false}
+                  labelLayout="control"
+                  popoverSide="bottom"
+                />
+              )}
             </FormRow>
 
             <FormRow label={t('expensesCategoryField')}>

@@ -25,8 +25,10 @@ export type SettlementWaterfallLine = {
 
 export function settlementWaterfallLines(
   settlement: SettlementBreakdown | ProductSettlementApi,
+  options?: { includeTaxWithholdings?: boolean },
 ): SettlementWaterfallLine[] {
-  return [
+  const includeTax = options?.includeTaxWithholdings ?? true
+  const lines: SettlementWaterfallLine[] = [
     { key: 'gross', labelKey: 'settlementWfGross', value: settlement.gross_revenue, kind: 'line' },
     {
       key: 'discounts',
@@ -62,18 +64,21 @@ export function settlementWaterfallLines(
       kind: 'line',
       isDeduction: true,
     },
-    {
+  ]
+  if (includeTax) {
+    lines.push({
       key: 'tax',
       labelKey: 'settlementWfTaxWithholdings',
       value: settlement.tax_withholdings,
       kind: 'line',
       isDeduction: true,
-    },
-    {
-      key: 'payout',
-      labelKey: 'settlementWfEstimatedPayout',
-      value: settlement.estimated_payout,
-      kind: 'total',
-    },
-  ]
+    })
+  }
+  lines.push({
+    key: 'payout',
+    labelKey: 'settlementWfEstimatedPayout',
+    value: settlement.estimated_payout,
+    kind: 'total',
+  })
+  return lines
 }

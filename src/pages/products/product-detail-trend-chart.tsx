@@ -17,7 +17,7 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { EmptyState } from '@/ui/empty-state'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
@@ -98,15 +98,15 @@ function MultiTrendTooltip({
   if (!row) return null
   return (
     <ChartTooltipFrame>
-      <p className="mb-1.5 font-medium text-white">{String(row.label)}</p>
-      <div className="space-y-1 leading-snug">
+      <ChartTooltipTitle>{String(row.label)}</ChartTooltipTitle>
+      <div className="space-y-1.5">
         {selectedMetrics.map((id) => (
-          <p key={id} className="tabular-nums">
-            <span className="text-white/55">{productDetailTrendMetricLabel(id, t)}:</span>{' '}
-            <span className="font-medium text-white">
-              {formatProductDetailTrendMetricValue(id, Number(row[id] ?? 0), formatMoney)}
-            </span>
-          </p>
+          <ChartTooltipSeriesRow
+            key={id}
+            color={PRODUCT_DETAIL_METRIC_COLORS[id]}
+            label={productDetailTrendMetricLabel(id, t)}
+            value={formatProductDetailTrendMetricValue(id, Number(row[id] ?? 0), formatMoney)}
+          />
         ))}
       </div>
     </ChartTooltipFrame>
@@ -248,15 +248,7 @@ export function ProductDetailTrendChart({
                 t={t}
               />
             }
-            wrapperStyle={{ outline: 'none' }}
-            contentStyle={{
-              margin: 0,
-              padding: 0,
-              background: 'transparent',
-              border: 'none',
-              borderRadius: 0,
-              boxShadow: 'none',
-            }}
+            {...chartRechartsTooltipProps}
           />
           {chartMetrics.map((id, index) => {
             const kind = metricAxisKind(id)

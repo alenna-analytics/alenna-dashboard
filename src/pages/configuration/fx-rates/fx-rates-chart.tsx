@@ -14,7 +14,7 @@ import {
 
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { Language } from '@/shell/providers/language-provider'
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
 
@@ -52,11 +52,14 @@ function RateTooltip({
   const row = payload[0].payload
   return (
     <ChartTooltipFrame>
-      <p className="font-medium text-white">{row.label}</p>
-      <p className="mt-0.5 text-white/70">
-        {row.pair}: {row.rate.toLocaleString(undefined, { maximumFractionDigits: 6 })}
-      </p>
-      <p className="mt-0.5 text-white/55">{t('workspaceConfigFxRatesColRate')}</p>
+      <ChartTooltipTitle>{row.label}</ChartTooltipTitle>
+      <div className="space-y-1.5">
+        <ChartTooltipSeriesRow
+          color="var(--chart-1)"
+          label={t('workspaceConfigFxRatesColRate')}
+          value={row.rate.toLocaleString(undefined, { maximumFractionDigits: 6 })}
+        />
+      </div>
     </ChartTooltipFrame>
   )
 }
@@ -134,6 +137,7 @@ export function FxRatesChart({
           <Tooltip
             cursor={{ stroke: 'var(--border-subtle)', strokeDasharray: '4 4' }}
             content={<RateTooltip t={t} />}
+            {...chartRechartsTooltipProps}
           />
           <Line
             type="monotone"

@@ -32,7 +32,7 @@ type SettlementLine = {
   value: (m: PlatformSettlementMetrics) => number
 }
 
-const LINES: SettlementLine[] = [
+const ALL_SETTLEMENT_LINES: SettlementLine[] = [
   {
     id: 'gross_revenue',
     labelKey: 'settlementWfGross',
@@ -95,6 +95,8 @@ type ChannelsSettlementTableProps = {
   platforms: ChannelPlatform[]
   formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
+  /** When false, omit Retenido SAT / tax withholdings row (Vista B). */
+  includeTaxWithholdings?: boolean
 }
 
 function emphasisClass(kind: SettlementLine['kind']): string {
@@ -106,7 +108,15 @@ export function ChannelsSettlementTable({
   platforms,
   formatMoney,
   t,
+  includeTaxWithholdings = true,
 }: ChannelsSettlementTableProps) {
+  const lines = useMemo(
+    () =>
+      includeTaxWithholdings
+        ? ALL_SETTLEMENT_LINES
+        : ALL_SETTLEMENT_LINES.filter((line) => line.id !== 'tax_withholdings'),
+    [includeTaxWithholdings],
+  )
   const cols = useMemo(
     () => [...platforms, { slug: 'total', label: t('channelsColTotal') }],
     [platforms, t],
@@ -177,7 +187,7 @@ export function ChannelsSettlementTable({
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
   const table = useReactTable({
-    data: LINES,
+    data: lines,
     columns,
     getCoreRowModel: getCoreRowModel(),
     enableSorting: false,

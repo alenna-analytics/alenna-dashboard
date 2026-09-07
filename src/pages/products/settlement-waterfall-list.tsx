@@ -16,6 +16,7 @@ type SettlementWaterfallListProps = {
   fmtBase: (value: number) => string
   t: (key: ShellStringKey) => string
   rowHover?: boolean
+  includeTaxWithholdings?: boolean
 }
 
 type PlatformFieldKey =
@@ -168,8 +169,12 @@ export function SettlementWaterfallList({
   fmtBase,
   t,
   rowHover = false,
+  includeTaxWithholdings = false,
 }: SettlementWaterfallListProps) {
-  const lines = useMemo(() => settlementWaterfallLines(settlement), [settlement])
+  const lines = useMemo(
+    () => settlementWaterfallLines(settlement, { includeTaxWithholdings }),
+    [settlement, includeTaxWithholdings],
+  )
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => new Set())
 
   const toggleRow = useCallback((key: string) => {

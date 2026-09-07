@@ -17,7 +17,7 @@ import {
 import type { ChannelPlatform } from '@/pages/channels/channels-platform-aggregate'
 import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
 import { cn } from '@/lib/utils'
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 
 const PLATFORM_COLORS = [
@@ -87,27 +87,17 @@ function CmTooltip({
   if (visible.length === 0) return null
   return (
     <ChartTooltipFrame>
-      {label != null ? (
-        <div className="mb-1.5 font-medium text-white">{String(label)}</div>
-      ) : null}
-      <div className="space-y-1">
+      {label != null ? <ChartTooltipTitle>{String(label)}</ChartTooltipTitle> : null}
+      <div className="space-y-1.5">
         {visible.map((entry, i) => {
           const n = typeof entry.value === 'number' ? entry.value : Number(entry.value ?? 0)
           return (
-            <div
+            <ChartTooltipSeriesRow
               key={`${String(entry.dataKey)}-${i}`}
-              className="flex flex-wrap items-baseline gap-x-2 tabular-nums"
-            >
-              <span className="inline-flex items-center gap-1.5 text-white/70">
-                <span
-                  className="size-2 shrink-0 rounded-full"
-                  style={{ background: entry.color }}
-                  aria-hidden
-                />
-                {entry.name}:
-              </span>
-              <span className="font-medium text-white">{formatValue(n)}</span>
-            </div>
+              color={entry.color}
+              label={entry.name ?? ''}
+              value={formatValue(n)}
+            />
           )
         })}
       </div>
@@ -193,6 +183,7 @@ export function ChannelsCmChart({
                 chartType === 'bar' ? { fill: 'var(--muted)', opacity: 0.45 } : undefined
               }
               content={<CmTooltip formatValue={formatValue} hiddenKeys={hiddenKeys} />}
+              {...chartRechartsTooltipProps}
             />
             {platforms.map((platform, index) => {
               const color = PLATFORM_COLORS[index % PLATFORM_COLORS.length]

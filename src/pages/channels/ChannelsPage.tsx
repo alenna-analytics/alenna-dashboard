@@ -311,11 +311,13 @@ export function ChannelsPage() {
                     ? t('channelsCmChartTitleProductScope')
                     : t('channelsCmChartTitle')
                 }
-                info={
+                calcDescription={
                   cmIncomplete
                     ? t('channelsCmChartSubtitleProductScope')
-                    : t('channelsCmChartSubtitle')
+                    : t('channelsCmChartCalcDescription')
                 }
+                calcFormulaLeft={t('channelsCmChartCalcLeft')}
+                calcFormulaParts={[t('channelsCmChartCalcFormula')]}
                 aside={
                   <>
                     <ChartGranularityFilter
@@ -358,7 +360,9 @@ export function ChannelsPage() {
             <SectionContainer framed>
               <ChartSectionHeader
                 title={t('channelsCostStructureTitle')}
-                info={t('channelsCostStructureSubtitle')}
+                calcDescription={t('channelsCostStructureCalcDescription')}
+                calcFormulaLeft={t('channelsCostStructureCalcLeft')}
+                calcFormulaParts={[t('channelsCostStructureCalcFormula')]}
               />
               <ChannelsCostStructureChart
                 metrics={currentAgg}

@@ -3,7 +3,7 @@ import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
 
 import { useCurrentTenant } from '@/auth/hooks'
-import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { apiFetch } from '@/lib/api'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { can } from '@/lib/permissions/can'
@@ -41,7 +41,7 @@ export function StockAlarmConfigurationPage() {
   const { lang } = useLanguage()
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
-  const { me } = useAppBootstrap()
+  const { me } = useWorkspace()
   const isAdmin = can(me, 'alerts.manage')
 
   const stockRuleQuery = useStockRuleQuery()

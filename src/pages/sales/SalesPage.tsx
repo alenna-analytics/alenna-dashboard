@@ -462,7 +462,9 @@ export function SalesPage() {
             <SectionContainer framed>
               <ChartSectionHeader
                 title={t('salesYoyChartTitle')}
-                info={t('salesYoyChartSubtitle')}
+                calcDescription={t('salesYoyChartCalcDescription')}
+                calcFormulaLeft={t('salesYoyChartCalcLeft')}
+                calcFormulaParts={[t('salesYoyChartCalcFormula')]}
                 aside={
                   <>
                     <ChartGranularityFilter

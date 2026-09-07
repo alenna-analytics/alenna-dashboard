@@ -26,7 +26,7 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 
 import { parseLocalYmd } from './reports-ui-helpers'
 
@@ -257,26 +257,28 @@ function ChartTooltip({
   const profit = toNum(row.gross_profit)
   return (
     <ChartTooltipFrame>
-      <p className="mb-2 font-medium text-white">{row.label}</p>
-      <div className="space-y-1 tabular-nums text-white/70">
-        <div className="flex justify-between gap-6">
-          <span>{t('reportsGrossRevenue')}</span>
-          <span className="font-medium text-white">{fmtMoneyCompact(gross, currency)}</span>
-        </div>
-        <div className="flex justify-between gap-6">
-          <span>{t('reportsNetRevenue')}</span>
-          <span className="font-medium text-white">{fmtMoneyCompact(net, currency)}</span>
-        </div>
-        <div className="flex justify-between gap-6 border-t border-white/15 pt-1">
-          <span>{t('reportsGrossProfit')}</span>
-          <span className="font-medium text-white">{fmtMoneyCompact(profit, currency)}</span>
-        </div>
-        <div className="flex justify-between gap-6">
-          <span>{t('reportsMonthlyLegendGrossMarginPct')}</span>
-          <span className="font-medium text-white">
-            {toNum(row.gross_margin_pct).toFixed(1)}%
-          </span>
-        </div>
+      <ChartTooltipTitle>{row.label}</ChartTooltipTitle>
+      <div className="space-y-1.5">
+        <ChartTooltipSeriesRow
+          color={CHART_MONTHLY_GROSS_BAR}
+          label={t('reportsGrossRevenue')}
+          value={fmtMoneyCompact(gross, currency)}
+        />
+        <ChartTooltipSeriesRow
+          color="var(--chart-3)"
+          label={t('reportsNetRevenue')}
+          value={fmtMoneyCompact(net, currency)}
+        />
+        <ChartTooltipSeriesRow
+          color="var(--chart-4)"
+          label={t('reportsGrossProfit')}
+          value={fmtMoneyCompact(profit, currency)}
+        />
+        <ChartTooltipSeriesRow
+          color="var(--warning)"
+          label={t('reportsMonthlyLegendGrossMarginPct')}
+          value={`${toNum(row.gross_margin_pct).toFixed(1)}%`}
+        />
       </div>
     </ChartTooltipFrame>
   )
@@ -433,16 +435,7 @@ export function MonthlyRevenueChart({
           />
           <Tooltip
             content={<ChartTooltip currency={currency} t={t} />}
-            wrapperStyle={{ outline: 'none' }}
-            contentStyle={{
-              margin: 0,
-              padding: 0,
-              background: 'transparent',
-              border: 'none',
-              borderRadius: 0,
-              boxShadow: 'none',
-              backdropFilter: 'none',
-            }}
+            {...chartRechartsTooltipProps}
           />
           <Bar
             yAxisId="left"

@@ -314,7 +314,12 @@ export function AdsPage() {
             <SectionContainer framed>
               <ChartSectionHeader
                 title={shellT(lang, 'adsChartTrendTitle')}
-                info={shellT(lang, 'adsChartTrendSubtitle')}
+                calcDescription={shellT(lang, 'adsChartTrendCalcDescription')}
+                calcFormulaLeft={shellT(lang, 'adsChartTrendCalcLeft')}
+                calcFormulaParts={[
+                  shellT(lang, 'adsChartTrendCalcPartSpend'),
+                  shellT(lang, 'adsChartTrendCalcPartSales'),
+                ]}
                 aside={
                   <>
                     <ChartGranularityFilter
@@ -345,7 +350,9 @@ export function AdsPage() {
             <SectionContainer framed>
               <ChartSectionHeader
                 title={shellT(lang, 'adsChartChannelTitle')}
-                info={shellT(lang, 'adsChartChannelSubtitle')}
+                calcDescription={shellT(lang, 'adsChartChannelCalcDescription')}
+                calcFormulaLeft={shellT(lang, 'adsChartChannelCalcLeft')}
+                calcFormulaParts={[shellT(lang, 'adsChartChannelCalcFormula')]}
                 aside={
                   <AppShareChartViewToggle
                     value={adsChannelChartType}

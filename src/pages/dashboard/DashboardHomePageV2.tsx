@@ -66,8 +66,6 @@ import {
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
 import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
-import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
-import { WaterfallChart } from '@/pages/reports/waterfall-chart'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 import { useProductReports } from '@/pages/reports/use-product-reports'
 import { filterEcommerceConnections, resolveAdsApiScope } from '@/lib/integrations/ads-scope'
@@ -510,21 +508,6 @@ export function DashboardHomePageV2() {
     (n: number) => formatKpi(n, { nativeCurrency: currency }),
     [formatKpi, currency],
   )
-
-  const settlementSource = productMode ? displayProductKpi?.settlement : displayKpi?.settlement
-
-  const settlementWaterfallSegments = useMemo(() => {
-    if (!settlementSource) return []
-    const segs = buildSettlementWaterfallSegments(settlementSource, t)
-    return segs.map((s) => ({
-      ...s,
-      value: convertFromBase(s.value),
-      stackedParts: s.stackedParts?.map((p) => ({
-        ...p,
-        value: convertFromBase(p.value),
-      })),
-    }))
-  }, [settlementSource, t, convertFromBase])
 
   const salesCurrent = productMode
     ? productKpiSales(displayProductKpi ?? zeroProductKpi(currency), salesMetricBasis)
@@ -1115,7 +1098,27 @@ export function DashboardHomePageV2() {
           <SectionContainer framed className="mt-6 mb-8">
             <ChartSectionHeader
               title={t('homeMetricsTrendTitle')}
-              info={t('homeMetricsTrendSubtitle')}
+              titleHref="/dashboard/sales"
+              calcDescription={t('homeMetricsTrendCalcDescription')}
+              calcFormulaLeft={t('homeMetricsTrendCalcLeft')}
+              calcFormulaParts={[
+                homeV2TrendMetricLabel(
+                  effectiveSalesTrendPrimaryMetric,
+                  trendMetricContext,
+                  t,
+                ),
+                ...(effectiveSalesTrendSecondaryMetric !==
+                effectiveSalesTrendPrimaryMetric
+                  ? [
+                      homeV2TrendMetricLabel(
+                        effectiveSalesTrendSecondaryMetric,
+                        trendMetricContext,
+                        t,
+                      ),
+                    ]
+                  : []),
+              ]}
+              calcFormulaJoiner=" · "
               className="mb-5"
               aside={
                 <>
@@ -1170,7 +1173,10 @@ export function DashboardHomePageV2() {
                 <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
                   <HomeChannelShareSection
                     title={t('homeChannelDonutTitle')}
-                    info={t('homeChannelDonutSubtitle')}
+                    titleHref="/dashboard/channels"
+                    calcDescription={t('homeChannelDonutCalcDescription')}
+                    calcFormulaLeft={t('homeChannelDonutCalcLeft')}
+                    calcFormulaParts={[t('homeChannelDonutCalcFormula')]}
                     rows={channelBreakdown?.items ?? []}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}
@@ -1187,10 +1193,13 @@ export function DashboardHomePageV2() {
                 <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
                   <ChartSectionHeader
                     title={t('homeTopProductsTitle')}
-                    info={t('homeTopProductsSubtitle').replace(
-                      '{count}',
-                      String(topProducts?.items.length ?? 10),
-                    )}
+                    titleHref="/dashboard/products"
+                    calcDescription={t('homeTopProductsCalcDescription')}
+                    calcFormulaLeft={t('homeTopProductsCalcLeft')}
+                    calcFormulaParts={[
+                      t('homeTopProductsCalcPartUnits'),
+                      t('homeTopProductsCalcPartNet'),
+                    ]}
                   />
                   <div className="min-h-0 min-w-0 flex-1">
                     <HomeTopProductsChart
@@ -1229,7 +1238,13 @@ export function DashboardHomePageV2() {
             <SectionContainer framed className="mt-6 overflow-visible">
               <ChartSectionHeader
                 title={t('homeAdsTrendTitle')}
-                info={t('homeAdsTrendSubtitle')}
+                titleHref="/dashboard/ads"
+                calcDescription={t('homeAdsTrendCalcDescription')}
+                calcFormulaLeft={t('homeAdsTrendCalcLeft')}
+                calcFormulaParts={[
+                  t('homeAdsTrendCalcPartSpend'),
+                  t('homeAdsTrendCalcPartSales'),
+                ]}
                 aside={
                   <>
                     <ChartGranularityFilter
@@ -1255,24 +1270,6 @@ export function DashboardHomePageV2() {
                 dateLocale={dateLocale}
                 isLoading={adsSeriesLoading}
                 chartType={adsTrendChartType}
-              />
-            </SectionContainer>
-          ) : null}
-
-          {canSalesHome && settlementWaterfallSegments.length > 0 ? (
-            <SectionContainer framed className="mt-6 mb-8 overflow-visible">
-              <ChartSectionHeader
-                title={t('reportsSectionSettlementTitle')}
-                info={t('reportsSectionSettlementSubtitle')}
-              />
-              <WaterfallChart
-                segments={settlementWaterfallSegments}
-                currency={effectiveDisplayCurrency}
-                grossRevenue={convertFromBase(settlementSource?.gross_revenue ?? 0)}
-                formatPctOfGross={(pct) =>
-                  t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))
-                }
-                finalBarCaption={t('reportsSettlementFinalHint')}
               />
             </SectionContainer>
           ) : null}

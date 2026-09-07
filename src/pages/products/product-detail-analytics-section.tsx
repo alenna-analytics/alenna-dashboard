@@ -23,21 +23,33 @@ import {
   platformSlugsFromDetail,
   PRODUCT_DETAIL_ALL_CHANNELS,
 } from './product-detail-analytics-filter'
-import { formatInventoryDays } from './product-detail-format-inventory-days'
 import { ProductDetailInsightKpiTile } from './product-detail-insight-kpi-tile'
 import { ProductDetailTrendChart } from './product-detail-trend-chart'
 import { productPlatformLabel } from './product-platform-label'
 import {
   isProductDetailTrendMetricChartable,
   PRODUCT_DETAIL_METRIC_COLORS,
-  PRODUCT_DETAIL_TREND_METRIC_IDS,
-  productDetailTrendMetricHelp,
   productDetailTrendMetricLabel,
-  productDetailTrendPeriodValueFromFiltered,
   toggleProductDetailTrendMetric,
   type ProductDetailTrendMetricId,
-  type ProductDetailPeriodView,
 } from './product-detail-trend-metrics'
+
+type VistaAKpiKey =
+  | 'net-sales'
+  | 'gross-profit'
+  | 'channel-margin'
+  | 'cm'
+  | 'units'
+  | 'cm-unit'
+  | 'avg-price'
+  | 'unit-cogs'
+
+const VISTA_A_TREND_METRIC: Partial<Record<VistaAKpiKey, ProductDetailTrendMetricId>> = {
+  'net-sales': 'net-sales',
+  'gross-profit': 'gross-profit',
+  cm: 'net-profit',
+  units: 'units',
+}
 
 type ProductDetailAnalyticsSectionProps = {
   productId: string
@@ -56,25 +68,6 @@ type ProductDetailAnalyticsSectionProps = {
   insightKpi: (value: ReactNode) => ReactNode
   insightsFetching: boolean
   showSectionTitle?: boolean
-}
-
-function filteredPeriodAsDetailShape(
-  filtered: ReturnType<typeof filteredProductDetailPeriod>,
-): ProductDetailPeriodView {
-  return {
-    period_gross_sales: filtered.period_gross_sales,
-    period_net_sales: filtered.period_net_sales,
-    period_gross_profit: filtered.period_gross_profit,
-    gross_profit: filtered.gross_profit,
-    contribution_margin: filtered.contribution_margin,
-    contribution_margin_pct: filtered.contribution_margin_pct,
-    gross_margin_pct: filtered.gross_margin_pct,
-    cm_incomplete: filtered.cm_incomplete,
-    period_gross_units_sold: filtered.period_units_sold,
-    period_units_sold: filtered.period_units_sold,
-    period_orders: filtered.period_orders,
-    inventory_days: filtered.inventory_days,
-  }
 }
 
 export function ProductDetailAnalyticsSection({
@@ -133,10 +126,6 @@ export function ProductDetailAnalyticsSection({
     () => filteredProductDetailPeriod(detail, activeChannel),
     [detail, activeChannel],
   )
-  const periodView = useMemo(
-    () => filteredPeriodAsDetailShape(filteredPeriod),
-    [filteredPeriod],
-  )
 
   const chartConnectionIds = useMemo(
     () => connectionIdsForPlatform(connectionsQuery.data, activeChannel),
@@ -145,51 +134,6 @@ export function ProductDetailAnalyticsSection({
 
   const dateLocale = lang === 'en' ? enUS : esLocale
   const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
-
-  const metricCards = useMemo(
-    () =>
-      PRODUCT_DETAIL_TREND_METRIC_IDS.map((id) => {
-        const numericValue = productDetailTrendPeriodValueFromFiltered(periodView, id)
-        const isMoney =
-          id !== 'inventory-days' &&
-          id !== 'contribution-margin-pct' &&
-          id !== 'units' &&
-          id !== 'orders'
-        let value: ReactNode
-        if (id === 'inventory-days') {
-          value = insightKpi(formatInventoryDays(detail, t))
-        } else if (id === 'contribution-margin-pct') {
-          value = insightKpi(
-            numericValue == null ? '—' : `${Number(numericValue).toFixed(1)}%`,
-          )
-        } else if (id === 'units' || id === 'orders') {
-          value = insightKpi((numericValue ?? 0).toLocaleString())
-        } else {
-          value = insightKpi(fmtCard(numericValue ?? 0))
-        }
-        return {
-          id,
-          label: productDetailTrendMetricLabel(id, t),
-          helpText: productDetailTrendMetricHelp(id, t),
-          footer: id === 'inventory-days' ? t('productsDetailKpiInventoryDaysWindow') : undefined,
-          numericValue,
-          value,
-          currencyCode: isMoney ? baseCurrency : undefined,
-          selectable: isProductDetailTrendMetricChartable(id),
-          accentColor: PRODUCT_DETAIL_METRIC_COLORS[id],
-          selected: selectedMetrics.includes(id),
-        }
-      }),
-    [
-      periodView,
-      detail,
-      t,
-      fmtCard,
-      insightKpi,
-      baseCurrency,
-      selectedMetrics,
-    ],
-  )
 
   const { data: series, isError } = useMonthlyRevenueSeries({
     productIds: [productId],
@@ -200,10 +144,128 @@ export function ProductDetailAnalyticsSection({
     enabled: Boolean(productId && insightStart && insightEnd),
   })
 
-  const onMetricClick = useCallback((id: ProductDetailTrendMetricId) => {
-    if (!isProductDetailTrendMetricChartable(id)) return
-    setSelectedMetrics((prev) => toggleProductDetailTrendMetric(prev, id))
+  const onVistaAClick = useCallback((key: VistaAKpiKey) => {
+    const metricId = VISTA_A_TREND_METRIC[key]
+    if (!metricId || !isProductDetailTrendMetricChartable(metricId)) return
+    setSelectedMetrics((prev) => toggleProductDetailTrendMetric(prev, metricId))
   }, [])
+
+  const feesForFilter =
+    activeChannel === PRODUCT_DETAIL_ALL_CHANNELS
+      ? detail.period_settlement.marketplace_fees
+      : (detail.period_settlement_by_platform.find(
+          (row) => row.platform.trim().toLowerCase() === activeChannel,
+        )?.marketplace_fees ?? 0)
+  const shippingForFilter =
+    activeChannel === PRODUCT_DETAIL_ALL_CHANNELS
+      ? detail.period_settlement.shipping_charges
+      : (detail.period_settlement_by_platform.find(
+          (row) => row.platform.trim().toLowerCase() === activeChannel,
+        )?.shipping_charges ?? 0)
+  const channelMargin = filteredPeriod.gross_profit - feesForFilter - shippingForFilter
+  const channelMarginPct =
+    filteredPeriod.period_net_sales > 0
+      ? (channelMargin / filteredPeriod.period_net_sales) * 100
+      : 0
+  const units = filteredPeriod.period_units_sold || 0
+  const cmPerUnit = units > 0 ? filteredPeriod.contribution_margin / units : 0
+  const avgPrice = units > 0 ? filteredPeriod.period_net_sales / units : 0
+  const unitCogs =
+    units > 0
+      ? (detail.period_cogs *
+          (detail.period_net_sales > 0
+            ? filteredPeriod.period_net_sales / detail.period_net_sales
+            : 0)) /
+        units
+      : 0
+
+  const vistaAPrimary: Array<{
+    key: VistaAKpiKey
+    label: string
+    helpText?: string
+    value: ReactNode
+    currencyCode?: string
+    numericValue?: number
+    ratePct?: number
+  }> = [
+    {
+      key: 'net-sales',
+      label: t('productsDetailPlatformPaymentNetSales'),
+      value: insightKpi(fmtCard(filteredPeriod.period_net_sales)),
+      currencyCode: baseCurrency,
+      numericValue: filteredPeriod.period_net_sales,
+    },
+    {
+      key: 'gross-profit',
+      label: t('reportsWfGrossProfit'),
+      value: insightKpi(fmtCard(filteredPeriod.gross_profit)),
+      currencyCode: baseCurrency,
+      numericValue: filteredPeriod.gross_profit,
+      ratePct: filteredPeriod.gross_margin_pct,
+    },
+    {
+      key: 'channel-margin',
+      label: t('productsDetailChannelMargin'),
+      helpText: t('productsDetailChannelMarginHelp'),
+      value: insightKpi(fmtCard(channelMargin)),
+      currencyCode: baseCurrency,
+      numericValue: channelMargin,
+      ratePct: channelMarginPct,
+    },
+    {
+      key: 'cm',
+      label: t('reportsNetProfit'),
+      value: insightKpi(fmtCard(filteredPeriod.contribution_margin)),
+      currencyCode: baseCurrency,
+      numericValue: filteredPeriod.contribution_margin,
+      ratePct: filteredPeriod.contribution_margin_pct,
+    },
+  ]
+  const vistaASecondary: Array<{
+    key: VistaAKpiKey
+    label: string
+    value: ReactNode
+    currencyCode?: string
+    numericValue?: number
+  }> = [
+    {
+      key: 'units',
+      label: productDetailTrendMetricLabel('units', t),
+      value: insightKpi(units.toLocaleString()),
+    },
+    {
+      key: 'cm-unit',
+      label: t('productsDetailCmPerUnit'),
+      value: insightKpi(fmtCard(cmPerUnit)),
+      currencyCode: baseCurrency,
+      numericValue: cmPerUnit,
+    },
+    {
+      key: 'avg-price',
+      label: t('productsDetailAvgPrice'),
+      value: insightKpi(fmtCard(avgPrice)),
+      currencyCode: baseCurrency,
+      numericValue: avgPrice,
+    },
+    {
+      key: 'unit-cogs',
+      label: t('productsDetailUnitCogs'),
+      value: insightKpi(fmtCard(unitCogs)),
+      currencyCode: baseCurrency,
+      numericValue: unitCogs,
+    },
+  ]
+
+  function vistaATileProps(key: VistaAKpiKey) {
+    const metricId = VISTA_A_TREND_METRIC[key]
+    const selectable = Boolean(metricId && isProductDetailTrendMetricChartable(metricId))
+    return {
+      selectable,
+      selected: Boolean(metricId && selectedMetrics.includes(metricId)),
+      accentColor: metricId ? PRODUCT_DETAIL_METRIC_COLORS[metricId] : undefined,
+      onSelect: selectable ? () => onVistaAClick(key) : undefined,
+    }
+  }
 
   return (
     <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
@@ -239,22 +301,34 @@ export function ProductDetailAnalyticsSection({
       </CardHeader>
       <CardContent className="flex flex-col gap-4 p-0 pt-4">
         <div className="grid grid-cols-1 items-stretch gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
-          {metricCards.map((kpi) => (
+          {vistaAPrimary.map((kpi) => (
             <ProductDetailInsightKpiTile
-              key={kpi.id}
+              key={kpi.key}
               label={kpi.label}
               helpText={kpi.helpText}
-              footer={kpi.footer}
+              showValues={showInsightValues}
+              isFetching={insightsFetching}
+              skeleton={kpiSkeleton}
+              numericValue={kpi.numericValue}
+              currencyCode={kpi.currencyCode}
+              ratePct={kpi.ratePct}
+              value={kpi.value}
+              {...vistaATileProps(kpi.key)}
+            />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 items-stretch gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
+          {vistaASecondary.map((kpi) => (
+            <ProductDetailInsightKpiTile
+              key={kpi.key}
+              label={kpi.label}
               showValues={showInsightValues}
               isFetching={insightsFetching}
               skeleton={kpiSkeleton}
               numericValue={kpi.numericValue}
               currencyCode={kpi.currencyCode}
               value={kpi.value}
-              selectable={kpi.selectable}
-              selected={kpi.selected}
-              accentColor={kpi.accentColor}
-              onSelect={kpi.selectable ? () => onMetricClick(kpi.id) : undefined}
+              {...vistaATileProps(kpi.key)}
             />
           ))}
         </div>

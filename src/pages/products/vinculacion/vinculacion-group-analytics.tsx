@@ -20,22 +20,35 @@ import {
   connectionIdsForPlatform,
   PRODUCT_DETAIL_ALL_CHANNELS,
 } from '../product-detail-analytics-filter'
-import { formatInventoryDays } from '../product-detail-format-inventory-days'
 import { ProductDetailInsightKpiTile } from '../product-detail-insight-kpi-tile'
 import { ProductDetailTrendChart } from '../product-detail-trend-chart'
 import {
   isProductDetailTrendMetricChartable,
   PRODUCT_DETAIL_METRIC_COLORS,
-  productDetailTrendMetricHelp,
   productDetailTrendMetricLabel,
-  productDetailTrendPeriodValueFromFiltered,
   toggleProductDetailTrendMetric,
-  type ProductDetailPeriodView,
   type ProductDetailTrendMetricId,
 } from '../product-detail-trend-metrics'
 import { productPlatformLabel } from '../product-platform-label'
 
 type ShellT = (key: ShellStringKey) => string
+
+type VistaAKpiKey =
+  | 'net-sales'
+  | 'gross-profit'
+  | 'channel-margin'
+  | 'cm'
+  | 'units'
+  | 'cm-unit'
+  | 'avg-price'
+  | 'unit-cogs'
+
+const VISTA_A_TREND_METRIC: Partial<Record<VistaAKpiKey, ProductDetailTrendMetricId>> = {
+  'net-sales': 'net-sales',
+  'gross-profit': 'gross-profit',
+  cm: 'net-profit',
+  units: 'units',
+}
 
 type VinculacionGroupAnalyticsProps = {
   group: ProductLinkGroupApi
@@ -52,78 +65,76 @@ type VinculacionGroupAnalyticsProps = {
   insightsFetching: boolean
 }
 
-const GROUP_TREND_METRIC_IDS: ProductDetailTrendMetricId[] = [
-  'gross-sales',
-  'net-sales',
-  'gross-profit',
-  'units',
-  'orders',
-  'inventory-days',
-]
-
 function memberSlug(member: ProductLinkGroupMemberApi): string {
   return member.platform.trim().toLowerCase()
 }
 
-function sumMembers(members: ProductLinkGroupMemberApi[]): ProductDetailPeriodView {
-  const grossSales = members.reduce((sum, member) => sum + (member.period_gross_sales ?? 0), 0)
-  const netSales = members.reduce((sum, member) => sum + (member.period_net_sales ?? 0), 0)
-  const netProfit = members.reduce((sum, member) => sum + (member.period_net_profit ?? 0), 0)
-  const grossProfitOnGross = members.reduce(
-    (sum, member) => sum + (member.period_gross_profit ?? 0),
-    0,
-  )
-  const units = members.reduce((sum, member) => sum + (member.period_gross_units_sold ?? 0), 0)
-  const orders = members.reduce((sum, member) => sum + (member.period_orders ?? 0), 0)
-  const stocks = members
-    .map((member) => member.consolidated_stock_quantity ?? member.stock_quantity)
-    .filter((value): value is number => value != null)
-  const velocities = members
-    .map((member) => member.velocity_units_per_day_90d)
-    .filter((value): value is number => value != null && value > 0)
-  const stock = stocks.length > 0 ? stocks.reduce((sum, value) => sum + value, 0) : null
-  const velocity = velocities.length > 0 ? velocities.reduce((sum, value) => sum + value, 0) : null
-  const inventoryDays =
-    stock == null ? null : stock === 0 ? 0 : velocity == null || velocity <= 0 ? null : Math.round(stock / velocity)
-  const marginPct = netSales !== 0 ? (netProfit / netSales) * 100 : 0
-  return {
-    period_gross_sales: grossSales,
-    period_net_sales: netSales,
-    period_gross_profit: grossProfitOnGross,
-    gross_profit: netProfit,
-    contribution_margin: 0,
-    contribution_margin_pct: 0,
-    gross_margin_pct: marginPct,
-    cm_incomplete: true,
-    period_gross_units_sold: units,
-    period_units_sold: units,
-    period_orders: orders,
-    inventory_days: inventoryDays,
-  }
+type FilteredGroupPeriod = {
+  period_net_sales: number
+  period_gross_profit: number
+  gross_margin_pct: number
+  contribution_margin: number
+  contribution_margin_pct: number
+  channel_margin: number
+  channel_margin_pct: number
+  units: number
+  period_cogs: number
+  fees: number
+  shipping: number
 }
 
-function groupPeriodView(
+function filterGroupPeriod(
   group: ProductLinkGroupApi,
   members: ProductLinkGroupMemberApi[],
   allChannels: boolean,
-): ProductDetailPeriodView {
+): FilteredGroupPeriod {
   if (allChannels) {
+    const units = group.period_net_units_sold || group.period_gross_units_sold
     return {
-      period_gross_sales: group.period_gross_sales,
       period_net_sales: group.period_net_sales,
-      period_gross_profit: group.period_gross_profit ?? 0,
-      gross_profit: group.period_net_profit ?? 0,
-      contribution_margin: 0,
-      contribution_margin_pct: 0,
-      gross_margin_pct: 0,
-      cm_incomplete: true,
-      period_gross_units_sold: group.period_gross_units_sold,
-      period_units_sold: group.period_gross_units_sold,
-      period_orders: group.period_orders,
-      inventory_days: group.inventory_days ?? null,
+      period_gross_profit: group.period_gross_profit,
+      gross_margin_pct: group.gross_margin_pct,
+      contribution_margin: group.contribution_margin,
+      contribution_margin_pct: group.contribution_margin_pct,
+      channel_margin: group.channel_margin,
+      channel_margin_pct: group.channel_margin_pct,
+      units,
+      period_cogs: group.period_cogs,
+      fees: group.period_settlement.marketplace_fees,
+      shipping: group.period_settlement.shipping_charges,
     }
   }
-  return sumMembers(members)
+
+  const netSales = members.reduce((sum, member) => sum + (member.period_net_sales ?? 0), 0)
+  const share = group.period_net_sales > 0 ? netSales / group.period_net_sales : 0
+  const grossProfit = group.period_gross_profit * share
+  const cogs = group.period_cogs * share
+  const contribution = group.contribution_margin * share
+  const units = members.reduce(
+    (sum, member) => sum + (member.period_net_units_sold || member.period_gross_units_sold || 0),
+    0,
+  )
+  const platforms = new Set(members.map(memberSlug))
+  const fees = (group.period_settlement_by_platform ?? [])
+    .filter((row) => platforms.has(row.platform.trim().toLowerCase()))
+    .reduce((sum, row) => sum + row.marketplace_fees, 0)
+  const shipping = (group.period_settlement_by_platform ?? [])
+    .filter((row) => platforms.has(row.platform.trim().toLowerCase()))
+    .reduce((sum, row) => sum + row.shipping_charges, 0)
+  const channelMargin = grossProfit - fees - shipping
+  return {
+    period_net_sales: netSales,
+    period_gross_profit: grossProfit,
+    gross_margin_pct: netSales > 0 ? (grossProfit / netSales) * 100 : 0,
+    contribution_margin: contribution,
+    contribution_margin_pct: netSales > 0 ? (contribution / netSales) * 100 : 0,
+    channel_margin: channelMargin,
+    channel_margin_pct: netSales > 0 ? (channelMargin / netSales) * 100 : 0,
+    units,
+    period_cogs: cogs,
+    fees,
+    shipping,
+  }
 }
 
 export function VinculacionGroupAnalytics({
@@ -178,32 +189,10 @@ export function VinculacionGroupAnalytics({
     return [allOption, ...platformOptions]
   }, [group.members, platformSlugs, t])
 
-  const periodView = useMemo(
-    () => groupPeriodView(group, filteredMembers, activeChannel === PRODUCT_DETAIL_ALL_CHANNELS),
+  const period = useMemo(
+    () => filterGroupPeriod(group, filteredMembers, activeChannel === PRODUCT_DETAIL_ALL_CHANNELS),
     [activeChannel, filteredMembers, group],
   )
-
-  const inventoryInput = useMemo(() => {
-    if (activeChannel === PRODUCT_DETAIL_ALL_CHANNELS) {
-      return {
-        inventory_days: group.inventory_days ?? null,
-        consolidated_stock_quantity: group.consolidated_stock_quantity ?? null,
-        velocity_units_per_day_90d: group.velocity_units_per_day_90d ?? null,
-      }
-    }
-    const stocks = filteredMembers
-      .map((member) => member.consolidated_stock_quantity ?? member.stock_quantity)
-      .filter((value): value is number => value != null)
-    const velocities = filteredMembers
-      .map((member) => member.velocity_units_per_day_90d)
-      .filter((value): value is number => value != null)
-    return {
-      inventory_days: periodView.inventory_days,
-      consolidated_stock_quantity: stocks.length > 0 ? stocks.reduce((sum, value) => sum + value, 0) : null,
-      velocity_units_per_day_90d:
-        velocities.length > 0 ? velocities.reduce((sum, value) => sum + value, 0) : null,
-    }
-  }, [activeChannel, filteredMembers, group, periodView.inventory_days])
 
   const chartProductIds = useMemo(
     () => filteredMembers.map((member) => member.product_id),
@@ -218,34 +207,10 @@ export function VinculacionGroupAnalytics({
   const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
   const insightKpi = (value: ReactNode): ReactNode => value
 
-  const metricCards = useMemo(
-    () =>
-      GROUP_TREND_METRIC_IDS.map((id) => {
-        const numericValue = productDetailTrendPeriodValueFromFiltered(periodView, id)
-        const isMoney = id !== 'inventory-days' && id !== 'units' && id !== 'orders'
-        let value: ReactNode
-        if (id === 'inventory-days') {
-          value = insightKpi(formatInventoryDays(inventoryInput, t))
-        } else if (id === 'units' || id === 'orders') {
-          value = insightKpi((numericValue ?? 0).toLocaleString())
-        } else {
-          value = insightKpi(fmtCard(numericValue ?? 0))
-        }
-        return {
-          id,
-          label: productDetailTrendMetricLabel(id, t),
-          helpText: productDetailTrendMetricHelp(id, t),
-          footer: id === 'inventory-days' ? t('productsDetailKpiInventoryDaysWindow') : undefined,
-          numericValue,
-          value,
-          currencyCode: isMoney ? baseCurrency : undefined,
-          selectable: isProductDetailTrendMetricChartable(id),
-          accentColor: PRODUCT_DETAIL_METRIC_COLORS[id],
-          selected: selectedMetrics.includes(id),
-        }
-      }),
-    [baseCurrency, fmtCard, inventoryInput, periodView, selectedMetrics, t],
-  )
+  const units = period.units
+  const cmPerUnit = units > 0 ? period.contribution_margin / units : 0
+  const avgPrice = units > 0 ? period.period_net_sales / units : 0
+  const unitCogs = units > 0 ? period.period_cogs / units : 0
 
   const { data: series, isError } = useMonthlyRevenueSeries({
     productIds: chartProductIds,
@@ -256,10 +221,100 @@ export function VinculacionGroupAnalytics({
     enabled: chartProductIds.length > 0 && Boolean(insightStart && insightEnd),
   })
 
-  const onMetricClick = useCallback((id: ProductDetailTrendMetricId) => {
-    if (!isProductDetailTrendMetricChartable(id)) return
-    setSelectedMetrics((prev) => toggleProductDetailTrendMetric(prev, id))
+  const onVistaAClick = useCallback((key: VistaAKpiKey) => {
+    const metricId = VISTA_A_TREND_METRIC[key]
+    if (!metricId || !isProductDetailTrendMetricChartable(metricId)) return
+    setSelectedMetrics((prev) => toggleProductDetailTrendMetric(prev, metricId))
   }, [])
+
+  function vistaATileProps(key: VistaAKpiKey) {
+    const metricId = VISTA_A_TREND_METRIC[key]
+    const selectable = Boolean(metricId && isProductDetailTrendMetricChartable(metricId))
+    return {
+      selectable,
+      selected: Boolean(metricId && selectedMetrics.includes(metricId)),
+      accentColor: metricId ? PRODUCT_DETAIL_METRIC_COLORS[metricId] : undefined,
+      onSelect: selectable ? () => onVistaAClick(key) : undefined,
+    }
+  }
+
+  const vistaAPrimary: Array<{
+    key: VistaAKpiKey
+    label: string
+    helpText?: string
+    value: ReactNode
+    currencyCode?: string
+    numericValue?: number
+    ratePct?: number
+  }> = [
+    {
+      key: 'net-sales',
+      label: t('productsDetailPlatformPaymentNetSales'),
+      value: insightKpi(fmtCard(period.period_net_sales)),
+      currencyCode: baseCurrency,
+      numericValue: period.period_net_sales,
+    },
+    {
+      key: 'gross-profit',
+      label: t('reportsWfGrossProfit'),
+      value: insightKpi(fmtCard(period.period_gross_profit)),
+      currencyCode: baseCurrency,
+      numericValue: period.period_gross_profit,
+      ratePct: period.gross_margin_pct,
+    },
+    {
+      key: 'channel-margin',
+      label: t('productsDetailChannelMargin'),
+      helpText: t('productsDetailChannelMarginHelp'),
+      value: insightKpi(fmtCard(period.channel_margin)),
+      currencyCode: baseCurrency,
+      numericValue: period.channel_margin,
+      ratePct: period.channel_margin_pct,
+    },
+    {
+      key: 'cm',
+      label: t('reportsNetProfit'),
+      value: insightKpi(fmtCard(period.contribution_margin)),
+      currencyCode: baseCurrency,
+      numericValue: period.contribution_margin,
+      ratePct: period.contribution_margin_pct,
+    },
+  ]
+
+  const vistaASecondary: Array<{
+    key: VistaAKpiKey
+    label: string
+    value: ReactNode
+    currencyCode?: string
+    numericValue?: number
+  }> = [
+    {
+      key: 'units',
+      label: productDetailTrendMetricLabel('units', t),
+      value: insightKpi(units.toLocaleString()),
+    },
+    {
+      key: 'cm-unit',
+      label: t('productsDetailCmPerUnit'),
+      value: insightKpi(fmtCard(cmPerUnit)),
+      currencyCode: baseCurrency,
+      numericValue: cmPerUnit,
+    },
+    {
+      key: 'avg-price',
+      label: t('productsDetailAvgPrice'),
+      value: insightKpi(fmtCard(avgPrice)),
+      currencyCode: baseCurrency,
+      numericValue: avgPrice,
+    },
+    {
+      key: 'unit-cogs',
+      label: t('productsDetailUnitCogs'),
+      value: insightKpi(fmtCard(unitCogs)),
+      currencyCode: baseCurrency,
+      numericValue: unitCogs,
+    },
+  ]
 
   return (
     <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
@@ -287,22 +342,34 @@ export function VinculacionGroupAnalytics({
       </CardHeader>
       <CardContent className="flex flex-col gap-4 p-0 pt-4">
         <div className="grid grid-cols-1 items-stretch gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
-          {metricCards.map((kpi) => (
+          {vistaAPrimary.map((kpi) => (
             <ProductDetailInsightKpiTile
-              key={kpi.id}
+              key={kpi.key}
               label={kpi.label}
               helpText={kpi.helpText}
-              footer={kpi.footer}
+              showValues
+              isFetching={insightsFetching}
+              skeleton={kpiSkeleton}
+              numericValue={kpi.numericValue}
+              currencyCode={kpi.currencyCode}
+              ratePct={kpi.ratePct}
+              value={kpi.value}
+              {...vistaATileProps(kpi.key)}
+            />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 items-stretch gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
+          {vistaASecondary.map((kpi) => (
+            <ProductDetailInsightKpiTile
+              key={kpi.key}
+              label={kpi.label}
               showValues
               isFetching={insightsFetching}
               skeleton={kpiSkeleton}
               numericValue={kpi.numericValue}
               currencyCode={kpi.currencyCode}
               value={kpi.value}
-              selectable={kpi.selectable}
-              selected={kpi.selected}
-              accentColor={kpi.accentColor}
-              onSelect={kpi.selectable ? () => onMetricClick(kpi.id) : undefined}
+              {...vistaATileProps(kpi.key)}
             />
           ))}
         </div>

@@ -6,7 +6,7 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip as RechartsTooltip } from
 import { cn } from '@/lib/utils'
 import { kpiValueToneClass } from '@/lib/kpi-value-tone'
 import { Badge } from '@/ui/badge'
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle } from '@/ui/chart-tooltip'
 import { InfoTooltip } from '@/ui/info-tooltip'
 import {
   surfaceCardClassName,
@@ -105,11 +105,14 @@ function SparklineTooltip({
       }}
     >
       <ChartTooltipFrame>
-        <p className="mb-1.5 font-medium text-white">{row.label}</p>
-        <p className="tabular-nums leading-snug">
-          <span className="text-white/55">{metricLabel}:</span>{' '}
-          <span className="font-medium text-white">{formatValue(row.value)}</span>
-        </p>
+        <ChartTooltipTitle>{row.label}</ChartTooltipTitle>
+        <div className="space-y-1.5">
+          <ChartTooltipSeriesRow
+            color={SPARKLINE_STROKE}
+            label={metricLabel}
+            value={formatValue(row.value)}
+          />
+        </div>
       </ChartTooltipFrame>
     </div>,
     document.body,
@@ -200,6 +203,8 @@ export type KpiCardProps = {
   bare?: boolean
   footer?: ReactNode
   footerClassName?: string
+  /** Extra node under the value (e.g. margin % badge), home-style. */
+  valueAddon?: ReactNode
   valueClassName?: string
   className?: string
   dragHandle?: ReactNode
@@ -237,6 +242,7 @@ export function KpiCard({
   bare = false,
   footer,
   footerClassName,
+  valueAddon,
   valueClassName,
   className,
   dragHandle,
@@ -346,7 +352,7 @@ export function KpiCard({
         </div>
 
         <div className="flex min-w-0 flex-col items-start gap-1.5">
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
             <span
               className={cn(
                 'font-numeric min-w-0 text-lg font-medium leading-none tracking-tight',
@@ -362,6 +368,7 @@ export function KpiCard({
               <span className="text-sm font-medium text-text-secondary">{currencyCode}</span>
             ) : null}
           </div>
+          {!placeholder && valueAddon ? valueAddon : null}
           {deltaEl}
         </div>
 

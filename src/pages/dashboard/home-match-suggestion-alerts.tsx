@@ -1,8 +1,7 @@
-import { GitMerge } from 'lucide-react'
-
-import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import { AppIcon } from '@/ui/app-icon'
 import { buttonVariants } from '@/ui/button'
 import { ContextAlertCard } from '@/ui/context-alert'
+import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { cn } from '@/lib/utils'
 
 type HomeMatchSuggestionAlertsProps = {
@@ -24,8 +23,9 @@ export function HomeMatchSuggestionAlerts({
   return (
     <ContextAlertCard
       title={title}
-      icon={GitMerge}
+      icon={<AppIcon name="channels" className="size-4 text-black" />}
       tone="info"
+      iconWrapClassName="bg-[var(--zara-base)] text-black"
       action={
         <button
           type="button"

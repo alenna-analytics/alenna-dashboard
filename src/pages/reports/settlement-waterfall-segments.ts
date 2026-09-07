@@ -6,8 +6,10 @@ import type { Segment } from './waterfall-chart'
 export function buildSettlementWaterfallSegments(
   settlement: SettlementBreakdown,
   t: (key: ShellStringKey) => string,
+  options?: { includeTaxWithholdings?: boolean },
 ): Segment[] {
-  return [
+  const includeTax = options?.includeTaxWithholdings ?? true
+  const segments: Segment[] = [
     {
       name: t('settlementWfGross'),
       value: settlement.gross_revenue,
@@ -44,18 +46,21 @@ export function buildSettlementWaterfallSegments(
       isSubtotal: false,
       isNegative: true,
     },
-    {
+  ]
+  if (includeTax) {
+    segments.push({
       name: t('settlementWfTaxWithholdings'),
       value: settlement.tax_withholdings,
       isSubtotal: false,
       isNegative: true,
-    },
-    {
-      name: t('settlementWfEstimatedPayout'),
-      value: settlement.estimated_payout,
-      isSubtotal: true,
-      isNegative: settlement.estimated_payout < 0,
-      positiveTone: 'payout',
-    },
-  ]
+    })
+  }
+  segments.push({
+    name: t('settlementWfEstimatedPayout'),
+    value: settlement.estimated_payout,
+    isSubtotal: true,
+    isNegative: settlement.estimated_payout < 0,
+    positiveTone: 'payout',
+  })
+  return segments
 }

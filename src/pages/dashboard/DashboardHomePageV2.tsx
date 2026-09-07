@@ -559,6 +559,14 @@ export function DashboardHomePageV2() {
   const orders = productMode
     ? (displayProductKpi?.order_count ?? 0)
     : (displayKpi?.order_count ?? 0)
+  const orderStatusCounts = productMode ? {} : (displayKpi?.order_status_counts ?? {})
+  const ordersCompleted =
+    (orderStatusCounts.PAID ?? 0) + (orderStatusCounts.PARTIALLY_PAID ?? 0)
+  const ordersPending = orderStatusCounts.PENDING ?? 0
+  const showOrdersBreakdown = !productMode && (amazonOnlyScope || ordersPending > 0)
+  const ordersCardValue = showOrdersBreakdown
+    ? `${ordersCompleted.toLocaleString()} ${t('reportsOrdersCompletedShort')} · ${ordersPending.toLocaleString()} ${t('reportsOrdersPendingShort')}`
+    : orders.toLocaleString()
   const unitsCurrent = productMode
     ? (displayProductKpi?.units_sold ?? 0)
     : (displayKpi?.units_sold ?? 0)
@@ -837,11 +845,7 @@ export function DashboardHomePageV2() {
               dragHandle={dragHandle}
               {...sparklineControl}
               label={t('reportsUnits')}
-              helpText={
-                amazonOrderItems != null
-                  ? `${t('reportsKpiHelpUnits')} ${t('reportsKpiHelpOrderItems')}`
-                  : t('reportsKpiHelpUnits')
-              }
+              helpText={t('reportsKpiHelpUnits')}
               value={
                 amazonOrderItems != null
                   ? `${unitsCurrent.toLocaleString()} · ${amazonOrderItems.toLocaleString()} ${t('reportsOrderItemsShort')}`
@@ -863,10 +867,9 @@ export function DashboardHomePageV2() {
               dragHandle={dragHandle}
               {...sparklineControl}
               label={t('reportsOrders')}
-              helpText={
-                amazonOnlyScope ? t('reportsKpiHelpOrdersAmazon') : t('reportsKpiHelpOrders')
-              }
-              value={orders.toLocaleString()}
+              helpText={t('reportsKpiHelpOrders')}
+              value={ordersCardValue}
+              numericValue={showOrdersBreakdown ? ordersCompleted + ordersPending : orders}
               pct={ordersDelta!.pct}
               trend={ordersDelta!.trend}
               comparisonUnavailable={ordersDelta!.unavailable}
@@ -920,8 +923,11 @@ export function DashboardHomePageV2() {
       unitsCurrent,
       unitsDelta,
       amazonOrderItems,
-      amazonOnlyScope,
       orders,
+      ordersCardValue,
+      showOrdersBreakdown,
+      ordersCompleted,
+      ordersPending,
       ordersDelta,
       aov,
       aovDelta,

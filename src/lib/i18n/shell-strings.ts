@@ -469,20 +469,16 @@ const SHELL_STRINGS = {
     comingSoonPageTitle: 'Próximamente',
     comingSoonPageBody: 'Esta sección estará disponible pronto.',
     homeKpiNetSales: 'Ventas netas',
-    homeKpiNetSalesHelp:
-      'Ingresos por producto después de descuentos, devoluciones y cancelaciones. Incluye pedidos pagados en tránsito.',
-    homeKpiGrossSalesHelp:
-      'Igual a “Ventas de productos pedidos” en Seller Central (Sales & Traffic) cuando el filtro es Amazon. Otros canales usan mercancía de pedidos. Descuentos y devoluciones se restan en ventas netas.',
+    homeKpiNetSalesHelp: 'Ventas después de descuentos y devoluciones.',
+    homeKpiGrossSalesHelp: 'Ventas del periodo antes de descuentos y devoluciones.',
     kpiSalesMetricBasisShowGross: 'Mostrar Ventas/Utilidad Bruta',
     kpiSalesMetricBasisToggleAria: 'Mostrar ventas y utilidad en bruto',
     reportsNetProfit: 'Utilidad neta',
-    reportsKpiHelpNetProfit: 'Ventas netas menos el costo de los productos vendidos (COGS).',
+    reportsKpiHelpNetProfit: 'Ventas netas menos COGS.',
     homeKpiRoasGlobal: 'ROAS global',
-    homeKpiRoasGlobalHelp:
-      'Ingresos atribuidos a publicidad divididos entre el gasto en ads del periodo.',
+    homeKpiRoasGlobalHelp: 'Ingresos de ads ÷ gasto en ads.',
     homeKpiContributionMarginPct: 'Contribución marginal %',
-    homeKpiContributionMarginPctHelp:
-      'Contribución marginal como porcentaje de las ventas netas.',
+    homeKpiContributionMarginPctHelp: 'Contribución marginal ÷ ventas netas.',
     homeKpiActiveAlerts: 'Alertas activas',
     homeKpiActiveAlertsHelp:
       'Productos con inventario bajo o agotado según las reglas de alertas configuradas.',
@@ -1321,31 +1317,26 @@ const SHELL_STRINGS = {
     reportsCardProfit: 'Utilidad',
     reportsCardOrders: 'Pedidos',
     reportsCardVolume: 'Volumen',
-    reportsKpiHelpOrders: 'Pedidos con venta registrada en el periodo, por fecha de compra.',
-    reportsKpiHelpOrdersAmazon:
-      'Pedidos pagados y pendientes en el periodo, por fecha de compra (como en la lista de pedidos de Seller Central). Cancelados no cuentan. El monto de ventas brutas solo suma pedidos con precio en la API de órdenes.',
+    reportsKpiHelpOrders: 'Pedidos completados y pendientes.',
+    reportsKpiHelpOrdersAmazon: 'Pedidos completados y pendientes.',
     reportsSectionRevenueBreakdown: 'Cascada P&L',
     reportsLastUpdated: 'Actualizado',
     reportsVsPreviousPeriod: 'vs periodo anterior',
     reportsComparisonUnavailable: 'Comparación no disponible',
     reportsComparisonNoBaseline: 'Sin base',
-    reportsKpiHelpGrossRevenue:
-      'Igual a “Ventas de productos pedidos” en Seller Central (Sales & Traffic). En Amazon el KPI usa el reporte diario de Amazon; otros canales usan mercancía de pedidos. Descuentos y devoluciones se restan aparte en ventas netas.',
-    reportsKpiHelpNetRevenue:
-      'Ingresos por producto después de descuentos, devoluciones y cancelaciones. Incluye pedidos pagados en tránsito.',
-    reportsKpiHelpUnits:
-      'Unidades de producto vendidas en el periodo. En Amazon (solo Amazon) coincide con unitsOrdered de Sales & Traffic cuando el sync está completo.',
-    reportsKpiHelpOrderItems:
-      'Artículos de pedido (Seller Central totalOrderItems) cuando el filtro es solo Amazon y hay datos de Sales & Traffic.',
-    reportsKpiHelpGrossProfit: 'Ventas netas menos el costo de los productos vendidos (COGS).',
-    reportsKpiHelpGrossProfitOnGrossSales:
-      'Ventas brutas menos el costo de los productos vendidos (COGS).',
-    reportsKpiHelpGrossMargin: 'Utilidad bruta dividida entre ventas netas.',
-    reportsKpiHelpContributionMargin:
-      'Utilidad bruta menos comisiones, envío, impuestos de canal y publicidad.',
-    reportsKpiHelpEbitda: 'Contribución marginal menos gastos operativos fijos del periodo.',
+    reportsKpiHelpGrossRevenue: 'Ventas del periodo antes de descuentos y devoluciones.',
+    reportsKpiHelpNetRevenue: 'Ventas después de descuentos y devoluciones.',
+    reportsKpiHelpUnits: 'Unidades vendidas en el periodo.',
+    reportsKpiHelpOrderItems: 'Artículos pedidos en el periodo.',
+    reportsKpiHelpGrossProfit: 'Ventas netas menos COGS.',
+    reportsKpiHelpGrossProfitOnGrossSales: 'Ventas brutas menos COGS.',
+    reportsKpiHelpGrossMargin: 'Utilidad bruta ÷ ventas netas.',
+    reportsKpiHelpContributionMargin: 'Utilidad bruta menos comisiones, envío y ads.',
+    reportsKpiHelpEbitda: 'Contribución marginal menos gastos fijos.',
     reportsOrdersTotal: 'Pedidos totales',
     reportsOrdersPaid: 'Pagados',
+    reportsOrdersCompletedShort: 'completados',
+    reportsOrdersPendingShort: 'pendientes',
     reportsOrdersRefunded: 'Reembolsados',
     reportsOrdersExpired: 'Expirados',
     reportsUnitsSoldLabel: 'Unidades vendidas',
@@ -1410,7 +1401,7 @@ const SHELL_STRINGS = {
     reportsKpiHelpDeductionsCombined:
       'Total restado por descuentos, devoluciones y cancelaciones sobre ventas brutas.',
     reportsKpiAov: 'AOV',
-    reportsKpiHelpAov: 'Ticket promedio: ventas netas divididas entre número de pedidos.',
+    reportsKpiHelpAov: 'Ventas ÷ pedidos.',
     reportsKpiMomLabel: 'Crecimiento MoM %',
     reportsKpiHelpMom: 'Cambio de ventas netas vs el mes calendario anterior.',
     reportsKpiYoyLabel: 'Crecimiento YoY %',
@@ -2537,20 +2528,16 @@ const SHELL_STRINGS = {
     comingSoonPageTitle: 'Coming soon',
     comingSoonPageBody: 'This section will be available soon.',
     homeKpiNetSales: 'Net sales',
-    homeKpiNetSalesHelp:
-      'Product revenue after discounts, returns, and cancellations. Includes paid in-transit orders.',
-    homeKpiGrossSalesHelp:
-      'Matches Seller Central “Ordered product sales” (Sales & Traffic) when the filter is Amazon. Other channels use order merchandise. Discounts and returns are subtracted in net sales.',
+    homeKpiNetSalesHelp: 'Sales after discounts and returns.',
+    homeKpiGrossSalesHelp: 'Sales for the period before discounts and returns.',
     kpiSalesMetricBasisShowGross: 'Show gross sales/profit',
     kpiSalesMetricBasisToggleAria: 'Show gross sales and profit',
     reportsNetProfit: 'Net profit',
-    reportsKpiHelpNetProfit: 'Net sales minus cost of products sold (COGS).',
+    reportsKpiHelpNetProfit: 'Net sales minus COGS.',
     homeKpiRoasGlobal: 'Global ROAS',
-    homeKpiRoasGlobalHelp:
-      'Ad-attributed revenue divided by ad spend for the period.',
+    homeKpiRoasGlobalHelp: 'Ad revenue ÷ ad spend.',
     homeKpiContributionMarginPct: 'Marginal Contribution %',
-    homeKpiContributionMarginPctHelp:
-      'Marginal contribution as a percentage of net sales.',
+    homeKpiContributionMarginPctHelp: 'Marginal contribution ÷ net sales.',
     homeKpiActiveAlerts: 'Active alerts',
     homeKpiActiveAlertsHelp:
       'Products with low or out-of-stock inventory per your alert rules.',
@@ -3375,30 +3362,26 @@ const SHELL_STRINGS = {
     reportsCardProfit: 'Profit',
     reportsCardOrders: 'Orders',
     reportsCardVolume: 'Volume',
-    reportsKpiHelpOrders: 'Orders with recorded sales in the period, by purchase date.',
-    reportsKpiHelpOrdersAmazon:
-      'Paid and pending orders in the period, by purchase date (same as the Seller Central orders list). Cancelled orders are excluded. Gross sales only include orders with a price from the Orders API.',
+    reportsKpiHelpOrders: 'Completed and pending orders.',
+    reportsKpiHelpOrdersAmazon: 'Completed and pending orders.',
     reportsSectionRevenueBreakdown: 'P&L waterfall',
     reportsLastUpdated: 'Updated',
     reportsVsPreviousPeriod: 'vs prior period',
     reportsComparisonUnavailable: 'Comparison unavailable',
     reportsComparisonNoBaseline: 'No baseline',
-    reportsKpiHelpGrossRevenue:
-      'Matches Seller Central “Ordered product sales” (Sales & Traffic). For Amazon, Home KPIs use Amazon’s daily report; other channels use order merchandise. Discounts and returns are subtracted in net sales.',
-    reportsKpiHelpNetRevenue:
-      'Product revenue after discounts, returns, and cancellations. Includes paid in-transit orders.',
-    reportsKpiHelpUnits:
-      'Product units sold in the period. For Amazon-only filters, aligns with Sales & Traffic unitsOrdered when sync is complete.',
-    reportsKpiHelpOrderItems:
-      'Order items (Seller Central totalOrderItems) when the filter is Amazon-only and Sales & Traffic data is present.',
-    reportsKpiHelpGrossProfit: 'Net sales minus cost of products sold (COGS).',
-    reportsKpiHelpGrossProfitOnGrossSales: 'Gross sales minus cost of products sold (COGS).',
-    reportsKpiHelpGrossMargin: 'Gross profit divided by net sales.',
-    reportsKpiHelpContributionMargin:
-      'Gross profit minus platform fees, shipping, channel taxes, and ad spend.',
-    reportsKpiHelpEbitda: 'Marginal contribution minus fixed operating expenses for the period.',
+    reportsKpiHelpGrossRevenue: 'Sales for the period before discounts and returns.',
+    reportsKpiHelpNetRevenue: 'Sales after discounts and returns.',
+    reportsKpiHelpUnits: 'Units sold in the period.',
+    reportsKpiHelpOrderItems: 'Order items in the period.',
+    reportsKpiHelpGrossProfit: 'Net sales minus COGS.',
+    reportsKpiHelpGrossProfitOnGrossSales: 'Gross sales minus COGS.',
+    reportsKpiHelpGrossMargin: 'Gross profit ÷ net sales.',
+    reportsKpiHelpContributionMargin: 'Gross profit minus fees, shipping, and ads.',
+    reportsKpiHelpEbitda: 'Marginal contribution minus fixed costs.',
     reportsOrdersTotal: 'Total orders',
     reportsOrdersPaid: 'Paid',
+    reportsOrdersCompletedShort: 'completed',
+    reportsOrdersPendingShort: 'pending',
     reportsOrdersRefunded: 'Refunded',
     reportsOrdersExpired: 'Expired',
     reportsUnitsSoldLabel: 'Units sold',
@@ -3463,7 +3446,7 @@ const SHELL_STRINGS = {
     reportsKpiHelpDeductionsCombined:
       'Total deducted from gross sales for discounts, returns, and cancellations.',
     reportsKpiAov: 'AOV',
-    reportsKpiHelpAov: 'Average ticket: net sales divided by order count.',
+    reportsKpiHelpAov: 'Sales ÷ orders.',
     reportsKpiMomLabel: 'MoM growth %',
     reportsKpiHelpMom: 'Change in net sales vs the prior calendar month.',
     reportsKpiYoyLabel: 'YoY growth %',

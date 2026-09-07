@@ -23,6 +23,8 @@ export type AssignablePermissionKey =
   | 'reports.view'
   | 'sales.view'
   | 'simulations.view'
+  | 'tax_rates.manage'
+  | 'tax_rates.view'
   | 'team.manage'
   | 'team.view'
   | 'workspace_config.view'
@@ -49,6 +51,8 @@ export const ASSIGNABLE_PERMISSION_KEYS: readonly AssignablePermissionKey[] = [
   'reports.view',
   'sales.view',
   'simulations.view',
+  'tax_rates.manage',
+  'tax_rates.view',
   'team.manage',
   'team.view',
   'workspace_config.view',
@@ -79,6 +83,23 @@ export function canReadPnlLabels(me: MeResponse | null | undefined): boolean {
   if (!me) return false
   if (me.is_owner) return true
   return PNL_LABELS_READ_KEYS.some((key) => (me.permissions ?? []).includes(key))
+}
+
+export const TAX_RATES_READ_KEYS = [
+  'tax_rates.view',
+  'reports.view',
+  'sales.view',
+  'products.view',
+  'channels.view',
+  'expenses.view',
+  'ads.view',
+  'simulations.view',
+] as const
+
+export function canReadTaxRates(me: MeResponse | null | undefined): boolean {
+  if (!me) return false
+  if (me.is_owner) return true
+  return TAX_RATES_READ_KEYS.some((key) => (me.permissions ?? []).includes(key))
 }
 
 export function hasModule(me: MeResponse | null | undefined, moduleId: ModuleId): boolean {

@@ -37,6 +37,8 @@ const FROZEN_API_KEYS = [
   'reports.view',
   'sales.view',
   'simulations.view',
+  'tax_rates.manage',
+  'tax_rates.view',
   'team.manage',
   'team.view',
   'workspace_config.view',

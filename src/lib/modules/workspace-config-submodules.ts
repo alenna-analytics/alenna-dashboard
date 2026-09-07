@@ -2,7 +2,7 @@ import type { AppIconName } from '@/lib/icons/catalog'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ModuleId } from '@/lib/modules/types'
 
-export type WorkspaceConfigSubmoduleId = 'general' | 'pnl-terms' | 'fx-rates'
+export type WorkspaceConfigSubmoduleId = 'general' | 'pnl-terms' | 'tax-rates' | 'fx-rates'
 
 export type WorkspaceConfigSubmodule = {
   id: WorkspaceConfigSubmoduleId
@@ -28,6 +28,14 @@ export const WORKSPACE_CONFIG_SUBMODULES: readonly WorkspaceConfigSubmodule[] = 
     descriptionKey: 'workspaceConfigPnlTermsDescription',
     path: '/dashboard/configuration/pnl-terms',
     icon: 'reports',
+    requiredModuleId: 'workspace-config',
+  },
+  {
+    id: 'tax-rates',
+    labelKey: 'workspaceConfigTaxRatesTitle',
+    descriptionKey: 'workspaceConfigTaxRatesDescription',
+    path: '/dashboard/configuration/tax-rates',
+    icon: 'billing',
     requiredModuleId: 'workspace-config',
   },
   {
@@ -69,5 +77,10 @@ export function shouldShowWorkspaceConfigNav(
 export function isWorkspaceConfigSubmoduleId(
   value: string,
 ): value is WorkspaceConfigSubmoduleId {
-  return value === 'general' || value === 'pnl-terms' || value === 'fx-rates'
+  return (
+    value === 'general' ||
+    value === 'pnl-terms' ||
+    value === 'tax-rates' ||
+    value === 'fx-rates'
+  )
 }

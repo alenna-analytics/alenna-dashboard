@@ -24,6 +24,7 @@ import { ReportsBenchmarksTable } from '@/pages/reports/reports-benchmarks-table
 import { ReportsHeroKpis } from '@/pages/reports/reports-hero-kpis'
 import { buildProductPnlRows, buildTenantPnlRows } from '@/pages/reports/reports-pnl-rows'
 import { ReportsPnlTable } from '@/pages/reports/reports-pnl-table'
+import { ReportsPnlTaxBlock } from '@/pages/reports/reports-pnl-tax-block'
 import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
 import {
   computeCalendarMomPeriod,
@@ -572,6 +573,14 @@ export function ReportsPage() {
               formatMoney={formatConverted}
               t={t}
               labelForRow={labelForRow}
+            />
+          ) : null}
+
+          {!productMode && displayKpi ? (
+            <ReportsPnlTaxBlock
+              taxesEstimated={displayKpi.taxes_estimated}
+              formatMoney={formatConverted}
+              t={t}
             />
           ) : null}
 

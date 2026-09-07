@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import type { KpiResponse, ProductKpiResponse } from '@/lib/types/reports'
 import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
-import { buildProductPnlRows, buildTenantPnlRows } from '@/pages/reports/reports-pnl-rows'
+import {
+  buildProductPnlRows,
+  buildTenantPnlRows,
+  pctOfNetRevenue,
+} from '@/pages/reports/reports-pnl-rows'
 
 function baseKpi(overrides: Partial<KpiResponse> = {}): KpiResponse {
   return {
@@ -23,6 +27,8 @@ function baseKpi(overrides: Partial<KpiResponse> = {}): KpiResponse {
     fixed_operating_expenses: 100,
     contribution_margin: 400,
     contribution_margin_pct: 44.44,
+    channel_margin: 530,
+    channel_margin_pct: 58.89,
     ebitda: 300,
     ebitda_margin_pct: 33.33,
     units_sold: 10,
@@ -31,24 +37,68 @@ function baseKpi(overrides: Partial<KpiResponse> = {}): KpiResponse {
     cogs_incomplete: false,
     order_status_counts: {},
     settlement: zeroSettlementBreakdown(),
+    taxes_estimated: null,
     ...overrides,
   }
 }
 
+describe('pctOfNetRevenue', () => {
+  it('returns percent of net revenue', () => {
+    expect(pctOfNetRevenue(450, 900)).toBeCloseTo(50, 5)
+  })
+
+  it('returns null when net revenue is zero', () => {
+    expect(pctOfNetRevenue(100, 0)).toBeNull()
+  })
+})
+
 describe('buildTenantPnlRows', () => {
+  it('inserts channel_margin between shipping and ads', () => {
+    const rows = buildTenantPnlRows(baseKpi(), null, null)
+    expect(rows.map((r) => r.id)).toEqual([
+      'gross_revenue',
+      'discounts',
+      'returns',
+      'net_revenue',
+      'cogs',
+      'gross_profit',
+      'platform_fees',
+      'merchant_shipping',
+      'channel_margin',
+      'ads_spend',
+      'contribution_margin',
+      'fixed_opex',
+      'ebitda',
+    ])
+    const channel = rows.find((r) => r.id === 'channel_margin')
+    expect(channel?.current).toBe(530)
+    expect(channel?.marginPct).toBeCloseTo(58.89, 2)
+    expect(channel?.rowHintKey).toBe('reportsPnlHintChannelMargin')
+    expect(channel?.pctOfNetRevenue).toBeCloseTo((530 / 900) * 100, 5)
+  })
+
+  it('falls back to derived channel margin when API omits field', () => {
+    const kpi = baseKpi({ channel_margin: undefined, channel_margin_pct: undefined })
+    const rows = buildTenantPnlRows(kpi, null, null)
+    const channel = rows.find((r) => r.id === 'channel_margin')
+    // 600 - 50 - 20
+    expect(channel?.current).toBe(530)
+  })
+
   it('builds full waterfall rows with prior and yoy deltas', () => {
     const cur = baseKpi()
     const prev = baseKpi({
       net_revenue: 800,
       ebitda: 200,
       contribution_margin: 350,
+      channel_margin: 480,
     })
     const yoy = baseKpi({
       net_revenue: 700,
       ebitda: 150,
     })
     const rows = buildTenantPnlRows(cur, prev, yoy)
-    expect(rows).toHaveLength(12)
+    expect(rows).toHaveLength(13)
     expect(rows[0]?.id).toBe('gross_revenue')
     expect(rows.at(-1)?.id).toBe('ebitda')
     const ebitda = rows.find((r) => r.id === 'ebitda')
@@ -67,7 +117,7 @@ describe('buildTenantPnlRows', () => {
 })
 
 describe('buildProductPnlRows', () => {
-  it('only includes merchandise lines', () => {
+  it('only includes merchandise lines and omits channel margin / tax path', () => {
     const kpi: ProductKpiResponse = {
       gross_revenue: 200,
       net_revenue: 180,

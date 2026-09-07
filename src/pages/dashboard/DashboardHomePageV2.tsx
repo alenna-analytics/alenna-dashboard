@@ -348,6 +348,11 @@ export function DashboardHomePageV2() {
     [ecommerceConnections],
   )
 
+  const amazonOnlyScope = useMemo(() => {
+    const selected = ecommerceConnections.filter((c) => activeConnectionIds.includes(c.id))
+    return selected.length > 0 && selected.every((c) => c.platform === 'amazon')
+  }, [ecommerceConnections, activeConnectionIds])
+
   const prevPeriod = useMemo(() => computePreviousPeriod(startDate, endDate), [startDate, endDate])
   const sparkGranularity: RevenueSeriesGranularity = 'day'
 
@@ -858,7 +863,9 @@ export function DashboardHomePageV2() {
               dragHandle={dragHandle}
               {...sparklineControl}
               label={t('reportsOrders')}
-              helpText={t('reportsKpiHelpOrders')}
+              helpText={
+                amazonOnlyScope ? t('reportsKpiHelpOrdersAmazon') : t('reportsKpiHelpOrders')
+              }
               value={orders.toLocaleString()}
               pct={ordersDelta!.pct}
               trend={ordersDelta!.trend}
@@ -913,6 +920,7 @@ export function DashboardHomePageV2() {
       unitsCurrent,
       unitsDelta,
       amazonOrderItems,
+      amazonOnlyScope,
       orders,
       ordersDelta,
       aov,

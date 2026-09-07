@@ -1322,6 +1322,8 @@ const SHELL_STRINGS = {
     reportsCardOrders: 'Pedidos',
     reportsCardVolume: 'Volumen',
     reportsKpiHelpOrders: 'Pedidos con venta registrada en el periodo, por fecha de compra.',
+    reportsKpiHelpOrdersAmazon:
+      'Pedidos pagados y pendientes en el periodo, por fecha de compra (como en la lista de pedidos de Seller Central). Cancelados no cuentan. El monto de ventas brutas solo suma pedidos con precio en la API de órdenes.',
     reportsSectionRevenueBreakdown: 'Cascada P&L',
     reportsLastUpdated: 'Actualizado',
     reportsVsPreviousPeriod: 'vs periodo anterior',
@@ -3374,6 +3376,8 @@ const SHELL_STRINGS = {
     reportsCardOrders: 'Orders',
     reportsCardVolume: 'Volume',
     reportsKpiHelpOrders: 'Orders with recorded sales in the period, by purchase date.',
+    reportsKpiHelpOrdersAmazon:
+      'Paid and pending orders in the period, by purchase date (same as the Seller Central orders list). Cancelled orders are excluded. Gross sales only include orders with a price from the Orders API.',
     reportsSectionRevenueBreakdown: 'P&L waterfall',
     reportsLastUpdated: 'Updated',
     reportsVsPreviousPeriod: 'vs prior period',

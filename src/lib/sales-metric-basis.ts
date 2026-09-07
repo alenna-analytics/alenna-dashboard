@@ -38,6 +38,19 @@ export function orderKpiProfit(kpi: KpiResponse, basis: SalesMetricBasis): numbe
   return basis === 'net' ? kpi.gross_profit : kpi.gross_revenue - kpi.cogs
 }
 
+/** Gross profit − platform fees − merchant shipping (channel economics). */
+export function orderKpiChannelMargin(kpi: KpiResponse): number {
+  return kpi.gross_profit - kpi.platform_fees_total - kpi.merchant_shipping_cost
+}
+
+/**
+ * Home channel multi-select is empty for “all channels”. Any explicit selection
+ * means the user scoped to one or more channels → show Margen de canal.
+ */
+export function isHomeChannelFilterActive(selectedConnectionIds: readonly string[]): boolean {
+  return selectedConnectionIds.length > 0
+}
+
 export function productKpiSales(kpi: ProductKpiResponse, basis: SalesMetricBasis): number {
   return basis === 'net' ? kpi.net_revenue : kpi.gross_revenue
 }

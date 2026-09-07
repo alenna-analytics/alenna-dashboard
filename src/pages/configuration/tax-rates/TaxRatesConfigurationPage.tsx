@@ -135,11 +135,10 @@ export function TaxRatesConfigurationPage() {
         <Skeleton className="h-64 w-full rounded-md" />
       ) : (
         <section className="space-y-6">
-          {isUnset ? (
-            <p className="text-sm text-text-secondary">{t('workspaceConfigTaxRatesUnsetHint')}</p>
-          ) : null}
-
-          <SettingsSectionHeader title={t('workspaceConfigTaxRatesWithholdingsGroup')} />
+          <SettingsSectionHeader
+            title={t('workspaceConfigTaxRatesDescription')}
+            description={isUnset ? t('workspaceConfigTaxRatesUnsetHint') : undefined}
+          />
           <SettingsCard>
             <SettingsRow
               label={t('workspaceConfigTaxRatesWithholdingIsr')}
@@ -155,7 +154,6 @@ export function TaxRatesConfigurationPage() {
                 value={working.withholding_isr_pct}
                 onChange={(e) => setField('withholding_isr_pct', e.target.value)}
                 aria-label={t('workspaceConfigTaxRatesWithholdingIsr')}
-                className="w-28"
               />
             </SettingsRow>
             <SettingsRow
@@ -172,13 +170,8 @@ export function TaxRatesConfigurationPage() {
                 value={working.withholding_iva_pct}
                 onChange={(e) => setField('withholding_iva_pct', e.target.value)}
                 aria-label={t('workspaceConfigTaxRatesWithholdingIva')}
-                className="w-28"
               />
             </SettingsRow>
-          </SettingsCard>
-
-          <SettingsSectionHeader title={t('workspaceConfigTaxRatesTransferGroup')} />
-          <SettingsCard>
             <SettingsRow
               label={t('workspaceConfigTaxRatesTransferredIva')}
               description={t('workspaceConfigTaxRatesTransferredIvaDesc')}
@@ -193,32 +186,36 @@ export function TaxRatesConfigurationPage() {
                 value={working.transferred_iva_pct}
                 onChange={(e) => setField('transferred_iva_pct', e.target.value)}
                 aria-label={t('workspaceConfigTaxRatesTransferredIva')}
-                className="w-28"
               />
             </SettingsRow>
+            {canManage ? (
+              <div className="flex flex-wrap justify-end gap-2 px-4 py-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="tiny"
+                  loading={putMutation.isPending}
+                  disabled={putMutation.isPending}
+                  onClick={() => void applyTypicalMx()}
+                >
+                  {t('workspaceConfigTaxRatesApplyTypicalMx')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="accent"
+                  size="tiny"
+                  loading={putMutation.isPending}
+                  disabled={!isDirty || putMutation.isPending || parsed === null}
+                  onClick={() => void onSave()}
+                >
+                  {t('workspaceConfigTaxRatesSave')}
+                </Button>
+              </div>
+            ) : null}
           </SettingsCard>
-
-          {canManage ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                onClick={() => void onSave()}
-                disabled={!isDirty || putMutation.isPending || parsed === null}
-              >
-                {t('workspaceConfigTaxRatesSave')}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => void applyTypicalMx()}
-                disabled={putMutation.isPending}
-              >
-                {t('workspaceConfigTaxRatesApplyTypicalMx')}
-              </Button>
-            </div>
-          ) : (
-            <p className="text-xs text-text-secondary">{t('workspaceConfigTaxRatesReadOnlyHint')}</p>
-          )}
+          {!canManage ? (
+            <p className="text-sm text-text-secondary">{t('workspaceConfigTaxRatesReadOnlyHint')}</p>
+          ) : null}
         </section>
       )}
     </DashboardPage>

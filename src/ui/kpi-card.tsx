@@ -194,6 +194,8 @@ export type KpiCardProps = {
   showComparison?: boolean
   deltaBesideValue?: boolean
   deltaTooltip?: string
+  /** Chart-style breakdown shown next to the big number (info icon). */
+  valueTooltip?: ReactNode
   placeholder?: boolean
   placeholderLabel?: string
   compact?: boolean
@@ -232,6 +234,7 @@ export function KpiCard({
   showComparison = true,
   deltaBesideValue = false,
   deltaTooltip,
+  valueTooltip,
   placeholder = false,
   placeholderLabel = '—',
   bare = false,
@@ -346,7 +349,7 @@ export function KpiCard({
         </div>
 
         <div className="flex min-w-0 flex-col items-start gap-1.5">
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
             <span
               className={cn(
                 'font-numeric min-w-0 text-lg font-medium leading-none tracking-tight',
@@ -360,6 +363,11 @@ export function KpiCard({
             </span>
             {!placeholder && currencyCode ? (
               <span className="text-sm font-medium text-text-secondary">{currencyCode}</span>
+            ) : null}
+            {!placeholder && valueTooltip ? (
+              <InfoTooltip side="top" stopClick={selectable} className="max-w-[280px] px-3 py-2">
+                {valueTooltip}
+              </InfoTooltip>
             ) : null}
           </div>
           {deltaEl}

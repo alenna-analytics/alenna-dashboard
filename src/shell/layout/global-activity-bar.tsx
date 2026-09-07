@@ -1,4 +1,4 @@
-import { useState, type AnimationEvent } from 'react'
+import { useEffect, useRef, useState, type AnimationEvent } from 'react'
 import { AlertCircle, X } from 'lucide-react'
 
 import { AppIcon, LoadingIcon } from '@/ui/app-icon'
@@ -88,6 +88,38 @@ function ActivityRow({ item }: { item: GlobalActivityItem }) {
     }
     dismissTerminalActivity(item.id, `${item.phase}:${item.title}:${item.subtitle ?? ''}`)
   }
+
+  const itemRef = useRef(item)
+  useEffect(() => {
+    itemRef.current = item
+  }, [item])
+
+  // Auto-close when opted in. Keyed on id+phase(+dismissKey) so progress subtitle
+  // updates during loading do not reset the countdown; phase changes do.
+  useEffect(() => {
+    const ms = item.autoDismissMs
+    if (ms == null || ms <= 0) return
+
+    const timer = window.setTimeout(() => {
+      const current = itemRef.current
+      if (current.phase === 'loading') {
+        minimizeActivity(current.id)
+        return
+      }
+      const dismissKey =
+        current.dismissKey ?? `${current.phase}:${current.title}:${current.subtitle ?? ''}`
+      dismissTerminalActivity(current.id, dismissKey)
+    }, ms)
+
+    return () => window.clearTimeout(timer)
+  }, [
+    item.id,
+    item.phase,
+    item.dismissKey,
+    item.autoDismissMs,
+    minimizeActivity,
+    dismissTerminalActivity,
+  ])
 
   const label = [item.title, item.subtitle].filter(Boolean).join(' · ')
 

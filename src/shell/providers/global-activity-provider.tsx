@@ -26,6 +26,12 @@ export type GlobalActivityItem = {
   jobId?: string
   /** Stable key for persisting terminal (success/error) dismissals across reloads. */
   dismissKey?: string
+  /**
+   * Optional auto-dismiss delay in ms. When set (>0), the bar closes the row after
+   * that delay (minimize while loading; terminal dismiss for success/error).
+   * Pass `0` to opt out when the activity id would otherwise get a sync default.
+   */
+  autoDismissMs?: number
 }
 
 /** Single slot for Shopify channel order sync (one concurrent sync per workspace UX). */
@@ -36,6 +42,33 @@ export const GLOBAL_ACTIVITY_ADS_SYNC_ID = 'ads-channel-sync'
 
 /** Single slot when bulk COGS save enqueues many backfill jobs. */
 export const GLOBAL_ACTIVITY_COGS_BULK_BACKFILL_ID = 'cogs-bulk-backfill'
+
+/** Default auto-close for platform sync banners (progress + terminal). */
+export const GLOBAL_ACTIVITY_SYNC_AUTO_DISMISS_MS = 10_000
+
+const SYNC_AUTO_DISMISS_ACTIVITY_IDS = new Set<string>([
+  GLOBAL_ACTIVITY_SHOPIFY_SYNC_ID,
+  GLOBAL_ACTIVITY_MELI_SYNC_ID,
+  GLOBAL_ACTIVITY_AMAZON_SYNC_ID,
+  GLOBAL_ACTIVITY_ADS_SYNC_ID,
+])
+
+/**
+ * Resolves auto-dismiss for an activity.
+ * - Explicit `autoDismissMs > 0` → use it
+ * - Explicit `0` → disable (even for sync ids)
+ * - Omitted + sync id → 10s default
+ * - Otherwise → none (manual close only)
+ */
+export function resolveGlobalActivityAutoDismissMs(
+  id: string,
+  requested?: number,
+): number | undefined {
+  if (requested === 0) return undefined
+  if (requested != null && requested > 0) return requested
+  if (SYNC_AUTO_DISMISS_ACTIVITY_IDS.has(id)) return GLOBAL_ACTIVITY_SYNC_AUTO_DISMISS_MS
+  return undefined
+}
 
 export function cogsBackfillActivityId(jobId: string): string {
   return `cogs-backfill:${jobId}`
@@ -66,10 +99,8 @@ function reducer(state: GlobalActivityState, action: GlobalActivityAction): Glob
   switch (action.type) {
     case 'upsert': {
       const { payload } = action
-      const nextMinimized =
-        payload.minimized ??
-        state.items.find((x) => x.id === payload.id)?.minimized ??
-        false
+      const existing = state.items.find((x) => x.id === payload.id)
+      const nextMinimized = payload.minimized ?? existing?.minimized ?? false
       const item: GlobalActivityItem = {
         id: payload.id,
         phase: payload.phase,
@@ -77,8 +108,9 @@ function reducer(state: GlobalActivityState, action: GlobalActivityAction): Glob
         subtitle: payload.subtitle,
         href: payload.href,
         minimized: nextMinimized,
-        jobId: payload.jobId ?? state.items.find((x) => x.id === payload.id)?.jobId,
-        dismissKey: payload.dismissKey ?? state.items.find((x) => x.id === payload.id)?.dismissKey,
+        jobId: payload.jobId ?? existing?.jobId,
+        dismissKey: payload.dismissKey ?? existing?.dismissKey,
+        autoDismissMs: resolveGlobalActivityAutoDismissMs(payload.id, payload.autoDismissMs),
       }
       const idx = state.items.findIndex((x) => x.id === item.id)
       const items =

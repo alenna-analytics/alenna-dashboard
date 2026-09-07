@@ -24,6 +24,8 @@ import { useModule } from '@/lib/modules/use-modules'
 import { useSalesMetricBasis } from '@/hooks/use-sales-metric-basis'
 import {
   homeSalesHelpKey,
+  isHomeChannelFilterActive,
+  orderKpiChannelMargin,
   orderKpiProfit,
   orderKpiSales,
   productKpiProfit,
@@ -505,9 +507,12 @@ export function DashboardHomePage() {
   const salesCurrent = productMode
     ? productKpiSales(displayProductKpi ?? zeroProductKpi(currency), salesMetricBasis)
     : orderKpiSales(displayKpi ?? zeroKpiResponse(currency), salesMetricBasis)
+  const channelFilterActive = !productMode && isHomeChannelFilterActive(connectionIds)
   const profitCurrent = productMode
     ? productKpiProfit(displayProductKpi ?? zeroProductKpi(currency), salesMetricBasis)
-    : orderKpiProfit(displayKpi ?? zeroKpiResponse(currency), salesMetricBasis)
+    : channelFilterActive
+      ? orderKpiChannelMargin(displayKpi ?? zeroKpiResponse(currency))
+      : orderKpiProfit(displayKpi ?? zeroKpiResponse(currency), salesMetricBasis)
   const salesPriorValue = productMode
     ? pkpiPrev
       ? productKpiSales(pkpiPrev, salesMetricBasis)
@@ -520,7 +525,9 @@ export function DashboardHomePage() {
       ? productKpiProfit(pkpiPrev, salesMetricBasis)
       : undefined
     : kpiPrev
-      ? orderKpiProfit(kpiPrev, salesMetricBasis)
+      ? channelFilterActive
+        ? orderKpiChannelMargin(kpiPrev)
+        : orderKpiProfit(kpiPrev, salesMetricBasis)
       : undefined
   const aov =
     orders > 0
@@ -781,8 +788,16 @@ export function DashboardHomePage() {
                     <KpiCard
                       bare
                       compact
-                      label={t(profitLabelKey(salesMetricBasis))}
-                      helpText={t(profitHelpKey(salesMetricBasis))}
+                      label={
+                        channelFilterActive
+                          ? t('reportsChannelMargin')
+                          : t(profitLabelKey(salesMetricBasis))
+                      }
+                      helpText={
+                        channelFilterActive
+                          ? t('reportsKpiHelpChannelMargin')
+                          : t(profitHelpKey(salesMetricBasis))
+                      }
                       value={formatKpi(profitCurrent, { nativeCurrency: currency })}
                       numericValue={profitCurrent}
                       currencyCode={effectiveDisplayCurrency}

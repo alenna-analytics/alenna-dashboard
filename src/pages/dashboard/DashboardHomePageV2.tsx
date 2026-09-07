@@ -14,6 +14,8 @@ import { apiFetch } from '@/lib/api'
 import { usePnlAwareT } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
 import {
   homeSalesHelpKey,
+  isHomeChannelFilterActive,
+  orderKpiChannelMargin,
   orderKpiProfit,
   orderKpiSales,
   productKpiProfit,
@@ -531,9 +533,12 @@ export function DashboardHomePageV2() {
     !productMode && displayKpi?.total_order_items != null && displayKpi.total_order_items > 0
       ? displayKpi.total_order_items
       : null
+  const channelFilterActive = !productMode && isHomeChannelFilterActive(connectionIds)
   const profitCurrent = productMode
     ? productKpiProfit(displayProductKpi ?? zeroProductKpi(currency), salesMetricBasis)
-    : orderKpiProfit(displayKpi ?? zeroKpiResponse(currency), salesMetricBasis)
+    : channelFilterActive
+      ? orderKpiChannelMargin(displayKpi ?? zeroKpiResponse(currency))
+      : orderKpiProfit(displayKpi ?? zeroKpiResponse(currency), salesMetricBasis)
   const contributionCurrent = productMode
     ? (displayProductKpi?.gross_profit ?? 0)
     : (displayKpi?.contribution_margin ?? 0)
@@ -550,7 +555,9 @@ export function DashboardHomePageV2() {
       ? productKpiProfit(pkpiPrev, salesMetricBasis)
       : undefined
     : kpiPrev
-      ? orderKpiProfit(kpiPrev, salesMetricBasis)
+      ? channelFilterActive
+        ? orderKpiChannelMargin(kpiPrev)
+        : orderKpiProfit(kpiPrev, salesMetricBasis)
       : undefined
   const contributionPriorValue = productMode
     ? pkpiPrev?.gross_profit
@@ -622,6 +629,10 @@ export function DashboardHomePageV2() {
   }, [sparklineSeries, startDate, endDate, sparkGranularity, dateLocale])
 
   const profitSparklineScale = useMemo(() => {
+    if (channelFilterActive && displayKpi) {
+      const gp = displayKpi.gross_profit
+      return gp !== 0 ? orderKpiChannelMargin(displayKpi) / gp : 1
+    }
     if (salesMetricBasis === 'net') return 1
     const kpi = productMode ? displayProductKpi : displayKpi
     if (!kpi) return 1
@@ -630,7 +641,14 @@ export function DashboardHomePageV2() {
       ? productKpiProfit(displayProductKpi ?? zeroProductKpi(currency), 'gross')
       : orderKpiProfit(displayKpi ?? zeroKpiResponse(currency), 'gross')
     return netField !== 0 ? grossProfit / netField : 1
-  }, [salesMetricBasis, productMode, displayProductKpi, displayKpi, currency])
+  }, [
+    channelFilterActive,
+    salesMetricBasis,
+    productMode,
+    displayProductKpi,
+    displayKpi,
+    currency,
+  ])
 
   const contributionSparklineScale = useMemo(() => {
     if (productMode) return 1
@@ -654,6 +672,7 @@ export function DashboardHomePageV2() {
       contributionSparklineScale,
       ebitdaSparklineScale,
       adsRoasAvailable: adsSeriesEnabled && !adsSeriesError,
+      channelFilterActive,
     }),
     [
       salesMetricBasis,
@@ -664,6 +683,7 @@ export function DashboardHomePageV2() {
       ebitdaSparklineScale,
       adsSeriesEnabled,
       adsSeriesError,
+      channelFilterActive,
     ],
   )
 
@@ -767,8 +787,16 @@ export function DashboardHomePageV2() {
             <HomeV2KpiSparklineCard
               dragHandle={dragHandle}
               {...sparklineControl}
-              label={t(profitLabelKey(salesMetricBasis))}
-              helpText={t(profitHelpKey(salesMetricBasis))}
+              label={
+                channelFilterActive
+                  ? t('reportsChannelMargin')
+                  : t(profitLabelKey(salesMetricBasis))
+              }
+              helpText={
+                channelFilterActive
+                  ? t('reportsKpiHelpChannelMargin')
+                  : t(profitHelpKey(salesMetricBasis))
+              }
               value={formatCardAmount(profitCurrent)}
               numericValue={profitCurrent}
               currencyCode={effectiveDisplayCurrency}
@@ -918,6 +946,7 @@ export function DashboardHomePageV2() {
       contributionCurrent,
       contributionDelta,
       productMode,
+      channelFilterActive,
       ebitdaCurrent,
       ebitdaDelta,
       unitsCurrent,

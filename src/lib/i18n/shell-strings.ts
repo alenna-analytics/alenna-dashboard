@@ -474,9 +474,14 @@ const SHELL_STRINGS = {
     kpiSalesMetricBasisShowGross: 'Mostrar Ventas/Utilidad Bruta',
     kpiSalesMetricBasisToggleAria: 'Mostrar ventas y utilidad en bruto',
     reportsNetProfit: 'Utilidad neta',
-    reportsKpiHelpNetProfit: 'Ventas netas menos COGS.',
+    reportsKpiHelpNetProfit:
+      'Ventas netas - COGS. No incluye comisiones de plataforma ni ads. Es la economía del producto: igual en todos los canales.',
+    reportsChannelMargin: 'Margen de canal',
+    reportsKpiHelpChannelMargin:
+      'Utilidad bruta - comisiones - envío. Es la economía real de vender en este canal.',
     homeKpiRoasGlobal: 'ROAS global',
-    homeKpiRoasGlobalHelp: 'Ingresos de ads ÷ gasto en ads.',
+    homeKpiRoasGlobalHelp:
+      'Ventas atribuidas ÷ gasto en ads. Sin datos: no hay plataformas de ads conectadas para este canal.',
     homeKpiContributionMarginPct: 'Contribución marginal %',
     homeKpiContributionMarginPctHelp: 'Contribución marginal ÷ ventas netas.',
     homeKpiActiveAlerts: 'Alertas activas',
@@ -1328,11 +1333,14 @@ const SHELL_STRINGS = {
     reportsKpiHelpNetRevenue: 'Ventas después de descuentos y devoluciones.',
     reportsKpiHelpUnits: 'Unidades vendidas en el periodo.',
     reportsKpiHelpOrderItems: 'Artículos pedidos en el periodo.',
-    reportsKpiHelpGrossProfit: 'Ventas netas menos COGS.',
+    reportsKpiHelpGrossProfit:
+      'Ventas netas - COGS. No incluye comisiones de plataforma ni ads. Es la economía del producto: igual en todos los canales.',
     reportsKpiHelpGrossProfitOnGrossSales: 'Ventas brutas menos COGS.',
     reportsKpiHelpGrossMargin: 'Utilidad bruta ÷ ventas netas.',
-    reportsKpiHelpContributionMargin: 'Utilidad bruta menos comisiones, envío y ads.',
-    reportsKpiHelpEbitda: 'Contribución marginal menos gastos fijos.',
+    reportsKpiHelpContributionMargin:
+      'Margen de canal - gasto en ads. Lo que queda para cubrir gastos fijos.',
+    reportsKpiHelpEbitda:
+      'Contribución marginal - gastos operativos fijos. No incluye retenciones plataforma (esas afectan liquidez, no rentabilidad).',
     reportsOrdersTotal: 'Pedidos totales',
     reportsOrdersPaid: 'Pagados',
     reportsOrdersCompletedShort: 'completados',
@@ -1606,7 +1614,7 @@ const SHELL_STRINGS = {
     productsDetailKpiGrossProfit: 'Utilidad bruta',
     productsDetailKpiGrossProfitOnGrossSales: 'Utilidad sobre ventas brutas',
     productsDetailKpiNetProfitHelp:
-      'Utilidad bruta menos comisiones, envío, impuestos de canal y publicidad.',
+      'Ventas netas - COGS. No incluye comisiones de plataforma ni ads. Es la economía del producto: igual en todos los canales.',
     productsDetailKpiGrossProfitOnGrossSalesHelp:
       'Ventas brutas del producto menos su costo (COGS). Sin ads, envío ni gastos fijos.',
     productsDetailKpiContributionMarginPct: 'Contribución marginal %',
@@ -2533,9 +2541,14 @@ const SHELL_STRINGS = {
     kpiSalesMetricBasisShowGross: 'Show gross sales/profit',
     kpiSalesMetricBasisToggleAria: 'Show gross sales and profit',
     reportsNetProfit: 'Net profit',
-    reportsKpiHelpNetProfit: 'Net sales minus COGS.',
+    reportsKpiHelpNetProfit:
+      'Net sales − COGS. Does not include platform fees or ads. Product economics: the same across all channels.',
+    reportsChannelMargin: 'Channel margin',
+    reportsKpiHelpChannelMargin:
+      'Gross profit − fees − shipping. The real economics of selling on this channel.',
     homeKpiRoasGlobal: 'Global ROAS',
-    homeKpiRoasGlobalHelp: 'Ad revenue ÷ ad spend.',
+    homeKpiRoasGlobalHelp:
+      'Attributed sales ÷ ad spend. No data: no ads platforms connected for this channel.',
     homeKpiContributionMarginPct: 'Marginal Contribution %',
     homeKpiContributionMarginPctHelp: 'Marginal contribution ÷ net sales.',
     homeKpiActiveAlerts: 'Active alerts',
@@ -3373,11 +3386,14 @@ const SHELL_STRINGS = {
     reportsKpiHelpNetRevenue: 'Sales after discounts and returns.',
     reportsKpiHelpUnits: 'Units sold in the period.',
     reportsKpiHelpOrderItems: 'Order items in the period.',
-    reportsKpiHelpGrossProfit: 'Net sales minus COGS.',
+    reportsKpiHelpGrossProfit:
+      'Net sales − COGS. Does not include platform fees or ads. Product economics: the same across all channels.',
     reportsKpiHelpGrossProfitOnGrossSales: 'Gross sales minus COGS.',
     reportsKpiHelpGrossMargin: 'Gross profit ÷ net sales.',
-    reportsKpiHelpContributionMargin: 'Gross profit minus fees, shipping, and ads.',
-    reportsKpiHelpEbitda: 'Marginal contribution minus fixed costs.',
+    reportsKpiHelpContributionMargin:
+      'Channel margin − ad spend. What remains to cover fixed costs.',
+    reportsKpiHelpEbitda:
+      'Marginal contribution − fixed operating expenses. Does not include platform withholdings (those affect liquidity, not profitability).',
     reportsOrdersTotal: 'Total orders',
     reportsOrdersPaid: 'Paid',
     reportsOrdersCompletedShort: 'completed',
@@ -3650,7 +3666,7 @@ const SHELL_STRINGS = {
     productsDetailKpiGrossProfit: 'Gross profit',
     productsDetailKpiGrossProfitOnGrossSales: 'Profit on gross sales',
     productsDetailKpiNetProfitHelp:
-      'Gross profit minus platform fees, shipping, channel taxes, and advertising.',
+      'Net sales − COGS. Does not include platform fees or ads. Product economics: the same across all channels.',
     productsDetailKpiGrossProfitOnGrossSalesHelp:
       'Product gross sales minus its cost (COGS). Excludes ads, shipping, and fixed opex.',
     productsDetailKpiContributionMarginPct: 'Marginal Contribution %',

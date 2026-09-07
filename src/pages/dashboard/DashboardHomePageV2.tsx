@@ -554,9 +554,26 @@ export function DashboardHomePageV2() {
     (orderStatusCounts.PAID ?? 0) + (orderStatusCounts.PARTIALLY_PAID ?? 0)
   const ordersPending = orderStatusCounts.PENDING ?? 0
   const showOrdersBreakdown = !productMode && (amazonOnlyScope || ordersPending > 0)
-  const ordersCardValue = showOrdersBreakdown
-    ? `${ordersCompleted.toLocaleString()} ${t('reportsOrdersCompletedShort')} · ${ordersPending.toLocaleString()} ${t('reportsOrdersPendingShort')}`
-    : orders.toLocaleString()
+  const ordersTotal = showOrdersBreakdown ? ordersCompleted + ordersPending : orders
+  const ordersCardValue = ordersTotal.toLocaleString()
+  const ordersValueTooltip = useMemo(() => {
+    if (!showOrdersBreakdown) return undefined
+    return (
+      <>
+        <p className="mb-1.5 font-medium text-white">{t('reportsOrders')}</p>
+        <div className="space-y-1 leading-snug">
+          <p className="tabular-nums">
+            <span className="text-white/55 capitalize">{t('reportsOrdersCompletedShort')}:</span>{' '}
+            <span className="font-medium text-white">{ordersCompleted.toLocaleString()}</span>
+          </p>
+          <p className="tabular-nums">
+            <span className="text-white/55 capitalize">{t('reportsOrdersPendingShort')}:</span>{' '}
+            <span className="font-medium text-white">{ordersPending.toLocaleString()}</span>
+          </p>
+        </div>
+      </>
+    )
+  }, [showOrdersBreakdown, t, ordersCompleted, ordersPending])
   const unitsCurrent = productMode
     ? (displayProductKpi?.units_sold ?? 0)
     : (displayKpi?.units_sold ?? 0)
@@ -597,7 +614,7 @@ export function DashboardHomePageV2() {
       ? deltaBlock(ebitdaCurrent, ebitdaPriorValue)
       : null
   const unitsDelta = showKpiCards ? deltaBlock(unitsCurrent, unitsPriorValue) : null
-  const ordersDelta = showKpiCards ? deltaBlock(orders, ordersPriorValue) : null
+  const ordersDelta = showKpiCards ? deltaBlock(ordersTotal, ordersPriorValue) : null
   const aovDelta = showKpiCards && aov !== null ? deltaBlock(aov, aovPriorValue) : null
 
   const mergedSparkRows = useMemo(() => {
@@ -880,7 +897,8 @@ export function DashboardHomePageV2() {
               label={t('reportsOrders')}
               helpText={t('reportsKpiHelpOrders')}
               value={ordersCardValue}
-              numericValue={showOrdersBreakdown ? ordersCompleted + ordersPending : orders}
+              numericValue={ordersTotal}
+              valueTooltip={ordersValueTooltip}
               pct={ordersDelta!.pct}
               trend={ordersDelta!.trend}
               comparisonUnavailable={ordersDelta!.unavailable}
@@ -935,11 +953,9 @@ export function DashboardHomePageV2() {
       unitsCurrent,
       unitsDelta,
       amazonOrderItems,
-      orders,
+      ordersTotal,
       ordersCardValue,
-      showOrdersBreakdown,
-      ordersCompleted,
-      ordersPending,
+      ordersValueTooltip,
       ordersDelta,
       aov,
       aovDelta,

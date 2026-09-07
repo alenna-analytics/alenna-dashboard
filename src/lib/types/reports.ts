@@ -28,6 +28,25 @@ export type SettlementBreakdown = {
   completeness: string
 }
 
+export type TaxesEstimatedSettingsEcho = {
+  withholding_iva_pct: number
+  withholding_isr_pct: number
+  transferred_iva_pct: number
+}
+
+/** Liquidity estimates from tenant tax_settings — never feeds CM/EBITDA. */
+export type TaxesEstimated = {
+  withholding_isr: number
+  withholding_iva: number
+  withholding_total: number
+  transferred_iva: number
+  expected_net_cash: number
+  base_amount: number
+  base_field: string
+  formula_version: string
+  settings: TaxesEstimatedSettingsEcho
+}
+
 export type KpiResponse = {
   gross_revenue: number
   discounts: number
@@ -46,6 +65,9 @@ export type KpiResponse = {
   fixed_operating_expenses: number
   contribution_margin: number
   contribution_margin_pct: number
+  /** Prefer API; older payloads omit → UI falls back to orderKpiChannelMargin. */
+  channel_margin?: number
+  channel_margin_pct?: number
   ebitda: number
   ebitda_margin_pct: number
   units_sold: number
@@ -55,6 +77,8 @@ export type KpiResponse = {
   cogs_incomplete: boolean
   order_status_counts: Record<string, number>
   settlement: SettlementBreakdown
+  /** null/undefined when tax settings unset — do not invent zeros. */
+  taxes_estimated?: TaxesEstimated | null
   kpi_source_completeness?: string | null
 }
 

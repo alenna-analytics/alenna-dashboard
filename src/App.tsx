@@ -39,6 +39,7 @@ import { AlarmsConfigurationListPage } from '@/pages/configuration/alarms/Alarms
 import { StockAlarmConfigurationPage } from '@/pages/configuration/alarms/stock/StockAlarmConfigurationPage'
 import { GeneralConfigurationPage } from '@/pages/configuration/general/GeneralConfigurationPage'
 import { PnlTermsConfigurationPage } from '@/pages/configuration/pnl-terms/PnlTermsConfigurationPage'
+import { TaxRatesConfigurationPage } from '@/pages/configuration/tax-rates/TaxRatesConfigurationPage'
 import { FxRatesConfigurationPage } from '@/pages/configuration/fx-rates/FxRatesConfigurationPage'
 import { BillingConfigurationPage } from '@/pages/configuration/billing/BillingConfigurationPage'
 import { TeamPage } from '@/pages/team/TeamPage'
@@ -108,6 +109,7 @@ function App() {
             <Route index element={<ConfigurationIndexRedirect />} />
             <Route path="general" element={<RequireModule moduleId="workspace-config"><GeneralConfigurationPage /></RequireModule>} />
             <Route path="pnl-terms" element={<RequireModule moduleId="workspace-config"><PnlTermsConfigurationPage /></RequireModule>} />
+            <Route path="tax-rates" element={<RequireModule moduleId="workspace-config"><TaxRatesConfigurationPage /></RequireModule>} />
             <Route path="fx-rates" element={<RequireModule moduleId="workspace-config"><FxRatesConfigurationPage /></RequireModule>} />
           </Route>
           <Route path="sales" element={<RequireModule moduleId="sales"><SalesPage /></RequireModule>} />

@@ -84,6 +84,7 @@ import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
 import { SalesMetricBasisToggle } from '@/ui/sales-metric-basis-toggle'
 import { chromeIconButtonClassName } from '@/ui/surface'
+import { ChartTooltipSeriesRow } from '@/ui/chart-tooltip'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { buttonVariants } from '@/ui/button'
 import { cn } from '@/lib/utils'
@@ -560,16 +561,16 @@ export function DashboardHomePageV2() {
     if (!showOrdersBreakdown) return undefined
     return (
       <>
-        <p className="mb-1.5 font-medium text-white">{t('reportsOrders')}</p>
-        <div className="space-y-1 leading-snug">
-          <p className="tabular-nums">
-            <span className="text-white/55 capitalize">{t('reportsOrdersCompletedShort')}:</span>{' '}
-            <span className="font-medium text-white">{ordersCompleted.toLocaleString()}</span>
-          </p>
-          <p className="tabular-nums">
-            <span className="text-white/55 capitalize">{t('reportsOrdersPendingShort')}:</span>{' '}
-            <span className="font-medium text-white">{ordersPending.toLocaleString()}</span>
-          </p>
+        <p className="mb-1.5 text-[13px] font-semibold text-text-primary">{t('reportsOrders')}</p>
+        <div className="space-y-1.5">
+          <ChartTooltipSeriesRow
+            label={<span className="capitalize">{t('reportsOrdersCompletedShort')}</span>}
+            value={ordersCompleted.toLocaleString()}
+          />
+          <ChartTooltipSeriesRow
+            label={<span className="capitalize">{t('reportsOrdersPendingShort')}</span>}
+            value={ordersPending.toLocaleString()}
+          />
         </div>
       </>
     )

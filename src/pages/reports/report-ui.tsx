@@ -141,7 +141,7 @@ export function ChartSectionHeader({
         sideOffset={12}
         collisionPadding={24}
         avoidCollisions
-        className="max-w-[22rem] border-0 bg-white px-3 py-2.5 text-left text-text-primary shadow-[0_8px_24px_rgba(15,23,42,0.12)]"
+        className="max-w-[22rem] text-left"
       >
         <MetricCalcTooltipBody
           title={title}

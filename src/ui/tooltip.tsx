@@ -2,6 +2,7 @@ import type { ComponentProps, ReactElement } from 'react'
 import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 
 import { cn } from '@/lib/utils'
+import { chartTooltipFrameClassName } from '@/ui/chart-tooltip'
 
 function TooltipProvider({
   delayDuration = 0,
@@ -34,8 +35,10 @@ function TooltipContent({
       <TooltipPrimitive.Content
         sideOffset={sideOffset}
         className={cn(
-          'z-80 max-w-xs overflow-hidden rounded-xl border-0 bg-[#1f1f1f] px-2.5 py-1.5 text-xs font-normal text-white shadow-lg transition-all duration-150',
-          className
+          // Match chart hover tooltips (white surface + soft shadow).
+          chartTooltipFrameClassName,
+          'z-80 max-w-xs overflow-hidden transition-all duration-150',
+          className,
         )}
         {...props}
       />

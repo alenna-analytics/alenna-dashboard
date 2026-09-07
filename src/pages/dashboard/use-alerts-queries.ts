@@ -2,7 +2,7 @@ import { useAuth } from '@clerk/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useCurrentTenant } from '@/auth/hooks'
-import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { apiFetch, apiPostJson } from '@/lib/api'
 import { can } from '@/lib/permissions/can'
 import type {
@@ -29,7 +29,7 @@ export function alertsListQueryKey(
 export function useAlertsSummaryQuery() {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
-  const { me } = useAppBootstrap()
+  const { me } = useWorkspace()
   const canView = can(me, 'alerts.view')
 
   return useQuery({

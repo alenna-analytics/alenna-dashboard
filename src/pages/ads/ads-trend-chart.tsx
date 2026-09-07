@@ -16,7 +16,7 @@ import { shellT } from '@/lib/i18n/shell-strings'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { bucketAdsSeriesPoints, type AdsTrendChartRow } from '@/pages/ads/ads-series-buckets'
 import type { AdsSeriesPoint } from '@/pages/ads/use-ads-kpis'
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
@@ -44,15 +44,25 @@ function TrendTooltip({
 }) {
   if (!active || !payload?.[0]?.payload) return null
   const row = payload[0].payload
+  const spendColor =
+    payload.find((p) => p.dataKey === 'spend')?.color ?? 'var(--chart-3)'
+  const salesColor =
+    payload.find((p) => p.dataKey === 'sales')?.color ?? 'var(--chart-1)'
   return (
     <ChartTooltipFrame>
-      <p className="font-medium text-white">{row.label}</p>
-      <p className="mt-1 tabular-nums text-white/80">
-        {spendLabel}: {formatValue(row.spend)}
-      </p>
-      <p className="tabular-nums text-white/80">
-        {salesLabel}: {formatValue(row.sales)}
-      </p>
+      <ChartTooltipTitle>{row.label}</ChartTooltipTitle>
+      <div className="space-y-1.5">
+        <ChartTooltipSeriesRow
+          color={spendColor}
+          label={spendLabel}
+          value={formatValue(row.spend)}
+        />
+        <ChartTooltipSeriesRow
+          color={salesColor}
+          label={salesLabel}
+          value={formatValue(row.sales)}
+        />
+      </div>
     </ChartTooltipFrame>
   )
 }
@@ -138,6 +148,7 @@ export function AdsTrendChart({
                 salesLabel={salesLabel}
               />
             }
+            {...chartRechartsTooltipProps}
           />
           {chartType === 'bar' ? (
             <>

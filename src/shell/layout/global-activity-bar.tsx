@@ -4,7 +4,7 @@ import { AlertCircle, X } from 'lucide-react'
 import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 import { Link } from 'react-router-dom'
 
-import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { useCancelPlatformSyncJob } from '@/hooks/use-cancel-platform-sync-job'
 import { useLanguage } from '@/shell/providers/language-provider'
 import {
@@ -65,7 +65,7 @@ function PhaseGlyph({ phase }: { phase: GlobalActivityPhase }) {
 
 function ActivityRow({ item }: { item: GlobalActivityItem }) {
   const { lang } = useLanguage()
-  const { me } = useAppBootstrap()
+  const { me } = useWorkspace()
   const { minimizeActivity, dismissTerminalActivity } = useGlobalActivity()
   const cancelSyncMutation = useCancelPlatformSyncJob()
   const isAdmin = can(me, 'integrations.manage')

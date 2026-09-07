@@ -12,7 +12,7 @@ import {
 } from 'recharts'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import { CHART_NARROW_MQ, lineChartXAxisLayout } from '@/pages/dashboard/chart-x-axis-layout'
 import { useMediaQuery } from '@/hooks/use-media-query'
@@ -58,23 +58,21 @@ function ChartTooltip({
   if (!row) return null
   return (
     <ChartTooltipFrame>
-      <div className="font-medium text-white">
-        {t('productsDetailChartTooltipDate')}:{' '}
-        <span className="font-numeric tabular-nums">{row.dateKey}</span>
-      </div>
-      <div className="mt-1 space-y-0.5">
+      <ChartTooltipTitle>
+        {t('productsDetailChartTooltipDate')}: {row.dateKey}
+      </ChartTooltipTitle>
+      <div className="space-y-1.5">
         {payload.map((p) => {
           const key = String(p.dataKey || '').replace(/^values\./, '')
           const series = seriesByKey[key]
           if (!series) return null
           return (
-            <div key={key} className="flex items-center gap-2 text-white/70">
-              <span className="inline-block size-2 rounded-full" style={{ background: p.stroke }} />
-              <span>{series.label}:</span>
-              <span className="font-numeric tabular-nums text-white">
-                {fmtCurrency(Number(p.value ?? 0), series.currency)}
-              </span>
-            </div>
+            <ChartTooltipSeriesRow
+              key={key}
+              color={p.stroke ?? series.color}
+              label={series.label}
+              value={fmtCurrency(Number(p.value ?? 0), series.currency)}
+            />
           )
         })}
       </div>
@@ -244,6 +242,7 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
           <Tooltip
             content={<ChartTooltip t={t} seriesByKey={seriesByKey} />}
             cursor={{ stroke: 'var(--color-border-default)' }}
+            {...chartRechartsTooltipProps}
           />
           {series.map((s, seriesIndex) => (
             <Line

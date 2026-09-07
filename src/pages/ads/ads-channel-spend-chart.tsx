@@ -16,7 +16,7 @@ import { formatCompactNumber } from '@/lib/format/compact-number'
 import { shellT } from '@/lib/i18n/shell-strings'
 import type { AdsChannelRow } from '@/pages/ads/use-ads-kpis'
 import { adsPlatformLabel } from '@/pages/ads/ads-platform-label'
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { ShareChartView } from '@/ui/chart-view-toggle'
 import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
@@ -58,10 +58,14 @@ function ChannelTooltip({
   const pct = total > 0 ? Math.round((row.value / total) * 100) : 0
   return (
     <ChartTooltipFrame>
-      <p className="font-medium text-white">{row.label}</p>
-      <p className="mt-0.5 tabular-nums text-white/70">
-        {formatValue(row.value)} · {pct}%
-      </p>
+      <ChartTooltipTitle>{row.label}</ChartTooltipTitle>
+      <div className="space-y-1.5">
+        <ChartTooltipSeriesRow
+          color={row.fill}
+          label={`${pct}%`}
+          value={formatValue(row.value)}
+        />
+      </div>
     </ChartTooltipFrame>
   )
 }
@@ -141,7 +145,10 @@ export function AdsChannelSpendChart({
                   <Cell key={row.key} fill={row.fill} />
                 ))}
               </Pie>
-              <Tooltip content={<ChannelTooltip formatValue={formatValue} total={total} />} />
+              <Tooltip
+                content={<ChannelTooltip formatValue={formatValue} total={total} />}
+                {...chartRechartsTooltipProps}
+              />
             </PieChart>
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
@@ -185,6 +192,7 @@ export function AdsChannelSpendChart({
           <Tooltip
             cursor={{ fill: 'var(--muted)', opacity: 0.45 }}
             content={<ChannelTooltip formatValue={formatValue} total={total} />}
+            {...chartRechartsTooltipProps}
           />
           <Bar dataKey="value" radius={[8, 8, 8, 8]} maxBarSize={28} isAnimationActive={false}>
             {chartRows.map((row) => (

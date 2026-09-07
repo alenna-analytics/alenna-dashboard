@@ -63,13 +63,14 @@ export function useProductLinkSuggestionsQuery(options?: { enabled?: boolean }) 
   })
 }
 
-export function useProductLinkGroupsQuery() {
+export function useProductLinkGroupsQuery(options?: { enabled?: boolean }) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
+  const enabled = options?.enabled ?? true
 
   return useQuery({
     queryKey: productLinkGroupsQueryKey(tenantId),
-    enabled: Boolean(tenantId),
+    enabled: Boolean(tenantId) && enabled,
     queryFn: async (): Promise<ProductLinkGroupsPageApi> => {
       const res = await apiFetch(
         '/catalog/product-link-groups?limit=50&offset=0',

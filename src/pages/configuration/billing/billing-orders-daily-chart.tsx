@@ -15,7 +15,7 @@ import {
 import type { BillingOrdersDailyPoint } from '@/lib/billing/billing-api'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { Language } from '@/shell/providers/language-provider'
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
 
@@ -49,10 +49,14 @@ function DailyTooltip({
   const row = payload[0].payload
   return (
     <ChartTooltipFrame>
-      <p className="font-medium text-white">{row.label}</p>
-      <p className="mt-0.5 text-white/70">
-        {t('billingOrdersDailyTooltip')}: {row.orders}
-      </p>
+      <ChartTooltipTitle>{row.label}</ChartTooltipTitle>
+      <div className="space-y-1.5">
+        <ChartTooltipSeriesRow
+          color="var(--chart-3)"
+          label={t('billingOrdersDailyTooltip')}
+          value={row.orders}
+        />
+      </div>
     </ChartTooltipFrame>
   )
 }
@@ -121,6 +125,7 @@ export function BillingOrdersDailyChart({
           <Tooltip
             cursor={{ fill: 'var(--muted)', opacity: 0.45 }}
             content={<DailyTooltip t={t} />}
+            {...chartRechartsTooltipProps}
           />
           <Bar
             dataKey="orders"

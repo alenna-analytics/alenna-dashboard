@@ -25,6 +25,7 @@ type ContextAlertCardProps = {
   tone?: ContextAlertTone
   action?: ReactNode
   className?: string
+  iconWrapClassName?: string
 }
 
 function ContextAlertCard({
@@ -34,6 +35,7 @@ function ContextAlertCard({
   tone = 'warning',
   action,
   className,
+  iconWrapClassName,
 }: ContextAlertCardProps) {
   const iconClassName = cn('size-4', iconClassByTone[tone])
   const iconElement = isValidElement(icon) ? icon : null
@@ -49,7 +51,7 @@ function ContextAlertCard({
       <div
         className={cn(
           'flex size-9 shrink-0 items-center justify-center rounded-md',
-          iconWrapClassByTone[tone],
+          iconWrapClassName ?? iconWrapClassByTone[tone],
         )}
       >
         {Icon ? (

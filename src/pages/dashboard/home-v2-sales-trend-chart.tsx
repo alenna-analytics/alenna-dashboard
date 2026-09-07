@@ -17,7 +17,7 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import {
@@ -108,20 +108,18 @@ function TrendTooltip({
   if (!row) return null
   return (
     <ChartTooltipFrame>
-      <p className="mb-1.5 font-medium text-white">{row.label}</p>
-      <div className="space-y-1 leading-snug">
-        <p className="tabular-nums">
-          <span className="text-white/55">{primaryLabel}:</span>{' '}
-          <span className="font-medium text-white">
-            {formatHomeV2TrendMetricValue(primaryMetric, row.primary, formatValue)}
-          </span>
-        </p>
-        <p className="tabular-nums">
-          <span className="text-white/55">{secondaryLabel}:</span>{' '}
-          <span className="font-medium text-white">
-            {formatHomeV2TrendMetricValue(secondaryMetric, row.secondary, formatValue)}
-          </span>
-        </p>
+      <ChartTooltipTitle>{row.label}</ChartTooltipTitle>
+      <div className="space-y-1.5">
+        <ChartTooltipSeriesRow
+          color="var(--chart-3)"
+          label={primaryLabel}
+          value={formatHomeV2TrendMetricValue(primaryMetric, row.primary, formatValue)}
+        />
+        <ChartTooltipSeriesRow
+          color="var(--chart-monthly-gross-bar)"
+          label={secondaryLabel}
+          value={formatHomeV2TrendMetricValue(secondaryMetric, row.secondary, formatValue)}
+        />
       </div>
     </ChartTooltipFrame>
   )
@@ -284,15 +282,7 @@ export function HomeV2SalesTrendChart({
                 formatValue={formatValue}
               />
             }
-            wrapperStyle={{ outline: 'none' }}
-            contentStyle={{
-              margin: 0,
-              padding: 0,
-              background: 'transparent',
-              border: 'none',
-              borderRadius: 0,
-              boxShadow: 'none',
-            }}
+            {...chartRechartsTooltipProps}
           />
           {chartType === 'bar' ? (
             <>

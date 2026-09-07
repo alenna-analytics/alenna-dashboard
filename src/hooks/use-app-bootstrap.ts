@@ -1,5 +1,7 @@
 import { useAuth } from '@clerk/react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
+
 import {
   fetchMyTenants,
   useCurrentTenant,
@@ -31,6 +33,24 @@ function normalizeMeResponse(raw: MeResponse): MeResponse {
 
 type DefaultSwitchState = 'idle' | 'pending' | 'done'
 
+const EMPTY_TENANTS: TenantSummary[] = []
+
+export function meTenantsQueryKey() {
+  return ['me', 'tenants'] as const
+}
+
+export function meProfileQueryKey(tenantId: string | null, role: string | null) {
+  return ['me', 'profile', tenantId, role] as const
+}
+
+function messageFromUnknown(err: unknown, fallback: string): string {
+  return err instanceof Error ? err.message : fallback
+}
+
+/**
+ * Single bootstrap for the signed-in shell. Uses React Query so duplicate callers
+ * share one /me + /me/tenants cache instead of each firing their own loop.
+ */
 export function useAppBootstrap(): {
   tenants: TenantSummary[]
   me: MeResponse | null
@@ -46,113 +66,108 @@ export function useAppBootstrap(): {
   const { tenantId, role } = useCurrentTenant()
   const { switchTenant } = useTenantSwitcher()
   const { lang } = useLanguage()
+  const queryClient = useQueryClient()
   const getTokenRef = useRef(getToken)
 
   useEffect(() => {
     getTokenRef.current = getToken
   }, [getToken])
 
-  const [tenants, setTenants] = useState<TenantSummary[]>([])
-  const [me, setMe] = useState<MeResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  // Start true so AppShell never treats the empty initial state as "no workspace"
-  // and bounce to /onboarding before the first /me/tenants response.
-  const [tenantsLoading, setTenantsLoading] = useState(true)
-  const [meLoading, setMeLoading] = useState(false)
-  const [retryCount, setRetryCount] = useState(0)
+  const [switchError, setSwitchError] = useState<string | null>(null)
   const [defaultSwitchState, setDefaultSwitchState] = useState<DefaultSwitchState>('idle')
-  const [tenantsReady, setTenantsReady] = useState(false)
 
-  useEffect(() => {
-    if (!isLoaded) return
-    if (!isSignedIn) {
-      setTenants([])
-      setTenantsLoading(false)
-      setTenantsReady(true)
-      return
-    }
-    let cancelled = false
-    setTenantsLoading(true)
-    setTenantsReady(false)
-    void fetchMyTenants((a) => getTokenRef.current(a))
-      .then((list) => {
-        if (!cancelled) setTenants(list)
-      })
-      .catch((e: unknown) => {
-        if (!cancelled)
-          setError(e instanceof Error ? e.message : 'Failed to load tenants')
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setTenantsLoading(false)
-          setTenantsReady(true)
-        }
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [isLoaded, isSignedIn, retryCount])
+  const tenantsQuery = useQuery({
+    queryKey: meTenantsQueryKey(),
+    enabled: Boolean(isLoaded && isSignedIn),
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+    queryFn: async (): Promise<TenantSummary[]> => {
+      return fetchMyTenants((a) => getTokenRef.current(a))
+    },
+  })
 
-  useEffect(() => {
-    if (tenantId) {
-      setDefaultSwitchState('idle')
-      return
-    }
-    if (!isLoaded || !isSignedIn || tenants.length !== 1 || defaultSwitchState !== 'idle') {
-      return
-    }
-    setDefaultSwitchState('pending')
-    void switchTenant(tenants[0].tenant_id)
-      .then(() => {
-        setDefaultSwitchState('done')
-      })
-      .catch((e: unknown) => {
-        setDefaultSwitchState('idle')
-        setError(e instanceof Error ? e.message : 'Could not set default tenant')
-      })
-  }, [isLoaded, isSignedIn, tenants, tenantId, switchTenant, defaultSwitchState])
-
-  useEffect(() => {
-    if (defaultSwitchState === 'done' && !tenantId && tenants.length === 1 && !error) {
-      setError(shellT(lang, 'onboardingSessionSyncFailed'))
-    }
-  }, [defaultSwitchState, tenantId, tenants.length, error, lang])
-
-  const loadMe = useCallback(async () => {
-    if (!isLoaded || !isSignedIn || !tenantId || !role) {
-      setMe(null)
-      setMeLoading(false)
-      return
-    }
-    setMeLoading(true)
-    try {
+  const meQuery = useQuery({
+    queryKey: meProfileQueryKey(tenantId, role),
+    enabled: Boolean(isLoaded && isSignedIn && tenantId && role),
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+    queryFn: async (): Promise<MeResponse> => {
       const res = await apiFetch('/me', (a) => getTokenRef.current(a), {}, tenantId)
       if (!res.ok) {
         const text = await res.text()
         throw new Error(text || res.statusText)
       }
-      const data = normalizeMeResponse((await res.json()) as MeResponse)
-      setMe(data)
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Request failed')
-    } finally {
-      setMeLoading(false)
-    }
-  }, [isLoaded, isSignedIn, tenantId, role])
+      return normalizeMeResponse((await res.json()) as MeResponse)
+    },
+  })
+
+  const tenants = isSignedIn ? (tenantsQuery.data ?? EMPTY_TENANTS) : EMPTY_TENANTS
+  // isLoading = first load only; background refetch must not remount the shell.
+  const tenantsLoading = Boolean(isSignedIn) && tenantsQuery.isLoading
+  const tenantsReady =
+    !isLoaded || !isSignedIn || tenantsQuery.isFetched || tenantsQuery.isError
+  const meLoading = Boolean(tenantId && role) && meQuery.isLoading
+
+  const queryError = tenantsQuery.error
+    ? messageFromUnknown(tenantsQuery.error, 'Failed to load tenants')
+    : meQuery.error
+      ? messageFromUnknown(meQuery.error, 'Request failed')
+      : null
+
+  // Once a tenant is active, treat auto-switch as idle without an effect.
+  const switchState: DefaultSwitchState = tenantId ? 'idle' : defaultSwitchState
+
+  const sessionSyncError =
+    switchState === 'done' && !tenantId && tenants.length === 1
+      ? shellT(lang, 'onboardingSessionSyncFailed')
+      : null
+
+  const error = switchError ?? queryError ?? sessionSyncError
 
   useEffect(() => {
-    void loadMe()
-  }, [loadMe])
+    if (tenantId) return
+    if (!isLoaded || !isSignedIn || tenants.length !== 1 || defaultSwitchState !== 'idle') {
+      return
+    }
+    const onlyTenantId = tenants[0]?.tenant_id
+    if (!onlyTenantId) return
+
+    let cancelled = false
+    // Defer state updates out of the effect body (react-hooks/set-state-in-effect).
+    void Promise.resolve().then(async () => {
+      if (cancelled) return
+      setDefaultSwitchState('pending')
+      try {
+        await switchTenant(onlyTenantId)
+        if (!cancelled) setDefaultSwitchState('done')
+      } catch (e: unknown) {
+        if (!cancelled) {
+          setDefaultSwitchState('idle')
+          setSwitchError(messageFromUnknown(e, 'Could not set default tenant'))
+        }
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isLoaded, isSignedIn, tenants, tenantId, switchTenant, defaultSwitchState])
 
   const refetchMe = useCallback(async () => {
-    await loadMe()
-  }, [loadMe])
+    if (!tenantId || !role) return
+    await queryClient.invalidateQueries({ queryKey: meProfileQueryKey(tenantId, role) })
+  }, [queryClient, role, tenantId])
 
   const retry = useCallback(() => {
-    setError(null)
+    setSwitchError(null)
     setDefaultSwitchState('idle')
-    setRetryCount((c) => c + 1)
-  }, [])
+    void queryClient.invalidateQueries({ queryKey: meTenantsQueryKey() })
+    if (tenantId && role) {
+      void queryClient.invalidateQueries({ queryKey: meProfileQueryKey(tenantId, role) })
+    }
+  }, [queryClient, role, tenantId])
 
   const resolvingSingleTenant =
     Boolean(isSignedIn) &&
@@ -160,11 +175,11 @@ export function useAppBootstrap(): {
     tenants.length === 1 &&
     !tenantId &&
     !error &&
-    defaultSwitchState === 'pending'
+    switchState === 'pending'
 
   return {
     tenants,
-    me,
+    me: meQuery.data ?? null,
     refetchMe,
     error,
     tenantsLoading,

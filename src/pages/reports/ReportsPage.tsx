@@ -583,10 +583,29 @@ export function ReportsPage() {
                     ? t('reportsSectionSettlementTitle')
                     : t('reportsSectionRevenueBreakdown')
                 }
-                info={
+                calcDescription={
                   showSettlementWaterfall
-                    ? t('reportsSectionSettlementSubtitle')
-                    : t('reportsWaterfallSubtitle')
+                    ? t('reportsSettlementCalcDescription')
+                    : t('reportsWaterfallCalcDescription')
+                }
+                calcFormulaLeft={
+                  showSettlementWaterfall
+                    ? t('reportsSettlementCalcLeft')
+                    : t('reportsWaterfallCalcLeft')
+                }
+                calcFormulaParts={
+                  showSettlementWaterfall
+                    ? [
+                        t('reportsSettlementCalcPartGross'),
+                        t('reportsSettlementCalcPartDeductions'),
+                        t('reportsSettlementCalcPartFees'),
+                      ]
+                    : [
+                        t('reportsWaterfallCalcPartGross'),
+                        t('reportsWaterfallCalcPartDeductions'),
+                        t('reportsWaterfallCalcPartCogs'),
+                        t('reportsWaterfallCalcPartOpex'),
+                      ]
                 }
                 aside={
                   hasSettlementWaterfall ? (
@@ -661,7 +680,9 @@ export function ReportsPage() {
             <SectionContainer framed>
               <ChartSectionHeader
                 title={t('dashboardProfitMarginTitle')}
-                info={t('dashboardProfitMarginSubtitle')}
+                calcDescription={t('dashboardProfitMarginCalcDescription')}
+                calcFormulaLeft={t('dashboardProfitMarginCalcLeft')}
+                calcFormulaParts={[t('dashboardProfitMarginCalcFormula')]}
                 aside={
                   <>
                     <ChartGranularityFilter

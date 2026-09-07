@@ -13,7 +13,7 @@ import {
 import type { BarShapeProps } from 'recharts'
 import { createContext, useContext, useId, type ReactElement } from 'react'
 
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import { formatCompactNumber } from '@/lib/format/compact-number'
 import { cn } from '@/lib/utils'
 import { CHART_NARROW_MQ } from '@/pages/dashboard/chart-x-axis-layout'
@@ -21,6 +21,20 @@ import { useMediaQuery } from '@/hooks/use-media-query'
 
 const WaterfallHatchIdContext = createContext('wfUnfilledHatch')
 const WaterfallNarrowContext = createContext(false)
+
+/** Recharts custom shapes must forward these or Tooltip never activates. */
+function barInteractionProps(props: BarShapeProps) {
+  return {
+    onClick: props.onClick,
+    onMouseDown: props.onMouseDown,
+    onMouseEnter: props.onMouseEnter,
+    onMouseLeave: props.onMouseLeave,
+    onMouseMove: props.onMouseMove,
+    onMouseOut: props.onMouseOut,
+    onMouseOver: props.onMouseOver,
+    onMouseUp: props.onMouseUp,
+  }
+}
 
 export type WaterfallSegmentPart = {
   name: string
@@ -320,6 +334,7 @@ function SpacerHatchShape(props: BarShapeProps) {
   const neg = isNegativeSegmentPayload(payload)
   return (
     <rect
+      {...barInteractionProps(props)}
       x={x}
       y={y}
       width={w}
@@ -406,7 +421,9 @@ function WaterfallBarShape(props: BarShapeProps) {
 
   if (payload.stackedParts && payload.stackedParts.length > 0) {
     return (
-      <StackedWaterfallBarShape x={x} y={y} w={w} h={h} parts={payload.stackedParts} />
+      <g {...barInteractionProps(props)}>
+        <StackedWaterfallBarShape x={x} y={y} w={w} h={h} parts={payload.stackedParts} />
+      </g>
     )
   }
 
@@ -416,7 +433,7 @@ function WaterfallBarShape(props: BarShapeProps) {
     payload.isSubtotal ? 1 : payload.isNegative ? 1 : 0.88
 
   return (
-    <g>
+    <g {...barInteractionProps(props)}>
       <rect
         x={x}
         y={y}
@@ -449,7 +466,7 @@ function WaterfallCombinedColumnShape(props: BarShapeProps) {
   const yValTop = y
   const yGrayTop = y + hVal
   return (
-    <g>
+    <g {...barInteractionProps(props)}>
       {hGray > 0 ? (
         <SpacerHatchShape {...props} x={x} y={yGrayTop} width={w} height={hGray} />
       ) : null}
@@ -486,7 +503,7 @@ function BarLabel({ x, y, width, height, value, isNegative }: BarLabelProps) {
   const chipX = cx - chipWidth / 2
   const chipY = Math.max(4, y - chipHeight - 6)
   return (
-    <g>
+    <g pointerEvents="none">
       <rect
         x={chipX}
         y={chipY}
@@ -589,45 +606,39 @@ function CustomTooltip({
   if (d.stackedParts && d.stackedParts.length > 0) {
     return (
       <ChartTooltipFrame>
-        <p className="font-medium text-white">{d.name}</p>
-        <p className="mt-0.5 text-white/70">
-          {sign}
-          {val}
-        </p>
-        {impact ? (
-          <p className="mt-1 border-t border-white/15 pt-1.5 text-[11px] text-white/55">
-            {impact}
-          </p>
-        ) : null}
-        <ul className="mt-2 max-h-52 space-y-1.5 overflow-y-auto border-t border-white/15 pt-2">
+        <ChartTooltipTitle>{d.name}</ChartTooltipTitle>
+        <div className="max-h-64 space-y-1.5 overflow-y-auto">
+          <ChartTooltipSeriesRow
+            color={barFillSolid(d)}
+            label={impact ?? d.name}
+            value={`${sign}${val}`}
+          />
           {d.stackedParts.map((line) => (
-            <li key={line.name} className="flex justify-between gap-6 text-[11px]">
-              <span className="min-w-0 shrink text-white/55">{line.name}</span>
-              <span className="shrink-0 tabular-nums text-white">
-                {formatMoney(line.rawValue, currency)}
-              </span>
-            </li>
+            <ChartTooltipSeriesRow
+              key={line.name}
+              color={WF_NEG_BG}
+              label={line.name}
+              value={formatMoney(line.rawValue, currency)}
+            />
           ))}
-        </ul>
+        </div>
       </ChartTooltipFrame>
     )
   }
 
   return (
     <ChartTooltipFrame>
-      <p className="font-medium text-white">{d.name}</p>
-      <p className="mt-0.5 text-white/70">
-        {sign}
-        {val}
-      </p>
-      {impact ? (
-        <p className="mt-1 border-t border-white/15 pt-1.5 text-[11px] text-white/55">
-          {impact}
-        </p>
-      ) : null}
-      {d.isLast && d.isSubtotal && finalBarCaption ? (
-        <p className="mt-1 text-[11px] font-medium text-brand">{finalBarCaption}</p>
-      ) : null}
+      <ChartTooltipTitle>{d.name}</ChartTooltipTitle>
+      <div className="space-y-1.5">
+        <ChartTooltipSeriesRow
+          color={barFillSolid(d)}
+          label={impact ?? d.name}
+          value={`${sign}${val}`}
+        />
+        {d.isLast && d.isSubtotal && finalBarCaption ? (
+          <p className="text-[11px] font-medium text-brand">{finalBarCaption}</p>
+        ) : null}
+      </div>
     </ChartTooltipFrame>
   )
 }
@@ -717,7 +728,7 @@ export function WaterfallChart({
                   />
                 }
                 cursor={{ fill: 'var(--chart-wf-cursor-fill)' }}
-                wrapperStyle={{ outline: 'none' }}
+                {...chartRechartsTooltipProps}
               />
 
               <Bar

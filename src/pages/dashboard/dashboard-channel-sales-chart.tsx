@@ -22,7 +22,7 @@ import {
 } from 'recharts'
 
 import { cn } from '@/lib/utils'
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { EmptyState } from '@/ui/empty-state'
 import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
@@ -86,21 +86,20 @@ function ChannelSalesTooltip({
   const title = label !== undefined && label !== null ? String(label) : ''
   return (
     <ChartTooltipFrame>
-      {title ? <div className="mb-1.5 font-medium text-white">{title}</div> : null}
-      <div className="space-y-1 leading-snug">
+      {title ? <ChartTooltipTitle>{title}</ChartTooltipTitle> : null}
+      <div className="space-y-1.5">
         {payload.map((entry, i) => {
           const raw = entry.value
           const n = typeof raw === 'number' ? raw : Number(raw ?? 0)
-          const swatch = entry.color ?? entry.fill ?? 'var(--text-tertiary)'
+          const swatch = entry.color ?? entry.fill
           const key = `${String(entry.dataKey ?? '')}-${String(entry.name ?? '')}-${i}`
           return (
-            <div key={key} className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 tabular-nums">
-              <span className="inline-flex items-center gap-1.5 text-white/70">
-                <span className="size-2 shrink-0 rounded-full" style={{ background: swatch }} aria-hidden />
-                <span>{entry.name ?? ''}:</span>
-              </span>
-              <span className="font-medium text-white">{formatValue(n)}</span>
-            </div>
+            <ChartTooltipSeriesRow
+              key={key}
+              color={swatch}
+              label={entry.name ?? ''}
+              value={formatValue(n)}
+            />
           )
         })}
       </div>
@@ -336,15 +335,7 @@ export function DashboardChannelSalesChart({
               chartType === 'bar' ? { fill: 'var(--muted)', opacity: 0.45 } : undefined
             }
             content={<ChannelSalesTooltip formatValue={formatValue} />}
-            wrapperStyle={{ outline: 'none' }}
-            contentStyle={{
-              margin: 0,
-              padding: 0,
-              background: 'transparent',
-              border: 'none',
-              borderRadius: 0,
-              boxShadow: 'none',
-            }}
+            {...chartRechartsTooltipProps}
           />
           {series}
         </ComposedChart>

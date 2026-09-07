@@ -1,13 +1,16 @@
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 
 import { cn } from '@/lib/utils'
 import {
   settingsDescriptionClassName,
   SettingsSectionHeader,
 } from '@/pages/configuration/settings-layout'
+import { MetricCalcTooltipBody } from '@/ui/chart-tooltip'
 import { InfoTooltip } from '@/ui/info-tooltip'
 import { KpiCard as KpiCardUi } from '@/ui/kpi-card'
 import { surfaceSectionClassName } from '@/ui/surface'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { useMoney } from '@/hooks/use-money'
 
 import { pctVersusPrevious } from './reports-ui-helpers'
@@ -79,20 +82,94 @@ export function SectionHeader({
 export function ChartSectionHeader({
   title,
   info,
+  titleHref,
+  onTitleClick,
+  calcDescription,
+  calcFormulaLeft,
+  calcFormulaParts,
+  calcFormulaJoiner,
   aside,
   className,
 }: {
   title: string
+  /** Legacy short help on the info icon (kept when no calc formula). */
   info?: string
+  /** Navigate on title click (module shortcut). */
+  titleHref?: string
+  onTitleClick?: () => void
+  /** Img-2 style: description under the title in the hover tooltip. */
+  calcDescription?: string
+  /** Img-2 style: left side of formula, e.g. "Ventas netas = ". */
+  calcFormulaLeft?: string
+  /** Img-2 style: green formula terms joined by +. */
+  calcFormulaParts?: readonly string[]
+  /** Joiner between green terms (default +). Use " · " for selected series lists. */
+  calcFormulaJoiner?: string
   aside?: ReactNode
   className?: string
 }) {
+  const showCalcTooltip = Boolean(
+    calcDescription || (calcFormulaLeft && calcFormulaParts && calcFormulaParts.length > 0),
+  )
+  const interactive = Boolean(titleHref || onTitleClick)
+  const titleClassName = cn(
+    'text-sm font-bold text-text-tertiary',
+    interactive &&
+      'cursor-pointer underline decoration-dotted decoration-text-tertiary/70 underline-offset-4 transition-colors hover:text-text-secondary',
+  )
+
+  const titled = showCalcTooltip ? (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {titleHref ? (
+          <Link to={titleHref} className={titleClassName} onClick={onTitleClick}>
+            {title}
+          </Link>
+        ) : onTitleClick ? (
+          <button type="button" className={titleClassName} onClick={onTitleClick}>
+            {title}
+          </button>
+        ) : (
+          <button type="button" className={titleClassName}>
+            {title}
+          </button>
+        )}
+      </TooltipTrigger>
+      <TooltipContent
+        side="right"
+        align="start"
+        sideOffset={12}
+        collisionPadding={24}
+        avoidCollisions
+        className="max-w-[22rem] border-0 bg-white px-3 py-2.5 text-left text-text-primary shadow-[0_8px_24px_rgba(15,23,42,0.12)]"
+      >
+        <MetricCalcTooltipBody
+          title={title}
+          description={calcDescription}
+          formulaLeft={calcFormulaLeft}
+          formulaParts={calcFormulaParts}
+          formulaJoiner={calcFormulaJoiner}
+        />
+      </TooltipContent>
+    </Tooltip>
+  ) : titleHref ? (
+    <Link to={titleHref} className={titleClassName} onClick={onTitleClick}>
+      {title}
+    </Link>
+  ) : onTitleClick ? (
+    <button type="button" className={titleClassName} onClick={onTitleClick}>
+      {title}
+    </button>
+  ) : (
+    <h2 className={titleClassName}>{title}</h2>
+  )
+
   return (
     <div className={cn('mb-4', className)}>
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-1.5">
-          <h2 className="text-sm font-bold text-text-tertiary">{title}</h2>
-          {info ? (
+          {titled}
+          {!showCalcTooltip && info ? (
             <InfoTooltip side="bottom">{info}</InfoTooltip>
           ) : null}
         </div>

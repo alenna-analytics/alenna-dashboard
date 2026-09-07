@@ -25,7 +25,7 @@ import {
 } from 'recharts'
 
 import { cn } from '@/lib/utils'
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { mergeRevenueSeriesRows } from '@/pages/reports/monthly-revenue-chart'
 
@@ -124,20 +124,19 @@ function TrendTooltip({
   if (!row) return null
   return (
     <ChartTooltipFrame>
-      <div className="space-y-1.5 leading-snug">
-        <p className="tabular-nums">
-          <span className="text-white/55">
-            {t('dashboardRevenueSeriesCurrent')} ({row.label}):
-          </span>{' '}
-          <span className="font-medium text-white">{formatValue(row.current)}</span>
-        </p>
+      <ChartTooltipTitle>{row.label}</ChartTooltipTitle>
+      <div className="space-y-1.5">
+        <ChartTooltipSeriesRow
+          color="var(--chart-3)"
+          label={t('dashboardRevenueSeriesCurrent')}
+          value={formatValue(row.current)}
+        />
         {comparePrevious && row.previous !== null && row.previousBucketLabel ? (
-          <p className="tabular-nums">
-            <span className="text-white/55">
-              {t('dashboardRevenueSeriesPrevious')} ({row.previousBucketLabel}):
-            </span>{' '}
-            <span className="font-medium text-white">{formatValue(row.previous)}</span>
-          </p>
+          <ChartTooltipSeriesRow
+            color="var(--chart-line-secondary)"
+            label={`${t('dashboardRevenueSeriesPrevious')} (${row.previousBucketLabel})`}
+            value={formatValue(row.previous)}
+          />
         ) : null}
       </div>
     </ChartTooltipFrame>
@@ -273,16 +272,10 @@ export function DashboardRevenueTrendChart({
             cursor={
               chartType === 'bar' ? { fill: 'var(--muted)', opacity: 0.45 } : undefined
             }
-            content={<TrendTooltip formatValue={formatValue} comparePrevious={comparePrevious} t={t} />}
-            wrapperStyle={{ outline: 'none' }}
-            contentStyle={{
-              margin: 0,
-              padding: 0,
-              background: 'transparent',
-              border: 'none',
-              borderRadius: 0,
-              boxShadow: 'none',
-            }}
+            content={
+              <TrendTooltip formatValue={formatValue} comparePrevious={comparePrevious} t={t} />
+            }
+            {...chartRechartsTooltipProps}
           />
           {chartType === 'bar' ? (
             <>

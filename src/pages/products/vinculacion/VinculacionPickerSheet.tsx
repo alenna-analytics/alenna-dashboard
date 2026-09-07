@@ -1,5 +1,5 @@
 import { ChevronRight, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -90,7 +90,6 @@ export function VinculacionPickerSheet({
   onOpenChange,
   t,
   mode = 'create',
-  occupiedPlatforms = [],
   onCreated,
   onAdd,
   adding = false,
@@ -102,19 +101,6 @@ export function VinculacionPickerSheet({
   const create = useCreateProductLinkGroupMutation()
   const items = candidatesQuery.data?.items ?? []
 
-  const occupied = useMemo(
-    () => new Set(occupiedPlatforms.map((platform) => platform.trim().toLowerCase()).filter(Boolean)),
-    [occupiedPlatforms],
-  )
-  const selectedPlatforms = useMemo(
-    () => new Set(selected.map((item) => item.platform.trim().toLowerCase())),
-    [selected],
-  )
-  const blockedPlatforms = useMemo(() => {
-    const next = new Set(occupied)
-    for (const platform of selectedPlatforms) next.add(platform)
-    return next
-  }, [occupied, selectedPlatforms])
   const isAdd = mode === 'add'
   const minSelected = isAdd ? 1 : 2
   const submitting = create.isPending || adding
@@ -136,12 +122,8 @@ export function VinculacionPickerSheet({
       setSelected(selected.filter((row) => row.product_id !== item.product_id))
       return
     }
-    const slug = item.platform.trim().toLowerCase()
-    if (occupied.has(slug)) return
-    const withoutPlatform = selected.filter(
-      (row) => row.platform.trim().toLowerCase() !== slug,
-    )
-    setSelected([...withoutPlatform, item])
+    if (selected.length >= 8) return
+    setSelected([...selected, item])
   }
 
   function removeSelected(productId: string) {
@@ -185,25 +167,17 @@ export function VinculacionPickerSheet({
                   <ul className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
                     {items.map((item) => {
                       const isSelected = selected.some((row) => row.product_id === item.product_id)
-                      const platformTaken =
-                        blockedPlatforms.has(item.platform.trim().toLowerCase()) && !isSelected
                       return (
                         <li key={item.product_id}>
                           <div
                             role="button"
-                            tabIndex={platformTaken ? -1 : 0}
+                            tabIndex={0}
                             className={cn(
-                              'flex w-full items-center gap-2 rounded-md px-2 py-2 text-left',
-                              platformTaken
-                                ? 'cursor-not-allowed opacity-40'
-                                : 'cursor-pointer hover:bg-[var(--table-row-hover-bg)]',
+                              'flex w-full items-center gap-2 rounded-md px-2 py-2 text-left cursor-pointer hover:bg-[var(--table-row-hover-bg)]',
                               isSelected && 'bg-muted',
                             )}
-                            onClick={() => {
-                              if (!platformTaken) toggle(item)
-                            }}
+                            onClick={() => toggle(item)}
                             onKeyDown={(event) => {
-                              if (platformTaken) return
                               if (event.key === 'Enter' || event.key === ' ') {
                                 event.preventDefault()
                                 toggle(item)
@@ -213,7 +187,6 @@ export function VinculacionPickerSheet({
                             <Checkbox
                               aria-label={item.title}
                               checked={isSelected}
-                              disabled={platformTaken}
                               onCheckedChange={() => toggle(item)}
                               onClick={(event) => event.stopPropagation()}
                               size="md"

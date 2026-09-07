@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 
 import { useCurrentTenant } from '@/auth/hooks'
-import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { apiFetch, apiPutJson } from '@/lib/api'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { shellT } from '@/lib/i18n/shell-strings'
@@ -20,7 +20,7 @@ export function pnlLabelsQueryKey(tenantId: string | null) {
 export function usePnlLabelsQuery() {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
-  const { me } = useAppBootstrap()
+  const { me } = useWorkspace()
   const canRead = canReadPnlLabels(me)
 
   return useQuery({

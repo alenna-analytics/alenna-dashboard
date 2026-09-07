@@ -7,6 +7,8 @@ export type ProductPnlWaterfallSource = {
   netSales: number
   cogs: number
   grossProfit: number
+  channelMargin: number
+  adsAssigned: number
   contributionMargin: number
   discounts: number
   returns: number
@@ -36,6 +38,7 @@ export function productPnlWaterfallSourceFromPeriod(
     period_cogs: number
     gross_profit: number
     contribution_margin: number
+    channel_margin?: number
   },
   settlement: ProductSettlementApi | null | undefined,
 ): ProductPnlWaterfallSource {
@@ -43,16 +46,23 @@ export function productPnlWaterfallSourceFromPeriod(
   const returns = settlement?.returns ?? 0
   const impliedDeductions = Math.max(0, period.period_gross_sales - period.period_net_sales)
   const useSettlementDeductions = discounts + returns > 0
+  const marketplaceFees = settlement?.marketplace_fees ?? 0
+  const shippingCharges = settlement?.shipping_charges ?? 0
+  const channelMargin =
+    period.channel_margin ?? period.gross_profit - marketplaceFees - shippingCharges
+  const adsAssigned = Math.max(0, channelMargin - period.contribution_margin)
   return {
     grossSales: period.period_gross_sales,
     netSales: period.period_net_sales,
     cogs: period.period_cogs,
     grossProfit: period.gross_profit,
+    channelMargin,
+    adsAssigned,
     contributionMargin: period.contribution_margin,
     discounts: useSettlementDeductions ? discounts : impliedDeductions,
     returns: useSettlementDeductions ? returns : 0,
-    marketplaceFees: settlement?.marketplace_fees ?? 0,
-    shippingCharges: settlement?.shipping_charges ?? 0,
+    marketplaceFees,
+    shippingCharges,
   }
 }
 
@@ -110,6 +120,19 @@ export function buildProductPnlWaterfallSegments(
     {
       name: t('reportsKpiFulfillmentCost'),
       value: source.shippingCharges,
+      isSubtotal: false,
+      isNegative: true,
+    },
+    {
+      name: t('productsDetailChannelMargin'),
+      value: source.channelMargin,
+      isSubtotal: true,
+      isNegative: source.channelMargin < 0,
+      positiveTone: 'grossProfit',
+    },
+    {
+      name: t('productsDetailAdsAssigned'),
+      value: source.adsAssigned,
       isSubtotal: false,
       isNegative: true,
     },

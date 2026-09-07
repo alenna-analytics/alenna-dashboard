@@ -2,13 +2,12 @@ import { useMemo, useState, type ReactNode } from 'react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
-import { settingsDescriptionClassName } from '@/pages/configuration/settings-layout'
-import { Card, CardContent, CardHeader } from '@/ui/card'
-import { EmptyState } from '@/ui/empty-state'
 import type { DateRangePickerStrings } from '@/ui/date-range-picker'
+import { Card, CardContent } from '@/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs'
 import { ProductDetailAnalyticsSection } from './product-detail-analytics-section'
-import { ProductDetailChannelsTable } from './product-detail-channels-table'
+import { ProductDetailChannelPnlMatrix } from './product-detail-channel-pnl-matrix'
+import { ProductDetailInventoryByChannel } from './product-detail-inventory-by-channel'
 import { ProductDetailPlatformPaymentSection } from './product-detail-platform-payment-section'
 import { ProductDetailVariantsTable } from './product-detail-variants-table'
 import { ProductDetailConfigSection } from './product-detail-config-section'
@@ -94,23 +93,17 @@ export function ProductDetailSections({
 }: ProductDetailSectionsProps) {
   const hasVariants = (detail.variants?.length ?? 0) > 0
   const showVariantsTab = hasVariants
-  const showChannelsTab = !hasVariants
   const showCogsTab = !hasVariants
   const showRelatedTab = Boolean(detail.link_group_id)
   const [tab, setTab] = useState<ProductDetailTabId>('analytics')
   const visibleTabs: ProductDetailTabId[] = [
     'analytics',
-    ...(showVariantsTab ? (['variants'] as const) : []),
-    ...(showChannelsTab ? (['channels'] as const) : []),
-    ...(showCogsTab ? (['cogs'] as const) : []),
     'platform-payment',
+    ...(showVariantsTab ? (['variants'] as const) : []),
+    ...(showCogsTab ? (['cogs'] as const) : []),
     ...(showRelatedTab ? (['related'] as const) : []),
   ]
   const activeTab = visibleTabs.includes(tab) ? tab : 'analytics'
-  const periodLabel =
-    detail.period_start && detail.period_end
-      ? `${detail.period_start} — ${detail.period_end}`
-      : null
   const pnlSegments = useMemo(
     () =>
       buildProductPnlWaterfallSegments(productPnlWaterfallSourceFromDetail(detail), t),
@@ -135,16 +128,13 @@ export function ProductDetailSections({
       >
         <TabsList variant="line">
           <TabsTrigger value="analytics">{t('productsDetailTabAnalytics')}</TabsTrigger>
+          <TabsTrigger value="platform-payment">{t('productsDetailTabPlatformPayment')}</TabsTrigger>
           {showVariantsTab ? (
             <TabsTrigger value="variants">{t('productsDetailTabVariants')}</TabsTrigger>
-          ) : null}
-          {showChannelsTab ? (
-            <TabsTrigger value="channels">{t('productsDetailTabChannels')}</TabsTrigger>
           ) : null}
           {showCogsTab ? (
             <TabsTrigger value="cogs">{t('productsDetailTabCogs')}</TabsTrigger>
           ) : null}
-          <TabsTrigger value="platform-payment">{t('productsDetailTabPlatformPayment')}</TabsTrigger>
           {showRelatedTab ? (
             <TabsTrigger value="related">{t('productsDetailTabRelated')}</TabsTrigger>
           ) : null}
@@ -182,7 +172,40 @@ export function ProductDetailSections({
               finalBarCaption={t('productsDetailPnlFinalHint')}
               isLoading={insightsFetching}
             />
+
+            <ProductDetailChannelPnlMatrix
+              detail={detail}
+              t={t}
+              fmtBase={fmtBase}
+              isFetching={insightsFetching}
+            />
+
+            <ProductDetailInventoryByChannel
+              detail={detail}
+              t={t}
+              isFetching={insightsFetching}
+            />
           </div>
+        </TabsContent>
+
+        <TabsContent value="platform-payment">
+          <ProductDetailPlatformPaymentSection
+            productId={productId}
+            lang={lang}
+            detail={detail}
+            isFetching={insightsFetching}
+            t={t}
+            fmtBase={fmtBase}
+            fmtCard={fmtCard}
+            currencyCode={displayCurrency}
+            insightStart={insightStart}
+            insightEnd={insightEnd}
+            setInsightStart={setInsightStart}
+            setInsightEnd={setInsightEnd}
+            pickerStrings={pickerStrings}
+            showInsightValues={showInsightValues}
+            insightKpi={insightKpi}
+          />
         </TabsContent>
 
         {showVariantsTab ? (
@@ -194,36 +217,6 @@ export function ProductDetailSections({
               onOpenCostEditor={onOpenVariantCostEditor}
               showSectionTitle={false}
             />
-          </TabsContent>
-        ) : null}
-
-        {showChannelsTab ? (
-          <TabsContent value="channels">
-            <Card
-              id="product-channels-table"
-              className="scroll-mt-24 rounded-none border-none p-0 shadow-none hover:shadow-none"
-            >
-              <CardHeader className="p-0">
-                <p className={settingsDescriptionClassName}>
-                  {t('productsDetailSectionChannelsDescription')}
-                </p>
-              </CardHeader>
-              <CardContent className="p-0 pt-4">
-                <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-                  <ProductDetailChannelsTable
-                    listings={detail.listings}
-                    isLoading={false}
-                    isFetching={insightsFetching}
-                    t={t}
-                    fmtBase={fmtBase}
-                    periodLabel={periodLabel}
-                    emptyContent={
-                      <EmptyState size="sm" icon="products" title={t('productsDetailChannelsEmpty')} />
-                    }
-                  />
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         ) : null}
 
@@ -245,22 +238,6 @@ export function ProductDetailSections({
             />
           </TabsContent>
         ) : null}
-
-        <TabsContent value="platform-payment">
-          <ProductDetailPlatformPaymentSection
-            detail={detail}
-            isFetching={insightsFetching}
-            t={t}
-            fmtBase={fmtBase}
-            fmtCard={fmtCard}
-            currencyCode={displayCurrency}
-            insightStart={insightStart}
-            insightEnd={insightEnd}
-            setInsightStart={setInsightStart}
-            setInsightEnd={setInsightEnd}
-            pickerStrings={pickerStrings}
-          />
-        </TabsContent>
 
         {showRelatedTab ? (
           <TabsContent value="related">

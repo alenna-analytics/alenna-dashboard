@@ -18,6 +18,7 @@ import { useMoney } from "@/hooks/use-money"
 import { can } from "@/lib/permissions/can"
 import { useLanguage } from "@/shell/providers/language-provider"
 import { useWorkspace } from "@/shell/providers/workspace-context"
+import { toast } from "sonner"
 
 import { createProductColumns, type ProductTableSelectionBinding } from "./products-columns"
 import { ProductCostEditorSheet } from "./product-cost-editor-sheet"
@@ -26,6 +27,7 @@ import {
   type ProductsListFiltersState,
 } from "./products-list-filter-state"
 import { useProductListQuery } from "./use-catalog-queries"
+import { useCreateProductLinkGroupMutation } from "./vinculacion/use-product-link-queries"
 
 const PAGE_SIZE = 15
 
@@ -37,6 +39,8 @@ type ProductsDataTableProps = {
   t: (key: ShellStringKey) => string
   emptyContent: React.ReactNode
   errorContent: React.ReactNode
+  canGroup?: boolean
+  onGrouped?: (groupId: string) => void
 }
 
 export function ProductsDataTable({
@@ -45,11 +49,14 @@ export function ProductsDataTable({
   t,
   emptyContent,
   errorContent,
+  canGroup = false,
+  onGrouped,
 }: ProductsDataTableProps) {
   const navigate = useNavigate()
   const { lang } = useLanguage()
   const { me } = useWorkspace()
   const canEditProducts = can(me, 'products.edit')
+  const createGroup = useCreateProductLinkGroupMutation()
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: PAGE_SIZE })
   const [sorting, setSorting] = useState<SortingState>([{ id: "title", desc: false }])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
@@ -322,7 +329,7 @@ export function ProductsDataTable({
                   <span className="h-4 w-px shrink-0 bg-border-default" aria-hidden />
                   <button
                     type="button"
-                    className="text-sm font-medium text-foreground underline-offset-2 hover:underline"
+                    className="text-sm font-medium text-foreground underline underline-offset-2"
                     onClick={activateSelectAllMatching}
                   >
                     {t("productsTableSelectAllWithCount").replace("{count}", String(total))}
@@ -334,9 +341,37 @@ export function ProductsDataTable({
         }
         toolbar={
           hasSelection ? (
-            <Button type="button" variant="outline" size="sm" onClick={clearSelection}>
-              {t("productsTableCancelSelection")}
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {canGroup && !bulkAllMatching && effectiveSelectedCount >= 2 ? (
+                <Button
+                  type="button"
+                  variant="accent"
+                  size="tiny"
+                  loading={createGroup.isPending}
+                  onClick={() => {
+                    const productIds = Object.entries(rowSelection)
+                      .filter(([, selected]) => selected)
+                      .map(([id]) => id)
+                    if (productIds.length < 2) {
+                      toast.error(t('productsTableGroupNeedTwo'))
+                      return
+                    }
+                    void createGroup
+                      .mutateAsync(productIds)
+                      .then((group) => {
+                        clearSelection()
+                        onGrouped?.(group.id)
+                      })
+                      .catch(() => toast.error(t('productsTableGroupFailed')))
+                  }}
+                >
+                  {t('productsTableGroupSelected')}
+                </Button>
+              ) : null}
+              <Button type="button" variant="outline" size="tiny" onClick={clearSelection}>
+                {t("productsTableCancelSelection")}
+              </Button>
+            </div>
           ) : null
         }
         footer={

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 
-import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import { can } from '@/lib/permissions/can'
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -23,7 +23,7 @@ import { useMatchSuggestionsSheet } from './match-suggestions-sheet-context'
 
 export function MatchSuggestionsReviewSheetHost() {
   const { lang } = useLanguage()
-  const { me } = useAppBootstrap()
+  const { me } = useWorkspace()
   const { open, setOpen } = useMatchSuggestionsSheet()
   const canEdit = can(me, 'products.groups.edit')
   const suggestionsQuery = useProductLinkSuggestionsQuery({ enabled: open })

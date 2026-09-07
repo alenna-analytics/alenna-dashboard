@@ -59,6 +59,8 @@ describe('buildProductPnlWaterfallSegments', () => {
         netSales: 800,
         cogs: 200,
         grossProfit: 600,
+        channelMargin: 470,
+        adsAssigned: 0,
         contributionMargin: 470,
         discounts: 120,
         returns: 80,
@@ -75,6 +77,8 @@ describe('buildProductPnlWaterfallSegments', () => {
       'reportsWfGrossProfit',
       'reportsKpiPlatformFees',
       'reportsKpiFulfillmentCost',
+      'productsDetailChannelMargin',
+      'productsDetailAdsAssigned',
       'reportsNetProfit',
     ])
     expect(segments[segments.length - 1]?.value).toBe(470)

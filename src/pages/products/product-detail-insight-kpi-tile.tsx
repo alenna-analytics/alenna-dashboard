@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 
+import { Badge } from '@/ui/badge'
 import { KpiCard } from '@/ui/kpi-card'
 
 type ProductDetailInsightKpiTileProps = {
@@ -8,6 +9,8 @@ type ProductDetailInsightKpiTileProps = {
   value: ReactNode
   numericValue?: number | null
   currencyCode?: string
+  /** Margin / rate shown as a pill under the value (home-style badge). */
+  ratePct?: number | null
   breakdown?: ReactNode
   footer?: ReactNode
   showValues: boolean
@@ -25,6 +28,7 @@ export function ProductDetailInsightKpiTile({
   value,
   numericValue,
   currencyCode,
+  ratePct,
   breakdown,
   footer,
   showValues,
@@ -35,6 +39,13 @@ export function ProductDetailInsightKpiTile({
   accentColor,
   onSelect,
 }: ProductDetailInsightKpiTileProps) {
+  const rateBadge =
+    showValues && !isFetching && ratePct != null && Number.isFinite(ratePct) ? (
+      <Badge variant="secondary" className="font-numeric font-medium tabular-nums">
+        {ratePct.toFixed(1)}%
+      </Badge>
+    ) : null
+
   return (
     <KpiCard
       className="h-full"
@@ -43,6 +54,7 @@ export function ProductDetailInsightKpiTile({
       value={isFetching ? skeleton : value}
       numericValue={showValues ? numericValue : null}
       currencyCode={showValues && !isFetching ? currencyCode : undefined}
+      valueAddon={rateBadge}
       showComparison={false}
       placeholder={!showValues && !isFetching}
       footer={

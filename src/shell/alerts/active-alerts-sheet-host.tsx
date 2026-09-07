@@ -14,7 +14,7 @@ import {
   usePostponeAlertMutation,
 } from '@/pages/dashboard/use-alerts-queries'
 import { useMatchSuggestionsSheet } from '@/pages/dashboard/match-suggestions-sheet-context'
-import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { useLanguage } from '@/shell/providers/language-provider'
 
 import { ActiveAlertsSheet } from './active-alerts-sheet'
@@ -27,7 +27,7 @@ export function ActiveAlertsSheetHost() {
   const queryClient = useQueryClient()
   const { open, setOpen, pendingKind, clearPendingKind } = useAlertsSheet()
   const { openSheet: openMatchSuggestionsSheet } = useMatchSuggestionsSheet()
-  const { me } = useAppBootstrap()
+  const { me } = useWorkspace()
   const canViewAlerts = can(me, 'alerts.view')
   const isAdmin = can(me, 'alerts.manage')
   const summaryQuery = useAlertsSummaryQuery()

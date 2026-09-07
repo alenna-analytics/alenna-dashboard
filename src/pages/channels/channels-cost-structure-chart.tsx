@@ -1,10 +1,15 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
   type ChannelPlatform,
   type PlatformMetrics,
 } from '@/pages/channels/channels-platform-aggregate'
+import {
+  ChartTooltipFrame,
+  ChartTooltipSeriesRow,
+  ChartTooltipTitle,
+} from '@/ui/chart-tooltip'
 
 const SEGMENTS = [
   { key: 'cogs', color: 'var(--chart-2)', labelKey: 'reportsWfCogs' as const },
@@ -94,6 +99,13 @@ export function ChannelsCostStructureChart({
     return out
   }, [metrics, platforms, t])
 
+  const [hover, setHover] = useState<{
+    rowLabel: string
+    segment: ChartSegment
+    x: number
+    y: number
+  } | null>(null)
+
   if (data.length === 0) {
     return (
       <p className="rounded-md px-2 py-6 text-sm text-text-secondary">{t('reportsNoData')}</p>
@@ -101,7 +113,7 @@ export function ChannelsCostStructureChart({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="relative flex flex-col gap-6">
       <ul className="flex flex-col gap-5">
         {data.map((row) => {
           const stackTotal = row.segments.reduce((sum, seg) => sum + seg.pct, 0)
@@ -112,12 +124,21 @@ export function ChannelsCostStructureChart({
                 {row.segments.map((seg) => (
                   <div
                     key={seg.key}
-                    className="h-full min-w-0"
+                    className="h-full min-w-0 cursor-default"
                     style={{
                       width: `${stackTotal > 0 ? (seg.pct / stackTotal) * 100 : 0}%`,
                       background: seg.color,
                     }}
-                    title={`${seg.label}: ${formatPct(seg.pct)}`}
+                    onMouseEnter={(event) => {
+                      const rect = event.currentTarget.getBoundingClientRect()
+                      setHover({
+                        rowLabel: row.label,
+                        segment: seg,
+                        x: rect.left + rect.width / 2,
+                        y: rect.top,
+                      })
+                    }}
+                    onMouseLeave={() => setHover(null)}
                   />
                 ))}
               </div>
@@ -140,6 +161,21 @@ export function ChannelsCostStructureChart({
           )
         })}
       </ul>
+      {hover ? (
+        <div
+          className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-[calc(100%+12px)]"
+          style={{ left: hover.x, top: hover.y }}
+        >
+          <ChartTooltipFrame>
+            <ChartTooltipTitle>{hover.rowLabel}</ChartTooltipTitle>
+            <ChartTooltipSeriesRow
+              color={hover.segment.color}
+              label={hover.segment.label}
+              value={formatPct(hover.segment.pct)}
+            />
+          </ChartTooltipFrame>
+        </div>
+      ) : null}
     </div>
   )
 }

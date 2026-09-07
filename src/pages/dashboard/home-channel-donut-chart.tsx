@@ -18,7 +18,7 @@ import type { ChannelBreakdownRow } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
 import { AppShareChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
 import { ChartSectionHeader } from '@/pages/reports/report-ui'
-import { ChartTooltipFrame } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { ShareChartView } from '@/ui/chart-view-toggle'
 import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
@@ -91,10 +91,12 @@ function ChannelTooltip({
   const pct = total > 0 ? Math.round((row.value / total) * 100) : 0
   return (
     <ChartTooltipFrame>
-      <p className="font-medium text-white">{row.label}</p>
-      <p className="mt-0.5 tabular-nums text-white/70">
-        {formatValue(row.value)} · {pct}%
-      </p>
+      <ChartTooltipTitle>{row.label}</ChartTooltipTitle>
+      <ChartTooltipSeriesRow
+        color={row.fill}
+        label={`${pct}%`}
+        value={formatValue(row.value)}
+      />
     </ChartTooltipFrame>
   )
 }
@@ -102,20 +104,32 @@ function ChannelTooltip({
 type HomeChannelShareSectionProps = HomeChannelDonutChartProps & {
   title: string
   info?: string
+  titleHref?: string
+  calcDescription?: string
+  calcFormulaLeft?: string
+  calcFormulaParts?: readonly string[]
 }
 
 export function HomeChannelShareSection({
   title,
   info,
+  titleHref,
+  calcDescription,
+  calcFormulaLeft,
+  calcFormulaParts,
   t,
   ...chartProps
 }: HomeChannelShareSectionProps) {
-  const [chartType, setChartType] = useState<ShareChartView>('bar')
+  const [chartType, setChartType] = useState<ShareChartView>('pie')
   return (
     <>
       <ChartSectionHeader
         title={title}
         info={info}
+        titleHref={titleHref}
+        calcDescription={calcDescription}
+        calcFormulaLeft={calcFormulaLeft}
+        calcFormulaParts={calcFormulaParts}
         aside={<AppShareChartViewToggle value={chartType} onChange={setChartType} t={t} />}
       />
       <HomeChannelDonutChart {...chartProps} t={t} chartType={chartType} />
@@ -133,7 +147,7 @@ export function HomeChannelDonutChart({
   isLoading = false,
   valueKey = 'net_revenue',
   heightClassName = 'h-40',
-  chartType = 'bar',
+  chartType = 'pie',
 }: HomeChannelDonutChartProps) {
   const chartRows = useMemo<ChartRow[]>(() => {
     const sorted = [...rows].sort((a, b) => b[valueKey] - a[valueKey])
@@ -200,7 +214,10 @@ export function HomeChannelDonutChart({
                   <Cell key={row.key} fill={row.fill} />
                 ))}
               </Pie>
-              <Tooltip content={<ChannelTooltip formatValue={formatValue} total={total} />} />
+              <Tooltip
+                content={<ChannelTooltip formatValue={formatValue} total={total} />}
+                {...chartRechartsTooltipProps}
+              />
             </PieChart>
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
@@ -242,6 +259,7 @@ export function HomeChannelDonutChart({
           <Tooltip
             cursor={{ fill: 'var(--muted)', opacity: 0.45 }}
             content={<ChannelTooltip formatValue={formatValue} total={total} />}
+            {...chartRechartsTooltipProps}
           />
           <Bar dataKey="value" radius={[2, 2, 0, 0]} maxBarSize={18} isAnimationActive={false}>
             {chartRows.map((row) => (

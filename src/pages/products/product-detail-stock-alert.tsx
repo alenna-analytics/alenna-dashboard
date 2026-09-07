@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
-import { useAppBootstrap } from '@/hooks/use-app-bootstrap'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { can } from '@/lib/permissions/can'
 import { useCurrentTenant } from '@/auth/hooks'
 import type { AlertPostponeDuration } from '@/lib/types/alerts'
@@ -168,7 +168,7 @@ function ProductDetailStockAlertCard({
 
 export function ProductDetailStockAlert({ detail, productId, t }: ProductDetailStockAlertProps) {
   const { data: rule } = useStockRuleQuery()
-  const { me } = useAppBootstrap()
+  const { me } = useWorkspace()
   const { tenantId } = useCurrentTenant()
   const queryClient = useQueryClient()
   const isAdmin = can(me, 'alerts.manage')

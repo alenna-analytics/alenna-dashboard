@@ -28,6 +28,10 @@ function fmtPct(n: number): string {
   return `${sign}${n.toFixed(1)}%`
 }
 
+function fmtPctOfNet(n: number): string {
+  return `${n.toFixed(1)}%`
+}
+
 function fmtDeltaMoney(n: number, formatMoney: (v: number) => string): string {
   const sign = n > 0 ? '+' : ''
   return `${sign}${formatMoney(n)}`
@@ -55,13 +59,18 @@ export function ReportsPnlTable({
           const label = labelForRow(r.id)
           const margin = r.marginPct !== null ? ` (${r.marginPct.toFixed(1)}%)` : ''
           return (
-            <span className={cn('text-text-primary', emphasisClass(r.kind))}>
-              {r.isDeduction
-                ? `(−) ${label}`
-                : r.kind !== 'line'
-                  ? `= ${label}${margin}`
-                  : label}
-            </span>
+            <div className="min-w-0">
+              <span className={cn('text-text-primary', emphasisClass(r.kind))}>
+                {r.isDeduction
+                  ? `(−) ${label}`
+                  : r.kind !== 'line'
+                    ? `= ${label}${margin}`
+                    : label}
+              </span>
+              {r.rowHintKey ? (
+                <p className="mt-0.5 text-xs font-normal text-text-secondary">{t(r.rowHintKey)}</p>
+              ) : null}
+            </div>
           )
         },
         meta: {
@@ -91,6 +100,32 @@ export function ReportsPnlTable({
               )}
             >
               {formatMoney(displayCurrent)}
+            </span>
+          )
+        },
+        meta: {
+          headerClassName: 'text-right whitespace-nowrap',
+          cellClassName: 'text-right whitespace-nowrap',
+        },
+      }),
+      columnHelper.display({
+        id: 'pctVn',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('reportsPnlColPctVn')}
+            className="justify-end"
+          />
+        ),
+        cell: ({ row }) => {
+          const r = row.original
+          return (
+            <span className="w-full text-right font-numeric tabular-nums text-text-secondary">
+              {r.pctOfNetRevenue === null ? (
+                <TableEmptyCell />
+              ) : (
+                fmtPctOfNet(r.pctOfNetRevenue)
+              )}
             </span>
           )
         },

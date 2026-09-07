@@ -40,7 +40,12 @@ describe('permission-groups overlay preview', () => {
     const alerts = PERMISSION_GROUPS.find((g) => g.id === 'alerts')!
     expect(ads.viewKey).toBe('ads.view')
     expect(ads.titleKey).toBe('permGroupAds')
-    expect(config.actionKeys).toEqual(['pnl_labels.view', 'pnl_labels.manage'])
+    expect(config.actionKeys).toEqual([
+      'pnl_labels.view',
+      'pnl_labels.manage',
+      'tax_rates.view',
+      'tax_rates.manage',
+    ])
     expect(alerts.viewKey).toBe('alerts.view')
     expect(alerts.actionKeys).toEqual(['alerts.manage'])
   })

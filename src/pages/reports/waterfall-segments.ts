@@ -54,6 +54,13 @@ export function buildWaterfallSegments(
       isSubtotal: false,
       isNegative: true,
     },
+    {
+      name: labelForRow('channel_margin'),
+      value: kpi.channel_margin ?? kpi.gross_profit - kpi.platform_fees_total - kpi.merchant_shipping_cost,
+      isSubtotal: true,
+      isNegative: false,
+      positiveTone: 'grossProfit',
+    },
     { name: labelForRow('ads_spend'), value: kpi.ads_spend, isSubtotal: false, isNegative: true },
     {
       name: labelForRow('contribution_margin'),

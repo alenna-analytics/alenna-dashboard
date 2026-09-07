@@ -78,7 +78,7 @@ export const PERMISSION_GROUPS: readonly PermissionGroup[] = [
     id: 'workspace_config',
     titleKey: 'permGroupWorkspaceConfig',
     viewKey: 'workspace_config.view',
-    actionKeys: ['pnl_labels.view', 'pnl_labels.manage'],
+    actionKeys: ['pnl_labels.view', 'pnl_labels.manage', 'tax_rates.view', 'tax_rates.manage'],
   },
   {
     id: 'alerts',
@@ -154,6 +154,9 @@ export function toggleGroupAction(
   if (!current.includes(group.viewKey)) extras.push(group.viewKey)
   if (key === 'pnl_labels.manage' && !current.includes('pnl_labels.view')) {
     extras.push('pnl_labels.view')
+  }
+  if (key === 'tax_rates.manage' && !current.includes('tax_rates.view')) {
+    extras.push('tax_rates.view')
   }
   if (current.includes(key) && extras.length === 0) return current
   return [...current, ...extras.filter((item) => !current.includes(item)), ...(current.includes(key) ? [] : [key])]

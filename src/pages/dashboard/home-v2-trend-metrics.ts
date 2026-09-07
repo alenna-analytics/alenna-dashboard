@@ -35,6 +35,8 @@ export type HomeV2TrendMetricContext = {
   contributionSparklineScale: number
   ebitdaSparklineScale: number
   adsRoasAvailable?: boolean
+  /** When true, Home profit card / trend uses Margen de canal instead of utilidad. */
+  channelFilterActive?: boolean
 }
 
 export function homeV2TrendMetricScale(id: HomeV2TrendMetricId): HomeV2TrendMetricScale {
@@ -84,7 +86,9 @@ export function homeV2TrendMetricLabel(
     case 'net-sales':
       return t(salesLabelKey(ctx.salesMetricBasis))
     case 'net-profit':
-      return t(profitLabelKey(ctx.salesMetricBasis))
+      return ctx.channelFilterActive
+        ? t('reportsChannelMargin')
+        : t(profitLabelKey(ctx.salesMetricBasis))
     case 'contribution':
       return t('reportsContributionMargin')
     case 'ebitda':

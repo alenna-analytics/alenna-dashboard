@@ -11,6 +11,7 @@ import {
 
 import type { ShellStringKey } from "@/lib/i18n/shell-strings"
 import type { ProductSummaryApi } from "@/lib/types/catalog"
+import { AppIcon } from "@/ui/app-icon"
 import { Button } from "@/ui/button"
 import { DataTable } from "@/ui/data-table/data-table"
 import { DataTablePagination } from "@/ui/data-table/data-table-pagination"
@@ -347,6 +348,7 @@ export function ProductsDataTable({
                   type="button"
                   variant="accent"
                   size="tiny"
+                  icon={<AppIcon name="channels" colorize />}
                   loading={createGroup.isPending}
                   onClick={() => {
                     const productIds = Object.entries(rowSelection)

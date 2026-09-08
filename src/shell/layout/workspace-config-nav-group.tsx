@@ -53,7 +53,7 @@ export function WorkspaceConfigNavItem({ collapsed, onNavigate }: WorkspaceConfi
     <div className="flex w-full min-w-0 shrink-0 justify-center">
       <Tooltip>
         <TooltipTrigger asChild>{link}</TooltipTrigger>
-        <TooltipContent side="right" sideOffset={8} className="max-w-[12rem]">
+        <TooltipContent side="right" sideOffset={2} className="max-w-[12rem]">
           {label}
         </TooltipContent>
       </Tooltip>

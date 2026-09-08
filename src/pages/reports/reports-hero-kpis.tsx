@@ -133,6 +133,8 @@ export function ReportsHeroKpis({
         variant="hero"
         label={t('reportsEbitda')}
         helpText={t('reportsKpiHelpEbitda')}
+        helpFormulaLeft={t('reportsKpiHelpEbitdaCalcLeft')}
+        helpFormulaParts={[t('reportsKpiHelpEbitdaCalcPart')]}
         value={kpi.ebitda}
         format="currency"
         currency={currency}

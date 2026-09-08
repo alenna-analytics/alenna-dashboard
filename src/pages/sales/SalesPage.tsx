@@ -445,66 +445,76 @@ export function SalesPage() {
             />
           ) : null}
 
-          <div className="flex flex-col gap-12">
-            <SectionContainer framed>
-              <HomeChannelShareSection
-                title={t('salesChannelNetBarsTitle')}
-                info={t('salesChannelNetBarsSubtitle')}
-                rows={channelBreakdown?.items ?? []}
-                convertValue={convertFromBase}
-                formatValue={formatInDisplay}
-                t={t}
-                heightClassName="h-64"
-                isLoading={channelBreakdownPending}
-              />
-            </SectionContainer>
-
-            <SectionContainer framed>
-              <ChartSectionHeader
-                title={t('salesYoyChartTitle')}
-                calcDescription={t('salesYoyChartCalcDescription')}
-                calcFormulaLeft={t('salesYoyChartCalcLeft')}
-                calcFormulaParts={[t('salesYoyChartCalcFormula')]}
-                aside={
-                  <>
-                    <ChartGranularityFilter
-                      value={yoyGranularity}
-                      onChange={setYoyGranularity}
-                      t={t}
-                    />
-                    <AppSeriesChartViewToggle
-                      value={yoyChartType}
-                      onChange={setYoyChartType}
-                      t={t}
-                    />
-                  </>
-                }
-              />
-              {!yoyPeriod || yoySeriesCurrentError || yoySeriesPrevError ? (
-                <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
-                  {t('reportsMonthlyLoadError')}
-                </p>
-              ) : (yoySeriesCurrentLoading || yoySeriesPrevLoading) &&
-                !yoySeriesCurrent ? (
-                <Skeleton className="h-80 w-full rounded-md" />
-              ) : (
-                <SalesYoyChart
-                  startDate={startDate}
-                  endDate={endDate}
-                  prevStart={yoyPeriod.start}
-                  prevEnd={yoyPeriod.end}
-                  granularity={yoyGranularity}
-                  rowsCurrent={yoySeriesCurrent?.months ?? []}
-                  rowsPrev={yoySeriesPrev?.months ?? []}
-                  currency={effectiveDisplayCurrency}
-                  formatValue={formatInDisplay}
+          <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2 lg:items-stretch">
+            <div className="flex min-h-0 min-w-0 lg:h-full">
+              <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+                <HomeChannelShareSection
+                  title={t('salesChannelNetBarsTitle')}
+                  calcDescription={t('homeChannelDonutCalcDescription')}
+                  calcFormulaLeft={t('homeChannelDonutCalcLeft')}
+                  calcFormulaParts={[
+                    t('homeChannelDonutCalcPartNet'),
+                    t('homeChannelDonutCalcPartShare'),
+                  ]}
+                  calcFormulaJoiner=" ÷ "
+                  rows={channelBreakdown?.items ?? []}
                   convertValue={convertFromBase}
-                  dateLocale={dateLocale}
+                  formatValue={formatInDisplay}
                   t={t}
-                  chartType={yoyChartType}
+                  heightClassName="h-64"
+                  isLoading={channelBreakdownPending}
                 />
-              )}
-            </SectionContainer>
+              </SectionContainer>
+            </div>
+
+            <div className="flex min-h-0 min-w-0 lg:h-full">
+              <SectionContainer framed className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+                <ChartSectionHeader
+                  title={t('salesYoyChartTitle')}
+                  calcDescription={t('salesYoyChartCalcDescription')}
+                  calcFormulaLeft={t('salesYoyChartCalcLeft')}
+                  calcFormulaParts={[t('salesYoyChartCalcFormula')]}
+                  aside={
+                    <>
+                      <ChartGranularityFilter
+                        value={yoyGranularity}
+                        onChange={setYoyGranularity}
+                        t={t}
+                      />
+                      <AppSeriesChartViewToggle
+                        value={yoyChartType}
+                        onChange={setYoyChartType}
+                        t={t}
+                      />
+                    </>
+                  }
+                />
+                {!yoyPeriod || yoySeriesCurrentError || yoySeriesPrevError ? (
+                  <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
+                    {t('reportsMonthlyLoadError')}
+                  </p>
+                ) : (yoySeriesCurrentLoading || yoySeriesPrevLoading) &&
+                  !yoySeriesCurrent ? (
+                  <Skeleton className="h-80 w-full rounded-md" />
+                ) : (
+                  <SalesYoyChart
+                    startDate={startDate}
+                    endDate={endDate}
+                    prevStart={yoyPeriod.start}
+                    prevEnd={yoyPeriod.end}
+                    granularity={yoyGranularity}
+                    rowsCurrent={yoySeriesCurrent?.months ?? []}
+                    rowsPrev={yoySeriesPrev?.months ?? []}
+                    currency={effectiveDisplayCurrency}
+                    formatValue={formatInDisplay}
+                    convertValue={convertFromBase}
+                    dateLocale={dateLocale}
+                    t={t}
+                    chartType={yoyChartType}
+                  />
+                )}
+              </SectionContainer>
+            </div>
           </div>
 
           {!productMode ? (

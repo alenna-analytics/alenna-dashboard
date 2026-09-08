@@ -15,20 +15,24 @@ import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
 
 import {
+  inventoryRowsFromGroupMembers,
   inventoryRowsFromProductDetail,
   inventoryRowsFromProductGroup,
   type InventoryByChannelRow,
 } from './product-detail-inventory-rows'
 import { productPlatformLabel } from './product-platform-label'
 import { ProductPlatformLogoName } from './product-platform-logo-name'
+import { useGroupInsight } from './vinculacion/use-group-insight'
 
 type ShellT = (key: ShellStringKey) => string
+type InventoryDimension = 'channel' | 'product'
 
 type InventoryByChannelTableProps = {
   rows: InventoryByChannelRow[]
   t: ShellT
   isFetching?: boolean
   title?: string
+  dimension?: InventoryDimension
   /** When true, keep the section visible even with zero rows (empty state). */
   showWhenEmpty?: boolean
 }
@@ -50,25 +54,48 @@ export function InventoryByChannelTable({
   t,
   isFetching = false,
   title,
+  dimension = 'channel',
   showWhenEmpty = false,
 }: InventoryByChannelTableProps) {
+  const byProduct = dimension === 'product'
   const columns = useMemo(
     () => [
       columnHelper.display({
-        id: 'channel',
+        id: 'entity',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('homeFilterChannels')} />
+          <DataTableColumnHeader
+            column={column}
+            title={byProduct ? t('productsColProduct') : t('homeFilterChannels')}
+          />
         ),
-        cell: ({ row }) => (
-          <>
-            <ProductPlatformLogoName
-              platformSlug={row.original.platform}
-              t={t}
-              className="text-sm"
-            />
-            <span className="sr-only">{productPlatformLabel(row.original.platform, t)}</span>
-          </>
-        ),
+        cell: ({ row }) => {
+          if (byProduct) {
+            const label = row.original.label ?? row.original.platform
+            return (
+              <span className="flex min-w-0 max-w-full items-center gap-1.5">
+                <ProductPlatformLogoName
+                  platformSlug={row.original.platform}
+                  t={t}
+                  className="shrink-0 text-sm"
+                  textClassName="sr-only"
+                />
+                <span className="min-w-0 truncate text-sm" title={label}>
+                  {label}
+                </span>
+              </span>
+            )
+          }
+          return (
+            <>
+              <ProductPlatformLogoName
+                platformSlug={row.original.platform}
+                t={t}
+                className="text-sm"
+              />
+              <span className="sr-only">{productPlatformLabel(row.original.platform, t)}</span>
+            </>
+          )
+        },
         meta: TEXT_START_META,
       }),
       columnHelper.accessor('stock', {
@@ -111,7 +138,7 @@ export function InventoryByChannelTable({
         meta: TEXT_END_META,
       }),
     ],
-    [t],
+    [byProduct, t],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
@@ -119,14 +146,22 @@ export function InventoryByChannelTable({
     data: rows,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getRowId: (row) => row.platform.trim().toLowerCase(),
+    getRowId: (row) =>
+      row.id ?? (row.platform.trim().toLowerCase() || row.label || 'row'),
   })
 
   if (rows.length === 0 && !isFetching && !showWhenEmpty) return null
 
   return (
     <section className="flex flex-col gap-3">
-      <SettingsSectionHeader title={title ?? t('productsDetailInventoryByChannelTitle')} />
+      <SettingsSectionHeader
+        title={
+          title ??
+          (byProduct
+            ? t('productsDetailInventoryByProductTitle')
+            : t('productsDetailInventoryByChannelTitle'))
+        }
+      />
       {isFetching ? (
         <Skeleton className="h-32 w-full" aria-hidden />
       ) : (
@@ -175,12 +210,32 @@ export function GroupInventoryByChannel({
   t,
   isFetching = false,
 }: GroupInventoryByChannelProps) {
-  const rows = useMemo(() => inventoryRowsFromProductGroup(group), [group])
+  const insight = useGroupInsight()
+  const byProduct = insight.dimension === 'product'
+
+  const rows = useMemo(() => {
+    if (byProduct) {
+      return inventoryRowsFromGroupMembers(insight.filteredMembers, group)
+    }
+
+    if (insight.allSelected) return inventoryRowsFromProductGroup(group)
+
+    const platforms = new Set(
+      insight.filteredMembers
+        .map((member) => member.platform.trim().toLowerCase())
+        .filter(Boolean),
+    )
+    return inventoryRowsFromProductGroup(group).filter((row) =>
+      platforms.has(row.platform.trim().toLowerCase()),
+    )
+  }, [byProduct, group, insight.allSelected, insight.filteredMembers])
+
   return (
     <InventoryByChannelTable
       rows={rows}
       t={t}
       isFetching={isFetching}
+      dimension={byProduct ? 'product' : 'channel'}
       showWhenEmpty
     />
   )

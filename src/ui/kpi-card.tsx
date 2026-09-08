@@ -1,12 +1,12 @@
-import { useId, useState, type ComponentProps, type CSSProperties, type ReactNode } from 'react'
+import { useId, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronDown } from 'lucide-react'
 import { Area, AreaChart, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
 
 import { cn } from '@/lib/utils'
 import { kpiValueToneClass } from '@/lib/kpi-value-tone'
-import { Badge } from '@/ui/badge'
-import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle } from '@/ui/chart-tooltip'
+import { AppIcon } from '@/ui/app-icon'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, MetricCalcTooltipBody } from '@/ui/chart-tooltip'
 import { InfoTooltip } from '@/ui/info-tooltip'
 import {
   surfaceCardClassName,
@@ -22,9 +22,8 @@ type DeltaPillProps = {
   trend: PctTrend
   comparisonUnavailable: boolean
   negativeMetric?: boolean
+  className?: string
 }
-
-type BadgeVariant = NonNullable<ComponentProps<typeof Badge>['variant']>
 
 const SPARKLINE_STROKE = '#6e8f40'
 
@@ -36,41 +35,52 @@ export type KpiSparklinePoint = {
   value: number
 }
 
-function deltaBadgeVariant(
+function deltaTone(
   pct: number | null,
   trend: PctTrend,
   comparisonUnavailable: boolean,
   negativeMetric: boolean | undefined,
-): BadgeVariant {
-  if (comparisonUnavailable || pct === null) return 'secondary'
+): 'good' | 'bad' | 'neutral' {
+  if (comparisonUnavailable || pct === null || trend === 'flat') return 'neutral'
   const invert = Boolean(negativeMetric)
   const good = invert ? trend === 'down' : trend === 'up'
   const bad = invert ? trend === 'up' : trend === 'down'
-  if (good) return 'success'
-  if (bad) return 'error'
-  return 'secondary'
+  if (good) return 'good'
+  if (bad) return 'bad'
+  return 'neutral'
 }
 
+/** Inline MoM/YoY delta: growth/decrease icon before the % (no pill). */
 export function KpiDeltaPill({
   pct,
   trend,
   comparisonUnavailable,
   negativeMetric,
+  className,
 }: DeltaPillProps) {
   const empty = comparisonUnavailable || pct === null
-  const variant = deltaBadgeVariant(pct, trend, comparisonUnavailable, negativeMetric)
+  const tone = deltaTone(pct, trend, comparisonUnavailable, negativeMetric)
   let pctStr = '—'
   if (!empty && pct !== null) {
-    pctStr = `${trend === 'up' && pct > 0 ? '+' : ''}${pct.toFixed(1)}%`
+    pctStr = `${trend === 'up' && pct > 0 ? '+' : ''}${pct.toFixed(1)} %`
   }
+  const iconName = trend === 'up' ? 'growth' : trend === 'down' ? 'decrease' : null
 
   return (
-    <Badge
-      variant={variant}
-      className={cn('font-numeric tabular-nums', !empty && 'font-medium')}
+    <span
+      className={cn(
+        'inline-flex items-center gap-0.5 font-numeric text-[11px] font-medium tabular-nums leading-none',
+        tone === 'good' && 'text-[var(--kpi-pill-positive-text)]',
+        tone === 'bad' && 'text-[var(--kpi-pill-negative-text)]',
+        tone === 'neutral' && 'text-text-secondary',
+        className,
+      )}
     >
-      {pctStr}
-    </Badge>
+      {!empty && iconName ? (
+        <AppIcon name={iconName} colorize className="size-2.5 shrink-0" />
+      ) : null}
+      <span className="leading-none">{pctStr}</span>
+    </span>
   )
 }
 
@@ -104,7 +114,7 @@ function SparklineTooltip({
         transform: 'translate(-50%, calc(-100% - 8px))',
       }}
     >
-      <ChartTooltipFrame>
+      <ChartTooltipFrame portal={false}>
         <ChartTooltipTitle>{row.label}</ChartTooltipTitle>
         <div className="space-y-1.5">
           <ChartTooltipSeriesRow
@@ -184,6 +194,10 @@ function KpiSparkline({
 export type KpiCardProps = {
   label: string
   helpText?: string
+  /** Optional formula line in help tooltip (green monospace, like chart calc tooltips). */
+  helpFormulaLeft?: string
+  helpFormulaParts?: readonly string[]
+  helpFormulaJoiner?: string
   variant?: KpiCardVariant
   value: ReactNode
   numericValue?: number | null
@@ -227,6 +241,9 @@ export type KpiCardProps = {
 export function KpiCard({
   label,
   helpText,
+  helpFormulaLeft,
+  helpFormulaParts,
+  helpFormulaJoiner,
   value,
   numericValue,
   currencyCode,
@@ -295,25 +312,25 @@ export function KpiCard({
     />
   )
 
-  const selectedStyle: CSSProperties | undefined =
-    selected && accentColor
-      ? { borderTopWidth: 3, borderTopColor: accentColor, borderTopStyle: 'solid' }
-      : undefined
-
   const deltaEl = showInlineDelta ? (
     deltaTooltip ? (
       <Tooltip>
         <TooltipTrigger asChild>
           <span className="inline-flex w-fit cursor-default">{deltaPill}</span>
         </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-[260px] text-left text-xs font-normal leading-snug">
+        <TooltipContent side="top" className="max-w-[260px] text-left text-xs leading-snug">
           {deltaTooltip}
         </TooltipContent>
       </Tooltip>
     ) : (
-      <div className="w-fit">{deltaPill}</div>
+      deltaPill
     )
   ) : null
+
+  const selectedStyle: CSSProperties | undefined =
+    selected && accentColor
+      ? { borderTopWidth: 3, borderTopColor: accentColor, borderTopStyle: 'solid' }
+      : undefined
 
   const body = (
     <>
@@ -323,9 +340,19 @@ export function KpiCard({
             <span className="min-w-0 truncate text-xs font-medium leading-tight text-text-primary">
               {label}
             </span>
-            {helpText ? (
-              <InfoTooltip side="top" stopClick={selectable}>
-                {helpText}
+            {helpText || (helpFormulaParts && helpFormulaParts.length > 0) ? (
+              <InfoTooltip side="top" stopClick={selectable} className="max-w-[22rem] text-left">
+                {helpFormulaParts && helpFormulaParts.length > 0 ? (
+                  <MetricCalcTooltipBody
+                    title={label}
+                    description={helpText}
+                    formulaLeft={helpFormulaLeft}
+                    formulaParts={helpFormulaParts}
+                    formulaJoiner={helpFormulaJoiner}
+                  />
+                ) : (
+                  helpText
+                )}
               </InfoTooltip>
             ) : null}
           </div>
@@ -368,8 +395,11 @@ export function KpiCard({
               {placeholder ? placeholderLabel : value}
             </span>
             {!placeholder && currencyCode ? (
-              <span className="text-sm font-medium text-text-secondary">{currencyCode}</span>
+              <span className="text-[12px] font-bold leading-none text-text-tertiary">
+                {currencyCode}
+              </span>
             ) : null}
+            {deltaEl}
             {!placeholder && valueTooltip ? (
               <InfoTooltip side="top" stopClick={selectable} className="max-w-[280px] px-3 py-2">
                 {valueTooltip}
@@ -377,7 +407,6 @@ export function KpiCard({
             ) : null}
           </div>
           {!placeholder && valueAddon ? valueAddon : null}
-          {deltaEl}
         </div>
 
         {showDeltaRow ? (

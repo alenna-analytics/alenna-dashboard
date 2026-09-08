@@ -84,6 +84,7 @@ import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
 import { SalesMetricBasisToggle } from '@/ui/sales-metric-basis-toggle'
 import { chromeIconButtonClassName } from '@/ui/surface'
+import { ChartTooltipSeriesRow } from '@/ui/chart-tooltip'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { buttonVariants } from '@/ui/button'
 import { cn } from '@/lib/utils'
@@ -560,16 +561,16 @@ export function DashboardHomePageV2() {
     if (!showOrdersBreakdown) return undefined
     return (
       <>
-        <p className="mb-1.5 font-medium text-white">{t('reportsOrders')}</p>
-        <div className="space-y-1 leading-snug">
-          <p className="tabular-nums">
-            <span className="text-white/55 capitalize">{t('reportsOrdersCompletedShort')}:</span>{' '}
-            <span className="font-medium text-white">{ordersCompleted.toLocaleString()}</span>
-          </p>
-          <p className="tabular-nums">
-            <span className="text-white/55 capitalize">{t('reportsOrdersPendingShort')}:</span>{' '}
-            <span className="font-medium text-white">{ordersPending.toLocaleString()}</span>
-          </p>
+        <p className="mb-1.5 text-[13px] font-semibold text-text-primary">{t('reportsOrders')}</p>
+        <div className="space-y-1.5">
+          <ChartTooltipSeriesRow
+            label={<span className="capitalize">{t('reportsOrdersCompletedShort')}</span>}
+            value={ordersCompleted.toLocaleString()}
+          />
+          <ChartTooltipSeriesRow
+            label={<span className="capitalize">{t('reportsOrdersPendingShort')}</span>}
+            value={ordersPending.toLocaleString()}
+          />
         </div>
       </>
     )
@@ -797,6 +798,16 @@ export function DashboardHomePageV2() {
                   ? t('reportsKpiHelpChannelMargin')
                   : t(profitHelpKey(salesMetricBasis))
               }
+              helpFormulaLeft={
+                channelFilterActive
+                  ? t('reportsKpiHelpChannelMarginCalcLeft')
+                  : undefined
+              }
+              helpFormulaParts={
+                channelFilterActive
+                  ? [t('reportsKpiHelpChannelMarginCalcPart')]
+                  : undefined
+              }
               value={formatCardAmount(profitCurrent)}
               numericValue={profitCurrent}
               currencyCode={effectiveDisplayCurrency}
@@ -817,6 +828,8 @@ export function DashboardHomePageV2() {
               {...sparklineControl}
               label={t('homeKpiRoasGlobal')}
               helpText={t('homeKpiRoasGlobalHelp')}
+              helpFormulaLeft={t('homeKpiRoasGlobalCalcLeft')}
+              helpFormulaParts={[t('homeKpiRoasGlobalCalcPart')]}
               value={roasValue == null ? '—' : roasValue.toFixed(2)}
               placeholder={roasValue == null}
               placeholderLabel={roasValue == null ? '—' : undefined}
@@ -834,6 +847,8 @@ export function DashboardHomePageV2() {
               {...sparklineControl}
               label={t('reportsContributionMargin')}
               helpText={t('reportsKpiHelpContributionMargin')}
+              helpFormulaLeft={t('reportsKpiHelpContributionMarginCalcLeft')}
+              helpFormulaParts={[t('reportsKpiHelpContributionMarginCalcPart')]}
               value={formatCardAmount(contributionCurrent)}
               numericValue={contributionCurrent}
               currencyCode={effectiveDisplayCurrency}
@@ -853,6 +868,8 @@ export function DashboardHomePageV2() {
               {...sparklineControl}
               label={t('reportsEbitda')}
               helpText={t('reportsKpiHelpEbitda')}
+              helpFormulaLeft={t('reportsKpiHelpEbitdaCalcLeft')}
+              helpFormulaParts={[t('reportsKpiHelpEbitdaCalcPart')]}
               value={productMode ? '—' : formatCardAmount(ebitdaCurrent ?? 0)}
               numericValue={productMode ? null : (ebitdaCurrent ?? 0)}
               currencyCode={productMode ? undefined : effectiveDisplayCurrency}
@@ -915,6 +932,8 @@ export function DashboardHomePageV2() {
               {...sparklineControl}
               label={t('reportsKpiAov')}
               helpText={t('reportsKpiHelpAov')}
+              helpFormulaLeft={t('reportsKpiHelpAovCalcLeft')}
+              helpFormulaParts={[t('reportsKpiHelpAovCalcPart')]}
               value={aov === null ? '—' : formatCardAmount(aov)}
               numericValue={aov}
               currencyCode={aov === null ? undefined : effectiveDisplayCurrency}
@@ -1192,7 +1211,11 @@ export function DashboardHomePageV2() {
                     titleHref="/dashboard/channels"
                     calcDescription={t('homeChannelDonutCalcDescription')}
                     calcFormulaLeft={t('homeChannelDonutCalcLeft')}
-                    calcFormulaParts={[t('homeChannelDonutCalcFormula')]}
+                    calcFormulaParts={[
+                      t('homeChannelDonutCalcPartNet'),
+                      t('homeChannelDonutCalcPartShare'),
+                    ]}
+                    calcFormulaJoiner=" ÷ "
                     rows={channelBreakdown?.items ?? []}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}

@@ -120,6 +120,8 @@ export function ReportsSummaryCards({
           variant="hero"
           label={t('reportsEbitda')}
           helpText={t('reportsKpiHelpEbitda')}
+          helpFormulaLeft={t('reportsKpiHelpEbitdaCalcLeft')}
+          helpFormulaParts={[t('reportsKpiHelpEbitdaCalcPart')]}
           value={kpi.ebitda}
           format="currency"
           currency={currency}
@@ -158,6 +160,8 @@ export function ReportsSummaryCards({
           variant="hero"
           label={t('reportsKpiAov')}
           helpText={t('reportsKpiHelpAov')}
+          helpFormulaLeft={t('reportsKpiHelpAovCalcLeft')}
+          helpFormulaParts={[t('reportsKpiHelpAovCalcPart')]}
           value={aov ?? 0}
           format="currency"
           currency={currency}
@@ -221,6 +225,8 @@ export function ReportsSummaryCards({
           <KpiCard
             label={t('reportsKpiAov')}
             helpText={t('reportsKpiHelpAov')}
+            helpFormulaLeft={t('reportsKpiHelpAovCalcLeft')}
+            helpFormulaParts={[t('reportsKpiHelpAovCalcPart')]}
             value={aov ?? 0}
             format="currency"
             currency={currency}
@@ -234,6 +240,8 @@ export function ReportsSummaryCards({
           <KpiCard
             label={t('reportsKpiMomLabel')}
             helpText={t('reportsKpiHelpMom')}
+            helpFormulaLeft={t('reportsKpiHelpMomCalcLeft')}
+            helpFormulaParts={[t('reportsKpiHelpMomCalcPart')]}
             value={momPct ?? 0}
             format="percent"
             currency={currency}
@@ -248,6 +256,8 @@ export function ReportsSummaryCards({
           <KpiCard
             label={t('reportsKpiYoyLabel')}
             helpText={t('reportsKpiHelpYoy')}
+            helpFormulaLeft={t('reportsKpiHelpYoyCalcLeft')}
+            helpFormulaParts={[t('reportsKpiHelpYoyCalcPart')]}
             value={yoyPct ?? 0}
             format="percent"
             currency={currency}
@@ -344,6 +354,8 @@ export function ReportsSummaryCards({
           <KpiCard
             label={t('reportsContributionMargin')}
             helpText={t('reportsKpiHelpContributionMargin')}
+            helpFormulaLeft={t('reportsKpiHelpContributionMarginCalcLeft')}
+            helpFormulaParts={[t('reportsKpiHelpContributionMarginCalcPart')]}
             value={kpi.contribution_margin}
             format="currency"
             currency={currency}
@@ -356,6 +368,8 @@ export function ReportsSummaryCards({
           <KpiCard
             label={t('reportsEbitda')}
             helpText={t('reportsKpiHelpEbitda')}
+            helpFormulaLeft={t('reportsKpiHelpEbitdaCalcLeft')}
+            helpFormulaParts={[t('reportsKpiHelpEbitdaCalcPart')]}
             value={kpi.ebitda}
             format="currency"
             currency={currency}

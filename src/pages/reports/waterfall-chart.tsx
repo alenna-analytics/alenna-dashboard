@@ -663,7 +663,7 @@ export function WaterfallChart({
     <div className="w-full min-w-0">
       <div
         className={cn(
-          'relative overflow-x-auto overflow-y-visible rounded-md p-5 pb-7 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500',
+          'relative overflow-x-auto overflow-y-hidden rounded-md p-5 pb-7 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500',
           className,
         )}
       >

@@ -6,6 +6,9 @@ export type InventoryByChannelRow = {
   stock: number
   velocity: number | null
   inventoryDays: number | null
+  /** Product dimension: stable row id + display label. */
+  id?: string
+  label?: string
 }
 
 export function inventoryRowsFromProductDetail(
@@ -126,4 +129,45 @@ export function inventoryRowsFromProductGroup(
   }
 
   return rows
+}
+
+/** One inventory row per group member (product dimension). */
+export function inventoryRowsFromGroupMembers(
+  members: ProductLinkGroupApi['members'],
+  group: ProductLinkGroupApi,
+): InventoryByChannelRow[] {
+  const platformInventory = new Map(
+    (group.inventory_by_platform ?? []).map((row) => [
+      row.platform.trim().toLowerCase(),
+      row,
+    ]),
+  )
+
+  return members.map((member) => {
+    const platformKey = member.platform.trim().toLowerCase()
+    const platformRow = platformKey ? platformInventory.get(platformKey) : undefined
+    const stock = member.stock_quantity ?? 0
+    // Member payload has stock only; borrow platform velocity when this is the sole
+    // member on that channel, otherwise leave blank rather than double-count.
+    const samePlatformCount = members.filter(
+      (item) => item.platform.trim().toLowerCase() === platformKey,
+    ).length
+    const velocity =
+      samePlatformCount === 1 ? (platformRow?.velocity_units_per_day_90d ?? null) : null
+    const inventoryDays =
+      velocity != null && velocity > 0
+        ? Math.round(stock / velocity)
+        : samePlatformCount === 1
+          ? (platformRow?.inventory_days ?? null)
+          : null
+
+    return {
+      id: member.product_id,
+      label: member.variant_label?.trim() || member.title,
+      platform: member.platform,
+      stock,
+      velocity,
+      inventoryDays,
+    }
+  })
 }

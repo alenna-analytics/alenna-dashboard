@@ -24,9 +24,9 @@ function TooltipTrigger({
   return <TooltipPrimitive.Trigger {...props} />
 }
 
-/** Soft white surface — radius matches tiny button (`rounded-md`). */
+/** Soft white surface — same as `--bg-base` / chart tooltips; radius matches tiny button. */
 const tooltipContentClassName =
-  'z-80 max-w-xs overflow-hidden rounded-md border border-border-subtle bg-white px-3 py-2 text-xs font-normal text-text-primary shadow-[0_8px_24px_rgba(15,23,42,0.12)] transition-all duration-150'
+  'z-80 max-w-xs overflow-hidden rounded-md border border-border-subtle bg-[var(--bg-base)] px-3 py-2 text-xs font-normal text-text-primary shadow-[0_8px_24px_rgba(15,23,42,0.12)] transition-all duration-150'
 
 function TooltipContent({
   className,

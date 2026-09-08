@@ -166,7 +166,7 @@ export function ChannelsCostStructureChart({
           className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-[calc(100%+12px)]"
           style={{ left: hover.x, top: hover.y }}
         >
-          <ChartTooltipFrame>
+          <ChartTooltipFrame portal={false}>
             <ChartTooltipTitle>{hover.rowLabel}</ChartTooltipTitle>
             <ChartTooltipSeriesRow
               color={hover.segment.color}

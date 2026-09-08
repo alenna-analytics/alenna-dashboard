@@ -90,8 +90,9 @@ export function ChartTooltipSurface({
  * Chart hover card. By default portals to `document.body` and clamps to the
  * viewport so Recharts tooltips never cause page/chart scrollbars or clip.
  *
- * Position follows the pointer (and Recharts wrapper as fallback). Updates go
- * straight to the DOM — Recharts moves its wrapper without React re-renders.
+ * While the pointer is over the chart, position follows the cursor (Recharts'
+ * hidden wrapper often reports bad coords → tip stuck top-left). Leaving the
+ * chart hides the tip so it cannot stick or collect across the page.
  */
 export function ChartTooltipFrame({
   className,
@@ -105,7 +106,6 @@ export function ChartTooltipFrame({
 }) {
   const anchorRef = useRef<HTMLDivElement>(null)
   const tipRef = useRef<HTMLDivElement>(null)
-  const lastPointRef = useRef<{ x: number; y: number } | null>(null)
 
   useLayoutEffect(() => {
     if (!portal) return
@@ -113,8 +113,15 @@ export function ChartTooltipFrame({
     const tipEl = tipRef.current
     if (!tipEl) return
 
+    let pointerInside = false
+    let lastPoint: { x: number; y: number } | null = null
+
+    const hide = () => {
+      tipEl.style.visibility = 'hidden'
+    }
+
     const applyPoint = (x: number, y: number) => {
-      lastPointRef.current = { x, y }
+      lastPoint = { x, y }
       const tip = tipEl.getBoundingClientRect()
       const tipW = tip.width || 220
       const tipH = tip.height || 120
@@ -125,36 +132,59 @@ export function ChartTooltipFrame({
       tipEl.style.visibility = 'visible'
     }
 
-    const syncFromWrapper = () => {
-      const anchorEl = anchorRef.current
-      if (!anchorEl) return false
-      const wrapper = anchorEl.closest('.recharts-tooltip-wrapper') as HTMLElement | null
-      if (!wrapper) return false
-      const rect = wrapper.getBoundingClientRect()
-      applyPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
-      return true
+    const chartRoot = () =>
+      (anchorRef.current?.closest('.recharts-wrapper') as HTMLElement | null) ?? null
+
+    const pointerOverChart = (clientX: number, clientY: number) => {
+      const root = chartRoot()
+      if (!root) return false
+      const r = root.getBoundingClientRect()
+      return (
+        clientX >= r.left &&
+        clientX <= r.right &&
+        clientY >= r.top &&
+        clientY <= r.bottom
+      )
     }
 
-    // Prefer live pointer — stays next to the active chart point.
-    const onMouseMove = (event: MouseEvent) => {
+    const onPointerMove = (event: PointerEvent) => {
+      const inside = pointerOverChart(event.clientX, event.clientY)
+      pointerInside = inside
+      if (!inside) {
+        lastPoint = null
+        hide()
+        return
+      }
       applyPoint(event.clientX, event.clientY)
+    }
+
+    const onChartLeave = () => {
+      pointerInside = false
+      lastPoint = null
+      hide()
     }
 
     let raf = 0
     const tick = () => {
-      // Keep wrapper sync for keyboard/programmatic hovers; mouse wins when present.
-      if (!lastPointRef.current) syncFromWrapper()
+      // Re-apply last point so tip size changes still clamp correctly.
+      if (pointerInside && lastPoint) applyPoint(lastPoint.x, lastPoint.y)
+      else hide()
       raf = window.requestAnimationFrame(tick)
     }
 
-    syncFromWrapper()
     raf = window.requestAnimationFrame(tick)
-    window.addEventListener('mousemove', onMouseMove, true)
-    window.addEventListener('resize', syncFromWrapper)
+
+    const root = chartRoot()
+    root?.addEventListener('pointerleave', onChartLeave)
+    window.addEventListener('pointermove', onPointerMove, true)
+    window.addEventListener('blur', onChartLeave)
+
     return () => {
       window.cancelAnimationFrame(raf)
-      window.removeEventListener('mousemove', onMouseMove, true)
-      window.removeEventListener('resize', syncFromWrapper)
+      root?.removeEventListener('pointerleave', onChartLeave)
+      window.removeEventListener('pointermove', onPointerMove, true)
+      window.removeEventListener('blur', onChartLeave)
+      hide()
     }
   }, [portal])
 

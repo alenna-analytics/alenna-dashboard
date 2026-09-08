@@ -342,6 +342,7 @@ export function VinculacionGroupRentabilidad({
           formatMoney={fmtBase}
           t={t}
           includeTaxWithholdings={false}
+          truncateLongHeaders={byProduct}
         />
       ) : null}
 

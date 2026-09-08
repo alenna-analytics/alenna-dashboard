@@ -13,6 +13,11 @@ import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { EmptyState } from '@/ui/empty-state'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
+import {
+  productHeaderColumnClassName,
+  truncateProductHeaderLabel,
+} from '@/pages/channels/channels-product-header-label'
 
 type SettlementLineId =
   | 'gross_revenue'
@@ -97,6 +102,8 @@ type ChannelsSettlementTableProps = {
   t: (key: ShellStringKey) => string
   /** When false, omit Retenido SAT / tax withholdings row (Vista B). */
   includeTaxWithholdings?: boolean
+  /** Truncate product column headers (group detail by product). */
+  truncateLongHeaders?: boolean
 }
 
 function emphasisClass(kind: SettlementLine['kind']): string {
@@ -109,6 +116,7 @@ export function ChannelsSettlementTable({
   formatMoney,
   t,
   includeTaxWithholdings = true,
+  truncateLongHeaders = false,
 }: ChannelsSettlementTableProps) {
   const lines = useMemo(
     () =>
@@ -149,13 +157,40 @@ export function ChannelsSettlementTable({
       ...cols.map((col) =>
         columnHelper.display({
           id: col.slug,
-          header: ({ column }) => (
-            <DataTableColumnHeader
-              column={column}
-              title={col.label}
-              className="justify-end"
-            />
-          ),
+          header: ({ column }) => {
+            const isTotal = col.slug === 'total'
+            const { display, full, truncated } =
+              truncateLongHeaders && !isTotal
+                ? truncateProductHeaderLabel(col.label)
+                : { display: col.label, full: col.label, truncated: false }
+            const header = (
+              <DataTableColumnHeader
+                column={column}
+                title={display}
+                className={cn(
+                  'justify-end',
+                  truncateLongHeaders && !isTotal && 'w-full overflow-hidden',
+                )}
+              />
+            )
+            if (!truncated) return header
+            return (
+              <Tooltip delayDuration={250}>
+                <TooltipTrigger asChild>
+                  <div className="inline-flex w-full max-w-full cursor-default justify-end overflow-hidden">
+                    {header}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  sideOffset={6}
+                  className="max-w-[min(20rem,calc(100vw-2rem))] text-left normal-case"
+                >
+                  <span className="wrap-break-word">{full}</span>
+                </TooltipContent>
+              </Tooltip>
+            )
+          },
           cell: ({ row }) => {
             const line = row.original
             const m = metrics[col.slug]
@@ -176,13 +211,23 @@ export function ChannelsSettlementTable({
             )
           },
           meta: {
-            headerClassName: 'text-right whitespace-nowrap',
-            cellClassName: 'text-right whitespace-nowrap',
+            headerClassName: cn(
+              'text-right whitespace-nowrap',
+              truncateLongHeaders &&
+                col.slug !== 'total' &&
+                productHeaderColumnClassName,
+            ),
+            cellClassName: cn(
+              'text-right whitespace-nowrap',
+              truncateLongHeaders &&
+                col.slug !== 'total' &&
+                productHeaderColumnClassName,
+            ),
           },
         }),
       ),
     ],
-    [cols, formatMoney, metrics, t],
+    [cols, formatMoney, metrics, t, truncateLongHeaders],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design

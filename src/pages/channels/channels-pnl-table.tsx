@@ -16,8 +16,13 @@ import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { EmptyState } from '@/ui/empty-state'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 import type { PnlRowId } from '@/pages/reports/reports-pnl-rows'
+import {
+  productHeaderColumnClassName,
+  truncateProductHeaderLabel,
+} from '@/pages/channels/channels-product-header-label'
 
 type ChannelsPnlLineId = PnlRowId | 'order_count' | 'aov'
 
@@ -192,13 +197,40 @@ export function ChannelsPnlTable({
       ...cols.map((col) =>
         columnHelper.display({
           id: col.slug,
-          header: ({ column }) => (
-            <DataTableColumnHeader
-              column={column}
-              title={col.label}
-              className="justify-end"
-            />
-          ),
+          header: ({ column }) => {
+            const isTotal = col.slug === 'total'
+            const { display, full, truncated } =
+              byProduct && !isTotal
+                ? truncateProductHeaderLabel(col.label)
+                : { display: col.label, full: col.label, truncated: false }
+            const header = (
+              <DataTableColumnHeader
+                column={column}
+                title={display}
+                className={cn(
+                  'justify-end',
+                  byProduct && !isTotal && 'w-full overflow-hidden',
+                )}
+              />
+            )
+            if (!truncated) return header
+            return (
+              <Tooltip delayDuration={250}>
+                <TooltipTrigger asChild>
+                  <div className="inline-flex w-full max-w-full cursor-default justify-end overflow-hidden">
+                    {header}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  sideOffset={6}
+                  className="max-w-[min(20rem,calc(100vw-2rem))] text-left normal-case"
+                >
+                  <span className="wrap-break-word">{full}</span>
+                </TooltipContent>
+              </Tooltip>
+            )
+          },
           cell: ({ row }) => {
             const line = row.original
             if (line.isNoData) {
@@ -238,13 +270,19 @@ export function ChannelsPnlTable({
             )
           },
           meta: {
-            headerClassName: 'text-right whitespace-nowrap',
-            cellClassName: 'text-right whitespace-nowrap',
+            headerClassName: cn(
+              'text-right whitespace-nowrap',
+              byProduct && col.slug !== 'total' && productHeaderColumnClassName,
+            ),
+            cellClassName: cn(
+              'text-right whitespace-nowrap',
+              byProduct && col.slug !== 'total' && productHeaderColumnClassName,
+            ),
           },
         }),
       ),
     ],
-    [cmIncomplete, cols, formatMoney, labelForRow, metrics, t],
+    [byProduct, cmIncomplete, cols, formatMoney, labelForRow, metrics, t],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design

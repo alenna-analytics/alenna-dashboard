@@ -5,8 +5,8 @@ export const clerkAuthAppearance = {
     socialButtonsPlacement: 'top' as const,
   },
   variables: {
-    colorBackground: '#ffffff',
-    colorInputBackground: '#ffffff',
+    colorBackground: '#fefefe',
+    colorInputBackground: '#fefefe',
     colorInputText: 'var(--text-primary)',
     colorText: 'var(--text-primary)',
     colorTextSecondary: 'var(--text-secondary)',

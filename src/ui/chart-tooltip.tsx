@@ -3,8 +3,8 @@ import type { CSSProperties, ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 
-/** White chart hover tooltip (img 3). */
-export const CHART_TOOLTIP_BG = '#ffffff'
+/** Soft white chart hover tooltip (matches shell `--bg-base`). */
+export const CHART_TOOLTIP_BG = '#fefefe'
 
 export const chartTooltipFrameClassName =
   'rounded-lg border-0 bg-white px-3 py-2.5 text-xs font-normal text-text-primary shadow-[0_8px_24px_rgba(15,23,42,0.12)]'

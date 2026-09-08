@@ -36,8 +36,8 @@ import {
 import {
   groupProductPlatforms,
   groupProductSettlementMetrics,
-  useGroupInsightDimension,
 } from './group-insight-dimension'
+import { useGroupInsight } from './use-group-insight'
 
 type ShellT = (key: ShellStringKey) => string
 
@@ -85,7 +85,7 @@ export function VinculacionGroupRentabilidad({
   pickerStrings,
   insightsFetching,
 }: VinculacionGroupRentabilidadProps) {
-  const insight = useGroupInsightDimension(group, t)
+  const insight = useGroupInsight()
   const [granularity, setGranularity] = useState<RevenueSeriesGranularity>('week')
   const [trendChartType, setTrendChartType] = useState<SeriesChartView>('line')
   const [selectedMetrics, setSelectedMetrics] = useState<ProductDetailTrendMetricId[]>([
@@ -228,16 +228,41 @@ export function VinculacionGroupRentabilidad({
     <div className="flex flex-col gap-8">
       <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
         <CardHeader className="flex flex-col gap-3 p-0">
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-            <DateRangePicker
-              strings={pickerStrings}
-              startValue={insightStart}
-              endValue={insightEnd}
-              onStartChange={(v) => v && setInsightStart(v)}
-              onEndChange={(v) => v && setInsightEnd(v)}
-              className="w-full max-w-md"
-            />
-            <div className="flex h-[33px] items-center gap-2 rounded-md border border-border-default bg-white px-2.5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+              <DateRangePicker
+                strings={pickerStrings}
+                startValue={insightStart}
+                endValue={insightEnd}
+                onStartChange={(v) => v && setInsightStart(v)}
+                onEndChange={(v) => v && setInsightEnd(v)}
+                className="w-full max-w-md"
+              />
+              {byProduct ? (
+                <FilterComboboxSingle
+                  label={t('productsColProduct')}
+                  options={insight.productOptions}
+                  value={insight.productFilter}
+                  onValueChange={insight.setProductFilter}
+                  searchPlaceholder={t('productsSearchPlaceholder')}
+                  emptyLabel={t('productsVinculacionPickerEmpty')}
+                  allowClear={false}
+                  triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
+                />
+              ) : (
+                <FilterComboboxSingle
+                  label={t('homeFilterChannels')}
+                  options={insight.channelOptions}
+                  value={insight.channelFilter}
+                  onValueChange={insight.setChannelFilter}
+                  searchPlaceholder={t('homeFilterChannelsSearch')}
+                  emptyLabel={t('homeFilterChannelsEmpty')}
+                  allowClear={false}
+                  triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
+                />
+              )}
+            </div>
+            <div className="flex h-[33px] shrink-0 items-center gap-2 rounded-md border border-border-default bg-white px-2.5 sm:ml-auto">
               <Label
                 htmlFor="group-insight-dimension-rentabilidad"
                 className="cursor-pointer text-xs font-medium text-text-secondary"
@@ -258,29 +283,6 @@ export function VinculacionGroupRentabilidad({
                 {t('productsVinculacionViewByProduct')}
               </Label>
             </div>
-            {byProduct ? (
-              <FilterComboboxSingle
-                label={t('productsColProduct')}
-                options={insight.productOptions}
-                value={insight.productFilter}
-                onValueChange={insight.setProductFilter}
-                searchPlaceholder={t('productsSearchPlaceholder')}
-                emptyLabel={t('productsVinculacionPickerEmpty')}
-                allowClear={false}
-                triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
-              />
-            ) : (
-              <FilterComboboxSingle
-                label={t('homeFilterChannels')}
-                options={insight.channelOptions}
-                value={insight.channelFilter}
-                onValueChange={insight.setChannelFilter}
-                searchPlaceholder={t('homeFilterChannelsSearch')}
-                emptyLabel={t('homeFilterChannelsEmpty')}
-                allowClear={false}
-                triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
-              />
-            )}
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 p-0 pt-4">

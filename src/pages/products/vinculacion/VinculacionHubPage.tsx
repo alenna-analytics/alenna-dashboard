@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { AlertTriangle } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -7,21 +6,14 @@ import { useMoney } from '@/hooks/use-money'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductLinkGroupApi } from '@/lib/types/product-links'
 import { can } from '@/lib/permissions/can'
-import { cn } from '@/lib/utils'
 import { ChannelsPnlTable } from '@/pages/channels/channels-pnl-table'
 import {
   usePnlAwareT,
   usePnlLabelResolver,
 } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
-import {
-  dangerActionCardClassName,
-  settingsDescriptionClassName,
-  SettingsSectionHeader,
-} from '@/pages/configuration/settings-layout'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
-import { Button } from '@/ui/button'
 import { dateRangePickerStrings } from '@/ui/date-range-picker'
 import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
@@ -35,7 +27,8 @@ import { defaultProductInsightRange } from '../product-detail-range'
 import { ProductDetailWaterfallBlock } from '../product-detail-waterfall-block'
 import { GroupInventoryByChannel } from '../product-detail-inventory-by-channel'
 import { PRODUCTS_LINKING_PATH } from '../products-inner-nav'
-import { useGroupInsightDimension } from './group-insight-dimension'
+import { GroupInsightProvider } from './group-insight-context'
+import { useGroupInsight } from './use-group-insight'
 import { VinculacionDissolveConfirmDialog } from './vinculacion-dissolve-confirm-dialog'
 import { VinculacionGroupAnalytics } from './vinculacion-group-analytics'
 import { VinculacionGroupHeader } from './vinculacion-group-header'
@@ -123,6 +116,7 @@ function VinculacionHubBody({ groupId }: { groupId: string }) {
         title={title}
         canEditTitle={canEditGroups}
         canAddMember={canAddMember}
+        canDissolve={canEditGroups}
         onTitleChange={setTitleDraft}
         onTitleBlur={() => {
           const cleaned = title.trim()
@@ -133,100 +127,66 @@ function VinculacionHubBody({ groupId }: { groupId: string }) {
           void patch.mutateAsync(cleaned).then(() => setTitleDraft(null))
         }}
         onAddProduct={() => setPickerOpen(true)}
+        onDissolve={() => setDissolveOpen(true)}
       />
 
-      <Tabs
-        value={tab}
-        onValueChange={(value) => {
-          if (value === 'analytics' || value === 'platform-payment' || value === 'related') {
-            setTab(value)
-          }
-        }}
-      >
-        <TabsList variant="line">
-          <TabsTrigger value="analytics">{t('productsDetailTabAnalytics')}</TabsTrigger>
-          <TabsTrigger value="platform-payment">{t('productsDetailTabPlatformPayment')}</TabsTrigger>
-          <TabsTrigger value="related">{t('productsDetailTabRelated')}</TabsTrigger>
-        </TabsList>
+      <GroupInsightProvider group={group} t={t}>
+        <Tabs
+          value={tab}
+          onValueChange={(value) => {
+            if (value === 'analytics' || value === 'platform-payment' || value === 'related') {
+              setTab(value)
+            }
+          }}
+        >
+          <TabsList variant="line">
+            <TabsTrigger value="analytics">{t('productsDetailTabAnalytics')}</TabsTrigger>
+            <TabsTrigger value="platform-payment">
+              {t('productsDetailTabPlatformPayment')}
+            </TabsTrigger>
+            <TabsTrigger value="related">{t('productsDetailTabRelated')}</TabsTrigger>
+          </TabsList>
 
-        <div className="mt-6">
-          <TabsContent value="analytics">
-            <GroupAnalyticsVistaA
-              group={group}
-              lang={lang}
-              t={t}
-              labelForRow={labelForRow}
-              baseCurrency={baseCurrency}
-              fmtBase={fmtBase}
-              fmtCard={fmtCard}
-              insightStart={insightStart}
-              insightEnd={insightEnd}
-              setInsightStart={setInsightStart}
-              setInsightEnd={setInsightEnd}
-              pickerStrings={pickerStrings}
-              insightsFetching={groupQuery.isFetching}
-            />
-          </TabsContent>
-          <TabsContent value="platform-payment">
-            <VinculacionGroupRentabilidad
-              group={group}
-              lang={lang}
-              t={t}
-              baseCurrency={baseCurrency}
-              fmtBase={fmtBase}
-              fmtCard={fmtCard}
-              insightStart={insightStart}
-              insightEnd={insightEnd}
-              setInsightStart={setInsightStart}
-              setInsightEnd={setInsightEnd}
-              pickerStrings={pickerStrings}
-              insightsFetching={groupQuery.isFetching}
-            />
-          </TabsContent>
-          <TabsContent value="related">
-            <div className="flex flex-col gap-6">
+          <div className="mt-6">
+            <TabsContent value="analytics">
+              <GroupAnalyticsVistaA
+                group={group}
+                lang={lang}
+                t={t}
+                labelForRow={labelForRow}
+                baseCurrency={baseCurrency}
+                fmtBase={fmtBase}
+                fmtCard={fmtCard}
+                insightStart={insightStart}
+                insightEnd={insightEnd}
+                setInsightStart={setInsightStart}
+                setInsightEnd={setInsightEnd}
+                pickerStrings={pickerStrings}
+                insightsFetching={groupQuery.isFetching}
+              />
+            </TabsContent>
+            <TabsContent value="platform-payment">
+              <VinculacionGroupRentabilidad
+                group={group}
+                lang={lang}
+                t={t}
+                baseCurrency={baseCurrency}
+                fmtBase={fmtBase}
+                fmtCard={fmtCard}
+                insightStart={insightStart}
+                insightEnd={insightEnd}
+                setInsightStart={setInsightStart}
+                setInsightEnd={setInsightEnd}
+                pickerStrings={pickerStrings}
+                insightsFetching={groupQuery.isFetching}
+              />
+            </TabsContent>
+            <TabsContent value="related">
               <VinculacionGroupMembersTable members={group.members} t={t} isFetching={false} />
-              {canEditGroups ? (
-                <section className="space-y-6">
-                  <SettingsSectionHeader
-                    title={t('productsVinculacionDangerTitle')}
-                    description={t('productsVinculacionDangerSubtitle')}
-                  />
-                  <div className={dangerActionCardClassName}>
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                      <div
-                        className="flex size-[23px] shrink-0 items-center justify-center rounded-md bg-[var(--status-red-500)] text-white"
-                        aria-hidden
-                      >
-                        <AlertTriangle className="size-3.5" strokeWidth={2.25} />
-                      </div>
-                      <div className="min-w-0 flex-1 space-y-3">
-                        <div>
-                          <p className="text-sm font-semibold text-text-primary">
-                            {t('productsVinculacionDangerCardTitle')}
-                          </p>
-                          <p className={cn('mt-1', settingsDescriptionClassName)}>
-                            {t('productsVinculacionDangerDescription')}
-                          </p>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="tiny"
-                          loading={dissolve.isPending}
-                          onClick={() => setDissolveOpen(true)}
-                        >
-                          {t('productsVinculacionDissolve')}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-              ) : null}
-            </div>
-          </TabsContent>
-        </div>
-      </Tabs>
+            </TabsContent>
+          </div>
+        </Tabs>
+      </GroupInsightProvider>
 
       <VinculacionPickerSheet
         open={pickerOpen}
@@ -236,6 +196,7 @@ function VinculacionHubBody({ groupId }: { groupId: string }) {
         adding={addMembers.isPending}
         onAdd={(productIds) => addMembers.mutateAsync(productIds)}
       />
+
       <VinculacionDissolveConfirmDialog
         open={dissolveOpen}
         onOpenChange={setDissolveOpen}
@@ -284,7 +245,7 @@ function GroupAnalyticsVistaA({
   pickerStrings: ReturnType<typeof dateRangePickerStrings>
   insightsFetching: boolean
 }) {
-  const insight = useGroupInsightDimension(group, t)
+  const insight = useGroupInsight()
   const { period, settlement, pnlPlatforms, pnlMetrics, allSelected } = insight
 
   const pnlSegments = useMemo(
@@ -310,7 +271,6 @@ function GroupAnalyticsVistaA({
     <div className="flex flex-col gap-8">
       <VinculacionGroupAnalytics
         group={group}
-        insight={insight}
         lang={lang}
         t={t}
         baseCurrency={baseCurrency}

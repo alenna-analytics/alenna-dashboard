@@ -26,7 +26,7 @@ import {
   toggleProductDetailTrendMetric,
   type ProductDetailTrendMetricId,
 } from '../product-detail-trend-metrics'
-import type { GroupInsightDimensionState } from './group-insight-dimension'
+import { useGroupInsight } from './use-group-insight'
 
 type ShellT = (key: ShellStringKey) => string
 
@@ -49,7 +49,6 @@ const VISTA_A_TREND_METRIC: Partial<Record<VistaAKpiKey, ProductDetailTrendMetri
 
 type VinculacionGroupAnalyticsProps = {
   group: ProductLinkGroupApi
-  insight: GroupInsightDimensionState
   lang: string
   t: ShellT
   baseCurrency: string
@@ -64,7 +63,6 @@ type VinculacionGroupAnalyticsProps = {
 }
 
 export function VinculacionGroupAnalytics({
-  insight,
   lang,
   t,
   baseCurrency,
@@ -77,6 +75,7 @@ export function VinculacionGroupAnalytics({
   pickerStrings,
   insightsFetching,
 }: VinculacionGroupAnalyticsProps) {
+  const insight = useGroupInsight()
   const [granularity, setGranularity] = useState<RevenueSeriesGranularity>('week')
   const [trendChartType, setTrendChartType] = useState<SeriesChartView>('line')
   const [selectedMetrics, setSelectedMetrics] = useState<ProductDetailTrendMetricId[]>(['net-sales'])
@@ -203,16 +202,41 @@ export function VinculacionGroupAnalytics({
   return (
     <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
       <CardHeader className="flex flex-col gap-3 p-0">
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-          <DateRangePicker
-            strings={pickerStrings}
-            startValue={insightStart}
-            endValue={insightEnd}
-            onStartChange={(v) => v && setInsightStart(v)}
-            onEndChange={(v) => v && setInsightEnd(v)}
-            className="w-full max-w-md"
-          />
-          <div className="flex h-[33px] items-center gap-2 rounded-md border border-border-default bg-white px-2.5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+            <DateRangePicker
+              strings={pickerStrings}
+              startValue={insightStart}
+              endValue={insightEnd}
+              onStartChange={(v) => v && setInsightStart(v)}
+              onEndChange={(v) => v && setInsightEnd(v)}
+              className="w-full max-w-md"
+            />
+            {byProduct ? (
+              <FilterComboboxSingle
+                label={t('productsColProduct')}
+                options={insight.productOptions}
+                value={insight.productFilter}
+                onValueChange={insight.setProductFilter}
+                searchPlaceholder={t('productsSearchPlaceholder')}
+                emptyLabel={t('productsVinculacionPickerEmpty')}
+                allowClear={false}
+                triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
+              />
+            ) : (
+              <FilterComboboxSingle
+                label={t('homeFilterChannels')}
+                options={insight.channelOptions}
+                value={insight.channelFilter}
+                onValueChange={insight.setChannelFilter}
+                searchPlaceholder={t('homeFilterChannelsSearch')}
+                emptyLabel={t('homeFilterChannelsEmpty')}
+                allowClear={false}
+                triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
+              />
+            )}
+          </div>
+          <div className="flex h-[33px] shrink-0 items-center gap-2 rounded-md border border-border-default bg-white px-2.5 sm:ml-auto">
             <Label
               htmlFor="group-insight-dimension-analytics"
               className="cursor-pointer text-xs font-medium text-text-secondary"
@@ -233,29 +257,6 @@ export function VinculacionGroupAnalytics({
               {t('productsVinculacionViewByProduct')}
             </Label>
           </div>
-          {byProduct ? (
-            <FilterComboboxSingle
-              label={t('productsColProduct')}
-              options={insight.productOptions}
-              value={insight.productFilter}
-              onValueChange={insight.setProductFilter}
-              searchPlaceholder={t('productsSearchPlaceholder')}
-              emptyLabel={t('productsVinculacionPickerEmpty')}
-              allowClear={false}
-              triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
-            />
-          ) : (
-            <FilterComboboxSingle
-              label={t('homeFilterChannels')}
-              options={insight.channelOptions}
-              value={insight.channelFilter}
-              onValueChange={insight.setChannelFilter}
-              searchPlaceholder={t('homeFilterChannelsSearch')}
-              emptyLabel={t('homeFilterChannelsEmpty')}
-              allowClear={false}
-              triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
-            />
-          )}
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 p-0 pt-4">

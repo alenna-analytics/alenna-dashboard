@@ -43,7 +43,7 @@ export type FilteredGroupPeriod = {
 }
 
 export function memberPlatformSlug(member: ProductLinkGroupMemberApi): string {
-  return member.platform.trim().toLowerCase()
+  return (member.platform ?? '').trim().toLowerCase()
 }
 
 export function filterGroupPeriod(
@@ -65,8 +65,8 @@ export function filterGroupPeriod(
       units,
       period_cogs: group.period_cogs,
       period_orders: group.period_orders,
-      fees: group.period_settlement.marketplace_fees,
-      shipping: group.period_settlement.shipping_charges,
+      fees: group.period_settlement?.marketplace_fees ?? 0,
+      shipping: group.period_settlement?.shipping_charges ?? 0,
     }
   }
 
@@ -282,7 +282,21 @@ export function allocateGroupSettlement(
   members: ProductLinkGroupMemberApi[],
   allSelected: boolean,
 ): ProductLinkGroupSettlementApi {
-  if (allSelected) return group.period_settlement
+  if (allSelected) {
+    return (
+      group.period_settlement ?? {
+        gross_revenue: 0,
+        discounts: 0,
+        returns: 0,
+        net_revenue: 0,
+        marketplace_fees: 0,
+        shipping_charges: 0,
+        tax_withholdings: 0,
+        estimated_payout: 0,
+        completeness: 'unavailable',
+      }
+    )
+  }
 
   const settlements = new Map(
     (group.period_settlement_by_platform ?? []).map(
@@ -294,6 +308,19 @@ export function allocateGroupSettlement(
     const member = members[0]
     const platformSlug = memberPlatformSlug(member)
     const platformSettlement = settlements.get(platformSlug) ?? group.period_settlement
+    if (!platformSettlement) {
+      return {
+        gross_revenue: 0,
+        discounts: 0,
+        returns: 0,
+        net_revenue: 0,
+        marketplace_fees: 0,
+        shipping_charges: 0,
+        tax_withholdings: 0,
+        estimated_payout: 0,
+        completeness: 'unavailable',
+      }
+    }
     const platformMembers = group.members.filter(
       (item) => memberPlatformSlug(item) === platformSlug,
     )

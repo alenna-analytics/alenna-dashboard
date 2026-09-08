@@ -1,4 +1,5 @@
-import { Pencil, Plus } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { MoreVertical, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
@@ -9,11 +10,19 @@ import { pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { AppIcon } from '@/ui/app-icon'
 import { Button } from '@/ui/button'
 import { ChannelBadge } from '@/ui/channel-badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/ui/dropdown-menu'
 import { Input } from '@/ui/input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 import { productPlatformLabel } from '../product-platform-label'
-import { ProductTableThumb } from '../product-table-thumb'
 
 type ShellT = (key: ShellStringKey) => string
 
@@ -23,9 +32,11 @@ type VinculacionGroupHeaderProps = {
   title: string
   canEditTitle: boolean
   canAddMember: boolean
+  canDissolve: boolean
   onTitleChange: (value: string) => void
   onTitleBlur: () => void
   onAddProduct: () => void
+  onDissolve: () => void
 }
 
 function uniqueMemberPlatforms(platforms: string[]): string[] {
@@ -99,18 +110,41 @@ export function VinculacionGroupHeader({
   title,
   canEditTitle,
   canAddMember,
+  canDissolve,
   onTitleChange,
   onTitleBlur,
   onAddProduct,
+  onDissolve,
 }: VinculacionGroupHeaderProps) {
-  const firstMember = group.members[0]
-  const thumbUrl = firstMember?.image_url ?? null
-  const thumbAlt = firstMember?.title ?? group.title
+  const [editingTitle, setEditingTitle] = useState(false)
+  const titleInputRef = useRef<HTMLInputElement>(null)
   const platforms = uniqueMemberPlatforms(group.members.map((member) => member.platform))
   const channelCount = platforms.length
   const productCount = group.members.length
+  const showActions = canAddMember || canEditTitle || canDissolve
 
-  const thumb = <ProductTableThumb url={thumbUrl} alt={thumbAlt} />
+  useEffect(() => {
+    if (!editingTitle) return
+    const input = titleInputRef.current
+    if (!input) return
+    input.focus()
+    input.select()
+  }, [editingTitle])
+
+  const startRename = () => {
+    if (!canEditTitle) return
+    setEditingTitle(true)
+  }
+
+  const finishTitleEdit = () => {
+    setEditingTitle(false)
+    onTitleBlur()
+  }
+
+  const titleEditableClassName = cn(
+    pageTitleClassName,
+    'max-w-xl cursor-text text-left underline decoration-dotted decoration-text-tertiary/70 underline-offset-4 transition-colors hover:text-text-secondary',
+  )
 
   const stats = (
     <div className="grid w-full grid-cols-2 gap-x-4 gap-y-4 sm:inline-flex sm:max-w-full sm:flex-wrap sm:items-stretch">
@@ -138,61 +172,101 @@ export function VinculacionGroupHeader({
           </Tooltip>
         </StatColumn>
       </div>
-      {canAddMember ? (
-        <div className="col-span-2 flex shrink-0 sm:col-span-1 sm:border-l sm:border-border-subtle sm:pl-6">
-          <StatColumn label={'\u00a0'}>
-            <Button type="button" variant="accent" size="tiny" onClick={onAddProduct}>
-              <Plus aria-hidden />
-              {t('productsVinculacionAddProduct')}
-            </Button>
-          </StatColumn>
-        </div>
-      ) : null}
     </div>
   )
 
+  const actions = showActions ? (
+    <div className="flex shrink-0 items-center gap-2">
+      {canAddMember ? (
+        <Button type="button" variant="accent" size="tiny" onClick={onAddProduct}>
+          <Plus aria-hidden />
+          {t('productsVinculacionAddProduct')}
+        </Button>
+      ) : null}
+      {canEditTitle || canDissolve ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={cn(
+              'inline-flex size-8 items-center justify-center rounded-md border border-border-default bg-white text-text-primary outline-none',
+              'hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30',
+            )}
+            aria-label={t('productsVinculacionMoreActions')}
+          >
+            <MoreVertical className="size-4 shrink-0" aria-hidden />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>{t('productsTableActions')}</DropdownMenuLabel>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              {canEditTitle ? (
+                <DropdownMenuItem onClick={startRename}>
+                  <span>{t('productsVinculacionRename')}</span>
+                </DropdownMenuItem>
+              ) : null}
+              {canDissolve ? (
+                <DropdownMenuItem variant="destructive" onClick={onDissolve}>
+                  <span>{t('productsVinculacionDissolve')}</span>
+                </DropdownMenuItem>
+              ) : null}
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : null}
+    </div>
+  ) : null
+
   return (
     <div className="flex flex-col gap-4 border-b border-border-subtle pb-6 sm:gap-6">
-      <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-        <div className="flex min-w-0 flex-col gap-3 sm:flex-1 sm:gap-0 sm:space-y-3">
-          <div className="shrink-0 sm:hidden">{thumb}</div>
-          <div className="min-w-0 space-y-3">
-            {canEditTitle ? (
-              <div className="flex min-w-0 items-center gap-2">
-                <Input
-                  value={title}
-                  onChange={(event) => onTitleChange(event.target.value)}
-                  onBlur={onTitleBlur}
-                  className={cn(
-                    pageTitleClassName,
-                    'h-auto min-w-0 max-w-xl border-transparent px-0 shadow-none',
-                  )}
-                  aria-label={group.title}
-                />
-                <Pencil className="size-4 shrink-0 text-text-tertiary" aria-hidden />
-              </div>
-            ) : (
-              <h1 className={pageTitleClassName}>{group.title}</h1>
-            )}
+      <div className="flex min-w-0 items-start justify-between gap-4">
+        <div className="min-w-0 flex-1 space-y-3">
+          {canEditTitle && editingTitle ? (
+            <Input
+              ref={titleInputRef}
+              value={title}
+              onChange={(event) => onTitleChange(event.target.value)}
+              onBlur={finishTitleEdit}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.currentTarget.blur()
+                }
+                if (event.key === 'Escape') {
+                  onTitleChange(group.title)
+                  setEditingTitle(false)
+                }
+              }}
+              className={cn(
+                pageTitleClassName,
+                'h-auto min-w-0 max-w-xl border-transparent px-0 shadow-none',
+              )}
+              aria-label={group.title}
+            />
+          ) : canEditTitle ? (
+            <button type="button" className={titleEditableClassName} onClick={startRename}>
+              {title}
+            </button>
+          ) : (
+            <h1 className={pageTitleClassName}>{group.title}</h1>
+          )}
 
-            {platforms.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-1.5">
-                {platforms.map((platform) => {
-                  const slug = platform.trim().toLowerCase()
-                  const ui = slug ? INTEGRATION_UI[slug] : undefined
-                  return (
-                    <ChannelBadge key={platform} logoSrc={ui?.logoSrc}>
-                      {productPlatformLabel(platform, t)}
-                    </ChannelBadge>
-                  )
-                })}
-              </div>
-            ) : null}
+          {platforms.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {platforms.map((platform) => {
+                const slug = platform.trim().toLowerCase()
+                const ui = slug ? INTEGRATION_UI[slug] : undefined
+                return (
+                  <ChannelBadge key={platform} logoSrc={ui?.logoSrc}>
+                    {productPlatformLabel(platform, t)}
+                  </ChannelBadge>
+                )
+              })}
+            </div>
+          ) : null}
 
-            <div className="hidden sm:block">{stats}</div>
-          </div>
+          <div className="hidden sm:block">{stats}</div>
         </div>
-        <div className="hidden shrink-0 sm:block">{thumb}</div>
+        {actions}
       </div>
 
       <div className="sm:hidden">{stats}</div>

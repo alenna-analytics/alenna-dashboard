@@ -21,6 +21,7 @@ import {
 } from './product-detail-inventory-rows'
 import { productPlatformLabel } from './product-platform-label'
 import { ProductPlatformLogoName } from './product-platform-logo-name'
+import { useGroupInsight } from './vinculacion/use-group-insight'
 
 type ShellT = (key: ShellStringKey) => string
 
@@ -175,7 +176,38 @@ export function GroupInventoryByChannel({
   t,
   isFetching = false,
 }: GroupInventoryByChannelProps) {
-  const rows = useMemo(() => inventoryRowsFromProductGroup(group), [group])
+  const insight = useGroupInsight()
+  const rows = useMemo(() => {
+    if (insight.allSelected) return inventoryRowsFromProductGroup(group)
+
+    if (insight.dimension === 'product') {
+      const bySlug = new Map<string, InventoryByChannelRow>()
+      for (const member of insight.filteredMembers) {
+        const key = member.platform.trim().toLowerCase()
+        if (!key) continue
+        const existing = bySlug.get(key)
+        const stock = member.stock_quantity ?? 0
+        if (!existing) {
+          bySlug.set(key, {
+            platform: member.platform,
+            stock,
+            velocity: null,
+            inventoryDays: null,
+          })
+          continue
+        }
+        existing.stock += stock
+      }
+      return [...bySlug.values()]
+    }
+
+    const platforms = new Set(
+      insight.filteredMembers.map((member) => member.platform.trim().toLowerCase()).filter(Boolean),
+    )
+    return inventoryRowsFromProductGroup(group).filter((row) =>
+      platforms.has(row.platform.trim().toLowerCase()),
+    )
+  }, [group, insight.allSelected, insight.dimension, insight.filteredMembers])
   return (
     <InventoryByChannelTable
       rows={rows}

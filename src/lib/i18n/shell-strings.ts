@@ -215,7 +215,7 @@ const SHELL_STRINGS = {
     workspaceConfigTaxRatesDescription:
       'Configura retenciones y traslado IVA para estimaciones de liquidez en Reportes.',
     workspaceConfigTaxRatesSubtitle:
-      'Porcentajes del espacio de trabajo usados solo para estimar retenciones de plataformas. No modifican CM ni EBITDA.',
+      'Porcentajes del espacio de trabajo usados solo para estimar retenciones de plataformas. No modifican contribución marginal ni EBITDA.',
     workspaceConfigTaxRatesUnsetHint:
       'Aún no hay tasas configuradas. Completa los campos o usa la recomendación.',
     workspaceConfigTaxRatesWithholdingsGroup: 'Retenciones',
@@ -2412,7 +2412,7 @@ const SHELL_STRINGS = {
     workspaceConfigTaxRatesDescription:
       'Configure withholdings and transferred VAT for liquidity estimates in Reports.',
     workspaceConfigTaxRatesSubtitle:
-      'Workspace percentages used only to estimate platform withholdings. They do not change CM or EBITDA.',
+      'Workspace percentages used only to estimate platform withholdings. They do not change contribution margin or EBITDA.',
     workspaceConfigTaxRatesUnsetHint:
       'No rates configured yet. Fill the fields or use the recommendation.',
     workspaceConfigTaxRatesWithholdingsGroup: 'Withholdings',

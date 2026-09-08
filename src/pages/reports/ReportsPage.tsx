@@ -572,13 +572,15 @@ export function ReportsPage() {
               rows={pnlRows}
               formatMoney={formatConverted}
               t={t}
-              labelForRow={labelForRow}
+              labelForRow={(id) => labelForRow(id as Parameters<typeof labelForRow>[0])}
             />
           ) : null}
 
           {!productMode && displayKpi ? (
             <ReportsPnlTaxBlock
               taxesEstimated={displayKpi.taxes_estimated}
+              taxesEstimatedPrev={kpiPrev?.taxes_estimated}
+              taxesEstimatedYoy={yoyPrevious?.taxes_estimated}
               formatMoney={formatConverted}
               t={t}
             />

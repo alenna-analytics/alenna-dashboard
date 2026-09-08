@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-table'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { PnlRow, PnlRowId } from '@/pages/reports/reports-pnl-rows'
+import type { PnlRowKind, ReportsStatementRow } from '@/pages/reports/reports-pnl-rows'
 import { SectionSplit } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
@@ -14,13 +14,16 @@ import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 import { TableEmptyCell } from '@/ui/data-table/table-empty-cell'
 import { EmptyState } from '@/ui/empty-state'
 
-const columnHelper = createColumnHelper<PnlRow>()
+const columnHelper = createColumnHelper<ReportsStatementRow>()
 
 type ReportsPnlTableProps = {
-  rows: PnlRow[]
+  rows: readonly ReportsStatementRow[]
   formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
-  labelForRow: (id: PnlRowId) => string
+  labelForRow: (id: string) => string
+  title?: string
+  description?: string
+  emptyTitle?: string
 }
 
 function fmtPct(n: number): string {
@@ -37,7 +40,7 @@ function fmtDeltaMoney(n: number, formatMoney: (v: number) => string): string {
   return `${sign}${formatMoney(n)}`
 }
 
-function emphasisClass(kind: PnlRow['kind']): string {
+function emphasisClass(kind: PnlRowKind): string {
   return kind === 'subtotal' || kind === 'total' ? 'font-semibold' : ''
 }
 
@@ -46,6 +49,9 @@ export function ReportsPnlTable({
   formatMoney,
   t,
   labelForRow,
+  title = t('reportsPnlTableTitle'),
+  description = t('reportsPnlTableSubtitle'),
+  emptyTitle,
 }: ReportsPnlTableProps) {
   const columns = useMemo(
     () => [
@@ -248,17 +254,14 @@ export function ReportsPnlTable({
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
   const table = useReactTable({
-    data: rows,
+    data: rows as ReportsStatementRow[],
     columns,
     getCoreRowModel: getCoreRowModel(),
     enableSorting: false,
   })
 
   return (
-    <SectionSplit
-      title={t('reportsPnlTableTitle')}
-      description={t('reportsPnlTableSubtitle')}
-    >
+    <SectionSplit title={title} description={description}>
       <DataTable
         table={table}
         variant="plain"
@@ -268,7 +271,9 @@ export function ReportsPnlTable({
         isFetching={false}
         hasEverLoaded={true}
         scrollClassName=""
-        emptyContent={<EmptyState icon="reports" title={t('reportsNoData')} />}
+        emptyContent={
+          <EmptyState icon="reports" title={emptyTitle ?? t('reportsNoData')} />
+        }
         skeletonRowCount={8}
       />
     </SectionSplit>

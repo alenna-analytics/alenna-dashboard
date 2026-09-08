@@ -7,12 +7,12 @@ import { cn } from '@/lib/utils'
 export const CHART_TOOLTIP_BG = '#fefefe'
 
 export const chartTooltipFrameClassName =
-  'rounded-lg border-0 bg-white px-3 py-2.5 text-xs font-normal text-text-primary shadow-[0_8px_24px_rgba(15,23,42,0.12)]'
+  'rounded-xl border-0 bg-white px-3 py-2.5 text-xs font-normal text-text-primary shadow-[0_8px_24px_rgba(15,23,42,0.12)]'
 
 export const chartTooltipContentStyle: CSSProperties = {
   background: CHART_TOOLTIP_BG,
   border: 'none',
-  borderRadius: 8,
+  borderRadius: 12,
   boxShadow: '0 8px 24px rgba(15, 23, 42, 0.12)',
   color: 'var(--text-primary)',
   fontSize: 12,

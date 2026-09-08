@@ -114,7 +114,7 @@ function SparklineTooltip({
         transform: 'translate(-50%, calc(-100% - 8px))',
       }}
     >
-      <ChartTooltipFrame>
+      <ChartTooltipFrame portal={false}>
         <ChartTooltipTitle>{row.label}</ChartTooltipTitle>
         <div className="space-y-1.5">
           <ChartTooltipSeriesRow

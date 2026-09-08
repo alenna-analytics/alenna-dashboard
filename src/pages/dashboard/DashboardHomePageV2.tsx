@@ -1193,7 +1193,11 @@ export function DashboardHomePageV2() {
                     titleHref="/dashboard/channels"
                     calcDescription={t('homeChannelDonutCalcDescription')}
                     calcFormulaLeft={t('homeChannelDonutCalcLeft')}
-                    calcFormulaParts={[t('homeChannelDonutCalcFormula')]}
+                    calcFormulaParts={[
+                      t('homeChannelDonutCalcPartNet'),
+                      t('homeChannelDonutCalcPartShare'),
+                    ]}
+                    calcFormulaJoiner=" ÷ "
                     rows={channelBreakdown?.items ?? []}
                     convertValue={convertFromBase}
                     formatValue={formatInDisplay}

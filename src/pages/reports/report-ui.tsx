@@ -114,7 +114,7 @@ export function ChartSectionHeader({
   const interactive = Boolean(titleHref || onTitleClick)
   const titleClassName = cn(
     'text-sm font-bold text-text-tertiary',
-    interactive &&
+    (interactive || showCalcTooltip) &&
       'cursor-pointer underline decoration-dotted decoration-text-tertiary/70 underline-offset-4 transition-colors hover:text-text-secondary',
   )
 

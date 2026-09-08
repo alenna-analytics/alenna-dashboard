@@ -108,6 +108,7 @@ type HomeChannelShareSectionProps = HomeChannelDonutChartProps & {
   calcDescription?: string
   calcFormulaLeft?: string
   calcFormulaParts?: readonly string[]
+  calcFormulaJoiner?: string
 }
 
 export function HomeChannelShareSection({
@@ -117,6 +118,7 @@ export function HomeChannelShareSection({
   calcDescription,
   calcFormulaLeft,
   calcFormulaParts,
+  calcFormulaJoiner,
   t,
   ...chartProps
 }: HomeChannelShareSectionProps) {
@@ -130,6 +132,7 @@ export function HomeChannelShareSection({
         calcDescription={calcDescription}
         calcFormulaLeft={calcFormulaLeft}
         calcFormulaParts={calcFormulaParts}
+        calcFormulaJoiner={calcFormulaJoiner}
         aside={<AppShareChartViewToggle value={chartType} onChange={setChartType} t={t} />}
       />
       <HomeChannelDonutChart {...chartProps} t={t} chartType={chartType} />

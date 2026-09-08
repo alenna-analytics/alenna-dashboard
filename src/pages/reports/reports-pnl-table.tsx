@@ -8,6 +8,7 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { PnlRowKind, ReportsStatementRow } from '@/pages/reports/reports-pnl-rows'
 import { SectionSplit } from '@/pages/reports/report-ui'
+import { settingsDescriptionClassName } from '@/pages/configuration/settings-layout'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
@@ -74,7 +75,7 @@ export function ReportsPnlTable({
                     : label}
               </span>
               {r.rowHintKey ? (
-                <p className="mt-0.5 text-xs font-normal text-text-secondary">{t(r.rowHintKey)}</p>
+                <p className={cn('mt-0.5', settingsDescriptionClassName)}>{t(r.rowHintKey)}</p>
               ) : null}
             </div>
           )

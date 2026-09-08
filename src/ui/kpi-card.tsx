@@ -1,11 +1,11 @@
-import { useId, useState, type ComponentProps, type CSSProperties, type ReactNode } from 'react'
+import { useId, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronDown } from 'lucide-react'
 import { Area, AreaChart, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
 
 import { cn } from '@/lib/utils'
 import { kpiValueToneClass } from '@/lib/kpi-value-tone'
-import { Badge } from '@/ui/badge'
+import { AppIcon } from '@/ui/app-icon'
 import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle } from '@/ui/chart-tooltip'
 import { InfoTooltip } from '@/ui/info-tooltip'
 import {
@@ -22,9 +22,8 @@ type DeltaPillProps = {
   trend: PctTrend
   comparisonUnavailable: boolean
   negativeMetric?: boolean
+  className?: string
 }
-
-type BadgeVariant = NonNullable<ComponentProps<typeof Badge>['variant']>
 
 const SPARKLINE_STROKE = '#6e8f40'
 
@@ -36,41 +35,52 @@ export type KpiSparklinePoint = {
   value: number
 }
 
-function deltaBadgeVariant(
+function deltaTone(
   pct: number | null,
   trend: PctTrend,
   comparisonUnavailable: boolean,
   negativeMetric: boolean | undefined,
-): BadgeVariant {
-  if (comparisonUnavailable || pct === null) return 'secondary'
+): 'good' | 'bad' | 'neutral' {
+  if (comparisonUnavailable || pct === null || trend === 'flat') return 'neutral'
   const invert = Boolean(negativeMetric)
   const good = invert ? trend === 'down' : trend === 'up'
   const bad = invert ? trend === 'up' : trend === 'down'
-  if (good) return 'success'
-  if (bad) return 'error'
-  return 'secondary'
+  if (good) return 'good'
+  if (bad) return 'bad'
+  return 'neutral'
 }
 
+/** Inline MoM/YoY delta: growth/decrease icon before the % (no pill). */
 export function KpiDeltaPill({
   pct,
   trend,
   comparisonUnavailable,
   negativeMetric,
+  className,
 }: DeltaPillProps) {
   const empty = comparisonUnavailable || pct === null
-  const variant = deltaBadgeVariant(pct, trend, comparisonUnavailable, negativeMetric)
+  const tone = deltaTone(pct, trend, comparisonUnavailable, negativeMetric)
   let pctStr = '—'
   if (!empty && pct !== null) {
-    pctStr = `${trend === 'up' && pct > 0 ? '+' : ''}${pct.toFixed(1)}%`
+    pctStr = `${trend === 'up' && pct > 0 ? '+' : ''}${pct.toFixed(1)} %`
   }
+  const iconName = trend === 'up' ? 'growth' : trend === 'down' ? 'decrease' : null
 
   return (
-    <Badge
-      variant={variant}
-      className={cn('font-numeric tabular-nums', !empty && 'font-medium')}
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 font-numeric text-sm font-medium tabular-nums leading-none',
+        tone === 'good' && 'text-[var(--kpi-pill-positive-text)]',
+        tone === 'bad' && 'text-[var(--kpi-pill-negative-text)]',
+        tone === 'neutral' && 'text-text-secondary',
+        className,
+      )}
     >
-      {pctStr}
-    </Badge>
+      {!empty && iconName ? (
+        <AppIcon name={iconName} colorize className="size-3.5 shrink-0" />
+      ) : null}
+      <span>{pctStr}</span>
+    </span>
   )
 }
 
@@ -295,11 +305,6 @@ export function KpiCard({
     />
   )
 
-  const selectedStyle: CSSProperties | undefined =
-    selected && accentColor
-      ? { borderTopWidth: 3, borderTopColor: accentColor, borderTopStyle: 'solid' }
-      : undefined
-
   const deltaEl = showInlineDelta ? (
     deltaTooltip ? (
       <Tooltip>
@@ -311,9 +316,14 @@ export function KpiCard({
         </TooltipContent>
       </Tooltip>
     ) : (
-      <div className="w-fit">{deltaPill}</div>
+      deltaPill
     )
   ) : null
+
+  const selectedStyle: CSSProperties | undefined =
+    selected && accentColor
+      ? { borderTopWidth: 3, borderTopColor: accentColor, borderTopStyle: 'solid' }
+      : undefined
 
   const body = (
     <>
@@ -355,7 +365,7 @@ export function KpiCard({
         </div>
 
         <div className="flex min-w-0 flex-col items-start gap-1.5">
-          <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
             <span
               className={cn(
                 'font-numeric min-w-0 text-lg font-medium leading-none tracking-tight',
@@ -370,6 +380,7 @@ export function KpiCard({
             {!placeholder && currencyCode ? (
               <span className="text-sm font-medium text-text-secondary">{currencyCode}</span>
             ) : null}
+            {deltaEl}
             {!placeholder && valueTooltip ? (
               <InfoTooltip side="top" stopClick={selectable} className="max-w-[280px] px-3 py-2">
                 {valueTooltip}
@@ -377,7 +388,6 @@ export function KpiCard({
             ) : null}
           </div>
           {!placeholder && valueAddon ? valueAddon : null}
-          {deltaEl}
         </div>
 
         {showDeltaRow ? (

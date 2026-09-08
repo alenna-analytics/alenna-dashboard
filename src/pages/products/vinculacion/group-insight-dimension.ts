@@ -406,7 +406,7 @@ export function groupProductSettlementMetrics(
 }
 
 export function useGroupInsightDimension(group: ProductLinkGroupApi, t: ShellT) {
-  const [dimension, setDimension] = useState<GroupInsightDimension>('channel')
+  const [dimension, setDimension] = useState<GroupInsightDimension>('product')
   const [channelFilter, setChannelFilter] = useState(PRODUCT_DETAIL_ALL_CHANNELS)
   const [productFilter, setProductFilter] = useState(GROUP_INSIGHT_ALL_PRODUCTS)
 

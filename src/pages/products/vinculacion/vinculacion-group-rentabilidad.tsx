@@ -14,9 +14,7 @@ import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-ser
 import { Card, CardContent, CardHeader } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
-import { Label } from '@/ui/label'
 import { Skeleton } from '@/ui/skeleton'
-import { Switch } from '@/ui/switch'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 
 import { ProductDetailInsightKpiTile } from '../product-detail-insight-kpi-tile'
@@ -38,6 +36,7 @@ import {
   groupProductSettlementMetrics,
 } from './group-insight-dimension'
 import { useGroupInsight } from './use-group-insight'
+import { VinculacionInsightDimensionFilter } from './vinculacion-insight-dimension-filter'
 
 type ShellT = (key: ShellStringKey) => string
 
@@ -228,8 +227,8 @@ export function VinculacionGroupRentabilidad({
     <div className="flex flex-col gap-8">
       <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
         <CardHeader className="flex flex-col gap-3 p-0">
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+            <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
               <DateRangePicker
                 strings={pickerStrings}
                 startValue={insightStart}
@@ -262,27 +261,13 @@ export function VinculacionGroupRentabilidad({
                 />
               )}
             </div>
-            <div className="flex h-[33px] shrink-0 items-center gap-2 rounded-md border border-border-default bg-white px-2.5 sm:ml-auto">
-              <Label
-                htmlFor="group-insight-dimension-rentabilidad"
-                className="cursor-pointer text-xs font-medium text-text-secondary"
-              >
-                {t('productsVinculacionViewByChannel')}
-              </Label>
-              <Switch
-                id="group-insight-dimension-rentabilidad"
-                checked={byProduct}
-                onCheckedChange={(checked) => {
-                  insight.setDimension(checked ? 'product' : 'channel')
-                }}
-              />
-              <Label
-                htmlFor="group-insight-dimension-rentabilidad"
-                className="cursor-pointer text-xs font-medium text-text-secondary"
-              >
-                {t('productsVinculacionViewByProduct')}
-              </Label>
-            </div>
+            <VinculacionInsightDimensionFilter
+              value={insight.dimension}
+              onChange={insight.setDimension}
+              t={t}
+              switchId="group-insight-dimension-rentabilidad"
+              className="shrink-0 self-end"
+            />
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 p-0 pt-4">

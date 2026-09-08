@@ -2,7 +2,6 @@
 import {
   useLayoutEffect,
   useRef,
-  useState,
   type CSSProperties,
   type ReactNode,
 } from 'react'
@@ -54,20 +53,20 @@ export const chartRechartsTooltipProps = {
 const VIEWPORT_PAD = 8
 
 function clampTooltipPosition(
-  anchor: DOMRect,
+  cursorX: number,
+  cursorY: number,
   tipW: number,
   tipH: number,
 ): { left: number; top: number } {
   const vw = window.innerWidth
   const vh = window.innerHeight
-  const centerX = anchor.left + anchor.width / 2
 
-  let left = centerX
-  let top = anchor.top - tipH - VIEWPORT_PAD
+  let left = cursorX
+  let top = cursorY - tipH - VIEWPORT_PAD
 
   // Prefer above the cursor; flip below when needed.
   if (top < VIEWPORT_PAD) {
-    top = anchor.bottom + VIEWPORT_PAD
+    top = cursorY + VIEWPORT_PAD
   }
 
   left = Math.min(Math.max(left, VIEWPORT_PAD + tipW / 2), vw - VIEWPORT_PAD - tipW / 2)
@@ -90,6 +89,9 @@ export function ChartTooltipSurface({
 /**
  * Chart hover card. By default portals to `document.body` and clamps to the
  * viewport so Recharts tooltips never cause page/chart scrollbars or clip.
+ *
+ * Position follows the pointer (and Recharts wrapper as fallback). Updates go
+ * straight to the DOM — Recharts moves its wrapper without React re-renders.
  */
 export function ChartTooltipFrame({
   className,
@@ -103,45 +105,58 @@ export function ChartTooltipFrame({
 }) {
   const anchorRef = useRef<HTMLDivElement>(null)
   const tipRef = useRef<HTMLDivElement>(null)
-  const [style, setStyle] = useState<CSSProperties>({
-    visibility: 'hidden',
-    left: 0,
-    top: 0,
-  })
+  const lastPointRef = useRef<{ x: number; y: number } | null>(null)
 
   useLayoutEffect(() => {
     if (!portal) return
 
-    const update = () => {
-      const anchorEl = anchorRef.current
-      const tipEl = tipRef.current
-      if (!anchorEl || !tipEl) return
+    const tipEl = tipRef.current
+    if (!tipEl) return
 
-      const wrapper = anchorEl.closest('.recharts-tooltip-wrapper') as HTMLElement | null
-      const anchor = (wrapper ?? anchorEl).getBoundingClientRect()
+    const applyPoint = (x: number, y: number) => {
+      lastPointRef.current = { x, y }
       const tip = tipEl.getBoundingClientRect()
       const tipW = tip.width || 220
       const tipH = tip.height || 120
-      const { left, top } = clampTooltipPosition(anchor, tipW, tipH)
-
-      setStyle({
-        left,
-        top,
-        transform: 'translateX(-50%)',
-        visibility: 'visible',
-      })
+      const next = clampTooltipPosition(x, y, tipW, tipH)
+      tipEl.style.left = `${next.left}px`
+      tipEl.style.top = `${next.top}px`
+      tipEl.style.transform = 'translateX(-50%)'
+      tipEl.style.visibility = 'visible'
     }
 
-    update()
-    const raf = requestAnimationFrame(update)
-    window.addEventListener('scroll', update, true)
-    window.addEventListener('resize', update)
+    const syncFromWrapper = () => {
+      const anchorEl = anchorRef.current
+      if (!anchorEl) return false
+      const wrapper = anchorEl.closest('.recharts-tooltip-wrapper') as HTMLElement | null
+      if (!wrapper) return false
+      const rect = wrapper.getBoundingClientRect()
+      applyPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
+      return true
+    }
+
+    // Prefer live pointer — stays next to the active chart point.
+    const onMouseMove = (event: MouseEvent) => {
+      applyPoint(event.clientX, event.clientY)
+    }
+
+    let raf = 0
+    const tick = () => {
+      // Keep wrapper sync for keyboard/programmatic hovers; mouse wins when present.
+      if (!lastPointRef.current) syncFromWrapper()
+      raf = window.requestAnimationFrame(tick)
+    }
+
+    syncFromWrapper()
+    raf = window.requestAnimationFrame(tick)
+    window.addEventListener('mousemove', onMouseMove, true)
+    window.addEventListener('resize', syncFromWrapper)
     return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('scroll', update, true)
-      window.removeEventListener('resize', update)
+      window.cancelAnimationFrame(raf)
+      window.removeEventListener('mousemove', onMouseMove, true)
+      window.removeEventListener('resize', syncFromWrapper)
     }
-  }, [portal, children])
+  }, [portal])
 
   if (!portal) {
     return <ChartTooltipSurface className={className}>{children}</ChartTooltipSurface>
@@ -154,7 +169,7 @@ export function ChartTooltipFrame({
         <div
           ref={tipRef}
           className="pointer-events-none fixed z-80"
-          style={style}
+          style={{ visibility: 'hidden', left: 0, top: 0 }}
         >
           <ChartTooltipSurface className={className}>{children}</ChartTooltipSurface>
         </div>,
@@ -197,7 +212,7 @@ export function ChartTooltipSeriesRow({
   )
 }
 
-/** Title-hover calc tooltip (img 2): title + description + formula with green terms. */
+/** Title-hover calc tooltip (chart section headers). Chart series hover uses ChartTooltipFrame — leave that alone. */
 export function MetricCalcTooltipBody({
   title,
   description,
@@ -212,16 +227,17 @@ export function MetricCalcTooltipBody({
   /** Between green terms; default + for calc formulas. */
   formulaJoiner?: string
 }) {
+  const hasFormula = Boolean(formulaParts && formulaParts.length > 0)
   return (
     <div className="max-w-[22rem] space-y-1.5 text-left">
       <p className="text-[13px] font-semibold text-text-primary">{title}</p>
       {description ? (
-        <p className="text-[12px] leading-snug text-text-secondary">{description}</p>
+        <p className="text-[12px] font-normal leading-snug text-text-secondary">{description}</p>
       ) : null}
-      {formulaLeft && formulaParts && formulaParts.length > 0 ? (
-        <p className="font-mono text-[11px] leading-relaxed">
-          <span className="text-text-primary">{formulaLeft}</span>
-          {formulaParts.map((part, index) => (
+      {hasFormula ? (
+        <p className="font-mono text-[10px] font-normal leading-relaxed">
+          {formulaLeft ? <span className="text-text-primary">{formulaLeft}</span> : null}
+          {formulaParts!.map((part, index) => (
             <span key={`${part}-${index}`}>
               {index > 0 ? <span className="text-text-tertiary">{formulaJoiner}</span> : null}
               <span className="text-emerald-700">{part}</span>

@@ -64,18 +64,25 @@ export function ReportsPnlTable({
         cell: ({ row }) => {
           const r = row.original
           const label = labelForRow(r.id)
-          const margin = r.marginPct !== null ? ` (${r.marginPct.toFixed(1)}%)` : ''
+          const margin =
+            r.marginPct !== null ? ` (${r.marginPct.toFixed(1)}%)` : null
           return (
             <div className="min-w-0">
               <span className={cn('text-text-primary', emphasisClass(r.kind))}>
-                {r.isDeduction
-                  ? `(−) ${label}`
-                  : r.kind !== 'line'
-                    ? `= ${label}${margin}`
-                    : label}
+                {r.isDeduction ? `(−) ${label}` : r.kind !== 'line' ? `= ${label}` : label}
+                {margin ? (
+                  <span data-slot="pnl-meta" className="font-normal text-text-tertiary">
+                    {margin}
+                  </span>
+                ) : null}
               </span>
               {r.rowHintKey ? (
-                <p className={cn('mt-0.5', settingsDescriptionClassName)}>{t(r.rowHintKey)}</p>
+                <p
+                  data-slot="pnl-meta"
+                  className={cn('mt-0.5', settingsDescriptionClassName)}
+                >
+                  {t(r.rowHintKey)}
+                </p>
               ) : null}
             </div>
           )

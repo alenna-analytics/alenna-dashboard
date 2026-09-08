@@ -47,28 +47,17 @@ export function ChartGranularityFilter({ value, onChange, t }: ChartGranularityF
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <div className="inline-flex w-max shrink-0 items-center gap-1.5">
-        <button
-          type="button"
-          className={granularityButtonClassName}
-          aria-label={label}
-          aria-expanded={open}
-          onClick={() => setOpen(true)}
-        >
-          {label}
-        </button>
-        <PopoverTrigger
-          type="button"
-          className={granularityButtonClassName}
-          aria-label={`${label}: ${selected?.label ?? ''}`}
-          aria-expanded={open}
-        >
-          <span className="whitespace-nowrap text-[color:var(--filter-pill-value-active)]">
-            {selected?.label}
-          </span>
-          <ChevronDown className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-        </PopoverTrigger>
-      </div>
+      <PopoverTrigger
+        type="button"
+        className={granularityButtonClassName}
+        aria-label={`${label}: ${selected?.label ?? ''}`}
+        aria-expanded={open}
+      >
+        <span className="whitespace-nowrap text-[color:var(--filter-pill-value-active)]">
+          {selected?.label}
+        </span>
+        <ChevronDown className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+      </PopoverTrigger>
       <PopoverContent
         align="end"
         side="bottom"

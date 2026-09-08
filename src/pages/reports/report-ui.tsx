@@ -198,6 +198,9 @@ type KpiVariant = 'hero' | 'default'
 export function KpiCard({
   label,
   helpText,
+  helpFormulaLeft,
+  helpFormulaParts,
+  helpFormulaJoiner,
   value,
   format,
   currency,
@@ -214,6 +217,9 @@ export function KpiCard({
 }: {
   label: string
   helpText: string
+  helpFormulaLeft?: string
+  helpFormulaParts?: readonly string[]
+  helpFormulaJoiner?: string
   value: number
   format: 'currency' | 'count' | 'percent'
   currency: string
@@ -259,6 +265,9 @@ export function KpiCard({
     <KpiCardUi
       label={label}
       helpText={mergedHelp}
+      helpFormulaLeft={helpFormulaLeft}
+      helpFormulaParts={helpFormulaParts}
+      helpFormulaJoiner={helpFormulaJoiner}
       variant={variant === 'hero' ? 'featured' : 'default'}
       value={display}
       numericValue={value}

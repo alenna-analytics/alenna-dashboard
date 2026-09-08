@@ -798,6 +798,16 @@ export function DashboardHomePageV2() {
                   ? t('reportsKpiHelpChannelMargin')
                   : t(profitHelpKey(salesMetricBasis))
               }
+              helpFormulaLeft={
+                channelFilterActive
+                  ? t('reportsKpiHelpChannelMarginCalcLeft')
+                  : undefined
+              }
+              helpFormulaParts={
+                channelFilterActive
+                  ? [t('reportsKpiHelpChannelMarginCalcPart')]
+                  : undefined
+              }
               value={formatCardAmount(profitCurrent)}
               numericValue={profitCurrent}
               currencyCode={effectiveDisplayCurrency}
@@ -818,6 +828,8 @@ export function DashboardHomePageV2() {
               {...sparklineControl}
               label={t('homeKpiRoasGlobal')}
               helpText={t('homeKpiRoasGlobalHelp')}
+              helpFormulaLeft={t('homeKpiRoasGlobalCalcLeft')}
+              helpFormulaParts={[t('homeKpiRoasGlobalCalcPart')]}
               value={roasValue == null ? '—' : roasValue.toFixed(2)}
               placeholder={roasValue == null}
               placeholderLabel={roasValue == null ? '—' : undefined}
@@ -835,6 +847,8 @@ export function DashboardHomePageV2() {
               {...sparklineControl}
               label={t('reportsContributionMargin')}
               helpText={t('reportsKpiHelpContributionMargin')}
+              helpFormulaLeft={t('reportsKpiHelpContributionMarginCalcLeft')}
+              helpFormulaParts={[t('reportsKpiHelpContributionMarginCalcPart')]}
               value={formatCardAmount(contributionCurrent)}
               numericValue={contributionCurrent}
               currencyCode={effectiveDisplayCurrency}
@@ -854,6 +868,8 @@ export function DashboardHomePageV2() {
               {...sparklineControl}
               label={t('reportsEbitda')}
               helpText={t('reportsKpiHelpEbitda')}
+              helpFormulaLeft={t('reportsKpiHelpEbitdaCalcLeft')}
+              helpFormulaParts={[t('reportsKpiHelpEbitdaCalcPart')]}
               value={productMode ? '—' : formatCardAmount(ebitdaCurrent ?? 0)}
               numericValue={productMode ? null : (ebitdaCurrent ?? 0)}
               currencyCode={productMode ? undefined : effectiveDisplayCurrency}
@@ -916,6 +932,8 @@ export function DashboardHomePageV2() {
               {...sparklineControl}
               label={t('reportsKpiAov')}
               helpText={t('reportsKpiHelpAov')}
+              helpFormulaLeft={t('reportsKpiHelpAovCalcLeft')}
+              helpFormulaParts={[t('reportsKpiHelpAovCalcPart')]}
               value={aov === null ? '—' : formatCardAmount(aov)}
               numericValue={aov}
               currencyCode={aov === null ? undefined : effectiveDisplayCurrency}

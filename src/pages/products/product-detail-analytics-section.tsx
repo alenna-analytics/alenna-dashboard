@@ -183,6 +183,8 @@ export function ProductDetailAnalyticsSection({
     key: VistaAKpiKey
     label: string
     helpText?: string
+    helpFormulaLeft?: string
+    helpFormulaParts?: readonly string[]
     value: ReactNode
     currencyCode?: string
     numericValue?: number
@@ -207,6 +209,8 @@ export function ProductDetailAnalyticsSection({
       key: 'channel-margin',
       label: t('productsDetailChannelMargin'),
       helpText: t('productsDetailChannelMarginHelp'),
+      helpFormulaLeft: t('productsDetailChannelMarginHelpCalcLeft'),
+      helpFormulaParts: [t('productsDetailChannelMarginHelpCalcPart')],
       value: insightKpi(fmtCard(channelMargin)),
       currencyCode: baseCurrency,
       numericValue: channelMargin,
@@ -306,6 +310,8 @@ export function ProductDetailAnalyticsSection({
               key={kpi.key}
               label={kpi.label}
               helpText={kpi.helpText}
+              helpFormulaLeft={kpi.helpFormulaLeft}
+              helpFormulaParts={kpi.helpFormulaParts}
               showValues={showInsightValues}
               isFetching={insightsFetching}
               skeleton={kpiSkeleton}

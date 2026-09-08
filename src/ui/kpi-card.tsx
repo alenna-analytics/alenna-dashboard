@@ -6,7 +6,7 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip as RechartsTooltip } from
 import { cn } from '@/lib/utils'
 import { kpiValueToneClass } from '@/lib/kpi-value-tone'
 import { AppIcon } from '@/ui/app-icon'
-import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle } from '@/ui/chart-tooltip'
+import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, MetricCalcTooltipBody } from '@/ui/chart-tooltip'
 import { InfoTooltip } from '@/ui/info-tooltip'
 import {
   surfaceCardClassName,
@@ -69,7 +69,7 @@ export function KpiDeltaPill({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-0.5 font-numeric text-[12px] font-medium tabular-nums leading-none',
+        'inline-flex items-center gap-0.5 font-numeric text-[11px] font-medium tabular-nums leading-none',
         tone === 'good' && 'text-[var(--kpi-pill-positive-text)]',
         tone === 'bad' && 'text-[var(--kpi-pill-negative-text)]',
         tone === 'neutral' && 'text-text-secondary',
@@ -194,6 +194,10 @@ function KpiSparkline({
 export type KpiCardProps = {
   label: string
   helpText?: string
+  /** Optional formula line in help tooltip (green monospace, like chart calc tooltips). */
+  helpFormulaLeft?: string
+  helpFormulaParts?: readonly string[]
+  helpFormulaJoiner?: string
   variant?: KpiCardVariant
   value: ReactNode
   numericValue?: number | null
@@ -237,6 +241,9 @@ export type KpiCardProps = {
 export function KpiCard({
   label,
   helpText,
+  helpFormulaLeft,
+  helpFormulaParts,
+  helpFormulaJoiner,
   value,
   numericValue,
   currencyCode,
@@ -311,7 +318,7 @@ export function KpiCard({
         <TooltipTrigger asChild>
           <span className="inline-flex w-fit cursor-default">{deltaPill}</span>
         </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-[260px] text-left text-xs font-normal leading-snug">
+        <TooltipContent side="top" className="max-w-[260px] text-left text-xs leading-snug">
           {deltaTooltip}
         </TooltipContent>
       </Tooltip>
@@ -333,9 +340,19 @@ export function KpiCard({
             <span className="min-w-0 truncate text-xs font-medium leading-tight text-text-primary">
               {label}
             </span>
-            {helpText ? (
-              <InfoTooltip side="top" stopClick={selectable}>
-                {helpText}
+            {helpText || (helpFormulaParts && helpFormulaParts.length > 0) ? (
+              <InfoTooltip side="top" stopClick={selectable} className="max-w-[22rem] text-left">
+                {helpFormulaParts && helpFormulaParts.length > 0 ? (
+                  <MetricCalcTooltipBody
+                    title={label}
+                    description={helpText}
+                    formulaLeft={helpFormulaLeft}
+                    formulaParts={helpFormulaParts}
+                    formulaJoiner={helpFormulaJoiner}
+                  />
+                ) : (
+                  helpText
+                )}
               </InfoTooltip>
             ) : null}
           </div>
@@ -378,7 +395,7 @@ export function KpiCard({
               {placeholder ? placeholderLabel : value}
             </span>
             {!placeholder && currencyCode ? (
-              <span className="text-sm font-medium leading-none text-text-secondary">
+              <span className="text-[12px] font-bold leading-none text-text-tertiary">
                 {currencyCode}
               </span>
             ) : null}

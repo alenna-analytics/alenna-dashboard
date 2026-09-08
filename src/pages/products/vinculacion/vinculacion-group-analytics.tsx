@@ -12,9 +12,7 @@ import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-ser
 import { Card, CardContent, CardHeader } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
-import { Label } from '@/ui/label'
 import { Skeleton } from '@/ui/skeleton'
-import { Switch } from '@/ui/switch'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 
 import { ProductDetailInsightKpiTile } from '../product-detail-insight-kpi-tile'
@@ -27,6 +25,7 @@ import {
   type ProductDetailTrendMetricId,
 } from '../product-detail-trend-metrics'
 import { useGroupInsight } from './use-group-insight'
+import { VinculacionInsightDimensionFilter } from './vinculacion-insight-dimension-filter'
 
 type ShellT = (key: ShellStringKey) => string
 
@@ -123,6 +122,8 @@ export function VinculacionGroupAnalytics({
     key: VistaAKpiKey
     label: string
     helpText?: string
+    helpFormulaLeft?: string
+    helpFormulaParts?: readonly string[]
     value: ReactNode
     currencyCode?: string
     numericValue?: number
@@ -147,6 +148,8 @@ export function VinculacionGroupAnalytics({
       key: 'channel-margin',
       label: t('productsDetailChannelMargin'),
       helpText: t('productsDetailChannelMarginHelp'),
+      helpFormulaLeft: t('productsDetailChannelMarginHelpCalcLeft'),
+      helpFormulaParts: [t('productsDetailChannelMarginHelpCalcPart')],
       value: insightKpi(fmtCard(period.channel_margin)),
       currencyCode: baseCurrency,
       numericValue: period.channel_margin,
@@ -202,8 +205,8 @@ export function VinculacionGroupAnalytics({
   return (
     <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
       <CardHeader className="flex flex-col gap-3 p-0">
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+          <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
             <DateRangePicker
               strings={pickerStrings}
               startValue={insightStart}
@@ -236,27 +239,13 @@ export function VinculacionGroupAnalytics({
               />
             )}
           </div>
-          <div className="flex h-[33px] shrink-0 items-center gap-2 rounded-md border border-border-default bg-white px-2.5 sm:ml-auto">
-            <Label
-              htmlFor="group-insight-dimension-analytics"
-              className="cursor-pointer text-xs font-medium text-text-secondary"
-            >
-              {t('productsVinculacionViewByChannel')}
-            </Label>
-            <Switch
-              id="group-insight-dimension-analytics"
-              checked={byProduct}
-              onCheckedChange={(checked) =>
-                insight.setDimension(checked ? 'product' : 'channel')
-              }
-            />
-            <Label
-              htmlFor="group-insight-dimension-analytics"
-              className="cursor-pointer text-xs font-medium text-text-secondary"
-            >
-              {t('productsVinculacionViewByProduct')}
-            </Label>
-          </div>
+          <VinculacionInsightDimensionFilter
+            value={insight.dimension}
+            onChange={insight.setDimension}
+            t={t}
+            switchId="group-insight-dimension-analytics"
+            className="shrink-0 self-end"
+          />
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 p-0 pt-4">
@@ -266,6 +255,8 @@ export function VinculacionGroupAnalytics({
               key={kpi.key}
               label={kpi.label}
               helpText={kpi.helpText}
+              helpFormulaLeft={kpi.helpFormulaLeft}
+              helpFormulaParts={kpi.helpFormulaParts}
               showValues
               isFetching={insightsFetching}
               skeleton={kpiSkeleton}

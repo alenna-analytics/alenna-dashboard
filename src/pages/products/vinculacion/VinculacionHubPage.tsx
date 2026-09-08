@@ -25,6 +25,7 @@ import {
 } from '../product-detail-pnl-waterfall-segments'
 import { defaultProductInsightRange } from '../product-detail-range'
 import { ProductDetailWaterfallBlock } from '../product-detail-waterfall-block'
+import { ProductDetailUnsavedBar } from '../product-detail-unsaved-bar'
 import { GroupInventoryByChannel } from '../product-detail-inventory-by-channel'
 import { PRODUCTS_LINKING_PATH } from '../products-inner-nav'
 import { GroupInsightProvider } from './group-insight-context'
@@ -106,7 +107,26 @@ function VinculacionHubBody({ groupId }: { groupId: string }) {
   }
 
   const title = titleDraft ?? group.title
+  const titleDirty = title.trim() !== group.title.trim()
   const canAddMember = canEditGroups && group.members.length < MAX_GROUP_MEMBERS
+
+  const handleTitleDiscard = () => {
+    setTitleDraft(null)
+  }
+
+  const handleTitleSave = async () => {
+    const cleaned = title.trim()
+    if (!cleaned || cleaned === group.title.trim()) {
+      setTitleDraft(null)
+      return
+    }
+    try {
+      await patch.mutateAsync(cleaned)
+      setTitleDraft(null)
+    } catch {
+      toast.error(t('productsDetailToastSaveFailed'))
+    }
+  }
 
   return (
     <DashboardPage className="flex min-h-full flex-1 flex-col gap-6 lg:gap-8">
@@ -118,14 +138,7 @@ function VinculacionHubBody({ groupId }: { groupId: string }) {
         canAddMember={canAddMember}
         canDissolve={canEditGroups}
         onTitleChange={setTitleDraft}
-        onTitleBlur={() => {
-          const cleaned = title.trim()
-          if (!cleaned || cleaned === group.title) {
-            setTitleDraft(null)
-            return
-          }
-          void patch.mutateAsync(cleaned).then(() => setTitleDraft(null))
-        }}
+        onTitleDiscard={handleTitleDiscard}
         onAddProduct={() => setPickerOpen(true)}
         onDissolve={() => setDissolveOpen(true)}
       />
@@ -187,6 +200,16 @@ function VinculacionHubBody({ groupId }: { groupId: string }) {
           </div>
         </Tabs>
       </GroupInsightProvider>
+
+      {canEditGroups ? (
+        <ProductDetailUnsavedBar
+          open={titleDirty}
+          t={t}
+          onDiscard={handleTitleDiscard}
+          onSave={() => void handleTitleSave()}
+          savePending={patch.isPending}
+        />
+      ) : null}
 
       <VinculacionPickerSheet
         open={pickerOpen}
@@ -300,7 +323,8 @@ function GroupAnalyticsVistaA({
           formatMoney={fmtBase}
           t={t}
           labelForRow={labelForRow}
-          cmIncomplete={group.cm_incomplete}
+          cmIncomplete={group.cm_incomplete || insight.dimension === 'product'}
+          breakdown={insight.dimension === 'product' ? 'product' : 'channel'}
         />
       ) : null}
       <GroupInventoryByChannel group={group} t={t} isFetching={insightsFetching} />

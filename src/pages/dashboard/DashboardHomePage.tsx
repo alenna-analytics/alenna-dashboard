@@ -736,6 +736,8 @@ export function DashboardHomePage() {
                         bare
                         label={t('homeKpiRoasGlobal')}
                         helpText={t('homeKpiRoasGlobalHelp')}
+                        helpFormulaLeft={t('homeKpiRoasGlobalCalcLeft')}
+                        helpFormulaParts={[t('homeKpiRoasGlobalCalcPart')]}
                         value="—"
                         placeholder
                         placeholderLabel={t('comingSoonBadge')}
@@ -798,6 +800,16 @@ export function DashboardHomePage() {
                           ? t('reportsKpiHelpChannelMargin')
                           : t(profitHelpKey(salesMetricBasis))
                       }
+                      helpFormulaLeft={
+                        channelFilterActive
+                          ? t('reportsKpiHelpChannelMarginCalcLeft')
+                          : undefined
+                      }
+                      helpFormulaParts={
+                        channelFilterActive
+                          ? [t('reportsKpiHelpChannelMarginCalcPart')]
+                          : undefined
+                      }
                       value={formatKpi(profitCurrent, { nativeCurrency: currency })}
                       numericValue={profitCurrent}
                       currencyCode={effectiveDisplayCurrency}
@@ -814,6 +826,8 @@ export function DashboardHomePage() {
                       compact
                       label={t('reportsEbitda')}
                       helpText={t('reportsKpiHelpEbitda')}
+                      helpFormulaLeft={t('reportsKpiHelpEbitdaCalcLeft')}
+                      helpFormulaParts={[t('reportsKpiHelpEbitdaCalcPart')]}
                       value={
                         productMode
                           ? '—'
@@ -872,6 +886,8 @@ export function DashboardHomePage() {
                       compact
                       label={t('reportsKpiAov')}
                       helpText={t('reportsKpiHelpAov')}
+                      helpFormulaLeft={t('reportsKpiHelpAovCalcLeft')}
+                      helpFormulaParts={[t('reportsKpiHelpAovCalcPart')]}
                       value={
                         aov === null ? '—' : formatKpi(aov, { nativeCurrency: currency })
                       }

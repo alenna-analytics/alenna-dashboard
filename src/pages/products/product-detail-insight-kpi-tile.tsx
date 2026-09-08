@@ -1,15 +1,17 @@
 import type { ReactNode } from 'react'
 
-import { Badge } from '@/ui/badge'
 import { KpiCard } from '@/ui/kpi-card'
 
 type ProductDetailInsightKpiTileProps = {
   label: string
   helpText?: string
+  helpFormulaLeft?: string
+  helpFormulaParts?: readonly string[]
+  helpFormulaJoiner?: string
   value: ReactNode
   numericValue?: number | null
   currencyCode?: string
-  /** Margin / rate shown as a pill under the value (home-style badge). */
+  /** Margin / rate shown beside the value (home-style delta indicator). */
   ratePct?: number | null
   breakdown?: ReactNode
   footer?: ReactNode
@@ -25,6 +27,9 @@ type ProductDetailInsightKpiTileProps = {
 export function ProductDetailInsightKpiTile({
   label,
   helpText,
+  helpFormulaLeft,
+  helpFormulaParts,
+  helpFormulaJoiner,
   value,
   numericValue,
   currencyCode,
@@ -39,22 +44,24 @@ export function ProductDetailInsightKpiTile({
   accentColor,
   onSelect,
 }: ProductDetailInsightKpiTileProps) {
-  const rateBadge =
-    showValues && !isFetching && ratePct != null && Number.isFinite(ratePct) ? (
-      <Badge variant="secondary" className="font-numeric font-medium tabular-nums">
-        {ratePct.toFixed(1)}%
-      </Badge>
-    ) : null
+  const hasRate =
+    showValues && !isFetching && ratePct != null && Number.isFinite(ratePct)
 
   return (
     <KpiCard
       className="h-full"
       label={label}
       helpText={helpText}
+      helpFormulaLeft={helpFormulaLeft}
+      helpFormulaParts={helpFormulaParts}
+      helpFormulaJoiner={helpFormulaJoiner}
       value={isFetching ? skeleton : value}
       numericValue={showValues ? numericValue : null}
       currencyCode={showValues && !isFetching ? currencyCode : undefined}
-      valueAddon={rateBadge}
+      pct={hasRate ? ratePct : null}
+      trend="flat"
+      comparisonUnavailable={!hasRate}
+      deltaBesideValue={hasRate}
       showComparison={false}
       placeholder={!showValues && !isFetching}
       footer={

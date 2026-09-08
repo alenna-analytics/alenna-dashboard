@@ -24,9 +24,9 @@ function TooltipTrigger({
   return <TooltipPrimitive.Trigger {...props} />
 }
 
-/** Soft white surface — same as `--bg-base` / chart tooltips; radius matches tiny button. */
+/** Soft white surface — matches calc/title tooltips (img 1); do not use for chart series hover. */
 const tooltipContentClassName =
-  'z-80 max-w-xs overflow-hidden rounded-md border border-border-subtle bg-[var(--bg-base)] px-3 py-2 text-xs font-normal text-text-primary shadow-[0_8px_24px_rgba(15,23,42,0.12)] transition-all duration-150'
+  'z-80 max-w-xs overflow-hidden rounded-md border border-border-subtle bg-[var(--bg-base)] px-3 py-2 text-xs font-semibold text-text-primary shadow-[0_8px_24px_rgba(15,23,42,0.12)] transition-all duration-150'
 
 function TooltipContent({
   className,

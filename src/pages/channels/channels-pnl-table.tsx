@@ -136,6 +136,8 @@ type ChannelsPnlTableProps = {
   t: (key: ShellStringKey) => string
   labelForRow: (id: PnlRowId) => string
   cmIncomplete?: boolean
+  /** Defaults to channel breakdown copy. */
+  breakdown?: 'channel' | 'product'
 }
 
 function emphasisClass(kind: PnlLine['kind']): string {
@@ -149,7 +151,9 @@ export function ChannelsPnlTable({
   t,
   labelForRow,
   cmIncomplete = false,
+  breakdown = 'channel',
 }: ChannelsPnlTableProps) {
+  const byProduct = breakdown === 'product'
   const cols = useMemo(
     () => [...platforms, { slug: 'total', label: t('channelsColTotal') }],
     [platforms, t],
@@ -251,13 +255,15 @@ export function ChannelsPnlTable({
     enableSorting: false,
   })
 
+  const title = byProduct ? t('channelsPnlTitleByProduct') : t('channelsPnlTitle')
+  const description = cmIncomplete
+    ? t('channelsPnlSubtitleProductScope')
+    : byProduct
+      ? t('channelsPnlSubtitleByProduct')
+      : t('channelsPnlSubtitle')
+
   return (
-    <SectionSplit
-      title={t('channelsPnlTitle')}
-      description={
-        cmIncomplete ? t('channelsPnlSubtitleProductScope') : t('channelsPnlSubtitle')
-      }
-    >
+    <SectionSplit title={title} description={description}>
       <DataTable
         table={table}
         variant="plain"

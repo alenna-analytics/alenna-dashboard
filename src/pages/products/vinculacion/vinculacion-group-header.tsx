@@ -34,7 +34,7 @@ type VinculacionGroupHeaderProps = {
   canAddMember: boolean
   canDissolve: boolean
   onTitleChange: (value: string) => void
-  onTitleBlur: () => void
+  onTitleDiscard: () => void
   onAddProduct: () => void
   onDissolve: () => void
 }
@@ -112,7 +112,7 @@ export function VinculacionGroupHeader({
   canAddMember,
   canDissolve,
   onTitleChange,
-  onTitleBlur,
+  onTitleDiscard,
   onAddProduct,
   onDissolve,
 }: VinculacionGroupHeaderProps) {
@@ -136,14 +136,15 @@ export function VinculacionGroupHeader({
     setEditingTitle(true)
   }
 
-  const finishTitleEdit = () => {
-    setEditingTitle(false)
-    onTitleBlur()
-  }
-
+  const titleShellClassName = cn(pageTitleClassName, 'box-border block w-full max-w-xl')
   const titleEditableClassName = cn(
-    pageTitleClassName,
-    'max-w-xl cursor-text text-left underline decoration-dotted decoration-text-tertiary/70 underline-offset-4 transition-colors hover:text-text-secondary',
+    titleShellClassName,
+    'cursor-text text-left underline decoration-dotted decoration-text-tertiary/70 underline-offset-4 transition-colors hover:text-text-secondary',
+  )
+  const titleInputClassName = cn(
+    titleShellClassName,
+    'h-9 rounded-md border border-border-default bg-white px-2 py-0 leading-9 shadow-none',
+    'focus-visible:ring-0 focus-visible:ring-offset-0',
   )
 
   const stats = (
@@ -221,31 +222,42 @@ export function VinculacionGroupHeader({
     <div className="flex flex-col gap-4 border-b border-border-subtle pb-6 sm:gap-6">
       <div className="flex min-w-0 items-start justify-between gap-4">
         <div className="min-w-0 flex-1 space-y-3">
-          {canEditTitle && editingTitle ? (
-            <Input
-              ref={titleInputRef}
-              value={title}
-              onChange={(event) => onTitleChange(event.target.value)}
-              onBlur={finishTitleEdit}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.currentTarget.blur()
-                }
-                if (event.key === 'Escape') {
-                  onTitleChange(group.title)
-                  setEditingTitle(false)
-                }
-              }}
-              className={cn(
-                pageTitleClassName,
-                'h-auto min-w-0 max-w-xl border-transparent px-0 shadow-none',
+          {canEditTitle ? (
+            <div className="relative max-w-xl min-h-9">
+              <span
+                className={cn(titleShellClassName, 'invisible block min-h-9 select-none leading-9')}
+                aria-hidden
+              >
+                {title || '\u00A0'}
+              </span>
+              {editingTitle ? (
+                <Input
+                  ref={titleInputRef}
+                  value={title}
+                  onChange={(event) => onTitleChange(event.target.value)}
+                  onBlur={() => setEditingTitle(false)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.currentTarget.blur()
+                    }
+                    if (event.key === 'Escape') {
+                      onTitleDiscard()
+                      setEditingTitle(false)
+                    }
+                  }}
+                  className={cn(titleInputClassName, 'absolute inset-y-0 left-0')}
+                  aria-label={group.title}
+                />
+              ) : (
+                <button
+                  type="button"
+                  className={cn(titleEditableClassName, 'absolute inset-0 min-h-9 leading-9')}
+                  onClick={startRename}
+                >
+                  {title}
+                </button>
               )}
-              aria-label={group.title}
-            />
-          ) : canEditTitle ? (
-            <button type="button" className={titleEditableClassName} onClick={startRename}>
-              {title}
-            </button>
+            </div>
           ) : (
             <h1 className={pageTitleClassName}>{group.title}</h1>
           )}

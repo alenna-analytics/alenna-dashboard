@@ -1,10 +1,10 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useState, type ReactNode } from 'react'
 import { enUS } from 'date-fns/locale/en-US'
 import { es as esLocale } from 'date-fns/locale/es'
 
 import { usePlatformConnectionsQuery } from '@/hooks/use-platform-connections-query'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { ProductLinkGroupApi, ProductLinkGroupMemberApi } from '@/lib/types/product-links'
+import type { ProductLinkGroupApi } from '@/lib/types/product-links'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
@@ -12,14 +12,11 @@ import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-ser
 import { Card, CardContent, CardHeader } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
-import type { FilterOption } from '@/ui/filters/types'
+import { Label } from '@/ui/label'
 import { Skeleton } from '@/ui/skeleton'
+import { Switch } from '@/ui/switch'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 
-import {
-  connectionIdsForPlatform,
-  PRODUCT_DETAIL_ALL_CHANNELS,
-} from '../product-detail-analytics-filter'
 import { ProductDetailInsightKpiTile } from '../product-detail-insight-kpi-tile'
 import { ProductDetailTrendChart } from '../product-detail-trend-chart'
 import {
@@ -29,7 +26,7 @@ import {
   toggleProductDetailTrendMetric,
   type ProductDetailTrendMetricId,
 } from '../product-detail-trend-metrics'
-import { productPlatformLabel } from '../product-platform-label'
+import type { GroupInsightDimensionState } from './group-insight-dimension'
 
 type ShellT = (key: ShellStringKey) => string
 
@@ -52,6 +49,7 @@ const VISTA_A_TREND_METRIC: Partial<Record<VistaAKpiKey, ProductDetailTrendMetri
 
 type VinculacionGroupAnalyticsProps = {
   group: ProductLinkGroupApi
+  insight: GroupInsightDimensionState
   lang: string
   t: ShellT
   baseCurrency: string
@@ -65,80 +63,8 @@ type VinculacionGroupAnalyticsProps = {
   insightsFetching: boolean
 }
 
-function memberSlug(member: ProductLinkGroupMemberApi): string {
-  return member.platform.trim().toLowerCase()
-}
-
-type FilteredGroupPeriod = {
-  period_net_sales: number
-  period_gross_profit: number
-  gross_margin_pct: number
-  contribution_margin: number
-  contribution_margin_pct: number
-  channel_margin: number
-  channel_margin_pct: number
-  units: number
-  period_cogs: number
-  fees: number
-  shipping: number
-}
-
-function filterGroupPeriod(
-  group: ProductLinkGroupApi,
-  members: ProductLinkGroupMemberApi[],
-  allChannels: boolean,
-): FilteredGroupPeriod {
-  if (allChannels) {
-    const units = group.period_net_units_sold || group.period_gross_units_sold
-    return {
-      period_net_sales: group.period_net_sales,
-      period_gross_profit: group.period_gross_profit,
-      gross_margin_pct: group.gross_margin_pct,
-      contribution_margin: group.contribution_margin,
-      contribution_margin_pct: group.contribution_margin_pct,
-      channel_margin: group.channel_margin,
-      channel_margin_pct: group.channel_margin_pct,
-      units,
-      period_cogs: group.period_cogs,
-      fees: group.period_settlement.marketplace_fees,
-      shipping: group.period_settlement.shipping_charges,
-    }
-  }
-
-  const netSales = members.reduce((sum, member) => sum + (member.period_net_sales ?? 0), 0)
-  const share = group.period_net_sales > 0 ? netSales / group.period_net_sales : 0
-  const grossProfit = group.period_gross_profit * share
-  const cogs = group.period_cogs * share
-  const contribution = group.contribution_margin * share
-  const units = members.reduce(
-    (sum, member) => sum + (member.period_net_units_sold || member.period_gross_units_sold || 0),
-    0,
-  )
-  const platforms = new Set(members.map(memberSlug))
-  const fees = (group.period_settlement_by_platform ?? [])
-    .filter((row) => platforms.has(row.platform.trim().toLowerCase()))
-    .reduce((sum, row) => sum + row.marketplace_fees, 0)
-  const shipping = (group.period_settlement_by_platform ?? [])
-    .filter((row) => platforms.has(row.platform.trim().toLowerCase()))
-    .reduce((sum, row) => sum + row.shipping_charges, 0)
-  const channelMargin = grossProfit - fees - shipping
-  return {
-    period_net_sales: netSales,
-    period_gross_profit: grossProfit,
-    gross_margin_pct: netSales > 0 ? (grossProfit / netSales) * 100 : 0,
-    contribution_margin: contribution,
-    contribution_margin_pct: netSales > 0 ? (contribution / netSales) * 100 : 0,
-    channel_margin: channelMargin,
-    channel_margin_pct: netSales > 0 ? (channelMargin / netSales) * 100 : 0,
-    units,
-    period_cogs: cogs,
-    fees,
-    shipping,
-  }
-}
-
 export function VinculacionGroupAnalytics({
-  group,
+  insight,
   lang,
   t,
   baseCurrency,
@@ -154,54 +80,10 @@ export function VinculacionGroupAnalytics({
   const [granularity, setGranularity] = useState<RevenueSeriesGranularity>('week')
   const [trendChartType, setTrendChartType] = useState<SeriesChartView>('line')
   const [selectedMetrics, setSelectedMetrics] = useState<ProductDetailTrendMetricId[]>(['net-sales'])
-  const [channelFilter, setChannelFilter] = useState(PRODUCT_DETAIL_ALL_CHANNELS)
   const connectionsQuery = usePlatformConnectionsQuery()
 
-  const platformSlugs = useMemo(() => {
-    const slugs = new Set<string>()
-    for (const member of group.members) {
-      const slug = memberSlug(member)
-      if (slug) slugs.add(slug)
-    }
-    return Array.from(slugs).sort((a, b) => a.localeCompare(b))
-  }, [group.members])
-
-  const activeChannel =
-    channelFilter === PRODUCT_DETAIL_ALL_CHANNELS || platformSlugs.includes(channelFilter)
-      ? channelFilter
-      : PRODUCT_DETAIL_ALL_CHANNELS
-
-  const filteredMembers = useMemo(() => {
-    if (activeChannel === PRODUCT_DETAIL_ALL_CHANNELS) return group.members
-    return group.members.filter((member) => memberSlug(member) === activeChannel)
-  }, [activeChannel, group.members])
-
-  const channelOptions = useMemo((): FilterOption[] => {
-    const allOption: FilterOption = {
-      value: PRODUCT_DETAIL_ALL_CHANNELS,
-      label: t('homeFilterChannelsAll'),
-    }
-    const platformOptions = platformSlugs.map((slug) => {
-      const source =
-        group.members.find((member) => memberSlug(member) === slug)?.platform ?? slug
-      return { value: slug, label: productPlatformLabel(source, t) }
-    })
-    return [allOption, ...platformOptions]
-  }, [group.members, platformSlugs, t])
-
-  const period = useMemo(
-    () => filterGroupPeriod(group, filteredMembers, activeChannel === PRODUCT_DETAIL_ALL_CHANNELS),
-    [activeChannel, filteredMembers, group],
-  )
-
-  const chartProductIds = useMemo(
-    () => filteredMembers.map((member) => member.product_id),
-    [filteredMembers],
-  )
-  const chartConnectionIds = useMemo(
-    () => connectionIdsForPlatform(connectionsQuery.data, activeChannel),
-    [activeChannel, connectionsQuery.data],
-  )
+  const chartConnectionIds = insight.connectionIdsForActive(connectionsQuery.data)
+  const { period, chartProductIds } = insight
 
   const dateLocale = lang === 'en' ? enUS : esLocale
   const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
@@ -316,6 +198,8 @@ export function VinculacionGroupAnalytics({
     },
   ]
 
+  const byProduct = insight.dimension === 'product'
+
   return (
     <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
       <CardHeader className="flex flex-col gap-3 p-0">
@@ -328,16 +212,50 @@ export function VinculacionGroupAnalytics({
             onEndChange={(v) => v && setInsightEnd(v)}
             className="w-full max-w-md"
           />
-          <FilterComboboxSingle
-            label={t('homeFilterChannels')}
-            options={channelOptions}
-            value={activeChannel}
-            onValueChange={setChannelFilter}
-            searchPlaceholder={t('homeFilterChannelsSearch')}
-            emptyLabel={t('homeFilterChannelsEmpty')}
-            allowClear={false}
-            triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
-          />
+          <div className="flex h-[33px] items-center gap-2 rounded-md border border-border-default bg-white px-2.5">
+            <Label
+              htmlFor="group-insight-dimension-analytics"
+              className="cursor-pointer text-xs font-medium text-text-secondary"
+            >
+              {t('productsVinculacionViewByChannel')}
+            </Label>
+            <Switch
+              id="group-insight-dimension-analytics"
+              checked={byProduct}
+              onCheckedChange={(checked) =>
+                insight.setDimension(checked ? 'product' : 'channel')
+              }
+            />
+            <Label
+              htmlFor="group-insight-dimension-analytics"
+              className="cursor-pointer text-xs font-medium text-text-secondary"
+            >
+              {t('productsVinculacionViewByProduct')}
+            </Label>
+          </div>
+          {byProduct ? (
+            <FilterComboboxSingle
+              label={t('productsColProduct')}
+              options={insight.productOptions}
+              value={insight.productFilter}
+              onValueChange={insight.setProductFilter}
+              searchPlaceholder={t('productsSearchPlaceholder')}
+              emptyLabel={t('productsVinculacionPickerEmpty')}
+              allowClear={false}
+              triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
+            />
+          ) : (
+            <FilterComboboxSingle
+              label={t('homeFilterChannels')}
+              options={insight.channelOptions}
+              value={insight.channelFilter}
+              onValueChange={insight.setChannelFilter}
+              searchPlaceholder={t('homeFilterChannelsSearch')}
+              emptyLabel={t('homeFilterChannelsEmpty')}
+              allowClear={false}
+              triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
+            />
+          )}
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 p-0 pt-4">

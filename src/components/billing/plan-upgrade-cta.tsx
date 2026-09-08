@@ -15,8 +15,8 @@ import type { Language } from '@/shell/providers/language-provider'
 type PlanUpgradeCtaProps = {
   me: MeResponse
   lang: Language
-  variant?: 'outline' | 'primary'
-  size?: 'sm' | 'default'
+  variant?: 'outline' | 'primary' | 'accent'
+  size?: 'sm' | 'default' | 'tiny'
   className?: string
   onClick?: () => void
   target?: UpgradeTarget

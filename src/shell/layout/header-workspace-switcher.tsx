@@ -95,7 +95,9 @@ export function HeaderWorkspaceSwitcher({ companyName, me }: HeaderWorkspaceSwit
               <PlanUpgradeCta
                 me={me}
                 lang={lang}
-                className="h-8 w-full gap-1.5 border-border-subtle bg-white font-normal text-text-primary hover:bg-[var(--sidebar-accent)]"
+                variant="accent"
+                size="tiny"
+                className="w-full gap-1.5 font-normal"
                 onClick={() => {
                   setMenuOpen(false)
                   setAdjustOpen(true)

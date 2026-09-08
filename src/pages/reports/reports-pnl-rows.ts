@@ -39,6 +39,21 @@ export type PnlRow = {
   pctOfNetRevenue: number | null
 }
 
+/** Shared table row for Estado de resultados and Retenciones estimadas. */
+export type ReportsStatementRow = {
+  id: string
+  kind: PnlRowKind
+  isDeduction: boolean
+  current: number
+  previous: number | null
+  deltaAbs: number | null
+  deltaPct: number | null
+  yoyDeltaPct: number | null
+  marginPct: number | null
+  rowHintKey: ShellStringKey | null
+  pctOfNetRevenue: number | null
+}
+
 function moneyDelta(
   current: number,
   previous: number | null,

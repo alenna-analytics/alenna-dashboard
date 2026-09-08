@@ -62,12 +62,16 @@ function AdsSummaryKpi({
   label,
   value,
   helpText,
+  helpFormulaLeft,
+  helpFormulaParts,
   loading,
   currencyCode,
 }: {
   label: string
   value: string
   helpText?: string
+  helpFormulaLeft?: string
+  helpFormulaParts?: readonly string[]
   loading: boolean
   currencyCode?: string
 }) {
@@ -84,6 +88,8 @@ function AdsSummaryKpi({
     <KpiCard
       label={label}
       helpText={helpText}
+      helpFormulaLeft={helpFormulaLeft}
+      helpFormulaParts={helpFormulaParts}
       value={value}
       currencyCode={currencyCode}
       vsPriorLabel=""
@@ -286,24 +292,32 @@ export function AdsPage() {
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiRoas')}
                 helpText={shellT(lang, 'adsKpiHelpRoas')}
+                helpFormulaLeft={shellT(lang, 'adsKpiHelpRoasCalcLeft')}
+                helpFormulaParts={[shellT(lang, 'adsKpiHelpRoasCalcPart')]}
                 value={data ? formatRatio(data.roas) : '—'}
                 loading={kpisChannelsLoading}
               />
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiBreakEvenRoas')}
                 helpText={shellT(lang, 'adsKpiHelpBreakEvenRoas')}
+                helpFormulaLeft={shellT(lang, 'adsKpiHelpBreakEvenRoasCalcLeft')}
+                helpFormulaParts={[shellT(lang, 'adsKpiHelpBreakEvenRoasCalcPart')]}
                 value={data ? formatRatio(data.break_even_roas) : '—'}
                 loading={kpisChannelsLoading}
               />
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiTacos')}
                 helpText={shellT(lang, 'adsKpiHelpTacos')}
+                helpFormulaLeft={shellT(lang, 'adsKpiHelpTacosCalcLeft')}
+                helpFormulaParts={[shellT(lang, 'adsKpiHelpTacosCalcPart')]}
                 value={data ? (data.case_c ? '—' : formatTacosPct(data.tacos)) : '—'}
                 loading={kpisChannelsLoading}
               />
               <AdsSummaryKpi
                 label={shellT(lang, 'adsKpiCpa')}
                 helpText={shellT(lang, 'adsKpiHelpCpa')}
+                helpFormulaLeft={shellT(lang, 'adsKpiHelpCpaCalcLeft')}
+                helpFormulaParts={[shellT(lang, 'adsKpiHelpCpaCalcPart')]}
                 value={data ? formatRatio(data.cpa) : '—'}
                 loading={kpisChannelsLoading}
               />

@@ -78,6 +78,8 @@ export function SalesQualityBlock({
         <KpiCard
           label={t('salesQualityDiscountRate')}
           helpText={t('salesQualityHelpDiscountRate')}
+          helpFormulaLeft={t('salesQualityHelpDiscountRateCalcLeft')}
+          helpFormulaParts={[t('salesQualityHelpDiscountRateCalcPart')]}
           value={discountRate ?? 0}
           format="percent"
           currency={currency}
@@ -97,6 +99,8 @@ export function SalesQualityBlock({
         <KpiCard
           label={t('salesQualityReturnRate')}
           helpText={t('salesQualityHelpReturnRate')}
+          helpFormulaLeft={t('salesQualityHelpReturnRateCalcLeft')}
+          helpFormulaParts={[t('salesQualityHelpReturnRateCalcPart')]}
           value={returnRate ?? 0}
           format="percent"
           currency={currency}
@@ -116,6 +120,8 @@ export function SalesQualityBlock({
         <KpiCard
           label={t('salesQualityUnitsPerOrder')}
           helpText={t('salesQualityHelpUnitsPerOrder')}
+          helpFormulaLeft={t('salesQualityHelpUnitsPerOrderCalcLeft')}
+          helpFormulaParts={[t('salesQualityHelpUnitsPerOrderCalcPart')]}
           value={upo ?? 0}
           format="count"
           currency={currency}

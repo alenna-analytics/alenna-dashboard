@@ -29,7 +29,7 @@ export function InfoTooltip({
       </TooltipTrigger>
       <TooltipContent
         side={side}
-        className={cn('max-w-[260px] text-left text-xs font-normal leading-snug', className)}
+        className={cn('max-w-[260px] text-left text-xs leading-snug', className)}
         {...props}
       >
         {children}

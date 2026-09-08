@@ -13,7 +13,7 @@ type ColumnMetaWithCellClass = {
 const tableFontClass = 'text-[13px]'
 const headerFontClass = 'font-numeric text-xs uppercase'
 const cellFontClass =
-  'text-[13px] [&_*]:text-[13px] [&_[data-slot=badge]]:text-[length:var(--text-micro)] [&_[data-slot=badge]_*]:text-[length:var(--text-micro)] [&_[data-slot=status-pill]]:text-[length:var(--text-micro)] [&_[data-slot=status-pill]_*]:text-[length:var(--text-micro)] [&_[data-slot=channel-badge]]:text-[length:var(--text-micro)] [&_[data-slot=channel-badge]_*]:text-[length:var(--text-micro)]'
+  'text-[13px] [&_*]:text-[13px] [&_[data-slot=badge]]:text-[length:var(--text-micro)] [&_[data-slot=badge]_*]:text-[length:var(--text-micro)] [&_[data-slot=status-pill]]:text-[length:var(--text-micro)] [&_[data-slot=status-pill]_*]:text-[length:var(--text-micro)] [&_[data-slot=channel-badge]]:text-[length:var(--text-micro)] [&_[data-slot=channel-badge]_*]:text-[length:var(--text-micro)] [&_[data-slot=pnl-meta]]:text-[12px] [&_[data-slot=pnl-meta]_*]:text-[12px]'
 
 type DataTableProps<TData> = {
   table: TableType<TData>

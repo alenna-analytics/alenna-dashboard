@@ -4,7 +4,7 @@ import { es as esLocale } from 'date-fns/locale/es'
 
 import { usePlatformConnectionsQuery } from '@/hooks/use-platform-connections-query'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { ProductLinkGroupApi, ProductLinkGroupMemberApi } from '@/lib/types/product-links'
+import type { ProductLinkGroupApi } from '@/lib/types/product-links'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChannelsSettlementTable } from '@/pages/channels/channels-settlement-table'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
@@ -14,14 +14,9 @@ import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-ser
 import { Card, CardContent, CardHeader } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
-import type { FilterOption } from '@/ui/filters/types'
 import { Skeleton } from '@/ui/skeleton'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 
-import {
-  connectionIdsForPlatform,
-  PRODUCT_DETAIL_ALL_CHANNELS,
-} from '../product-detail-analytics-filter'
 import { ProductDetailInsightKpiTile } from '../product-detail-insight-kpi-tile'
 import { GroupInventoryByChannel } from '../product-detail-inventory-by-channel'
 import { ProductDetailTrendChart } from '../product-detail-trend-chart'
@@ -32,11 +27,16 @@ import {
   toggleProductDetailTrendMetric,
   type ProductDetailTrendMetricId,
 } from '../product-detail-trend-metrics'
-import { productPlatformLabel } from '../product-platform-label'
 import {
   groupSettlementByPlatformMetrics,
   settlementPlatformsFromGroup,
 } from '../product-settlement-channel-metrics'
+import {
+  groupProductPlatforms,
+  groupProductSettlementMetrics,
+} from './group-insight-dimension'
+import { useGroupInsight } from './use-group-insight'
+import { VinculacionInsightDimensionFilter } from './vinculacion-insight-dimension-filter'
 
 type ShellT = (key: ShellStringKey) => string
 
@@ -53,10 +53,6 @@ type VistaBKpiKey =
 const VISTA_B_TREND_METRIC: Partial<Record<VistaBKpiKey, ProductDetailTrendMetricId>> = {
   'gross-sales': 'gross-sales',
   'net-sales': 'net-sales',
-}
-
-function memberSlug(member: ProductLinkGroupMemberApi): string {
-  return member.platform.trim().toLowerCase()
 }
 
 type VinculacionGroupRentabilidadProps = {
@@ -88,66 +84,20 @@ export function VinculacionGroupRentabilidad({
   pickerStrings,
   insightsFetching,
 }: VinculacionGroupRentabilidadProps) {
+  const insight = useGroupInsight()
   const [granularity, setGranularity] = useState<RevenueSeriesGranularity>('week')
   const [trendChartType, setTrendChartType] = useState<SeriesChartView>('line')
   const [selectedMetrics, setSelectedMetrics] = useState<ProductDetailTrendMetricId[]>([
     'net-sales',
   ])
-  const [channelFilter, setChannelFilter] = useState(PRODUCT_DETAIL_ALL_CHANNELS)
   const connectionsQuery = usePlatformConnectionsQuery()
 
-  const platformSlugs = useMemo(() => {
-    const slugs = new Set<string>()
-    for (const member of group.members) {
-      const slug = memberSlug(member)
-      if (slug) slugs.add(slug)
-    }
-    return Array.from(slugs).sort((a, b) => a.localeCompare(b))
-  }, [group.members])
-
-  const activeChannel =
-    channelFilter === PRODUCT_DETAIL_ALL_CHANNELS || platformSlugs.includes(channelFilter)
-      ? channelFilter
-      : PRODUCT_DETAIL_ALL_CHANNELS
-
-  const filteredMembers = useMemo(() => {
-    if (activeChannel === PRODUCT_DETAIL_ALL_CHANNELS) return group.members
-    return group.members.filter((member) => memberSlug(member) === activeChannel)
-  }, [activeChannel, group.members])
-
-  const channelOptions = useMemo((): FilterOption[] => {
-    const allOption: FilterOption = {
-      value: PRODUCT_DETAIL_ALL_CHANNELS,
-      label: t('homeFilterChannelsAll'),
-    }
-    const platformOptions = platformSlugs.map((slug) => {
-      const source =
-        group.members.find((member) => memberSlug(member) === slug)?.platform ?? slug
-      return { value: slug, label: productPlatformLabel(source, t) }
-    })
-    return [allOption, ...platformOptions]
-  }, [group.members, platformSlugs, t])
-
-  const settlement = useMemo(() => {
-    if (activeChannel === PRODUCT_DETAIL_ALL_CHANNELS) return group.period_settlement
-    const row = (group.period_settlement_by_platform ?? []).find(
-      (item) => item.platform.trim().toLowerCase() === activeChannel,
-    )
-    return row ?? group.period_settlement
-  }, [activeChannel, group.period_settlement, group.period_settlement_by_platform])
+  const { settlement, chartProductIds } = insight
+  const chartConnectionIds = insight.connectionIdsForActive(connectionsQuery.data)
 
   const segments = useMemo(
     () => buildSettlementWaterfallSegments(settlement, t, { includeTaxWithholdings: false }),
     [settlement, t],
-  )
-
-  const chartProductIds = useMemo(
-    () => filteredMembers.map((member) => member.product_id),
-    [filteredMembers],
-  )
-  const chartConnectionIds = useMemo(
-    () => connectionIdsForPlatform(connectionsQuery.data, activeChannel),
-    [activeChannel, connectionsQuery.data],
   )
 
   const { data: series, isError } = useMonthlyRevenueSeries({
@@ -159,10 +109,16 @@ export function VinculacionGroupRentabilidad({
     enabled: chartProductIds.length > 0 && Boolean(insightStart && insightEnd),
   })
 
-  const platforms = useMemo(() => settlementPlatformsFromGroup(group, t), [group, t])
+  const byProduct = insight.dimension === 'product'
+  const productPlatforms = useMemo(() => groupProductPlatforms(group), [group])
+  const channelPlatforms = useMemo(() => settlementPlatformsFromGroup(group, t), [group, t])
+  const settlementPlatforms = byProduct ? productPlatforms : channelPlatforms
   const settlementMetrics = useMemo(
-    () => groupSettlementByPlatformMetrics(group, platforms),
-    [group, platforms],
+    () =>
+      byProduct
+        ? groupProductSettlementMetrics(group, productPlatforms)
+        : groupSettlementByPlatformMetrics(group, channelPlatforms),
+    [byProduct, channelPlatforms, group, productPlatforms],
   )
 
   const dateLocale = lang === 'en' ? enUS : esLocale
@@ -271,24 +227,46 @@ export function VinculacionGroupRentabilidad({
     <div className="flex flex-col gap-8">
       <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
         <CardHeader className="flex flex-col gap-3 p-0">
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-            <DateRangePicker
-              strings={pickerStrings}
-              startValue={insightStart}
-              endValue={insightEnd}
-              onStartChange={(v) => v && setInsightStart(v)}
-              onEndChange={(v) => v && setInsightEnd(v)}
-              className="w-full max-w-md"
-            />
-            <FilterComboboxSingle
-              label={t('homeFilterChannels')}
-              options={channelOptions}
-              value={activeChannel}
-              onValueChange={setChannelFilter}
-              searchPlaceholder={t('homeFilterChannelsSearch')}
-              emptyLabel={t('homeFilterChannelsEmpty')}
-              allowClear={false}
-              triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+            <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+              <DateRangePicker
+                strings={pickerStrings}
+                startValue={insightStart}
+                endValue={insightEnd}
+                onStartChange={(v) => v && setInsightStart(v)}
+                onEndChange={(v) => v && setInsightEnd(v)}
+                className="w-full max-w-md"
+              />
+              {byProduct ? (
+                <FilterComboboxSingle
+                  label={t('productsColProduct')}
+                  options={insight.productOptions}
+                  value={insight.productFilter}
+                  onValueChange={insight.setProductFilter}
+                  searchPlaceholder={t('productsSearchPlaceholder')}
+                  emptyLabel={t('productsVinculacionPickerEmpty')}
+                  allowClear={false}
+                  triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
+                />
+              ) : (
+                <FilterComboboxSingle
+                  label={t('homeFilterChannels')}
+                  options={insight.channelOptions}
+                  value={insight.channelFilter}
+                  onValueChange={insight.setChannelFilter}
+                  searchPlaceholder={t('homeFilterChannelsSearch')}
+                  emptyLabel={t('homeFilterChannelsEmpty')}
+                  allowClear={false}
+                  triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
+                />
+              )}
+            </div>
+            <VinculacionInsightDimensionFilter
+              value={insight.dimension}
+              onChange={insight.setDimension}
+              t={t}
+              switchId="group-insight-dimension-rentabilidad"
+              className="shrink-0 self-end"
             />
           </div>
         </CardHeader>
@@ -357,21 +335,17 @@ export function VinculacionGroupRentabilidad({
         isLoading={insightsFetching}
       />
 
-      {platforms.length > 0 ? (
+      {settlementPlatforms.length > 0 ? (
         <ChannelsSettlementTable
           metrics={settlementMetrics}
-          platforms={platforms}
+          platforms={settlementPlatforms}
           formatMoney={fmtBase}
           t={t}
           includeTaxWithholdings={false}
         />
       ) : null}
 
-      <GroupInventoryByChannel
-        group={group}
-        t={t}
-        isFetching={insightsFetching}
-      />
+      <GroupInventoryByChannel group={group} t={t} isFetching={insightsFetching} />
     </div>
   )
 }

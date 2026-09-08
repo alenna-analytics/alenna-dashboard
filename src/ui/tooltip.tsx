@@ -24,6 +24,10 @@ function TooltipTrigger({
   return <TooltipPrimitive.Trigger {...props} />
 }
 
+/** Soft white surface — matches calc/title tooltips (img 1); do not use for chart series hover. */
+const tooltipContentClassName =
+  'z-80 max-w-xs overflow-hidden rounded-md border border-border-subtle bg-[var(--bg-base)] px-3 py-2 text-xs font-semibold text-text-primary shadow-[0_8px_24px_rgba(15,23,42,0.12)] transition-all duration-150'
+
 function TooltipContent({
   className,
   sideOffset = 4,
@@ -33,10 +37,7 @@ function TooltipContent({
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
         sideOffset={sideOffset}
-        className={cn(
-          'z-80 max-w-xs overflow-hidden rounded-xl border-0 bg-[#1f1f1f] px-2.5 py-1.5 text-xs font-normal text-white shadow-lg transition-all duration-150',
-          className
-        )}
+        className={cn(tooltipContentClassName, className)}
         {...props}
       />
     </TooltipPrimitive.Portal>

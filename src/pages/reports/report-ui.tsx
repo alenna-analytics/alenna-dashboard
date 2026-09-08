@@ -114,7 +114,7 @@ export function ChartSectionHeader({
   const interactive = Boolean(titleHref || onTitleClick)
   const titleClassName = cn(
     'text-sm font-bold text-text-tertiary',
-    interactive &&
+    (interactive || showCalcTooltip) &&
       'cursor-pointer underline decoration-dotted decoration-text-tertiary/70 underline-offset-4 transition-colors hover:text-text-secondary',
   )
 
@@ -141,7 +141,7 @@ export function ChartSectionHeader({
         sideOffset={12}
         collisionPadding={24}
         avoidCollisions
-        className="max-w-[22rem] border-0 bg-white px-3 py-2.5 text-left text-text-primary shadow-[0_8px_24px_rgba(15,23,42,0.12)]"
+        className="max-w-[22rem] text-left"
       >
         <MetricCalcTooltipBody
           title={title}
@@ -198,6 +198,9 @@ type KpiVariant = 'hero' | 'default'
 export function KpiCard({
   label,
   helpText,
+  helpFormulaLeft,
+  helpFormulaParts,
+  helpFormulaJoiner,
   value,
   format,
   currency,
@@ -214,6 +217,9 @@ export function KpiCard({
 }: {
   label: string
   helpText: string
+  helpFormulaLeft?: string
+  helpFormulaParts?: readonly string[]
+  helpFormulaJoiner?: string
   value: number
   format: 'currency' | 'count' | 'percent'
   currency: string
@@ -259,6 +265,9 @@ export function KpiCard({
     <KpiCardUi
       label={label}
       helpText={mergedHelp}
+      helpFormulaLeft={helpFormulaLeft}
+      helpFormulaParts={helpFormulaParts}
+      helpFormulaJoiner={helpFormulaJoiner}
       variant={variant === 'hero' ? 'featured' : 'default'}
       value={display}
       numericValue={value}

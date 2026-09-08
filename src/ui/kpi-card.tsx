@@ -69,7 +69,7 @@ export function KpiDeltaPill({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 font-numeric text-sm font-medium tabular-nums leading-none',
+        'inline-flex items-center gap-0.5 font-numeric text-[12px] font-medium tabular-nums leading-none',
         tone === 'good' && 'text-[var(--kpi-pill-positive-text)]',
         tone === 'bad' && 'text-[var(--kpi-pill-negative-text)]',
         tone === 'neutral' && 'text-text-secondary',
@@ -77,9 +77,9 @@ export function KpiDeltaPill({
       )}
     >
       {!empty && iconName ? (
-        <AppIcon name={iconName} colorize className="size-3.5 shrink-0" />
+        <AppIcon name={iconName} colorize className="size-2.5 shrink-0" />
       ) : null}
-      <span>{pctStr}</span>
+      <span className="leading-none">{pctStr}</span>
     </span>
   )
 }
@@ -365,7 +365,7 @@ export function KpiCard({
         </div>
 
         <div className="flex min-w-0 flex-col items-start gap-1.5">
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
             <span
               className={cn(
                 'font-numeric min-w-0 text-lg font-medium leading-none tracking-tight',
@@ -378,7 +378,9 @@ export function KpiCard({
               {placeholder ? placeholderLabel : value}
             </span>
             {!placeholder && currencyCode ? (
-              <span className="text-sm font-medium text-text-secondary">{currencyCode}</span>
+              <span className="text-sm font-medium leading-none text-text-secondary">
+                {currencyCode}
+              </span>
             ) : null}
             {deltaEl}
             {!placeholder && valueTooltip ? (

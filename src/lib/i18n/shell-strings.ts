@@ -217,7 +217,7 @@ const SHELL_STRINGS = {
     workspaceConfigTaxRatesSubtitle:
       'Porcentajes del espacio de trabajo usados solo para estimar retenciones de plataformas. No modifican CM ni EBITDA.',
     workspaceConfigTaxRatesUnsetHint:
-      'Aún no hay tasas configuradas. Completa los campos o usa las tasas típicas MX.',
+      'Aún no hay tasas configuradas. Completa los campos o usa la recomendación.',
     workspaceConfigTaxRatesWithholdingsGroup: 'Retenciones',
     workspaceConfigTaxRatesTransferGroup: 'Traslado',
     workspaceConfigTaxRatesWithholdingIsr: 'Retención ISR %',
@@ -230,7 +230,7 @@ const SHELL_STRINGS = {
     workspaceConfigTaxRatesSaveSuccess: 'Tasas de impuestos actualizadas.',
     workspaceConfigTaxRatesSaveFailed: 'No se pudieron guardar las tasas de impuestos.',
     workspaceConfigTaxRatesInvalid: 'Cada tasa debe ser un número entre 0 y 100.',
-    workspaceConfigTaxRatesApplyTypicalMx: 'Usar tasas típicas MX',
+    workspaceConfigTaxRatesApplyTypicalMx: 'Usar recomendación',
     workspaceConfigTaxRatesReadOnlyHint:
       'Solo administradores del espacio de trabajo pueden editar las tasas de impuestos.',
     workspaceConfigFxRatesTitle: 'Tipo de cambio',
@@ -2404,7 +2404,7 @@ const SHELL_STRINGS = {
     workspaceConfigTaxRatesSubtitle:
       'Workspace percentages used only to estimate platform withholdings. They do not change CM or EBITDA.',
     workspaceConfigTaxRatesUnsetHint:
-      'No rates configured yet. Fill the fields or apply typical MX rates.',
+      'No rates configured yet. Fill the fields or use the recommendation.',
     workspaceConfigTaxRatesWithholdingsGroup: 'Withholdings',
     workspaceConfigTaxRatesTransferGroup: 'Transferred',
     workspaceConfigTaxRatesWithholdingIsr: 'ISR withholding %',
@@ -2417,7 +2417,7 @@ const SHELL_STRINGS = {
     workspaceConfigTaxRatesSaveSuccess: 'Tax rates updated.',
     workspaceConfigTaxRatesSaveFailed: 'Could not save tax rates.',
     workspaceConfigTaxRatesInvalid: 'Each rate must be a number between 0 and 100.',
-    workspaceConfigTaxRatesApplyTypicalMx: 'Use typical MX rates',
+    workspaceConfigTaxRatesApplyTypicalMx: 'Use recommendation',
     workspaceConfigTaxRatesReadOnlyHint: 'Only workspace admins can edit tax rates.',
     workspaceConfigFxRatesTitle: 'Exchange rates',
     workspaceConfigFxRatesDescription: 'View FX rates used to convert into the workspace base currency.',

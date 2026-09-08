@@ -24,13 +24,13 @@ function TooltipTrigger({
   return <TooltipPrimitive.Trigger {...props} />
 }
 
-/** Soft white surface — Supabase-like label tip (callers set sideOffset for gap). */
+/** Soft white surface — radius matches tiny button (`rounded-md`). */
 const tooltipContentClassName =
-  'z-80 max-w-xs overflow-hidden rounded-xl border border-border-subtle bg-white px-3 py-2 text-xs font-normal text-text-primary shadow-[0_8px_24px_rgba(15,23,42,0.12)] transition-all duration-150'
+  'z-80 max-w-xs overflow-hidden rounded-md border border-border-subtle bg-white px-3 py-2 text-xs font-normal text-text-primary shadow-[0_8px_24px_rgba(15,23,42,0.12)] transition-all duration-150'
 
 function TooltipContent({
   className,
-  sideOffset = 6,
+  sideOffset = 4,
   ...props
 }: ComponentProps<typeof TooltipPrimitive.Content>) {
   return (

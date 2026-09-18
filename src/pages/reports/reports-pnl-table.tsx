@@ -12,7 +12,11 @@ import { settingsDescriptionClassName } from '@/pages/configuration/settings-lay
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
-import { statementTableColumnResize } from '@/ui/data-table/statement-table-column-resize'
+import {
+  STATEMENT_CONCEPT_COLUMN_SIZE,
+  STATEMENT_VALUE_COLUMN_SIZE,
+  statementTableColumnResize,
+} from '@/ui/data-table/statement-table-column-resize'
 import { TableEmptyCell } from '@/ui/data-table/table-empty-cell'
 import { EmptyState } from '@/ui/empty-state'
 
@@ -59,6 +63,7 @@ export function ReportsPnlTable({
     () => [
       columnHelper.display({
         id: 'concept',
+        ...STATEMENT_CONCEPT_COLUMN_SIZE,
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t('reportsPnlColConcept')} />
         ),
@@ -68,8 +73,8 @@ export function ReportsPnlTable({
           const margin =
             r.marginPct !== null ? ` (${r.marginPct.toFixed(1)}%)` : null
           return (
-            <div className="min-w-0">
-              <span className={cn('text-text-primary', emphasisClass(r.kind))}>
+            <div className="min-w-0 overflow-hidden">
+              <span className={cn('block truncate text-text-primary', emphasisClass(r.kind))}>
                 {r.isDeduction ? `(−) ${label}` : r.kind !== 'line' ? `= ${label}` : label}
                 {margin ? (
                   <span data-slot="pnl-meta" className="font-normal text-text-tertiary">
@@ -80,7 +85,7 @@ export function ReportsPnlTable({
               {r.rowHintKey ? (
                 <p
                   data-slot="pnl-meta"
-                  className={cn('mt-0.5', settingsDescriptionClassName)}
+                  className={cn('mt-0.5 truncate', settingsDescriptionClassName)}
                 >
                   {t(r.rowHintKey)}
                 </p>
@@ -89,12 +94,13 @@ export function ReportsPnlTable({
           )
         },
         meta: {
-          cellClassName: 'align-middle whitespace-nowrap pr-6',
-          headerClassName: 'whitespace-nowrap',
+          cellClassName: 'align-middle overflow-hidden pr-6',
+          headerClassName: 'overflow-hidden',
         },
       }),
       columnHelper.display({
         id: 'current',
+        ...STATEMENT_VALUE_COLUMN_SIZE,
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -119,12 +125,13 @@ export function ReportsPnlTable({
           )
         },
         meta: {
-          headerClassName: 'text-right whitespace-nowrap',
-          cellClassName: 'text-right whitespace-nowrap',
+          headerClassName: 'text-right overflow-hidden',
+          cellClassName: 'text-right overflow-hidden',
         },
       }),
       columnHelper.display({
         id: 'pctVn',
+        ...STATEMENT_VALUE_COLUMN_SIZE,
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -145,12 +152,13 @@ export function ReportsPnlTable({
           )
         },
         meta: {
-          headerClassName: 'text-right whitespace-nowrap',
-          cellClassName: 'text-right whitespace-nowrap',
+          headerClassName: 'text-right overflow-hidden',
+          cellClassName: 'text-right overflow-hidden',
         },
       }),
       columnHelper.display({
         id: 'previous',
+        ...STATEMENT_VALUE_COLUMN_SIZE,
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -169,12 +177,13 @@ export function ReportsPnlTable({
           )
         },
         meta: {
-          headerClassName: 'text-right whitespace-nowrap',
-          cellClassName: 'text-right whitespace-nowrap',
+          headerClassName: 'text-right overflow-hidden',
+          cellClassName: 'text-right overflow-hidden',
         },
       }),
       columnHelper.display({
         id: 'deltaAbs',
+        ...STATEMENT_VALUE_COLUMN_SIZE,
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -197,12 +206,13 @@ export function ReportsPnlTable({
           )
         },
         meta: {
-          headerClassName: 'text-right whitespace-nowrap',
-          cellClassName: 'text-right whitespace-nowrap',
+          headerClassName: 'text-right overflow-hidden',
+          cellClassName: 'text-right overflow-hidden',
         },
       }),
       columnHelper.display({
         id: 'deltaPct',
+        ...STATEMENT_VALUE_COLUMN_SIZE,
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -225,12 +235,13 @@ export function ReportsPnlTable({
           )
         },
         meta: {
-          headerClassName: 'text-right whitespace-nowrap',
-          cellClassName: 'text-right whitespace-nowrap',
+          headerClassName: 'text-right overflow-hidden',
+          cellClassName: 'text-right overflow-hidden',
         },
       }),
       columnHelper.display({
         id: 'yoyPct',
+        ...STATEMENT_VALUE_COLUMN_SIZE,
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
@@ -253,8 +264,8 @@ export function ReportsPnlTable({
           )
         },
         meta: {
-          headerClassName: 'text-right whitespace-nowrap',
-          cellClassName: 'text-right whitespace-nowrap',
+          headerClassName: 'text-right overflow-hidden',
+          cellClassName: 'text-right overflow-hidden',
         },
       }),
     ],

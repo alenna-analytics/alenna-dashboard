@@ -19,7 +19,7 @@ import {
   PRODUCT_DETAIL_ALL_CHANNELS,
 } from '../product-detail-analytics-filter'
 import { productPlatformLabel } from '../product-platform-label'
-import { groupChannelPnlMetrics, groupChannelPlatforms } from './group-channel-pnl-metrics'
+import { groupChannelPnlMetrics, groupChannelPlatforms, groupNetBasisGrossProfit } from './group-channel-pnl-metrics'
 
 export type GroupInsightDimension = 'channel' | 'product'
 
@@ -99,10 +99,11 @@ export function filterGroupPeriod(
 ): FilteredGroupPeriod {
   if (allSelected) {
     const units = group.period_net_units_sold || group.period_gross_units_sold
+    const netGrossProfit = groupNetBasisGrossProfit(group)
     return {
       period_gross_sales: group.period_gross_sales,
       period_net_sales: group.period_net_sales,
-      period_gross_profit: group.period_gross_profit,
+      period_gross_profit: netGrossProfit,
       gross_margin_pct: group.gross_margin_pct,
       contribution_margin: group.contribution_margin,
       contribution_margin_pct: group.contribution_margin_pct,
@@ -119,8 +120,8 @@ export function filterGroupPeriod(
   const netSales = members.reduce((sum, member) => sum + (member.period_net_sales ?? 0), 0)
   const grossSales = members.reduce((sum, member) => sum + (member.period_gross_sales ?? 0), 0)
   const share = group.period_net_sales > 0 ? netSales / group.period_net_sales : 0
-  const grossProfit = group.period_gross_profit * share
   const cogs = group.period_cogs * share
+  const grossProfit = netSales - cogs
   const contribution = group.contribution_margin * share
   const units = members.reduce(
     (sum, member) => sum + (member.period_net_units_sold || member.period_gross_units_sold || 0),
@@ -235,7 +236,7 @@ export function groupProductPnlMetrics(
       settlement?.gross_revenue != null
         ? settlement.gross_revenue * platformShare
         : grossSales || group.period_settlement.gross_revenue * share
-    const grossProfit = group.period_gross_profit * share
+    const grossProfit = groupNetBasisGrossProfit(group) * share
     const cogs = group.period_cogs * share
     const contribution = group.contribution_margin * share
     const units = member.period_net_units_sold || member.period_gross_units_sold || 0

@@ -24,7 +24,7 @@ export function DataTableColumnHeader<TData, TValue>({
           className,
         )}
       >
-        {title}
+        <span className="min-w-0 truncate">{title}</span>
       </div>
     )
   }

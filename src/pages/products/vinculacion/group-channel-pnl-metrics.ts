@@ -6,6 +6,16 @@ import type {
 import { productPlatformLabel } from '../product-platform-label'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 
+/**
+ * Utilidad bruta on net sales (matches product-detail `gross_profit` / API `net_profit`).
+ * Group payload `period_gross_profit` is gross sales − COGS and must not drive the P&L waterfall.
+ */
+export function groupNetBasisGrossProfit(
+  group: Pick<ProductLinkGroupApi, 'period_net_sales' | 'period_cogs'>,
+): number {
+  return group.period_net_sales - group.period_cogs
+}
+
 function emptyMetrics(platform: string): PlatformMetrics {
   return {
     platform,
@@ -81,7 +91,7 @@ export function groupChannelPnlMetrics(
     const settlement = settlements.get(slug)
     const share =
       group.period_net_sales > 0 ? row.net_sales / group.period_net_sales : 0
-    const grossProfit = group.period_gross_profit * share
+    const grossProfit = groupNetBasisGrossProfit(group) * share
     const cogs = group.period_cogs * share
     const contribution = group.contribution_margin * share
     const discounts = settlement?.discounts ?? group.period_settlement.discounts * share

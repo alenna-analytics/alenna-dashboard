@@ -13,10 +13,13 @@ import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { EmptyState } from '@/ui/empty-state'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
-import { statementTableColumnResize } from '@/ui/data-table/statement-table-column-resize'
+import {
+  STATEMENT_CONCEPT_COLUMN_SIZE,
+  STATEMENT_VALUE_COLUMN_SIZE,
+  statementTableColumnResize,
+} from '@/ui/data-table/statement-table-column-resize'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import {
-  productHeaderColumnClassName,
   truncateProductHeaderLabel,
 } from '@/pages/channels/channels-product-header-label'
 
@@ -187,6 +190,7 @@ export function ChannelsSettlementTable({
     () => [
       columnHelper.display({
         id: 'concept',
+        ...STATEMENT_CONCEPT_COLUMN_SIZE,
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t('reportsPnlColConcept')} />
         ),
@@ -203,13 +207,14 @@ export function ChannelsSettlementTable({
           )
         },
         meta: {
-          cellClassName: 'align-middle whitespace-nowrap pr-6',
-          headerClassName: 'whitespace-nowrap',
+          cellClassName: 'align-middle overflow-hidden pr-6',
+          headerClassName: 'overflow-hidden',
         },
       }),
       ...cols.map((col) =>
         columnHelper.display({
           id: col.slug,
+          ...STATEMENT_VALUE_COLUMN_SIZE,
           header: ({ column }) => {
             const isTotal = col.slug === 'total'
             const { display, full, truncated } =
@@ -283,18 +288,8 @@ export function ChannelsSettlementTable({
             )
           },
           meta: {
-            headerClassName: cn(
-              'text-right whitespace-nowrap',
-              truncateLongHeaders &&
-                col.slug !== 'total' &&
-                productHeaderColumnClassName,
-            ),
-            cellClassName: cn(
-              'text-right whitespace-nowrap',
-              truncateLongHeaders &&
-                col.slug !== 'total' &&
-                productHeaderColumnClassName,
-            ),
+            headerClassName: 'text-right overflow-hidden',
+            cellClassName: 'text-right overflow-hidden',
           },
         }),
       ),

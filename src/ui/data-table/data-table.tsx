@@ -31,6 +31,8 @@ type DataTableProps<TData> = {
   density?: 'default' | 'compact'
   /** Compact tables hug content by default; `full` stretches to the container. */
   tableWidth?: 'content' | 'full'
+  /** Use `table-fixed` so column % / rem widths distribute across the full table. */
+  fixedLayout?: boolean
   /** Renders above the table (outside the card), e.g. bulk selection. */
   toolbar?: ReactNode
   /** Renders in the toolbar row on the left (e.g. bulk selection summary). */
@@ -52,6 +54,7 @@ export function DataTable<TData>({
   variant = 'card',
   density = 'default',
   tableWidth = 'content',
+  fixedLayout = false,
   toolbar,
   selectionBanner,
   footer,
@@ -67,6 +70,7 @@ export function DataTable<TData>({
   const isCompact = density === 'compact'
   const stretchTable = !isCompact || tableWidth === 'full'
   const columnResizeEnabled = Boolean(table.options.enableColumnResizing)
+  const useFixedLayout = columnResizeEnabled || fixedLayout
   const frameRef = useRef<HTMLDivElement>(null)
   const columnSizing = table.getState().columnSizing
   const resizingColumnId = table.getState().columnSizingInfo.isResizingColumn
@@ -140,7 +144,7 @@ export function DataTable<TData>({
           className={cn(
             'caption-bottom border-separate border-spacing-0',
             isCompact ? cn(tableFontClass, stretchTable ? 'w-full' : 'w-max min-w-0') : cn('w-full', tableFontClass),
-            columnResizeEnabled && 'table-fixed w-full',
+            useFixedLayout && 'table-fixed w-full',
           )}
         >
           <TableHeader className="[&_tr]:border-b">

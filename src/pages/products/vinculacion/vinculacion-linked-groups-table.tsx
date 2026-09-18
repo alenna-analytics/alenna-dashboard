@@ -41,11 +41,6 @@ type VinculacionLinkedGroupsTableProps = {
   onUnlink: (groupId: string) => void
 }
 
-const TEXT_CELL_META = {
-  headerClassName: '[&>div]:justify-start',
-  cellClassName: '[&>div]:justify-start',
-} as const
-
 export function VinculacionLinkedGroupsTable({
   groups,
   t,
@@ -90,6 +85,7 @@ export function VinculacionLinkedGroupsTable({
         />
       }
       tableWidth="full"
+      fixedLayout
       expandedRowIds={expandedRowIds}
       onRowClick={(group) => {
         setExpandedId((current) => (current === group.id ? null : group.id))
@@ -121,8 +117,8 @@ function createColumns({
       id: 'image',
       enableSorting: false,
       meta: {
-        headerClassName: 'w-14 [&>div]:justify-start',
-        cellClassName: 'w-14 [&>div]:justify-start',
+        headerClassName: 'w-[4.5rem] [&>div]:justify-start',
+        cellClassName: 'w-[4.5rem] [&>div]:justify-start',
       },
       header: () => <span className="sr-only">{t('productsColImage')}</span>,
       cell: ({ row }) => {
@@ -145,9 +141,8 @@ function createColumns({
       id: 'name',
       accessorFn: (row) => row.title,
       meta: {
-        ...TEXT_CELL_META,
-        headerClassName: 'w-[18rem] max-w-[18rem] [&>div]:justify-start',
-        cellClassName: 'w-[18rem] max-w-[18rem] min-w-0 overflow-hidden [&>div]:justify-start',
+        headerClassName: 'w-[40%] min-w-0 [&>div]:justify-start',
+        cellClassName: 'w-[40%] min-w-0 overflow-hidden [&>div]:justify-start',
       },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsColProduct')} />
@@ -170,9 +165,8 @@ function createColumns({
       id: 'matchType',
       enableSorting: false,
       meta: {
-        ...TEXT_CELL_META,
-        headerClassName: 'w-[12rem] max-w-[12rem] [&>div]:justify-start',
-        cellClassName: 'w-[12rem] max-w-[12rem] min-w-0 overflow-hidden [&>div]:justify-start',
+        headerClassName: 'w-[20%] min-w-0 [&>div]:justify-start',
+        cellClassName: 'w-[20%] min-w-0 overflow-hidden [&>div]:justify-start',
       },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsVinculacionColMatchType')} />
@@ -186,8 +180,8 @@ function createColumns({
       accessorFn: (row) => row.members.length,
       enableSorting: false,
       meta: {
-        headerClassName: '[&>div]:justify-end',
-        cellClassName: 'w-[7.5rem] whitespace-nowrap text-right [&>div]:justify-end',
+        headerClassName: 'w-[20%] min-w-0 [&>div]:justify-end',
+        cellClassName: 'w-[20%] min-w-0 whitespace-nowrap text-right [&>div]:justify-end',
       },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsVinculacionSectionProducts')} />
@@ -206,8 +200,8 @@ function createColumns({
       accessorFn: (row) => groupPlatforms(row).join(','),
       enableSorting: false,
       meta: {
-        headerClassName: 'w-full min-w-0 [&>div]:justify-start',
-        cellClassName: 'w-full min-w-0 overflow-hidden [&>div]:justify-start',
+        headerClassName: 'w-[20%] min-w-0 [&>div]:justify-start',
+        cellClassName: 'w-[20%] min-w-0 overflow-hidden align-middle [&>div]:items-center [&>div]:justify-start',
       },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsColChannels')} />
@@ -216,8 +210,8 @@ function createColumns({
         const group = row.original
         const platforms = groupPlatforms(group)
         return (
-          <div className="flex w-full min-w-0 items-start justify-between gap-2">
-            <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex w-full min-w-0 items-center justify-between gap-2">
+            <div className="flex min-w-0 flex-col justify-center gap-1">
               {platforms.map((slug) => (
                 <ProductPlatformLogoName
                   key={slug}

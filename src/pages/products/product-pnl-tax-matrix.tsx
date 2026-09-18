@@ -88,6 +88,9 @@ type ProductPnlTaxMatrixProps = {
   currencyCode?: string
   yearWithheld?: number | null
   yearWithheldLoading?: boolean
+  showRetentionTip?: boolean
+  showShopifyAlert?: boolean
+  showFiscalCreditAlert?: boolean
 }
 
 function emphasisClass(kind: TaxLine['kind']): string {
@@ -104,6 +107,9 @@ export function ProductPnlTaxMatrix({
   currencyCode,
   yearWithheld = null,
   yearWithheldLoading = false,
+  showRetentionTip = true,
+  showShopifyAlert = false,
+  showFiscalCreditAlert = false,
 }: ProductPnlTaxMatrixProps) {
   const byProduct = breakdown === 'product'
   const estimates = useMemo(() => {
@@ -276,7 +282,9 @@ export function ProductPnlTaxMatrix({
           periodWithheld={totalWithheld}
           yearWithheld={yearWithheld}
           yearWithheldLoading={yearWithheldLoading}
-          showRetentionTip
+          showRetentionTip={showRetentionTip}
+          showShopifyAlert={showShopifyAlert}
+          showFiscalCreditAlert={showFiscalCreditAlert}
         />
       </div>
     </SectionSplit>

@@ -9,9 +9,11 @@ import { enUS, es as esLocale } from 'date-fns/locale'
 import { useCurrentTenant } from '@/auth/hooks'
 import { useMoney } from '@/hooks/use-money'
 import { apiFetch } from '@/lib/api'
-import { filterEcommerceConnections } from '@/lib/integrations/ads-scope'
+import { filterEcommerceConnections, resolveAdsApiScope } from '@/lib/integrations/ads-scope'
 import type { PlatformConnection } from '@/lib/types/connectors'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
+import { useAdsChannels } from '@/pages/ads/use-ads-kpis'
+import { aggregateAdsByEcommercePlatform } from '@/pages/channels/channels-ads-by-platform'
 import { ChannelsCmChart } from '@/pages/channels/channels-cm-chart'
 import { ChannelsCostStructureChart } from '@/pages/channels/channels-cost-structure-chart'
 import { ChannelsPnlTable } from '@/pages/channels/channels-pnl-table'
@@ -23,6 +25,8 @@ import {
   type ChannelPlatform,
 } from '@/pages/channels/channels-platform-aggregate'
 import { useChannelsPageFilters } from '@/pages/channels/use-channels-page-filters'
+import { useTaxRatesQuery } from '@/pages/configuration/tax-rates/use-tax-rates-queries'
+import { ProductPnlTaxMatrix } from '@/pages/products/product-pnl-tax-matrix'
 import { resolveAmazonFeesNoticeState } from '@/lib/integrations/amazon-fees-notice'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
@@ -99,6 +103,10 @@ export function ChannelsPage() {
           connection.status === 'active' &&
           connection.connection_status === 'active',
       ),
+    [connectionsQuery.data],
+  )
+  const allConnections = useMemo(
+    () => connectionsQuery.data ?? [],
     [connectionsQuery.data],
   )
   const connectorsLoading = Boolean(tenantId) && connectionsQuery.isLoading
@@ -194,6 +202,41 @@ export function ChannelsPage() {
     [kpis, displayedPlatforms],
   )
   const cmIncomplete = Boolean(kpis?.cm_incomplete)
+
+  const adsScope = useMemo(
+    () => resolveAdsApiScope(allConnections, activeConnectionIds),
+    [allConnections, activeConnectionIds],
+  )
+  const { data: adsChannels } = useAdsChannels({
+    connectionIds: adsScope.queryConnectionIds,
+    startDate,
+    endDate,
+    enabled: queriesEnabled && adsScope.hasAdsConnections,
+  })
+
+  const connectionIdToPlatform = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const connection of connections) {
+      map[connection.id] = connection.platform.trim().toLowerCase()
+    }
+    return map
+  }, [connections])
+
+  const adsByPlatform = useMemo(
+    () =>
+      aggregateAdsByEcommercePlatform(
+        adsChannels?.items ?? [],
+        connectionIdToPlatform,
+        displayedPlatforms,
+      ),
+    [adsChannels?.items, connectionIdToPlatform, displayedPlatforms],
+  )
+
+  const tenantAdsSpend = Number(kpis?.tenant_ads_spend ?? 0)
+  const { data: taxRatesResponse } = useTaxRatesQuery()
+  const taxRates = taxRatesResponse?.settings ?? null
+  const hasShopifyColumn = displayedPlatforms.some((p) => p.slug === 'shopify')
+
   const amazonFeesNoticeState = resolveAmazonFeesNoticeState(
     connections,
     activeConnectionIds,
@@ -301,6 +344,20 @@ export function ChannelsPage() {
             t={t}
             labelForRow={labelForRow}
             cmIncomplete={cmIncomplete}
+            detailLevel="full"
+            adsByPlatform={adsByPlatform}
+            tenantAdsSpend={tenantAdsSpend}
+          />
+
+          <ProductPnlTaxMatrix
+            metrics={currentAgg}
+            platforms={displayedPlatforms}
+            taxRates={taxRates}
+            formatMoney={formatConverted}
+            t={t}
+            currencyCode={effectiveDisplayCurrency}
+            showRetentionTip={false}
+            showShopifyAlert={hasShopifyColumn}
           />
 
           <div className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">

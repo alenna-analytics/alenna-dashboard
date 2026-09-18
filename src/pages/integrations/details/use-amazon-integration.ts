@@ -21,8 +21,7 @@ import {
 import {
   buildPlatformFullSyncTypedError,
   formatRetryAfterHoursLabel,
-  readApiErrorDetail,
-  readRetryAfterSeconds,
+  parseApiErrorPayload,
 } from '@/lib/integrations/platform-full-sync-error'
 import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
 import {
@@ -435,14 +434,17 @@ export function useAmazonIntegration() {
         tenantId,
       )
       if (!res.ok) {
-        const detail = await readApiErrorDetail(res)
-        const retryAfterSeconds = readRetryAfterSeconds(res)
-        const typed = buildPlatformFullSyncTypedError(res.status, detail, retryAfterSeconds)
+        const payload = await parseApiErrorPayload(res)
+        const typed = buildPlatformFullSyncTypedError(
+          res.status,
+          payload.code,
+          payload.retryAfterSeconds,
+        )
         if (typed) throw typed
-        if (res.status === 409 && detail === 'platform_sync_in_progress') {
+        if (res.status === 409 && payload.code === 'platform_sync_in_progress') {
           throw new Error(shellT(lang, 'syncInProgressToast'))
         }
-        throw new Error(detail ?? res.statusText)
+        throw new Error(payload.message ?? payload.code ?? res.statusText)
       }
       return (await res.json()) as AmazonSyncEnqueueResponse
     },

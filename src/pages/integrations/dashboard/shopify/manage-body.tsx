@@ -159,7 +159,7 @@ function ShopifySyncSection({
 
   const cooldownHelper = useMemo<string | null>(() => {
     if (!syncPlan?.retry_after_seconds || syncPlan.retry_after_seconds <= 0) return null
-    if (syncPlan.cooldown_reason !== 'shopify_full_sync_cooldown') return null
+    if (syncPlan.cooldown_reason !== 'platform_full_sync_cooldown') return null
     return shellT(lang, 'syncCooldownHelper', { hours: String(ceilHours(syncPlan.retry_after_seconds)) })
   }, [lang, syncPlan])
 

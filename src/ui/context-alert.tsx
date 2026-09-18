@@ -19,8 +19,8 @@ const iconClassByTone: Record<ContextAlertTone, string> = {
 }
 
 type ContextAlertCardProps = {
-  title: string
-  subtitle?: string
+  title: ReactNode
+  subtitle?: ReactNode
   icon: LucideIcon | ReactNode
   tone?: ContextAlertTone
   action?: ReactNode

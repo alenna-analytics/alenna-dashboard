@@ -66,17 +66,20 @@ export function ProductCobroFiscalAlerts({
     <>
       {showShopifyAlert ? (
         <ContextAlertCard
-          title={t('productsDetailCobroShopifyNoTaxAlert')}
+          title={
+            <>
+              {t('productsDetailCobroShopifyNoTaxAlertBefore')}{' '}
+              <Link
+                to="/dashboard/configuration/tax-rates"
+                className="font-medium text-[var(--info)] underline underline-offset-2 hover:opacity-80"
+              >
+                {t('productsDetailCobroShopifyTaxSettingsLink')}
+              </Link>
+              {t('productsDetailCobroShopifyNoTaxAlertAfter')}
+            </>
+          }
           icon={Info}
           tone="info"
-          action={
-            <Link
-              to="/dashboard/configuration/tax-rates"
-              className="text-xs font-medium text-text-primary underline-offset-2 hover:underline"
-            >
-              {t('productsDetailCobroShopifyTaxSettingsLink')}
-            </Link>
-          }
         />
       ) : null}
 

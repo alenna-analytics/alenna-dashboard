@@ -4,7 +4,13 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductPlatformSettlementApi, ProductSettlementApi } from '@/lib/types/catalog'
 import type { SettlementBreakdown } from '@/lib/types/reports'
-import { settlementWaterfallLines, type SettlementWaterfallLine } from '@/lib/settlement-utils'
+import {
+  platformCancelCostWaterfallLines,
+  settlementHasPlatformCancelCosts,
+  settlementWaterfallLines,
+  type SettlementWaterfallLine,
+  zeroPlatformCancelCosts,
+} from '@/lib/settlement-utils'
 import { cn } from '@/lib/utils'
 
 import { ProductPlatformLogoName } from './product-platform-logo-name'
@@ -17,6 +23,8 @@ type SettlementWaterfallListProps = {
   t: (key: ShellStringKey) => string
   rowHover?: boolean
   includeTaxWithholdings?: boolean
+  /** When false, only the Cobro-devuelto block is rendered (if present). */
+  showSaleWaterfall?: boolean
 }
 
 type PlatformFieldKey =
@@ -170,10 +178,22 @@ export function SettlementWaterfallList({
   t,
   rowHover = false,
   includeTaxWithholdings = false,
+  showSaleWaterfall = true,
 }: SettlementWaterfallListProps) {
   const lines = useMemo(
-    () => settlementWaterfallLines(settlement, { includeTaxWithholdings }),
-    [settlement, includeTaxWithholdings],
+    () =>
+      showSaleWaterfall
+        ? settlementWaterfallLines(settlement, { includeTaxWithholdings })
+        : [],
+    [settlement, includeTaxWithholdings, showSaleWaterfall],
+  )
+  const showCancelCosts = settlementHasPlatformCancelCosts(settlement)
+  const cancelLines = useMemo(
+    () =>
+      platformCancelCostWaterfallLines(
+        settlement.platform_cancel_costs ?? zeroPlatformCancelCosts(),
+      ),
+    [settlement.platform_cancel_costs],
   )
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => new Set())
 
@@ -230,6 +250,51 @@ export function SettlementWaterfallList({
           rowHover={rowHover}
         />
       ))}
+      {showCancelCosts ? (
+        <div
+          className={cn(
+            showSaleWaterfall && 'mt-6 border-t border-border-subtle/80 pt-4',
+            !showSaleWaterfall && 'pt-1',
+          )}
+        >
+          <div className="mb-1 text-sm font-medium text-text-primary">
+            {t('settlementCancelCostTitle')}
+          </div>
+          <p className="mb-3 text-xs text-text-secondary">{t('settlementCancelCostHint')}</p>
+          {cancelLines.map((line) => {
+            const display = settlementLineDisplayValue(line)
+            const isTotal = line.kind === 'total'
+            return (
+              <div
+                key={line.key}
+                className={cn(
+                  'flex items-center justify-between gap-3 border-b border-border-subtle/80 py-3 text-sm last:border-b-0',
+                  rowHover && ROW_HOVER_CLASS,
+                  isTotal && 'border-t border-border-subtle/80 pt-3 font-semibold',
+                )}
+              >
+                <span
+                  className={cn(
+                    'min-w-0 text-left',
+                    isTotal && 'font-semibold text-text-primary',
+                    line.isDeduction && 'text-text-secondary',
+                  )}
+                >
+                  {settlementLineLabel(line, t)}
+                </span>
+                <span
+                  className={cn(
+                    'font-numeric tabular-nums',
+                    isTotal && 'font-semibold text-text-primary',
+                  )}
+                >
+                  {fmtBase(display)}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      ) : null}
     </div>
   )
 }

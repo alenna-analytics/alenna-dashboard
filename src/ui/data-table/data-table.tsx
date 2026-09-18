@@ -1,8 +1,9 @@
 import { flexRender, type Table as TableType } from "@tanstack/react-table"
-import { Fragment, type ReactNode } from "react"
+import { Fragment, useLayoutEffect, useRef, type ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/ui/skeleton"
+import { clampColumnSizingToContainer } from "@/ui/data-table/statement-table-column-resize"
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 
 type ColumnMetaWithCellClass = {
@@ -65,6 +66,30 @@ export function DataTable<TData>({
   const isPlain = variant === 'plain'
   const isCompact = density === 'compact'
   const stretchTable = !isCompact || tableWidth === 'full'
+  const columnResizeEnabled = Boolean(table.options.enableColumnResizing)
+  const frameRef = useRef<HTMLDivElement>(null)
+  const columnSizing = table.getState().columnSizing
+  const resizingColumnId = table.getState().columnSizingInfo.isResizingColumn
+
+  useLayoutEffect(() => {
+    if (!columnResizeEnabled) return
+    const frame = frameRef.current
+    if (!frame) return
+    const maxTotal = frame.clientWidth
+    if (maxTotal <= 0) return
+    if (table.getTotalSize() <= maxTotal) return
+
+    const columns = table.getVisibleLeafColumns().map((col) => ({
+      id: col.id,
+      minSize: col.columnDef.minSize ?? table.options.defaultColumn?.minSize ?? 72,
+      size: col.getSize(),
+    }))
+    const prev = table.getState().columnSizing
+    const next = clampColumnSizingToContainer(prev, columns, maxTotal, resizingColumnId)
+    if (next === prev) return
+    const changed = columns.some((col) => (prev[col.id] ?? col.size) !== (next[col.id] ?? col.size))
+    if (changed) table.setColumnSizing(next)
+  }, [columnResizeEnabled, columnSizing, resizingColumnId, table])
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-3">
@@ -78,19 +103,20 @@ export function DataTable<TData>({
       ) : null}
 
       <div
+        ref={frameRef}
         className={cn(
           'relative',
           isCompact
             ? cn(
-                'overflow-x-auto rounded-md border border-border-subtle bg-background',
+                'overflow-x-hidden rounded-md border border-border-subtle bg-background',
                 stretchTable ? 'w-full' : 'w-max max-w-full',
               )
             : isPlain
-              ? 'w-full overflow-x-auto'
+              ? 'w-full overflow-x-hidden'
               : 'overflow-hidden rounded-md border border-border-subtle bg-bg-section',
         )}
       >
-        <div className={cn('relative w-full', scrollClassName)}>
+        <div className={cn('relative w-full', scrollClassName, columnResizeEnabled && 'overflow-x-hidden')}>
         {showOverlay ? (
           <div
             className="pointer-events-none sticky top-0 z-30 h-[3px] overflow-hidden bg-[color-mix(in_srgb,var(--color-accent-forest)_18%,var(--border-subtle))]"
@@ -114,6 +140,7 @@ export function DataTable<TData>({
           className={cn(
             'caption-bottom border-separate border-spacing-0',
             isCompact ? cn(tableFontClass, stretchTable ? 'w-full' : 'w-max min-w-0') : cn('w-full', tableFontClass),
+            columnResizeEnabled && 'table-fixed w-full',
           )}
         >
           <TableHeader className="[&_tr]:border-b">
@@ -122,6 +149,7 @@ export function DataTable<TData>({
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta as ColumnMetaWithCellClass | undefined
                   const sort = header.column.getIsSorted()
+                  const canResize = columnResizeEnabled && header.column.getCanResize()
                   return (
                     <TableHead
                       key={header.id}
@@ -140,17 +168,37 @@ export function DataTable<TData>({
                         isCompact
                           ? "h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0 shadow-none"
                           : "border-0 shadow-[0_1px_0_var(--border-subtle)]",
+                        canResize && "relative",
+                        columnResizeEnabled && "overflow-hidden",
                         meta?.headerClassName,
                       )}
+                      style={columnResizeEnabled ? { width: header.getSize() } : undefined}
                     >
                       <div
                         className={cn(
-                          "flex w-full items-center font-medium leading-none text-muted-foreground",
+                          "flex w-full min-w-0 items-center font-medium leading-none text-muted-foreground",
                           isCompact ? cn('min-h-9', headerFontClass) : cn('min-h-10', headerFontClass),
+                          columnResizeEnabled && "overflow-hidden",
                         )}
                       >
                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                       </div>
+                      {canResize ? (
+                        <div
+                          role="separator"
+                          aria-orientation="vertical"
+                          aria-label="Resize column"
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          onDoubleClick={() => header.column.resetSize()}
+                          className={cn(
+                            'absolute top-0 right-0 z-20 h-full w-1.5 cursor-col-resize touch-none select-none',
+                            'after:absolute after:inset-y-1 after:right-0 after:w-px after:bg-border-subtle',
+                            'hover:after:bg-text-tertiary',
+                            header.column.getIsResizing() && 'after:bg-text-secondary',
+                          )}
+                        />
+                      ) : null}
                     </TableHead>
                   )
                 })}
@@ -173,11 +221,13 @@ export function DataTable<TData>({
                       className={cn(
                         isCompact &&
                           'h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0',
+                        columnResizeEnabled && 'overflow-hidden',
                       )}
+                      style={columnResizeEnabled ? { width: col.getSize() } : undefined}
                     >
                       <div
                         className={cn(
-                          'flex items-center leading-normal',
+                          'flex min-w-0 items-center overflow-hidden leading-normal',
                           isCompact ? cn('min-h-9', cellFontClass) : cn('min-h-10', cellFontClass),
                         )}
                       >
@@ -215,13 +265,16 @@ export function DataTable<TData>({
                             className={cn(
                               isCompact &&
                                 'h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0',
+                              columnResizeEnabled && 'overflow-hidden',
                               meta?.cellClassName,
                             )}
+                            style={columnResizeEnabled ? { width: cell.column.getSize() } : undefined}
                           >
                             <div
                               className={cn(
-                                'flex w-full items-center leading-normal [&:has([role=checkbox])]:[&_input]:self-center',
+                                'flex w-full min-w-0 items-center leading-normal [&:has([role=checkbox])]:[&_input]:self-center',
                                 isCompact ? cn('min-h-9', cellFontClass) : cn('min-h-10', cellFontClass),
+                                columnResizeEnabled && 'overflow-hidden',
                               )}
                             >
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}

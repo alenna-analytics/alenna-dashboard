@@ -16,6 +16,15 @@ export type MonthlyRevenueSeriesResponse = {
   months: MonthlyRevenueMonthRow[]
 }
 
+export type PlatformCancelCosts = {
+  merchandise_gross: number
+  merchandise_annulled: number
+  marketplace_fees: number
+  shipping_charges: number
+  tax_withholdings: number
+  total: number
+}
+
 export type SettlementBreakdown = {
   gross_revenue: number
   discounts: number
@@ -26,6 +35,7 @@ export type SettlementBreakdown = {
   tax_withholdings: number
   estimated_payout: number
   completeness: string
+  platform_cancel_costs?: PlatformCancelCosts
 }
 
 export type TaxesEstimatedSettingsEcho = {
@@ -146,6 +156,7 @@ export type ChannelKpiRow = {
   estimated_payout: number
   ads_spend?: number
   settlement_completeness: string
+  platform_cancel_costs?: PlatformCancelCosts
 }
 
 export type ChannelKpisResponse = {

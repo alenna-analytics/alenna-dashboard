@@ -21,7 +21,6 @@ import {
   type PlatformMetrics,
 } from '@/pages/channels/channels-platform-aggregate'
 import {
-  productHeaderColumnClassName,
   truncateProductHeaderLabel,
 } from '@/pages/channels/channels-product-header-label'
 import type { PnlRowId } from '@/pages/reports/reports-pnl-rows'
@@ -30,6 +29,11 @@ import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 import { EmptyState } from '@/ui/empty-state'
+import {
+  STATEMENT_CONCEPT_COLUMN_SIZE,
+  STATEMENT_VALUE_COLUMN_SIZE,
+  statementTableColumnResize,
+} from '@/ui/data-table/statement-table-column-resize'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 type ChannelsPnlLineId =
@@ -394,6 +398,7 @@ export function ChannelsPnlTable({
     () => [
       columnHelper.display({
         id: 'concept',
+        ...STATEMENT_CONCEPT_COLUMN_SIZE,
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t('reportsPnlColConcept')} />
         ),
@@ -439,13 +444,14 @@ export function ChannelsPnlTable({
           )
         },
         meta: {
-          cellClassName: 'align-middle whitespace-nowrap pr-6',
-          headerClassName: 'whitespace-nowrap',
+          cellClassName: 'align-middle overflow-hidden pr-6',
+          headerClassName: 'overflow-hidden',
         },
       }),
       ...cols.map((col) =>
         columnHelper.display({
           id: col.slug,
+          ...STATEMENT_VALUE_COLUMN_SIZE,
           header: ({ column }) => {
             const isTotal = col.slug === 'total'
             const { display, full: fullLabel, truncated } =
@@ -532,14 +538,8 @@ export function ChannelsPnlTable({
             )
           },
           meta: {
-            headerClassName: cn(
-              'text-right whitespace-nowrap',
-              byProduct && col.slug !== 'total' && productHeaderColumnClassName,
-            ),
-            cellClassName: cn(
-              'text-right whitespace-nowrap',
-              byProduct && col.slug !== 'total' && productHeaderColumnClassName,
-            ),
+            headerClassName: 'text-right overflow-hidden',
+            cellClassName: 'text-right overflow-hidden',
           },
         }),
       ),
@@ -553,6 +553,7 @@ export function ChannelsPnlTable({
     columns,
     getCoreRowModel: getCoreRowModel(),
     enableSorting: false,
+    ...statementTableColumnResize,
   })
 
   const title = byProduct ? t('channelsPnlTitleByProduct') : t('channelsPnlTitle')

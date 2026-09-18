@@ -11,6 +11,7 @@ import type {
   PlatformMetrics,
   PlatformSettlementMetrics,
 } from '@/pages/channels/channels-platform-aggregate'
+import { zeroPlatformCancelCosts } from '@/lib/settlement-utils'
 import type { FilterOption } from '@/ui/filters/types'
 
 import {
@@ -18,7 +19,7 @@ import {
   PRODUCT_DETAIL_ALL_CHANNELS,
 } from '../product-detail-analytics-filter'
 import { productPlatformLabel } from '../product-platform-label'
-import { groupChannelPnlMetrics, groupChannelPlatforms } from './group-channel-pnl-metrics'
+import { groupChannelPnlMetrics, groupChannelPlatforms, groupNetBasisGrossProfit } from './group-channel-pnl-metrics'
 
 export type GroupInsightDimension = 'channel' | 'product'
 
@@ -46,6 +47,51 @@ export function memberPlatformSlug(member: ProductLinkGroupMemberApi): string {
   return (member.platform ?? '').trim().toLowerCase()
 }
 
+/** Apply the same dimension filters used by `useGroupInsightDimension` to any group payload. */
+export function selectFilteredGroupMembers(
+  group: ProductLinkGroupApi,
+  opts: {
+    dimension: GroupInsightDimension
+    channelFilter: string
+    productFilter: string
+  },
+): { members: ProductLinkGroupMemberApi[]; allSelected: boolean } {
+  const platformSlugs = new Set(
+    group.members.map(memberPlatformSlug).filter(Boolean),
+  )
+  const memberIds = new Set(group.members.map((member) => member.product_id))
+  const activeChannel =
+    opts.channelFilter === PRODUCT_DETAIL_ALL_CHANNELS ||
+    platformSlugs.has(opts.channelFilter)
+      ? opts.channelFilter
+      : PRODUCT_DETAIL_ALL_CHANNELS
+  const activeProduct =
+    opts.productFilter === GROUP_INSIGHT_ALL_PRODUCTS ||
+    memberIds.has(opts.productFilter)
+      ? opts.productFilter
+      : GROUP_INSIGHT_ALL_PRODUCTS
+
+  if (opts.dimension === 'product') {
+    if (activeProduct === GROUP_INSIGHT_ALL_PRODUCTS) {
+      return { members: group.members, allSelected: true }
+    }
+    return {
+      members: group.members.filter((member) => member.product_id === activeProduct),
+      allSelected: false,
+    }
+  }
+  if (activeChannel === PRODUCT_DETAIL_ALL_CHANNELS) {
+    return { members: group.members, allSelected: true }
+  }
+  return {
+    members: group.members.filter(
+      (member) => memberPlatformSlug(member) === activeChannel,
+    ),
+    allSelected: false,
+  }
+}
+
+
 export function filterGroupPeriod(
   group: ProductLinkGroupApi,
   members: ProductLinkGroupMemberApi[],
@@ -53,10 +99,11 @@ export function filterGroupPeriod(
 ): FilteredGroupPeriod {
   if (allSelected) {
     const units = group.period_net_units_sold || group.period_gross_units_sold
+    const netGrossProfit = groupNetBasisGrossProfit(group)
     return {
       period_gross_sales: group.period_gross_sales,
       period_net_sales: group.period_net_sales,
-      period_gross_profit: group.period_gross_profit,
+      period_gross_profit: netGrossProfit,
       gross_margin_pct: group.gross_margin_pct,
       contribution_margin: group.contribution_margin,
       contribution_margin_pct: group.contribution_margin_pct,
@@ -73,8 +120,8 @@ export function filterGroupPeriod(
   const netSales = members.reduce((sum, member) => sum + (member.period_net_sales ?? 0), 0)
   const grossSales = members.reduce((sum, member) => sum + (member.period_gross_sales ?? 0), 0)
   const share = group.period_net_sales > 0 ? netSales / group.period_net_sales : 0
-  const grossProfit = group.period_gross_profit * share
   const cogs = group.period_cogs * share
+  const grossProfit = netSales - cogs
   const contribution = group.contribution_margin * share
   const units = members.reduce(
     (sum, member) => sum + (member.period_net_units_sold || member.period_gross_units_sold || 0),
@@ -189,7 +236,7 @@ export function groupProductPnlMetrics(
       settlement?.gross_revenue != null
         ? settlement.gross_revenue * platformShare
         : grossSales || group.period_settlement.gross_revenue * share
-    const grossProfit = group.period_gross_profit * share
+    const grossProfit = groupNetBasisGrossProfit(group) * share
     const cogs = group.period_cogs * share
     const contribution = group.contribution_margin * share
     const units = member.period_net_units_sold || member.period_gross_units_sold || 0
@@ -233,6 +280,7 @@ function scaleSettlement(
   settlement: ProductLinkGroupSettlementApi,
   share: number,
 ): ProductLinkGroupSettlementApi {
+  const c = settlement.platform_cancel_costs
   return {
     gross_revenue: settlement.gross_revenue * share,
     discounts: settlement.discounts * share,
@@ -243,6 +291,16 @@ function scaleSettlement(
     tax_withholdings: settlement.tax_withholdings * share,
     estimated_payout: settlement.estimated_payout * share,
     completeness: settlement.completeness,
+    platform_cancel_costs: c
+      ? {
+          merchandise_gross: c.merchandise_gross * share,
+          merchandise_annulled: c.merchandise_annulled * share,
+          marketplace_fees: c.marketplace_fees * share,
+          shipping_charges: c.shipping_charges * share,
+          tax_withholdings: c.tax_withholdings * share,
+          total: c.total * share,
+        }
+      : undefined,
   }
 }
 
@@ -258,6 +316,7 @@ function emptySettlementMetrics(platform: string): PlatformSettlementMetrics {
     tax_withholdings: 0,
     estimated_payout: 0,
     completeness: '',
+    platform_cancel_costs: zeroPlatformCancelCosts(),
   }
 }
 
@@ -274,6 +333,15 @@ function addSettlementMetrics(
   target.tax_withholdings += row.tax_withholdings
   target.estimated_payout += row.estimated_payout
   if (!target.completeness) target.completeness = row.completeness
+  const c = row.platform_cancel_costs
+  if (c) {
+    target.platform_cancel_costs.merchandise_gross += c.merchandise_gross
+    target.platform_cancel_costs.merchandise_annulled += c.merchandise_annulled
+    target.platform_cancel_costs.marketplace_fees += c.marketplace_fees
+    target.platform_cancel_costs.shipping_charges += c.shipping_charges
+    target.platform_cancel_costs.tax_withholdings += c.tax_withholdings
+    target.platform_cancel_costs.total += c.total
+  }
 }
 
 /**

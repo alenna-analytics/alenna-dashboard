@@ -13,13 +13,17 @@ import {
   type PlatformSettlementMetrics,
 } from '@/pages/channels/channels-platform-aggregate'
 import {
-  productHeaderColumnClassName,
   truncateProductHeaderLabel,
 } from '@/pages/channels/channels-product-header-label'
 import { SectionSplit } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import {
+  STATEMENT_CONCEPT_COLUMN_SIZE,
+  STATEMENT_VALUE_COLUMN_SIZE,
+  statementTableColumnResize,
+} from '@/ui/data-table/statement-table-column-resize'
 import { EmptyState } from '@/ui/empty-state'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
@@ -160,6 +164,7 @@ export function ProductCobroTaxMatrix({
     () => [
       columnHelper.display({
         id: 'concept',
+        ...STATEMENT_CONCEPT_COLUMN_SIZE,
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title={t('reportsPnlColConcept')} />
         ),
@@ -183,13 +188,14 @@ export function ProductCobroTaxMatrix({
           )
         },
         meta: {
-          cellClassName: 'align-middle whitespace-nowrap pr-6',
-          headerClassName: 'whitespace-nowrap',
+          cellClassName: 'align-middle overflow-hidden pr-6',
+          headerClassName: 'overflow-hidden',
         },
       }),
       ...cols.map((col) =>
         columnHelper.display({
           id: col.slug,
+          ...STATEMENT_VALUE_COLUMN_SIZE,
           header: ({ column }) => {
             const isTotal = col.slug === 'total'
             const { display, full, truncated } =
@@ -262,14 +268,8 @@ export function ProductCobroTaxMatrix({
             )
           },
           meta: {
-            headerClassName: cn(
-              'text-right whitespace-nowrap',
-              byProduct && col.slug !== 'total' && productHeaderColumnClassName,
-            ),
-            cellClassName: cn(
-              'text-right whitespace-nowrap',
-              byProduct && col.slug !== 'total' && productHeaderColumnClassName,
-            ),
+            headerClassName: 'text-right overflow-hidden',
+            cellClassName: 'text-right overflow-hidden',
           },
         }),
       ),
@@ -283,6 +283,7 @@ export function ProductCobroTaxMatrix({
     columns,
     getCoreRowModel: getCoreRowModel(),
     enableSorting: false,
+    ...statementTableColumnResize,
   })
 
   if (taxRates == null) {

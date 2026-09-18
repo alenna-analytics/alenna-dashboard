@@ -33,6 +33,7 @@ import { HomeMatchSuggestionAlerts } from '@/pages/dashboard/home-match-suggesti
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
 import { resolveHomePermissionFlags } from '@/pages/dashboard/home-permission-flags'
 import { HomeProductFilter } from '@/pages/dashboard/home-product-filter'
+import { PRODUCTS_LINKING_PATH } from '@/pages/products/products-inner-nav'
 import { HomeTopProductsChart } from '@/pages/dashboard/home-top-products-chart'
 import { getTopProductsChartHeightPx } from '@/pages/dashboard/home-top-products-chart-layout'
 import { useAlertsSummaryQuery } from '@/pages/dashboard/use-alerts-queries'
@@ -76,7 +77,6 @@ import { useReports } from '@/pages/reports/use-reports'
 import { useChannelBreakdown } from '@/pages/reports/use-channel-breakdown'
 import { useTopProducts } from '@/pages/reports/use-top-products'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
-import { useMatchSuggestionsSheet } from '@/pages/dashboard/match-suggestions-sheet-context'
 import { useLanguage, type Language } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
@@ -90,7 +90,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import { buttonVariants } from '@/ui/button'
 import { cn } from '@/lib/utils'
 import { useWorkspace } from '@/shell/providers/workspace-context'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 type HomeV2FiltersState = {
   startDate: string
@@ -252,7 +252,7 @@ export function DashboardHomePageV2() {
   const { tenantId } = useCurrentTenant()
   const { me } = useWorkspace()
   const t = usePnlAwareT()
-  const { openSheet: openMatchSuggestionsSheet } = useMatchSuggestionsSheet()
+  const navigate = useNavigate()
   const [salesMetricBasis, setSalesMetricBasis] = useSalesMetricBasis()
   const {
     canSalesHome,
@@ -1071,7 +1071,7 @@ export function DashboardHomePageV2() {
           {canAlertsHome ? (
             <HomeMatchSuggestionAlerts
               matchCount={matchSuggestionCount}
-              onReview={openMatchSuggestionsSheet}
+              onReview={() => navigate(PRODUCTS_LINKING_PATH)}
               t={t}
             />
           ) : null}

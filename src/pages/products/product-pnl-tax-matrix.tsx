@@ -250,10 +250,6 @@ export function ProductPnlTaxMatrix({
   }
 
   const totalWithheld = estimates?.total?.withholding_total ?? 0
-  const showShopifyAlert = platforms.some((p) => {
-    const market = (p.marketplaceSlug ?? p.slug).trim().toLowerCase()
-    return market === 'shopify'
-  })
 
   return (
     <SectionSplit
@@ -280,7 +276,6 @@ export function ProductPnlTaxMatrix({
           periodWithheld={totalWithheld}
           yearWithheld={yearWithheld}
           yearWithheldLoading={yearWithheldLoading}
-          showShopifyAlert={showShopifyAlert}
           showRetentionTip
         />
       </div>

@@ -332,7 +332,7 @@ export function ProductCobroTaxMatrix({
           yearWithheld={yearWithheld}
           yearWithheldLoading={yearWithheldLoading}
           showShopifyAlert={hasShopify}
-          showRetentionTip
+          showFiscalCreditAlert
         />
       </div>
     </SectionSplit>

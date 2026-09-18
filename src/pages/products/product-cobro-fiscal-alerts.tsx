@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Info } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { ContextAlertCard } from '@/ui/context-alert'
-import { Button } from '@/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -25,10 +24,12 @@ type ProductCobroFiscalAlertsProps = {
   /** Calendar-year estimated withheld total. */
   yearWithheld?: number | null
   yearWithheldLoading?: boolean
-  /** Show Shopify marketplace explanation. */
-  showShopifyAlert?: boolean
-  /** Also show the “does not affect profitability” tip. */
+  /** Analítica: tip that withholdings don’t affect profitability. */
   showRetentionTip?: boolean
+  /** Rentabilidad: Shopify marketplace explanation. */
+  showShopifyAlert?: boolean
+  /** Rentabilidad: fiscal credit + year-to-date modal. */
+  showFiscalCreditAlert?: boolean
 }
 
 function moneyWithCurrency(
@@ -40,6 +41,17 @@ function moneyWithCurrency(
   return currencyCode ? `${formatted} ${currencyCode}` : formatted
 }
 
+function InlineLink({ to, children }: { to: string; children: ReactNode }) {
+  return (
+    <Link
+      to={to}
+      className="font-medium text-[var(--info)] underline underline-offset-2 hover:opacity-80"
+    >
+      {children}
+    </Link>
+  )
+}
+
 export function ProductCobroFiscalAlerts({
   t,
   formatMoney,
@@ -47,8 +59,9 @@ export function ProductCobroFiscalAlerts({
   periodWithheld,
   yearWithheld = null,
   yearWithheldLoading = false,
+  showRetentionTip = false,
   showShopifyAlert = false,
-  showRetentionTip = true,
+  showFiscalCreditAlert = false,
 }: ProductCobroFiscalAlertsProps) {
   const [yearOpen, setYearOpen] = useState(false)
   const periodLabel = moneyWithCurrency(formatMoney, periodWithheld, currencyCode)
@@ -64,18 +77,25 @@ export function ProductCobroFiscalAlerts({
 
   return (
     <>
+      {showRetentionTip ? (
+        <ContextAlertCard
+          title={t('productsDetailTaxRetentionAlert').replace('{amount}', periodLabel)}
+          subtitle={t('productsDetailTaxRetentionAlertHint')}
+          icon={Info}
+          tone="info"
+        />
+      ) : null}
+
       {showShopifyAlert ? (
         <ContextAlertCard
-          title={
+          title={t('productsDetailCobroShopifyNoTaxAlertBody')}
+          subtitle={
             <>
-              {t('productsDetailCobroShopifyNoTaxAlertBefore')}{' '}
-              <Link
-                to="/dashboard/configuration/tax-rates"
-                className="font-medium text-[var(--info)] underline underline-offset-2 hover:opacity-80"
-              >
+              {t('productsDetailCobroShopifyNoTaxAlertRates')}{' '}
+              <InlineLink to="/dashboard/configuration/tax-rates">
                 {t('productsDetailCobroShopifyTaxSettingsLink')}
-              </Link>
-              {t('productsDetailCobroShopifyNoTaxAlertAfter')}
+              </InlineLink>
+              .
             </>
           }
           icon={Info}
@@ -83,30 +103,21 @@ export function ProductCobroFiscalAlerts({
         />
       ) : null}
 
-      {periodWithheld > 0 ? (
+      {showFiscalCreditAlert && periodWithheld > 0 ? (
         <ContextAlertCard
           title={creditTitle}
-          subtitle={t('productsDetailCobroFiscalCreditAlertHint')}
-          icon={Info}
-          tone="info"
-          action={
-            <Button
-              type="button"
-              variant="outline"
-              size="xs"
-              className="px-2.5"
-              onClick={() => setYearOpen(true)}
-            >
-              {t('productsDetailCobroFiscalCreditAlertLink')}
-            </Button>
+          subtitle={
+            <>
+              {t('productsDetailCobroFiscalCreditAlertHint')}{' '}
+              <button
+                type="button"
+                className="font-medium text-[var(--info)] underline underline-offset-2 hover:opacity-80"
+                onClick={() => setYearOpen(true)}
+              >
+                {t('productsDetailCobroFiscalCreditAlertLink')}
+              </button>
+            </>
           }
-        />
-      ) : null}
-
-      {showRetentionTip ? (
-        <ContextAlertCard
-          title={t('productsDetailTaxRetentionAlert').replace('{amount}', periodLabel)}
-          subtitle={t('productsDetailTaxRetentionAlertHint')}
           icon={Info}
           tone="info"
         />

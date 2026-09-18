@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react'
-import { ImageIcon } from 'lucide-react'
 
 import { useParams } from 'react-router-dom'
 
@@ -26,6 +25,7 @@ import { ProductDetailSections } from './product-detail-sections'
 import { ProductDetailHeader } from './product-detail-header'
 import { ProductDetailUnsavedBar } from './product-detail-unsaved-bar'
 import { defaultProductInsightRange } from './product-detail-range'
+import { ProductDetailHeaderThumb } from './product-table-thumb'
 import { usePatchProductCostMutation, useProductDetailQuery } from './use-catalog-queries'
 
 function costAmountWithBaseCode(
@@ -67,37 +67,6 @@ export function ProductDetailPage() {
     return <div className="p-8 text-sm text-text-secondary">Invalid product.</div>
   }
   return <ProductDetailBody key={productId} productId={productId} />
-}
-
-function ProductDetailHeaderThumb({ url, title }: { url: string | null; title: string }) {
-  const [broken, setBroken] = useState(!url)
-  const thumbClass =
-    'size-20 shrink-0 rounded-md border border-border-subtle object-cover sm:size-[150px]'
-  if (!url || broken) {
-    return (
-      <div
-        className={cn(
-          'flex items-center justify-center bg-muted/50 text-text-tertiary',
-          thumbClass,
-        )}
-        aria-hidden
-      >
-        <ImageIcon className="size-8 opacity-70 sm:size-10" />
-      </div>
-    )
-  }
-  return (
-    <img
-      src={url}
-      alt={title}
-      className={thumbClass}
-      width={150}
-      height={150}
-      sizes="(max-width: 640px) 80px, 150px"
-      loading="eager"
-      onError={() => setBroken(true)}
-    />
-  )
 }
 
 function ProductDetailHeaderStatsSkeleton() {

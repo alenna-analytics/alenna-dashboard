@@ -22,10 +22,17 @@ import { HomeProductFilter } from '@/pages/dashboard/home-product-filter'
 import { buildBenchmarkRows } from '@/pages/reports/reports-benchmarks'
 import { ReportsBenchmarksTable } from '@/pages/reports/reports-benchmarks-table'
 import { ReportsHeroKpis } from '@/pages/reports/reports-hero-kpis'
+import { useTaxRatesQuery } from '@/pages/configuration/tax-rates/use-tax-rates-queries'
+import {
+  aggregateChannelKpisByPlatform,
+  type ChannelPlatform,
+} from '@/pages/channels/channels-platform-aggregate'
+import { buildMarketplaceAwareTaxesEstimated } from '@/pages/reports/reports-marketplace-tax'
 import { buildProductPnlRows, buildTenantPnlRows } from '@/pages/reports/reports-pnl-rows'
 import { ReportsPnlTable } from '@/pages/reports/reports-pnl-table'
 import { ReportsPnlTaxBlock } from '@/pages/reports/reports-pnl-tax-block'
 import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
+import { useKpisByChannel } from '@/pages/reports/use-kpis-by-channel'
 import {
   computeCalendarMomPeriod,
   computeShiftedPreviousPeriod,
@@ -222,6 +229,29 @@ export function ReportsPage() {
     [ecommerceConnections],
   )
 
+  const taxPlatforms = useMemo((): ChannelPlatform[] => {
+    const selectedIds = new Set(activeConnectionIds)
+    const seen = new Set<string>()
+    const platforms: ChannelPlatform[] = []
+    for (const connection of activeConnections) {
+      if (!selectedIds.has(connection.id)) continue
+      const slug = connection.platform.trim().toLowerCase()
+      if (!slug || seen.has(slug)) continue
+      seen.add(slug)
+      platforms.push({
+        slug,
+        label:
+          slug === 'mercadolibre'
+            ? t('channelsColMercadoLibre')
+            : platformDisplayName(connection.platform),
+      })
+    }
+    return platforms
+  }, [activeConnectionIds, activeConnections, t])
+
+  const { data: taxRatesResponse } = useTaxRatesQuery()
+  const taxRates = taxRatesResponse?.settings ?? null
+
   const queriesEnabled = activeConnectionIds.length > 0
   const amazonFeesNoticeState = resolveAmazonFeesNoticeState(
     activeConnections,
@@ -253,6 +283,25 @@ export function ReportsPage() {
     startDate: prevPeriod?.start ?? '',
     endDate: prevPeriod?.end ?? '',
     enabled: queriesEnabled && !productMode && Boolean(prevPeriod) && kpiReady,
+  })
+
+  const { data: channelKpis } = useKpisByChannel({
+    connectionIds: activeConnectionIds,
+    startDate,
+    endDate,
+    enabled: queriesEnabled && !productMode,
+  })
+  const { data: channelKpisPrev } = useKpisByChannel({
+    connectionIds: activeConnectionIds,
+    startDate: prevPeriod?.start ?? '',
+    endDate: prevPeriod?.end ?? '',
+    enabled: queriesEnabled && !productMode && Boolean(prevPeriod) && kpiReady,
+  })
+  const { data: channelKpisYoy } = useKpisByChannel({
+    connectionIds: activeConnectionIds,
+    startDate: yoyPeriod?.start ?? '',
+    endDate: yoyPeriod?.end ?? '',
+    enabled: queriesEnabled && !productMode && Boolean(yoyPeriod) && kpiReady,
   })
 
   const {
@@ -340,6 +389,41 @@ export function ReportsPage() {
     if (activeConnectionIds.length > 0 && kpiLoading) return null
     return kpi ?? zeroKpiResponse(baseCurrency)
   }, [productMode, connectorsLoading, activeConnectionIds, kpiLoading, kpi, baseCurrency])
+
+  const marketplaceTaxes = useMemo(() => {
+    if (!taxRates || !displayKpi || taxPlatforms.length === 0) return null
+    const metrics = aggregateChannelKpisByPlatform(channelKpis?.items ?? [], taxPlatforms)
+    return buildMarketplaceAwareTaxesEstimated(
+      metrics,
+      taxPlatforms,
+      taxRates,
+      displayKpi.ebitda,
+    )
+  }, [channelKpis?.items, displayKpi, taxPlatforms, taxRates])
+
+  const marketplaceTaxesPrev = useMemo(() => {
+    if (!taxRates || !kpiPrev || taxPlatforms.length === 0 || !channelKpisPrev) return null
+    const metrics = aggregateChannelKpisByPlatform(channelKpisPrev.items ?? [], taxPlatforms)
+    return buildMarketplaceAwareTaxesEstimated(
+      metrics,
+      taxPlatforms,
+      taxRates,
+      kpiPrev.ebitda,
+    )
+  }, [channelKpisPrev, kpiPrev, taxPlatforms, taxRates])
+
+  const marketplaceTaxesYoy = useMemo(() => {
+    if (!taxRates || !yoyPrevious || taxPlatforms.length === 0 || !channelKpisYoy) {
+      return null
+    }
+    const metrics = aggregateChannelKpisByPlatform(channelKpisYoy.items ?? [], taxPlatforms)
+    return buildMarketplaceAwareTaxesEstimated(
+      metrics,
+      taxPlatforms,
+      taxRates,
+      yoyPrevious.ebitda,
+    )
+  }, [channelKpisYoy, taxPlatforms, taxRates, yoyPrevious])
 
   const pageAlerts = useMemo(() => {
     type PageAlertItem = {
@@ -578,11 +662,12 @@ export function ReportsPage() {
 
           {!productMode && displayKpi ? (
             <ReportsPnlTaxBlock
-              taxesEstimated={displayKpi.taxes_estimated}
-              taxesEstimatedPrev={kpiPrev?.taxes_estimated}
-              taxesEstimatedYoy={yoyPrevious?.taxes_estimated}
+              taxesEstimated={taxRates == null ? null : marketplaceTaxes}
+              taxesEstimatedPrev={marketplaceTaxesPrev}
+              taxesEstimatedYoy={marketplaceTaxesYoy}
               formatMoney={formatConverted}
               t={t}
+              continueStatement
             />
           ) : null}
 

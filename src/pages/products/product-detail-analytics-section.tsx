@@ -262,9 +262,15 @@ export function ProductDetailAnalyticsSection({
       : undefined
 
   function growthBlock(current: number, previous: number | undefined) {
-    const priorUnavailable = !previousReady || previous === undefined
+    const priorUnavailable =
+      !previousReady ||
+      previous === undefined ||
+      !Number.isFinite(previous) ||
+      (previous === 0 && current !== 0)
     const delta =
-      previous !== undefined && previousReady ? pctVersusPrevious(current, previous) : null
+      previous !== undefined && previousReady && Number.isFinite(previous)
+        ? pctVersusPrevious(current, previous)
+        : null
     return {
       pct: delta?.pct ?? null,
       trend: delta?.trend ?? ('flat' as const),

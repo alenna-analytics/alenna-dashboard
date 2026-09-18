@@ -65,6 +65,7 @@ export function DataTable<TData>({
   const isPlain = variant === 'plain'
   const isCompact = density === 'compact'
   const stretchTable = !isCompact || tableWidth === 'full'
+  const columnResizeEnabled = Boolean(table.options.enableColumnResizing)
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-3">
@@ -114,7 +115,13 @@ export function DataTable<TData>({
           className={cn(
             'caption-bottom border-separate border-spacing-0',
             isCompact ? cn(tableFontClass, stretchTable ? 'w-full' : 'w-max min-w-0') : cn('w-full', tableFontClass),
+            columnResizeEnabled && 'table-fixed',
           )}
+          style={
+            columnResizeEnabled
+              ? { width: Math.max(table.getTotalSize(), stretchTable ? 0 : table.getTotalSize()) }
+              : undefined
+          }
         >
           <TableHeader className="[&_tr]:border-b">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -122,6 +129,7 @@ export function DataTable<TData>({
                 {headerGroup.headers.map((header) => {
                   const meta = header.column.columnDef.meta as ColumnMetaWithCellClass | undefined
                   const sort = header.column.getIsSorted()
+                  const canResize = columnResizeEnabled && header.column.getCanResize()
                   return (
                     <TableHead
                       key={header.id}
@@ -140,8 +148,10 @@ export function DataTable<TData>({
                         isCompact
                           ? "h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0 shadow-none"
                           : "border-0 shadow-[0_1px_0_var(--border-subtle)]",
+                        canResize && "relative",
                         meta?.headerClassName,
                       )}
+                      style={columnResizeEnabled ? { width: header.getSize() } : undefined}
                     >
                       <div
                         className={cn(
@@ -151,6 +161,22 @@ export function DataTable<TData>({
                       >
                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                       </div>
+                      {canResize ? (
+                        <div
+                          role="separator"
+                          aria-orientation="vertical"
+                          aria-label="Resize column"
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          onDoubleClick={() => header.column.resetSize()}
+                          className={cn(
+                            'absolute top-0 right-0 z-20 h-full w-1.5 cursor-col-resize touch-none select-none',
+                            'after:absolute after:inset-y-1 after:right-0 after:w-px after:bg-border-subtle',
+                            'hover:after:bg-text-tertiary',
+                            header.column.getIsResizing() && 'after:bg-text-secondary',
+                          )}
+                        />
+                      ) : null}
                     </TableHead>
                   )
                 })}
@@ -217,6 +243,7 @@ export function DataTable<TData>({
                                 'h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0',
                               meta?.cellClassName,
                             )}
+                            style={columnResizeEnabled ? { width: cell.column.getSize() } : undefined}
                           >
                             <div
                               className={cn(

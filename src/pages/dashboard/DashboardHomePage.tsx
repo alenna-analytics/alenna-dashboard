@@ -545,9 +545,13 @@ export function DashboardHomePage() {
     previous: number | undefined,
     fmt: 'currency' | 'count' | 'percent',
   ) {
-    const priorUnavailable = !previousReady || previous === undefined
+    const priorUnavailable =
+      !previousReady ||
+      previous === undefined ||
+      !Number.isFinite(previous) ||
+      (previous === 0 && current !== 0)
     const priorDisplay =
-      priorUnavailable || previous === undefined
+      priorUnavailable || previous === undefined || !Number.isFinite(previous)
         ? null
         : fmt === 'currency'
           ? formatKpi(previous, { nativeCurrency: currency })
@@ -555,10 +559,11 @@ export function DashboardHomePage() {
             ? `${previous.toFixed(1)}%`
             : previous.toLocaleString()
     // Zero-prior handling: pctVersusPrevious returns null when prior=0 and
-    // current>0; we surface "new" via the unavailable path so the trend
-    // arrow doesn't show a misleading 100%.
+    // current>0; mark unavailable so we never render `+Infinity %`.
     const delta =
-      previous !== undefined && previousReady ? pctVersusPrevious(current, previous) : null
+      previous !== undefined && previousReady && Number.isFinite(previous)
+        ? pctVersusPrevious(current, previous)
+        : null
     return {
       priorDisplay,
       pct: delta?.pct ?? null,

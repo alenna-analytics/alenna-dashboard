@@ -58,8 +58,13 @@ export function KpiDeltaPill({
   negativeMetric,
   className,
 }: DeltaPillProps) {
-  const empty = comparisonUnavailable || pct === null
-  const tone = deltaTone(pct, trend, comparisonUnavailable, negativeMetric)
+  const empty = comparisonUnavailable || pct === null || !Number.isFinite(pct)
+  const tone = deltaTone(
+    empty ? null : pct,
+    empty ? 'flat' : trend,
+    comparisonUnavailable,
+    negativeMetric,
+  )
   let pctStr = '—'
   if (!empty && pct !== null) {
     pctStr = `${trend === 'up' && pct > 0 ? '+' : ''}${pct.toFixed(1)} %`

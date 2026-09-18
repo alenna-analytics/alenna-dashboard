@@ -121,9 +121,12 @@ export function pctVersusPrevious(
   current: number,
   previous: number,
 ): { pct: number; trend: PctTrend } | null {
+  if (!Number.isFinite(current) || !Number.isFinite(previous)) return null
   if (previous === 0 && current === 0) return { pct: 0, trend: 'flat' }
-  if (previous === 0) return null
+  // No baseline when prior is zero — avoids `+Infinity %` in KPI deltas.
+  if (previous === 0 || Math.abs(previous) < Number.EPSILON) return null
   const pct = ((current - previous) / Math.abs(previous)) * 100
+  if (!Number.isFinite(pct)) return null
   if (Math.abs(pct) < 0.005) return { pct: 0, trend: 'flat' }
   return { pct, trend: pct > 0 ? 'up' : 'down' }
 }
@@ -135,7 +138,7 @@ export function classifyGrowthDisplay(
   pct: number | null,
 ): GrowthDisplayKind {
   if (!ready) return 'loading'
-  if (pct !== null) return 'value'
+  if (pct !== null && Number.isFinite(pct)) return 'value'
   return 'no_baseline'
 }
 

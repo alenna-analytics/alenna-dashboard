@@ -20,6 +20,7 @@ import { ProductTableThumb } from '../product-table-thumb'
 import {
   primaryProductImageUrl,
   uniquePlatformSlugs,
+  VINCULACION_DETAIL_ROW_GRID,
 } from './vinculacion-table-helpers'
 
 type ShellT = (key: ShellStringKey) => string
@@ -293,18 +294,30 @@ type SuggestionProductLineProps = {
 function SuggestionProductLine({ product, t }: SuggestionProductLineProps) {
   const slug = product.platform.trim().toLowerCase()
   return (
-    <div className="flex min-w-0 items-center gap-3 py-2.5 pr-4 pl-8 hover:bg-[var(--table-row-hover-bg)]">
-      <Link
-        to={`/dashboard/products/${product.product_id}`}
-        className="flex min-w-0 flex-1 items-center gap-2"
-        onClick={(event) => event.stopPropagation()}
-      >
+    <div
+      className={cn(
+        VINCULACION_DETAIL_ROW_GRID,
+        'py-2.5 hover:bg-[var(--table-row-hover-bg)]',
+      )}
+    >
+      <div className="flex items-center justify-start px-2 pl-8">
         <ProductTableThumb url={product.image_url} alt={product.title} />
-        <span className="min-w-0 truncate font-medium" title={product.title}>
+      </div>
+      <div className="min-w-0 overflow-hidden px-2">
+        <Link
+          to={`/dashboard/products/${product.product_id}`}
+          className="block min-w-0 truncate font-medium text-text-primary"
+          title={product.title}
+          onClick={(event) => event.stopPropagation()}
+        >
           {product.title}
-        </span>
-      </Link>
-      <ProductPlatformLogoName platformSlug={slug} t={t} className="max-w-[9rem] shrink-0" />
+        </Link>
+      </div>
+      <div aria-hidden />
+      <div aria-hidden />
+      <div className="min-w-0 overflow-hidden px-2">
+        <ProductPlatformLogoName platformSlug={slug} t={t} className="min-w-0" textClassName="truncate" />
+      </div>
     </div>
   )
 }

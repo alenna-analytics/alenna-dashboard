@@ -20,9 +20,10 @@ export type SyncPlanStatus =
   | 'failed'
 
 export type SyncCooldownReason =
-  | 'shopify_full_sync_cooldown'
-  | 'shopify_full_sync_failed_retry_cap'
-  | 'shopify_full_sync_tenant_busy'
+  | 'platform_full_sync_cooldown'
+  | 'platform_full_sync_failed_retry_cap'
+  | 'platform_full_sync_tenant_busy'
+  | 'platform_sync_in_progress'
 
 export type SyncPlan = {
   full_history_window: FullHistoryWindow
@@ -36,6 +37,7 @@ export type SyncPlan = {
   actual_max_created_at: string | null
   retry_after_seconds: number | null
   cooldown_reason: SyncCooldownReason | null
+  retry_after_at?: string | null
   current_job_id: string | null
 }
 
@@ -71,42 +73,41 @@ export type ShopifySyncEnqueueResponse = {
 }
 
 /**
- * Typed errors raised by `useShopifyIntegration`'s sync mutation when the
- * API rejects via Guards A/B (409) or C/D (429). Each variant carries the
- * machine `detail` string from the API and, for cooldown / failed-retry,
- * the `Retry-After` seconds so the UI can render hours.
+ * Typed errors raised by sync mutations when the API rejects via Guards A/B
+ * (409) or C/D (429). Each variant carries the machine ``detail.code`` and, for
+ * cooldown / failed-retry, retry-after seconds so the UI can render hours.
  */
 export class ShopifySyncInProgressError extends Error {
-  readonly kind = 'shopify_full_sync_in_progress' as const
+  readonly kind = 'platform_full_sync_in_progress' as const
   constructor() {
-    super('shopify_full_sync_in_progress')
+    super('platform_full_sync_in_progress')
     this.name = 'ShopifySyncInProgressError'
   }
 }
 
 export class ShopifySyncTenantBusyError extends Error {
-  readonly kind = 'shopify_full_sync_tenant_busy' as const
+  readonly kind = 'platform_full_sync_tenant_busy' as const
   constructor() {
-    super('shopify_full_sync_tenant_busy')
+    super('platform_full_sync_tenant_busy')
     this.name = 'ShopifySyncTenantBusyError'
   }
 }
 
 export class ShopifySyncCooldownError extends Error {
-  readonly kind = 'shopify_full_sync_cooldown' as const
+  readonly kind = 'platform_full_sync_cooldown' as const
   readonly retryAfterSeconds: number | null
   constructor(retryAfterSeconds: number | null) {
-    super('shopify_full_sync_cooldown')
+    super('platform_full_sync_cooldown')
     this.name = 'ShopifySyncCooldownError'
     this.retryAfterSeconds = retryAfterSeconds
   }
 }
 
 export class ShopifySyncFailedRetryCapError extends Error {
-  readonly kind = 'shopify_full_sync_failed_retry_cap' as const
+  readonly kind = 'platform_full_sync_failed_retry_cap' as const
   readonly retryAfterSeconds: number | null
   constructor(retryAfterSeconds: number | null) {
-    super('shopify_full_sync_failed_retry_cap')
+    super('platform_full_sync_failed_retry_cap')
     this.name = 'ShopifySyncFailedRetryCapError'
     this.retryAfterSeconds = retryAfterSeconds
   }

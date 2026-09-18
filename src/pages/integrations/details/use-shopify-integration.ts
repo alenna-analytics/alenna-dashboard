@@ -30,8 +30,7 @@ import { formatShopifySyncUserError } from '@/lib/integrations/shopify-sync-user
 import {
   buildPlatformFullSyncTypedError,
   formatRetryAfterHoursLabel,
-  readApiErrorDetail,
-  readRetryAfterSeconds,
+  parseApiErrorPayload,
 } from '@/lib/integrations/platform-full-sync-error'
 
 export type ShopifyIntegrationHook = ReturnType<typeof useShopifyIntegration>
@@ -381,11 +380,14 @@ export function useShopifyIntegration() {
         tenantId,
       )
       if (!res.ok) {
-        const detail = await readApiErrorDetail(res)
-        const retryAfterSeconds = readRetryAfterSeconds(res)
-        const typed = buildPlatformFullSyncTypedError(res.status, detail, retryAfterSeconds)
+        const payload = await parseApiErrorPayload(res)
+        const typed = buildPlatformFullSyncTypedError(
+          res.status,
+          payload.code,
+          payload.retryAfterSeconds,
+        )
         if (typed) throw typed
-        throw new Error(detail ?? res.statusText)
+        throw new Error(payload.message ?? payload.code ?? res.statusText)
       }
       return (await res.json()) as ShopifySyncEnqueueResponse
     },

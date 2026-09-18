@@ -175,6 +175,20 @@ export function aggregateChannelKpisByPlatform(
 }
 
 export function grossMarginPct(m: PlatformMetrics): number {
-  if (m.gross_revenue === 0) return 0
-  return (m.gross_profit / m.gross_revenue) * 100
+  if (m.net_revenue === 0) return 0
+  return (m.gross_profit / m.net_revenue) * 100
+}
+
+/** Gross profit − platform fees − shipping (before ads). */
+export function channelMarginAmount(m: PlatformMetrics): number {
+  return m.gross_profit - m.platform_fees_total - m.merchant_shipping_cost
+}
+
+export function channelMarginPct(m: PlatformMetrics): number | null {
+  if (m.net_revenue === 0) return null
+  return (channelMarginAmount(m) / m.net_revenue) * 100
+}
+
+export function cmPerUnit(m: PlatformMetrics): number {
+  return m.units_sold > 0 ? m.contribution_margin / m.units_sold : 0
 }

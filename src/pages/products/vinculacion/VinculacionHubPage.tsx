@@ -11,6 +11,7 @@ import {
   usePnlAwareT,
   usePnlLabelResolver,
 } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
+import { useTaxRatesQuery } from '@/pages/configuration/tax-rates/use-tax-rates-queries'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
@@ -27,6 +28,7 @@ import { defaultProductInsightRange } from '../product-detail-range'
 import { ProductDetailWaterfallBlock } from '../product-detail-waterfall-block'
 import { ProductDetailUnsavedBar } from '../product-detail-unsaved-bar'
 import { GroupInventoryByChannel } from '../product-detail-inventory-by-channel'
+import { ProductPnlTaxMatrix } from '../product-pnl-tax-matrix'
 import { PRODUCTS_LINKING_PATH } from '../products-inner-nav'
 import { GroupInsightProvider } from './group-insight-context'
 import { useGroupInsight } from './use-group-insight'
@@ -269,6 +271,7 @@ function GroupAnalyticsVistaA({
   insightsFetching: boolean
 }) {
   const insight = useGroupInsight()
+  const taxRatesQuery = useTaxRatesQuery()
   const { period, settlement, pnlPlatforms, pnlMetrics, allSelected } = insight
 
   const pnlSegments = useMemo(
@@ -317,15 +320,26 @@ function GroupAnalyticsVistaA({
         isLoading={insightsFetching}
       />
       {pnlPlatforms.length > 0 ? (
-        <ChannelsPnlTable
-          metrics={pnlMetrics}
-          platforms={pnlPlatforms}
-          formatMoney={fmtBase}
-          t={t}
-          labelForRow={labelForRow}
-          cmIncomplete={group.cm_incomplete || insight.dimension === 'product'}
-          breakdown={insight.dimension === 'product' ? 'product' : 'channel'}
-        />
+        <div className="flex flex-col gap-6">
+          <ChannelsPnlTable
+            metrics={pnlMetrics}
+            platforms={pnlPlatforms}
+            formatMoney={fmtBase}
+            t={t}
+            labelForRow={labelForRow}
+            cmIncomplete={group.cm_incomplete || insight.dimension === 'product'}
+            breakdown={insight.dimension === 'product' ? 'product' : 'channel'}
+            footerMode="units"
+          />
+          <ProductPnlTaxMatrix
+            metrics={pnlMetrics}
+            platforms={pnlPlatforms}
+            taxRates={taxRatesQuery.data?.settings}
+            formatMoney={fmtBase}
+            t={t}
+            breakdown={insight.dimension === 'product' ? 'product' : 'channel'}
+          />
+        </div>
       ) : null}
       <GroupInventoryByChannel group={group} t={t} isFetching={insightsFetching} />
     </div>

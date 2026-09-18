@@ -31,7 +31,10 @@ function finishMetrics(m: PlatformMetrics): PlatformMetrics {
   const aov = m.order_count > 0 ? m.net_revenue / m.order_count : 0
   const contribution_margin_pct =
     m.net_revenue !== 0 ? (m.contribution_margin / m.net_revenue) * 100 : 0
-  return { ...m, aov, contribution_margin_pct }
+  const channelMargin = m.gross_profit - m.platform_fees_total - m.merchant_shipping_cost
+  const ads_spend =
+    m.ads_spend !== 0 ? m.ads_spend : Math.max(0, channelMargin - m.contribution_margin)
+  return { ...m, aov, contribution_margin_pct, ads_spend }
 }
 
 export function productChannelPlatforms(

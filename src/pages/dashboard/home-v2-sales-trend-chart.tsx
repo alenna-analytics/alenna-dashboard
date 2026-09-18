@@ -45,6 +45,10 @@ export type HomeV2SalesTrendChartProps = {
   endDate: string
   granularity: RevenueSeriesGranularity
   rows: MonthlyRevenueMonthRow[]
+  prevStart?: string
+  prevEnd?: string
+  rowsPrev?: MonthlyRevenueMonthRow[]
+  comparePrevious?: boolean
   currency: string
   formatValue: (value: number) => string
   dateLocale: Locale
@@ -52,6 +56,7 @@ export type HomeV2SalesTrendChartProps = {
   secondaryMetric: HomeV2TrendMetricId
   metricContext: HomeV2TrendMetricContext
   adsSeriesPoints?: AdsSeriesPoint[]
+  adsSeriesPointsPrev?: AdsSeriesPoint[]
   chartType?: SeriesChartView
   t: (key: ShellStringKey) => string
 }
@@ -60,6 +65,9 @@ type TrendRow = {
   label: string
   primary: number
   secondary: number
+  primaryPrevious: number | null
+  secondaryPrevious: number | null
+  previousBucketLabel: string | null
 }
 
 type TrendRowIndexed = TrendRow & { __idx: number }
@@ -94,6 +102,8 @@ function TrendTooltip({
   primaryMetric,
   secondaryMetric,
   formatValue,
+  comparePrevious,
+  previousPeriodLabel,
 }: {
   active?: boolean
   payload?: ReadonlyArray<{ payload?: TrendRow }>
@@ -102,10 +112,18 @@ function TrendTooltip({
   primaryMetric: HomeV2TrendMetricId
   secondaryMetric: HomeV2TrendMetricId
   formatValue: (value: number) => string
+  comparePrevious: boolean
+  previousPeriodLabel: string
 }) {
   if (!active || !payload?.length) return null
   const row = payload[0]?.payload as TrendRow | undefined
   if (!row) return null
+  const prevSuffix =
+    comparePrevious && row.previousBucketLabel
+      ? ` (${previousPeriodLabel}: ${row.previousBucketLabel})`
+      : comparePrevious
+        ? ` (${previousPeriodLabel})`
+        : ''
   return (
     <ChartTooltipFrame>
       <ChartTooltipTitle>{row.label}</ChartTooltipTitle>
@@ -115,11 +133,29 @@ function TrendTooltip({
           label={primaryLabel}
           value={formatHomeV2TrendMetricValue(primaryMetric, row.primary, formatValue)}
         />
+        {comparePrevious && row.primaryPrevious !== null ? (
+          <ChartTooltipSeriesRow
+            color="var(--text-tertiary)"
+            label={`${primaryLabel}${prevSuffix}`}
+            value={formatHomeV2TrendMetricValue(primaryMetric, row.primaryPrevious, formatValue)}
+          />
+        ) : null}
         <ChartTooltipSeriesRow
           color="var(--chart-monthly-gross-bar)"
           label={secondaryLabel}
           value={formatHomeV2TrendMetricValue(secondaryMetric, row.secondary, formatValue)}
         />
+        {comparePrevious && row.secondaryPrevious !== null ? (
+          <ChartTooltipSeriesRow
+            color="var(--text-tertiary)"
+            label={`${secondaryLabel}${prevSuffix}`}
+            value={formatHomeV2TrendMetricValue(
+              secondaryMetric,
+              row.secondaryPrevious,
+              formatValue,
+            )}
+          />
+        ) : null}
       </div>
     </ChartTooltipFrame>
   )
@@ -130,6 +166,10 @@ export function HomeV2SalesTrendChart({
   endDate,
   granularity,
   rows,
+  prevStart = '',
+  prevEnd = '',
+  rowsPrev = [],
+  comparePrevious = false,
   currency,
   formatValue,
   dateLocale,
@@ -137,14 +177,17 @@ export function HomeV2SalesTrendChart({
   secondaryMetric,
   metricContext,
   adsSeriesPoints = [],
+  adsSeriesPointsPrev = [],
   chartType = 'line',
   t,
 }: HomeV2SalesTrendChartProps) {
   const primaryLabel = homeV2TrendMetricLabel(primaryMetric, metricContext, t)
   const secondaryLabel = homeV2TrendMetricLabel(secondaryMetric, metricContext, t)
+  const previousPeriodLabel = t('dashboardRevenueSeriesPrevious')
   const primaryScale = homeV2TrendMetricScale(primaryMetric)
   const secondaryScale = homeV2TrendMetricScale(secondaryMetric)
   const useDualAxis = primaryScale !== secondaryScale
+  const showPrevious = comparePrevious && Boolean(prevStart && prevEnd)
 
   const formatAxisTick = (scale: typeof primaryScale, value: number) => {
     if (scale === 'count') return fmtCountCompact(value)
@@ -153,33 +196,78 @@ export function HomeV2SalesTrendChart({
   }
 
   const data = useMemo((): TrendRow[] => {
-    const merged = mergeRevenueSeriesRows(startDate, endDate, granularity, rows, dateLocale)
-    const withRoas =
-      adsSeriesPoints.length > 0
+    const mergeWithRoas = (
+      rangeStart: string,
+      rangeEnd: string,
+      seriesRows: MonthlyRevenueMonthRow[],
+      adsPoints: AdsSeriesPoint[],
+    ) => {
+      const merged = mergeRevenueSeriesRows(
+        rangeStart,
+        rangeEnd,
+        granularity,
+        seriesRows,
+        dateLocale,
+      )
+      return adsPoints.length > 0
         ? withAdsRoasOnChartRows(
             merged,
-            adsSeriesPoints,
-            startDate,
-            endDate,
+            adsPoints,
+            rangeStart,
+            rangeEnd,
             granularity,
             dateLocale,
           )
         : merged
-    return withRoas.map((row) => ({
-      label: row.label,
-      primary: homeV2TrendMetricValue(row, primaryMetric, metricContext),
-      secondary: homeV2TrendMetricValue(row, secondaryMetric, metricContext),
-    }))
+    }
+
+    const cur = mergeWithRoas(startDate, endDate, rows, adsSeriesPoints)
+    if (!showPrevious) {
+      return cur.map((row) => ({
+        label: row.label,
+        primary: homeV2TrendMetricValue(row, primaryMetric, metricContext),
+        secondary: homeV2TrendMetricValue(row, secondaryMetric, metricContext),
+        primaryPrevious: null,
+        secondaryPrevious: null,
+        previousBucketLabel: null,
+      }))
+    }
+
+    const prev = mergeWithRoas(prevStart, prevEnd, rowsPrev, adsSeriesPointsPrev)
+    const n = Math.min(cur.length, prev.length)
+    const out: TrendRow[] = []
+    for (let i = 0; i < n; i++) {
+      const c = cur[i]
+      const p = prev[i]
+      out.push({
+        label: c?.label ?? p?.label ?? '',
+        primary: c ? homeV2TrendMetricValue(c, primaryMetric, metricContext) : 0,
+        secondary: c ? homeV2TrendMetricValue(c, secondaryMetric, metricContext) : 0,
+        primaryPrevious: p
+          ? homeV2TrendMetricValue(p, primaryMetric, metricContext)
+          : null,
+        secondaryPrevious: p
+          ? homeV2TrendMetricValue(p, secondaryMetric, metricContext)
+          : null,
+        previousBucketLabel: p?.label ?? null,
+      })
+    }
+    return out
   }, [
     startDate,
     endDate,
+    prevStart,
+    prevEnd,
     granularity,
     rows,
+    rowsPrev,
     dateLocale,
     primaryMetric,
     secondaryMetric,
     metricContext,
     adsSeriesPoints,
+    adsSeriesPointsPrev,
+    showPrevious,
   ])
 
   const dataWithIndex: TrendRowIndexed[] = useMemo(
@@ -188,9 +276,24 @@ export function HomeV2SalesTrendChart({
   )
 
   const zoomResetKey = useMemo(() => {
-    const sig = data.map((d) => `${d.label}:${d.primary}:${d.secondary}`).join(';')
-    return `${startDate}|${endDate}|${granularity}|${primaryMetric}|${secondaryMetric}|${sig}`
-  }, [startDate, endDate, granularity, primaryMetric, secondaryMetric, data])
+    const sig = data
+      .map(
+        (d) =>
+          `${d.label}:${d.primary}:${d.secondary}:${d.primaryPrevious ?? ''}:${d.secondaryPrevious ?? ''}`,
+      )
+      .join(';')
+    return `${startDate}|${endDate}|${prevStart}|${prevEnd}|${granularity}|${primaryMetric}|${secondaryMetric}|${showPrevious}|${sig}`
+  }, [
+    startDate,
+    endDate,
+    prevStart,
+    prevEnd,
+    granularity,
+    primaryMetric,
+    secondaryMetric,
+    showPrevious,
+    data,
+  ])
 
   const [zoomRangeKey, setZoomRangeKey] = useState(zoomResetKey)
   const [zoomStart, setZoomStart] = useState(0)
@@ -280,6 +383,8 @@ export function HomeV2SalesTrendChart({
                 primaryMetric={primaryMetric}
                 secondaryMetric={secondaryMetric}
                 formatValue={formatValue}
+                comparePrevious={showPrevious}
+                previousPeriodLabel={previousPeriodLabel}
               />
             }
             {...chartRechartsTooltipProps}
@@ -336,6 +441,36 @@ export function HomeV2SalesTrendChart({
               />
             </>
           )}
+          {showPrevious ? (
+            <>
+              <Line
+                type="monotone"
+                dataKey="primaryPrevious"
+                name={`${primaryLabel} (${previousPeriodLabel})`}
+                yAxisId={primaryAxisId}
+                stroke="var(--text-tertiary)"
+                strokeWidth={2}
+                strokeDasharray="6 4"
+                dot={false}
+                connectNulls={false}
+                opacity={hiddenKeys.primaryPrevious ? 0.18 : 0.85}
+                {...mainAnimProps}
+              />
+              <Line
+                type="monotone"
+                dataKey="secondaryPrevious"
+                name={`${secondaryLabel} (${previousPeriodLabel})`}
+                yAxisId={secondaryAxisId}
+                stroke="var(--text-secondary)"
+                strokeWidth={1.75}
+                strokeDasharray="6 4"
+                dot={false}
+                connectNulls={false}
+                opacity={hiddenKeys.secondaryPrevious ? 0.18 : 0.85}
+                {...mainAnimProps}
+              />
+            </>
+          ) : null}
         </ComposedChart>
       </ResponsiveContainer>
 
@@ -379,6 +514,32 @@ export function HomeV2SalesTrendChart({
                     opacity={hiddenKeys.secondary ? 0.2 : 0.9}
                     {...miniAnimProps}
                   />
+                  {showPrevious ? (
+                    <>
+                      <Line
+                        type="monotone"
+                        dataKey="primaryPrevious"
+                        stroke="var(--text-tertiary)"
+                        strokeWidth={1.25}
+                        strokeDasharray="4 3"
+                        dot={false}
+                        connectNulls={false}
+                        opacity={hiddenKeys.primaryPrevious ? 0.2 : 0.75}
+                        {...miniAnimProps}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="secondaryPrevious"
+                        stroke="var(--text-secondary)"
+                        strokeWidth={1.1}
+                        strokeDasharray="4 3"
+                        dot={false}
+                        connectNulls={false}
+                        opacity={hiddenKeys.secondaryPrevious ? 0.2 : 0.75}
+                        {...miniAnimProps}
+                      />
+                    </>
+                  ) : null}
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -417,7 +578,10 @@ export function HomeV2SalesTrendChart({
             hiddenKeys.primary ? 'opacity-40' : 'opacity-100',
           )}
         >
-          <span className="inline-block size-2 shrink-0 rounded-full bg-[var(--chart-3)]" aria-hidden />
+          <span
+            className="inline-block h-0 w-3 shrink-0 border-t-2 border-solid border-[var(--chart-3)]"
+            aria-hidden
+          />
           <span>{primaryLabel}</span>
         </button>
         <button
@@ -429,11 +593,47 @@ export function HomeV2SalesTrendChart({
           )}
         >
           <span
-            className="inline-block size-2 shrink-0 rounded-full bg-[var(--chart-monthly-gross-bar)]"
+            className="inline-block h-0 w-3 shrink-0 border-t-2 border-solid border-[var(--chart-monthly-gross-bar)]"
             aria-hidden
           />
           <span>{secondaryLabel}</span>
         </button>
+        {showPrevious ? (
+          <>
+            <button
+              type="button"
+              onClick={() => toggleLegendKey('primaryPrevious')}
+              className={cn(
+                'inline-flex items-center gap-1.5 text-text-secondary outline-none transition-opacity focus:outline-none',
+                hiddenKeys.primaryPrevious ? 'opacity-40' : 'opacity-100',
+              )}
+            >
+              <span
+                className="inline-block h-0 w-3 shrink-0 border-t-2 border-dashed border-[var(--text-tertiary)]"
+                aria-hidden
+              />
+              <span>
+                {primaryLabel} ({previousPeriodLabel})
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleLegendKey('secondaryPrevious')}
+              className={cn(
+                'inline-flex items-center gap-1.5 text-text-secondary outline-none transition-opacity focus:outline-none',
+                hiddenKeys.secondaryPrevious ? 'opacity-40' : 'opacity-100',
+              )}
+            >
+              <span
+                className="inline-block h-0 w-3 shrink-0 border-t-2 border-dashed border-[var(--text-secondary)]"
+                aria-hidden
+              />
+              <span>
+                {secondaryLabel} ({previousPeriodLabel})
+              </span>
+            </button>
+          </>
+        ) : null}
       </div>
     </div>
   )

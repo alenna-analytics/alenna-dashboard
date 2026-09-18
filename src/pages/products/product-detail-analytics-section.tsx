@@ -15,6 +15,11 @@ import { Skeleton } from '@/ui/skeleton'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
+import {
+  computePreviousPeriod,
+  computeShiftedPreviousPeriod,
+  pctVersusPrevious,
+} from '@/pages/reports/reports-ui-helpers'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 
 import {
@@ -33,6 +38,7 @@ import {
   toggleProductDetailTrendMetric,
   type ProductDetailTrendMetricId,
 } from './product-detail-trend-metrics'
+import { useProductDetailQuery } from './use-catalog-queries'
 
 type VistaAKpiKey =
   | 'net-sales'
@@ -134,6 +140,7 @@ export function ProductDetailAnalyticsSection({
 
   const dateLocale = lang === 'en' ? enUS : esLocale
   const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
+  const kpiDeltaTooltip = t('homeKpiDeltaTooltip')
 
   const { data: series, isError } = useMonthlyRevenueSeries({
     productIds: [productId],
@@ -143,6 +150,32 @@ export function ProductDetailAnalyticsSection({
     granularity,
     enabled: Boolean(productId && insightStart && insightEnd),
   })
+
+  const trendPrevPeriod = useMemo(() => {
+    if (granularity === 'month') return computePreviousPeriod(insightStart, insightEnd)
+    return computeShiftedPreviousPeriod(insightStart, insightEnd)
+  }, [insightStart, insightEnd, granularity])
+
+  const kpiPrevPeriod = useMemo(
+    () => computeShiftedPreviousPeriod(insightStart, insightEnd),
+    [insightStart, insightEnd],
+  )
+
+  const { data: seriesPrev } = useMonthlyRevenueSeries({
+    productIds: [productId],
+    connectionIds: chartConnectionIds,
+    startDate: trendPrevPeriod?.start ?? '',
+    endDate: trendPrevPeriod?.end ?? '',
+    granularity,
+    enabled: Boolean(productId && trendPrevPeriod),
+  })
+
+  const prevDetailQuery = useProductDetailQuery(
+    kpiPrevPeriod ? productId : undefined,
+    kpiPrevPeriod
+      ? { metricsStart: kpiPrevPeriod.start, metricsEnd: kpiPrevPeriod.end }
+      : undefined,
+  )
 
   const onVistaAClick = useCallback((key: VistaAKpiKey) => {
     const metricId = VISTA_A_TREND_METRIC[key]
@@ -178,6 +211,89 @@ export function ProductDetailAnalyticsSection({
             : 0)) /
         units
       : 0
+
+  const filteredPrevPeriod = useMemo(() => {
+    if (!prevDetailQuery.data) return null
+    return filteredProductDetailPeriod(prevDetailQuery.data, activeChannel)
+  }, [prevDetailQuery.data, activeChannel])
+
+  const prevFeesForFilter = useMemo(() => {
+    if (!prevDetailQuery.data) return 0
+    return activeChannel === PRODUCT_DETAIL_ALL_CHANNELS
+      ? prevDetailQuery.data.period_settlement.marketplace_fees
+      : (prevDetailQuery.data.period_settlement_by_platform.find(
+          (row) => row.platform.trim().toLowerCase() === activeChannel,
+        )?.marketplace_fees ?? 0)
+  }, [prevDetailQuery.data, activeChannel])
+
+  const prevShippingForFilter = useMemo(() => {
+    if (!prevDetailQuery.data) return 0
+    return activeChannel === PRODUCT_DETAIL_ALL_CHANNELS
+      ? prevDetailQuery.data.period_settlement.shipping_charges
+      : (prevDetailQuery.data.period_settlement_by_platform.find(
+          (row) => row.platform.trim().toLowerCase() === activeChannel,
+        )?.shipping_charges ?? 0)
+  }, [prevDetailQuery.data, activeChannel])
+
+  const previousReady = Boolean(kpiPrevPeriod) && !prevDetailQuery.isLoading
+  const prevChannelMargin =
+    filteredPrevPeriod != null
+      ? filteredPrevPeriod.gross_profit - prevFeesForFilter - prevShippingForFilter
+      : undefined
+  const prevUnits = filteredPrevPeriod?.period_units_sold ?? undefined
+  const prevCmPerUnit =
+    filteredPrevPeriod != null && prevUnits != null && prevUnits > 0
+      ? filteredPrevPeriod.contribution_margin / prevUnits
+      : undefined
+  const prevAvgPrice =
+    filteredPrevPeriod != null && prevUnits != null && prevUnits > 0
+      ? filteredPrevPeriod.period_net_sales / prevUnits
+      : undefined
+  const prevUnitCogs =
+    filteredPrevPeriod != null &&
+    prevDetailQuery.data &&
+    prevUnits != null &&
+    prevUnits > 0
+      ? (prevDetailQuery.data.period_cogs *
+          (prevDetailQuery.data.period_net_sales > 0
+            ? filteredPrevPeriod.period_net_sales / prevDetailQuery.data.period_net_sales
+            : 0)) /
+        prevUnits
+      : undefined
+
+  function growthBlock(current: number, previous: number | undefined) {
+    const priorUnavailable = !previousReady || previous === undefined
+    const delta =
+      previous !== undefined && previousReady ? pctVersusPrevious(current, previous) : null
+    return {
+      pct: delta?.pct ?? null,
+      trend: delta?.trend ?? ('flat' as const),
+      unavailable: priorUnavailable,
+    }
+  }
+
+  const growthByKey: Record<
+    VistaAKpiKey,
+    { pct: number | null; trend: 'up' | 'down' | 'flat'; unavailable: boolean }
+  > = {
+    'net-sales': growthBlock(
+      filteredPeriod.period_net_sales,
+      filteredPrevPeriod?.period_net_sales,
+    ),
+    'gross-profit': growthBlock(
+      filteredPeriod.gross_profit,
+      filteredPrevPeriod?.gross_profit,
+    ),
+    'channel-margin': growthBlock(channelMargin, prevChannelMargin),
+    cm: growthBlock(
+      filteredPeriod.contribution_margin,
+      filteredPrevPeriod?.contribution_margin,
+    ),
+    units: growthBlock(units, prevUnits),
+    'cm-unit': growthBlock(cmPerUnit, prevCmPerUnit),
+    'avg-price': growthBlock(avgPrice, prevAvgPrice),
+    'unit-cogs': growthBlock(unitCogs, prevUnitCogs),
+  }
 
   const vistaAPrimary: Array<{
     key: VistaAKpiKey
@@ -318,6 +434,10 @@ export function ProductDetailAnalyticsSection({
               numericValue={kpi.numericValue}
               currencyCode={kpi.currencyCode}
               ratePct={kpi.ratePct}
+              growthPct={growthByKey[kpi.key].pct}
+              growthTrend={growthByKey[kpi.key].trend}
+              growthUnavailable={growthByKey[kpi.key].unavailable}
+              growthTooltip={kpiDeltaTooltip}
               value={kpi.value}
               {...vistaATileProps(kpi.key)}
             />
@@ -333,6 +453,10 @@ export function ProductDetailAnalyticsSection({
               skeleton={kpiSkeleton}
               numericValue={kpi.numericValue}
               currencyCode={kpi.currencyCode}
+              growthPct={growthByKey[kpi.key].pct}
+              growthTrend={growthByKey[kpi.key].trend}
+              growthUnavailable={growthByKey[kpi.key].unavailable}
+              growthTooltip={kpiDeltaTooltip}
               value={kpi.value}
               {...vistaATileProps(kpi.key)}
             />
@@ -354,6 +478,10 @@ export function ProductDetailAnalyticsSection({
             endDate={insightEnd}
             granularity={granularity}
             rows={series?.months ?? []}
+            prevStart={trendPrevPeriod?.start}
+            prevEnd={trendPrevPeriod?.end}
+            rowsPrev={seriesPrev?.months ?? []}
+            comparePrevious={Boolean(trendPrevPeriod && seriesPrev)}
             selectedMetrics={selectedMetrics}
             formatMoney={fmtBase}
             dateLocale={dateLocale}

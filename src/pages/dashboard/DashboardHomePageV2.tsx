@@ -63,6 +63,7 @@ import {
 import { mergeRevenueSeriesRows } from '@/pages/reports/monthly-revenue-chart'
 import {
   computePreviousPeriod,
+  computeShiftedPreviousPeriod,
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
 import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
@@ -426,6 +427,28 @@ export function DashboardHomePageV2() {
     endDate,
     granularity: salesTrendGranularity,
     enabled: canSalesHome && activeConnectionIds.length > 0,
+  })
+
+  const salesTrendPrevPeriod = useMemo(() => {
+    if (salesTrendGranularity === 'month') return computePreviousPeriod(startDate, endDate)
+    return computeShiftedPreviousPeriod(startDate, endDate)
+  }, [startDate, endDate, salesTrendGranularity])
+
+  const { data: salesTrendSeriesPrev } = useMonthlyRevenueSeries({
+    connectionIds: activeConnectionIds,
+    productIds: productMode ? productIds : undefined,
+    startDate: salesTrendPrevPeriod?.start ?? '',
+    endDate: salesTrendPrevPeriod?.end ?? '',
+    granularity: salesTrendGranularity,
+    enabled:
+      canSalesHome && activeConnectionIds.length > 0 && Boolean(salesTrendPrevPeriod),
+  })
+
+  const { data: adsSeriesPrev } = useAdsSeries({
+    connectionIds: adsScope.queryConnectionIds,
+    startDate: salesTrendPrevPeriod?.start ?? '',
+    endDate: salesTrendPrevPeriod?.end ?? '',
+    enabled: adsSeriesEnabled && Boolean(salesTrendPrevPeriod),
   })
 
   const { data: channelBreakdown, isPending: channelDonutPending } = useChannelBreakdown({
@@ -1186,6 +1209,10 @@ export function DashboardHomePageV2() {
                 endDate={endDate}
                 granularity={salesTrendGranularity}
                 rows={salesTrendSeries?.months ?? []}
+                prevStart={salesTrendPrevPeriod?.start}
+                prevEnd={salesTrendPrevPeriod?.end}
+                rowsPrev={salesTrendSeriesPrev?.months ?? []}
+                comparePrevious={Boolean(salesTrendPrevPeriod && salesTrendSeriesPrev)}
                 currency={effectiveDisplayCurrency}
                 formatValue={formatInDisplay}
                 dateLocale={dateLocale}
@@ -1193,6 +1220,7 @@ export function DashboardHomePageV2() {
                 secondaryMetric={effectiveSalesTrendSecondaryMetric}
                 metricContext={trendMetricContext}
                 adsSeriesPoints={adsSeriesError ? [] : (adsSeries?.points ?? [])}
+                adsSeriesPointsPrev={adsSeriesError ? [] : (adsSeriesPrev?.points ?? [])}
                 chartType={salesTrendChartType}
                 t={t}
               />

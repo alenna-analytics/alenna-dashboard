@@ -1572,9 +1572,9 @@ const SHELL_STRINGS = {
     reportsPnlHintGrossProfit: 'Economía del producto',
     reportsPnlHintChannelMargin: 'Economía del producto + canal',
     reportsPnlHintContributionMargin: 'Después de adquisición',
-    reportsTaxBlockTitle: 'Retenciones estimadas',
+    reportsTaxBlockTitle: 'Retenciones de plataforma',
     reportsTaxBlockSubtitle:
-      'Estimación con tasas configuradas del espacio. No usa retenciones ingeridas de liquidación.',
+      'Dinero retenido por marketplaces y enterado al SAT a tu nombre. No es un gasto: es recuperable vía acreditamiento fiscal. Sí afecta tu liquidez.',
     reportsTaxBlockUnset:
       'Configura las tasas de impuestos para ver retenciones estimadas y efectivo neto esperado.',
     reportsTaxBlockConfigLink: 'Ir a Configuración → Impuestos',
@@ -1583,6 +1583,20 @@ const SHELL_STRINGS = {
     reportsTaxBlockWithholdingTotal: 'Total retenido',
     reportsTaxBlockInformationalNote: '(Informativo – no afecta EBITDA)',
     reportsTaxBlockExpectedNetCash: 'Efectivo neto esperado',
+    reportsTaxBlockExpectedNetCashHint: 'Lo que realmente llega al banco (estimado)',
+    channelsFeeShopifyPayments: 'Shopify Payments',
+    channelsFeeAmazonReferralFba: 'Amazon (referral + FBA)',
+    channelsFeeMlCargo: 'ML (cargo por venta)',
+    channelsFeeSubrowHint:
+      'Etiqueta presentacional: el monto es el total de fees de esa plataforma (sin split contable).',
+    channelsAdsGoogle: 'Google Ads',
+    channelsAdsMeta: 'Meta Ads',
+    channelsAdsAmazon: 'Amazon Ads',
+    channelsAdsMl: 'ML Ads',
+    channelsAdsOtherUnlinked: 'Otros / sin vincular',
+    channelsEfficiencyTacos: 'TACOS %',
+    channelsEfficiencyRoas: 'ROAS',
+    channelsEfficiencySectionHint: 'Métricas de eficiencia',
     reportsCogsIncompleteWarning:
       'Hay productos sin COGS completo en este periodo. La utilidad bruta y márgenes pueden estar sobreestimados.',
     reportsProductModeHint:
@@ -3831,9 +3845,9 @@ const SHELL_STRINGS = {
     reportsPnlHintGrossProfit: 'Product economics',
     reportsPnlHintChannelMargin: 'Product + channel economics',
     reportsPnlHintContributionMargin: 'After acquisition',
-    reportsTaxBlockTitle: 'Estimated withholdings',
+    reportsTaxBlockTitle: 'Platform withholdings',
     reportsTaxBlockSubtitle:
-      'Estimate from workspace tax rates. Does not use ingested settlement withholdings.',
+      'Money withheld by marketplaces and remitted to the tax authority on your behalf. Not an expense: recoverable via tax credit. It does affect liquidity.',
     reportsTaxBlockUnset:
       'Configure tax rates to see estimated withholdings and expected net cash.',
     reportsTaxBlockConfigLink: 'Go to Settings → Taxes',
@@ -3842,6 +3856,20 @@ const SHELL_STRINGS = {
     reportsTaxBlockWithholdingTotal: 'Total withheld',
     reportsTaxBlockInformationalNote: '(Informational – does not affect EBITDA)',
     reportsTaxBlockExpectedNetCash: 'Expected net cash',
+    reportsTaxBlockExpectedNetCashHint: 'What actually reaches the bank (estimated)',
+    channelsFeeShopifyPayments: 'Shopify Payments',
+    channelsFeeAmazonReferralFba: 'Amazon (referral + FBA)',
+    channelsFeeMlCargo: 'ML (sale fee)',
+    channelsFeeSubrowHint:
+      'Presentational label: amount is that platform’s total fees (no accounting split).',
+    channelsAdsGoogle: 'Google Ads',
+    channelsAdsMeta: 'Meta Ads',
+    channelsAdsAmazon: 'Amazon Ads',
+    channelsAdsMl: 'ML Ads',
+    channelsAdsOtherUnlinked: 'Other / unlinked',
+    channelsEfficiencyTacos: 'TACOS %',
+    channelsEfficiencyRoas: 'ROAS',
+    channelsEfficiencySectionHint: 'Efficiency metrics',
     reportsCogsIncompleteWarning:
       'Some products are missing complete COGS in this period. Gross profit and margins may be overstated.',
     reportsProductModeHint:

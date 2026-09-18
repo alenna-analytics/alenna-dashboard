@@ -7,6 +7,12 @@ import {
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
+  attributedRoas,
+  type AdsNetworkId,
+  type PlatformAdsRollup,
+  tacosPct,
+} from '@/pages/channels/channels-ads-by-platform'
+import {
   type ChannelPlatform,
   channelMarginAmount,
   channelMarginPct,
@@ -14,33 +20,61 @@ import {
   grossMarginPct,
   type PlatformMetrics,
 } from '@/pages/channels/channels-platform-aggregate'
-import { SectionSplit } from '@/pages/reports/report-ui'
-import { cn } from '@/lib/utils'
-import { DataTable } from '@/ui/data-table/data-table'
-import { EmptyState } from '@/ui/empty-state'
-import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
-
-import type { PnlRowId } from '@/pages/reports/reports-pnl-rows'
 import {
   productHeaderColumnClassName,
   truncateProductHeaderLabel,
 } from '@/pages/channels/channels-product-header-label'
+import type { PnlRowId } from '@/pages/reports/reports-pnl-rows'
+import { SectionSplit } from '@/pages/reports/report-ui'
+import { cn } from '@/lib/utils'
+import { DataTable } from '@/ui/data-table/data-table'
+import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { EmptyState } from '@/ui/empty-state'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
-type ChannelsPnlLineId = PnlRowId | 'order_count' | 'aov' | 'units_sold' | 'cm_per_unit'
+type ChannelsPnlLineId =
+  | PnlRowId
+  | 'order_count'
+  | 'aov'
+  | 'units_sold'
+  | 'cm_per_unit'
+  | 'fee_shopify'
+  | 'fee_amazon'
+  | 'fee_ml'
+  | 'ads_google'
+  | 'ads_meta'
+  | 'ads_amazon'
+  | 'ads_ml'
+  | 'ads_other'
+  | 'tacos'
+  | 'roas'
 
 type PnlLine = {
   id: ChannelsPnlLineId
   labelKey: ShellStringKey
-  kind: 'line' | 'subtotal' | 'total'
+  kind: 'line' | 'subtotal' | 'total' | 'subrow'
   isDeduction?: boolean
   isNoData?: boolean
-  format: 'money' | 'count'
-  value: (m: PlatformMetrics) => number
+  indent?: boolean
+  format: 'money' | 'count' | 'pct' | 'ratio'
+  value: (m: PlatformMetrics, colSlug: string) => number | null
   marginPct?: (m: PlatformMetrics) => number | null
 }
 
-const CORE_LINES: PnlLine[] = [
+const FEE_PLATFORM_SLUG: Record<string, string> = {
+  fee_shopify: 'shopify',
+  fee_amazon: 'amazon',
+  fee_ml: 'mercadolibre',
+}
+
+const ADS_NETWORK_FOR_LINE: Partial<Record<ChannelsPnlLineId, AdsNetworkId>> = {
+  ads_google: 'google_ads',
+  ads_meta: 'meta_ads',
+  ads_amazon: 'amazon_ads',
+  ads_ml: 'mercadolibre_ads',
+}
+
+const CORE_BEFORE_FEES: PnlLine[] = [
   {
     id: 'gross_revenue',
     labelKey: 'reportsWfGrossRevenue',
@@ -95,6 +129,15 @@ const CORE_LINES: PnlLine[] = [
     format: 'money',
     value: (m) => m.platform_fees_total,
   },
+]
+
+const FEE_SUBROW_DEFS: Array<{ id: ChannelsPnlLineId; labelKey: ShellStringKey }> = [
+  { id: 'fee_shopify', labelKey: 'channelsFeeShopifyPayments' },
+  { id: 'fee_amazon', labelKey: 'channelsFeeAmazonReferralFba' },
+  { id: 'fee_ml', labelKey: 'channelsFeeMlCargo' },
+]
+
+const AFTER_FEES: PnlLine[] = [
   {
     id: 'merchant_shipping',
     labelKey: 'reportsKpiFulfillmentCost',
@@ -119,6 +162,21 @@ const CORE_LINES: PnlLine[] = [
     format: 'money',
     value: (m) => m.ads_spend,
   },
+]
+
+const ADS_SUBROW_DEFS: Array<{
+  id: ChannelsPnlLineId
+  labelKey: ShellStringKey
+  alwaysNull?: boolean
+}> = [
+  { id: 'ads_google', labelKey: 'channelsAdsGoogle' },
+  { id: 'ads_meta', labelKey: 'channelsAdsMeta', alwaysNull: true },
+  { id: 'ads_amazon', labelKey: 'channelsAdsAmazon' },
+  { id: 'ads_ml', labelKey: 'channelsAdsMl' },
+  { id: 'ads_other', labelKey: 'channelsAdsOtherUnlinked' },
+]
+
+const AFTER_ADS: PnlLine[] = [
   {
     id: 'contribution_margin',
     labelKey: 'reportsWfContributionMargin',
@@ -165,6 +223,8 @@ const FOOTER_UNITS: PnlLine[] = [
 
 const columnHelper = createColumnHelper<PnlLine>()
 
+export type ChannelsPnlDetailLevel = 'full' | 'core'
+
 type ChannelsPnlTableProps = {
   metrics: Record<string, PlatformMetrics>
   platforms: ChannelPlatform[]
@@ -172,14 +232,35 @@ type ChannelsPnlTableProps = {
   t: (key: ShellStringKey) => string
   labelForRow: (id: PnlRowId) => string
   cmIncomplete?: boolean
-  /** Defaults to channel breakdown copy. */
   breakdown?: 'channel' | 'product'
-  /** Product/group detail uses units + CM/unit; channels module keeps orders + AOV. */
   footerMode?: 'orders' | 'units'
+  detailLevel?: ChannelsPnlDetailLevel
+  adsByPlatform?: Record<string, PlatformAdsRollup>
+  tenantAdsSpend?: number
 }
 
 function emphasisClass(kind: PnlLine['kind']): string {
   return kind === 'subtotal' || kind === 'total' ? 'font-semibold' : ''
+}
+
+function emptyMetricsStub(platform: string): PlatformMetrics {
+  return {
+    platform,
+    gross_revenue: 0,
+    discounts: 0,
+    returns: 0,
+    net_revenue: 0,
+    order_count: 0,
+    aov: 0,
+    cogs: 0,
+    gross_profit: 0,
+    platform_fees_total: 0,
+    merchant_shipping_cost: 0,
+    ads_spend: 0,
+    contribution_margin: 0,
+    contribution_margin_pct: 0,
+    units_sold: 0,
+  }
 }
 
 export function ChannelsPnlTable({
@@ -191,12 +272,119 @@ export function ChannelsPnlTable({
   cmIncomplete = false,
   breakdown = 'channel',
   footerMode = 'orders',
+  detailLevel = 'core',
+  adsByPlatform,
+  tenantAdsSpend = 0,
 }: ChannelsPnlTableProps) {
   const byProduct = breakdown === 'product'
-  const lines = useMemo(
-    () => [...CORE_LINES, ...(footerMode === 'units' ? FOOTER_UNITS : FOOTER_ORDERS)],
-    [footerMode],
-  )
+  const full = detailLevel === 'full'
+
+  const lines = useMemo(() => {
+    const footer = footerMode === 'units' ? FOOTER_UNITS : FOOTER_ORDERS
+    if (!full) {
+      return [...CORE_BEFORE_FEES, ...AFTER_FEES, ...AFTER_ADS, ...footer]
+    }
+
+    const presentSlugs = new Set(platforms.map((p) => p.slug))
+    const feeRows: PnlLine[] = FEE_SUBROW_DEFS.filter((def) => {
+      const slug = FEE_PLATFORM_SLUG[def.id]
+      return slug ? presentSlugs.has(slug) : true
+    }).map((def) => {
+      const platformSlug = FEE_PLATFORM_SLUG[def.id]
+      return {
+        id: def.id,
+        labelKey: def.labelKey,
+        kind: 'subrow' as const,
+        isDeduction: true,
+        indent: true,
+        format: 'money' as const,
+        value: (_m: PlatformMetrics, colSlug: string): number | null => {
+          if (!platformSlug) return 0
+          if (colSlug === platformSlug) {
+            return metrics[platformSlug]?.platform_fees_total ?? 0
+          }
+          if (colSlug === 'total') {
+            return metrics[platformSlug]?.platform_fees_total ?? 0
+          }
+          return 0
+        },
+      }
+    })
+
+    const adsRows: PnlLine[] = ADS_SUBROW_DEFS.filter((def) => {
+      if (def.id === 'ads_other') return tenantAdsSpend > 0
+      return true
+    }).map((def) => {
+      if (def.alwaysNull) {
+        return {
+          id: def.id,
+          labelKey: def.labelKey,
+          kind: 'subrow' as const,
+          isDeduction: true,
+          indent: true,
+          format: 'money' as const,
+          value: (): number | null => null,
+        }
+      }
+      if (def.id === 'ads_other') {
+        return {
+          id: def.id,
+          labelKey: def.labelKey,
+          kind: 'subrow' as const,
+          isDeduction: true,
+          indent: true,
+          format: 'money' as const,
+          value: (_m: PlatformMetrics, colSlug: string): number | null =>
+            colSlug === 'total' ? tenantAdsSpend : 0,
+        }
+      }
+      const network = ADS_NETWORK_FOR_LINE[def.id]
+      return {
+        id: def.id,
+        labelKey: def.labelKey,
+        kind: 'subrow' as const,
+        isDeduction: true,
+        indent: true,
+        format: 'money' as const,
+        value: (_m: PlatformMetrics, colSlug: string): number | null => {
+          if (!network || !adsByPlatform) return 0
+          return adsByPlatform[colSlug]?.byNetwork[network] ?? 0
+        },
+      }
+    })
+
+    const efficiency: PnlLine[] = [
+      {
+        id: 'tacos',
+        labelKey: 'channelsEfficiencyTacos',
+        kind: 'line',
+        format: 'pct',
+        value: (m) => tacosPct(m.ads_spend, m.net_revenue),
+      },
+      {
+        id: 'roas',
+        labelKey: 'channelsEfficiencyRoas',
+        kind: 'line',
+        format: 'ratio',
+        value: (_m, colSlug) => {
+          const rollup = adsByPlatform?.[colSlug]
+          if (!rollup) return null
+          return attributedRoas(rollup.attributedSales, rollup.linkedSpend)
+        },
+      },
+    ]
+
+    return [
+      ...CORE_BEFORE_FEES,
+      ...feeRows,
+      ...AFTER_FEES,
+      ...adsRows,
+      ...AFTER_ADS,
+      ...efficiency,
+      ...footer,
+    ]
+  }, [adsByPlatform, footerMode, full, metrics, platforms, tenantAdsSpend])
+
   const cols = useMemo(
     () => [...platforms, { slug: 'total', label: t('channelsColTotal') }],
     [platforms, t],
@@ -212,19 +400,41 @@ export function ChannelsPnlTable({
         cell: ({ row }) => {
           const line = row.original
           const footerIds = new Set(['order_count', 'aov', 'units_sold', 'cm_per_unit'])
+          const useResolver =
+            !footerIds.has(line.id) &&
+            line.kind !== 'subrow' &&
+            line.id !== 'tacos' &&
+            line.id !== 'roas'
           const label =
             line.id === 'contribution_margin' && cmIncomplete
               ? t('channelsCmProductScopeLabel')
-              : footerIds.has(line.id)
-                ? t(line.labelKey)
-                : labelForRow(line.id as PnlRowId)
+              : useResolver
+                ? labelForRow(line.id as PnlRowId)
+                : t(line.labelKey)
+          const prefix =
+            line.kind === 'subrow'
+              ? '• '
+              : line.isDeduction && line.kind === 'line'
+                ? '(−) '
+                : line.kind === 'subtotal' || line.kind === 'total'
+                  ? '= '
+                  : ''
           return (
-            <span className={cn('text-text-primary', emphasisClass(line.kind))}>
-              {line.isDeduction
-                ? `(−) ${label}`
-                : line.kind !== 'line'
-                  ? `= ${label}`
-                  : label}
+            <span
+              className={cn(
+                'text-text-primary',
+                line.indent && 'pl-4',
+                emphasisClass(line.kind),
+                line.kind === 'subrow' && 'text-text-secondary',
+              )}
+              title={
+                line.kind === 'subrow' && line.id.startsWith('fee_')
+                  ? t('channelsFeeSubrowHint')
+                  : undefined
+              }
+            >
+              {prefix}
+              {label}
             </span>
           )
         },
@@ -238,7 +448,7 @@ export function ChannelsPnlTable({
           id: col.slug,
           header: ({ column }) => {
             const isTotal = col.slug === 'total'
-            const { display, full, truncated } =
+            const { display, full: fullLabel, truncated } =
               byProduct && !isTotal
                 ? truncateProductHeaderLabel(col.label)
                 : { display: col.label, full: col.label, truncated: false }
@@ -265,7 +475,7 @@ export function ChannelsPnlTable({
                   sideOffset={6}
                   className="max-w-[min(20rem,calc(100vw-2rem))] text-left normal-case"
                 >
-                  <span className="wrap-break-word">{full}</span>
+                  <span className="wrap-break-word">{fullLabel}</span>
                 </TooltipContent>
               </Tooltip>
             )
@@ -279,15 +489,28 @@ export function ChannelsPnlTable({
                 </span>
               )
             }
-            const m = metrics[col.slug]
-            const raw = line.value(m)
-            const display = line.isDeduction ? -Math.abs(raw) : raw
+            const m = metrics[col.slug] ?? emptyMetricsStub(col.slug)
+            const raw = line.value(m, col.slug)
+            if (raw === null) {
+              return (
+                <span className="w-full text-right text-text-secondary">—</span>
+              )
+            }
+            let formatted: string
+            if (line.format === 'pct') {
+              formatted = `${raw.toFixed(1)}%`
+            } else if (line.format === 'ratio') {
+              formatted = `${raw.toFixed(2)}x`
+            } else if (line.format === 'count') {
+              formatted = String(Math.round(raw))
+            } else {
+              const display = line.isDeduction ? -Math.abs(raw) : raw
+              formatted = formatMoney(display)
+            }
             const margin =
               cmIncomplete && line.id === 'contribution_margin'
                 ? null
                 : line.marginPct?.(m)
-            const formatted =
-              line.format === 'count' ? String(Math.round(display)) : formatMoney(display)
             return (
               <span
                 className={cn(

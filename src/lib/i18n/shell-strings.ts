@@ -1752,7 +1752,8 @@ const SHELL_STRINGS = {
       'Utilidad bruta del producto dividida entre sus ventas del periodo.',
     productsDetailKpiUnitsSoldHelp:
       'Unidades de este producto vendidas en el periodo seleccionado.',
-    productsDetailSettlementTitle: 'Liquidación plataforma',
+    productsDetailSettlementTitle: 'Cascada de cobro',
+    productsDetailSettlementTitleLegacy: 'Liquidación plataforma',
     productsDetailSettlementDescription:
       'Estimado de cobro neto de la plataforma en el rango (antes de depósito bancario).',
     productsDetailSettlementByPlatform: 'Por plataforma',
@@ -1801,7 +1802,35 @@ const SHELL_STRINGS = {
     productsDetailInventoryByProductTitle: 'Inventario por producto',
     productsDetailInventoryStock: 'Stock',
     productsDetailInventoryVelocity: 'Velocidad',
+    productsDetailInventoryVelocityPerDay: 'Velocidad/día',
+    productsDetailInventoryVelocityUnit: 'u/día',
     productsDetailInventoryDays: 'Días inv.',
+    productsDetailInventoryAlert: 'Alerta',
+    productsDetailTaxRetentionAlert:
+      'Las retenciones de impuestos ({amount}) no afectan la rentabilidad – es dinero tuyo enterado al SAT, recuperable vía acreditamiento.',
+    productsDetailTaxRetentionAlertHint:
+      'Ver pestaña "Rentabilidad" para el efectivo real que llega al banco.',
+    productsDetailPlatformPaymentRetainedSat: 'Retenido SAT',
+    productsDetailPlatformPaymentRetainedSatHelp:
+      'ISR e IVA retenidos por marketplaces; recuperable vía acreditamiento.',
+    productsDetailPlatformPaymentRetainedSatFooter: 'recuperable',
+    productsDetailPlatformPaymentCobroNeto: 'Cobro neto est.',
+    productsDetailPlatformPaymentPayoutPctFooter: 'de ventas netas',
+    productsDetailCobroTaxAppliedRate: 'tasa aplicada',
+    productsDetailCobroTaxPayoutPctOfNet: '% de ventas netas',
+    productsDetailCobroShopifyNoTaxAlert:
+      'Shopify no retiene impuestos: no es marketplace, tú facturas directo al cliente final. Amazon y Mercado Libre actúan como intermediarios y enteran ISR e IVA al SAT a tu nombre. Las tasas son configurables en Ajustes → Configuración fiscal.',
+    productsDetailCobroFiscalCreditAlert:
+      'Saldo a favor fiscal generado por este producto: {amount}. Acreditable en tu declaración.',
+    productsDetailCobroFiscalCreditAlertHint: 'Acumulado estimado del periodo seleccionado.',
+    productsDetailCobroFiscalCreditAlertLink: 'Ver configuración fiscal →',
+    productsDetailCobroTimingTitle: 'Timing de cobro por canal',
+    productsDetailCobroTimingPending: 'Monto pendiente',
+    productsDetailCobroTimingWhen: 'Cuándo llega',
+    productsDetailCobroTimingShopify: '+3 días hábiles desde cada venta',
+    productsDetailCobroTimingAmazon: 'Ciclo 14 días (estimación)',
+    productsDetailCobroTimingMeli: '+3 a 5 días hábiles según reputación',
+    productsDetailCobroTimingDefault: 'Según ciclo de liquidación del canal',
     productsDetailPlatformPaymentNetSales: 'Ventas netas',
     productsDetailPlatformPaymentPayoutPct: '% al banco',
     productsDetailPlatformPaymentPayoutPctHelp: 'Cobro neto estimado ÷ ventas netas del periodo.',
@@ -3968,7 +3997,8 @@ const SHELL_STRINGS = {
       'Product gross profit divided by its sales for the period.',
     productsDetailKpiUnitsSoldHelp:
       'Units of this product sold in the selected period.',
-    productsDetailSettlementTitle: 'Platform settlement',
+    productsDetailSettlementTitle: 'Payout cascade',
+    productsDetailSettlementTitleLegacy: 'Platform settlement',
     productsDetailSettlementDescription:
       'Estimated net platform payout for the range (before bank deposit).',
     productsDetailSettlementByPlatform: 'By platform',
@@ -4017,7 +4047,35 @@ const SHELL_STRINGS = {
     productsDetailInventoryByProductTitle: 'Inventory by product',
     productsDetailInventoryStock: 'Stock',
     productsDetailInventoryVelocity: 'Velocity',
+    productsDetailInventoryVelocityPerDay: 'Velocity/day',
+    productsDetailInventoryVelocityUnit: 'u/day',
     productsDetailInventoryDays: 'Inv. days',
+    productsDetailInventoryAlert: 'Alert',
+    productsDetailTaxRetentionAlert:
+      'Tax withholdings ({amount}) do not affect profitability – that money is remitted to the tax authority and recoverable via credit.',
+    productsDetailTaxRetentionAlertHint:
+      'See the "Profitability" tab for the real cash that lands in the bank.',
+    productsDetailPlatformPaymentRetainedSat: 'SAT withheld',
+    productsDetailPlatformPaymentRetainedSatHelp:
+      'ISR and VAT withheld by marketplaces; recoverable via tax credit.',
+    productsDetailPlatformPaymentRetainedSatFooter: 'recoverable',
+    productsDetailPlatformPaymentCobroNeto: 'Est. net payout',
+    productsDetailPlatformPaymentPayoutPctFooter: 'of net sales',
+    productsDetailCobroTaxAppliedRate: 'applied rate',
+    productsDetailCobroTaxPayoutPctOfNet: '% of net sales',
+    productsDetailCobroShopifyNoTaxAlert:
+      'Shopify does not withhold tax: it is not a marketplace — you invoice the end customer directly. Amazon and Mercado Libre act as intermediaries and remit ISR and VAT to the tax authority on your behalf. Rates are configurable in Settings → Tax configuration.',
+    productsDetailCobroFiscalCreditAlert:
+      'Tax credit generated by this product: {amount}. Creditable on your return.',
+    productsDetailCobroFiscalCreditAlertHint: 'Estimated total for the selected period.',
+    productsDetailCobroFiscalCreditAlertLink: 'View tax settings →',
+    productsDetailCobroTimingTitle: 'Payout timing by channel',
+    productsDetailCobroTimingPending: 'Pending amount',
+    productsDetailCobroTimingWhen: 'When it arrives',
+    productsDetailCobroTimingShopify: '+3 business days from each sale',
+    productsDetailCobroTimingAmazon: '14-day cycle (estimate)',
+    productsDetailCobroTimingMeli: '+3 to 5 business days depending on reputation',
+    productsDetailCobroTimingDefault: 'Per channel settlement cycle',
     productsDetailPlatformPaymentNetSales: 'Net sales',
     productsDetailPlatformPaymentPayoutPct: '% to bank',
     productsDetailPlatformPaymentPayoutPctHelp: 'Estimated net payout ÷ period net sales.',

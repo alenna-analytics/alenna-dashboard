@@ -9,19 +9,24 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import type { ProductLinkGroupApi } from '@/lib/types/product-links'
 import { SettingsSectionHeader } from '@/pages/configuration/settings-layout'
+import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
+import { TableEmptyCell } from '@/ui/data-table/table-empty-cell'
 
 import {
   inventoryRowsFromGroupMembers,
   inventoryRowsFromProductDetail,
   inventoryRowsFromProductGroup,
   type InventoryByChannelRow,
+  withInventoryTotalRow,
 } from './product-detail-inventory-rows'
+import { formatListingVelocityPerDay } from './product-detail-listing-channel-format'
 import { productPlatformLabel } from './product-platform-label'
 import { ProductPlatformLogoName } from './product-platform-logo-name'
+import { ProductStockAlertBadge } from './product-stock-alert-ui'
 import { useGroupInsight } from './vinculacion/use-group-insight'
 
 type ShellT = (key: ShellStringKey) => string
@@ -58,6 +63,11 @@ export function InventoryByChannelTable({
   showWhenEmpty = false,
 }: InventoryByChannelTableProps) {
   const byProduct = dimension === 'product'
+  const tableRows = useMemo(
+    () => withInventoryTotalRow(rows, t('channelsColTotal')),
+    [rows, t],
+  )
+
   const columns = useMemo(
     () => [
       columnHelper.display({
@@ -69,6 +79,13 @@ export function InventoryByChannelTable({
           />
         ),
         cell: ({ row }) => {
+          if (row.original.isTotal) {
+            return (
+              <span className="font-semibold text-text-primary">
+                {row.original.label ?? t('channelsColTotal')}
+              </span>
+            )
+          }
           if (byProduct) {
             const label = row.original.label ?? row.original.platform
             return (
@@ -106,20 +123,29 @@ export function InventoryByChannelTable({
             className="justify-end"
           />
         ),
-        cell: ({ getValue }) => getValue().toLocaleString(),
+        cell: ({ getValue, row }) => (
+          <span className={cn(row.original.isTotal && 'font-semibold')}>
+            {getValue().toLocaleString()}
+          </span>
+        ),
         meta: TEXT_END_META,
       }),
       columnHelper.accessor('velocity', {
         header: ({ column }) => (
           <DataTableColumnHeader
             column={column}
-            title={t('productsDetailInventoryVelocity')}
+            title={t('productsDetailInventoryVelocityPerDay')}
             className="justify-end"
           />
         ),
-        cell: ({ getValue }) => {
-          const value = getValue()
-          return value == null ? '—' : value.toFixed(2)
+        cell: ({ getValue, row }) => {
+          const formatted = formatListingVelocityPerDay(getValue())
+          if (!formatted) return <TableEmptyCell />
+          return (
+            <span className={cn('tabular-nums', row.original.isTotal && 'font-semibold')}>
+              {formatted} {t('productsDetailInventoryVelocityUnit')}
+            </span>
+          )
         },
         meta: TEXT_END_META,
       }),
@@ -131,10 +157,34 @@ export function InventoryByChannelTable({
             className="justify-end"
           />
         ),
-        cell: ({ getValue }) => {
+        cell: ({ getValue, row }) => {
           const value = getValue()
-          return value == null ? '—' : value.toLocaleString()
+          if (value == null) return <TableEmptyCell />
+          return (
+            <span className={cn(row.original.isTotal && 'font-semibold')}>
+              {value.toLocaleString(undefined, {
+                maximumFractionDigits: 1,
+                minimumFractionDigits: 0,
+              })}
+            </span>
+          )
         },
+        meta: TEXT_END_META,
+      }),
+      columnHelper.display({
+        id: 'stockAlert',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={t('productsDetailInventoryAlert')}
+            className="justify-end"
+          />
+        ),
+        cell: ({ row }) => (
+          <div className="flex w-full justify-end">
+            <ProductStockAlertBadge level={row.original.stockAlert} t={t} />
+          </div>
+        ),
         meta: TEXT_END_META,
       }),
     ],
@@ -143,7 +193,7 @@ export function InventoryByChannelTable({
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
   const table = useReactTable({
-    data: rows,
+    data: tableRows,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) =>

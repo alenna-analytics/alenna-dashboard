@@ -11,7 +11,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { TaxSettingsRates } from '@/lib/types/tax-settings'
 import {
   type ChannelPlatform,
-  type PlatformMetrics,
+  type PlatformSettlementMetrics,
 } from '@/pages/channels/channels-platform-aggregate'
 import {
   productHeaderColumnClassName,
@@ -26,23 +26,26 @@ import { EmptyState } from '@/ui/empty-state'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 import {
-  estimateTaxByPlatform,
+  estimateSettlementTaxByPlatform,
   type PlatformTaxEstimate,
 } from './product-pnl-tax-estimates'
 
 type TaxLineId =
   | 'withholding_isr'
+  | 'isr_rate'
   | 'withholding_iva'
+  | 'iva_rate'
   | 'withholding_total'
   | 'expected_net_cash'
+  | 'payout_pct'
 
 type TaxLine = {
   id: TaxLineId
   labelKey: ShellStringKey
-  kind: 'line' | 'subtotal' | 'total'
+  kind: 'line' | 'rate' | 'subtotal' | 'total'
   isDeduction: boolean
-  hintKey?: ShellStringKey
-  value: (m: PlatformTaxEstimate) => number
+  value: (m: PlatformTaxEstimate, settlement?: PlatformSettlementMetrics) => number | null
+  format: 'money' | 'pct'
 }
 
 const TAX_LINES: TaxLine[] = [
@@ -51,40 +54,72 @@ const TAX_LINES: TaxLine[] = [
     labelKey: 'reportsTaxBlockWithholdingIsr',
     kind: 'line',
     isDeduction: true,
+    format: 'money',
     value: (m) => m.withholding_isr,
+  },
+  {
+    id: 'isr_rate',
+    labelKey: 'productsDetailCobroTaxAppliedRate',
+    kind: 'rate',
+    isDeduction: false,
+    format: 'pct',
+    value: (m) => m.isr_pct,
   },
   {
     id: 'withholding_iva',
     labelKey: 'reportsTaxBlockWithholdingIva',
     kind: 'line',
     isDeduction: true,
+    format: 'money',
     value: (m) => m.withholding_iva,
+  },
+  {
+    id: 'iva_rate',
+    labelKey: 'productsDetailCobroTaxAppliedRate',
+    kind: 'rate',
+    isDeduction: false,
+    format: 'pct',
+    value: (m) => m.iva_pct,
   },
   {
     id: 'withholding_total',
     labelKey: 'reportsTaxBlockWithholdingTotal',
     kind: 'subtotal',
     isDeduction: true,
-    hintKey: 'reportsTaxBlockInformationalNote',
+    format: 'money',
     value: (m) => m.withholding_total,
   },
   {
     id: 'expected_net_cash',
-    labelKey: 'reportsTaxBlockExpectedNetCash',
+    labelKey: 'settlementWfEstimatedPayout',
     kind: 'total',
     isDeduction: false,
+    format: 'money',
     value: (m) => m.expected_net_cash,
+  },
+  {
+    id: 'payout_pct',
+    labelKey: 'productsDetailCobroTaxPayoutPctOfNet',
+    kind: 'rate',
+    isDeduction: false,
+    format: 'pct',
+    value: (m, settlement) => {
+      const net = settlement?.net_revenue ?? 0
+      if (net <= 0) return null
+      return (m.expected_net_cash / net) * 100
+    },
   },
 ]
 
 const columnHelper = createColumnHelper<TaxLine>()
 
-type ProductPnlTaxMatrixProps = {
-  metrics: Record<string, PlatformMetrics>
+type ProductCobroTaxMatrixProps = {
+  metrics: Record<string, PlatformSettlementMetrics>
   platforms: ChannelPlatform[]
   taxRates: TaxSettingsRates | null | undefined
   formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
+  currencyCode?: string
   breakdown?: 'channel' | 'product'
 }
 
@@ -92,18 +127,19 @@ function emphasisClass(kind: TaxLine['kind']): string {
   return kind === 'subtotal' || kind === 'total' ? 'font-semibold' : ''
 }
 
-export function ProductPnlTaxMatrix({
+export function ProductCobroTaxMatrix({
   metrics,
   platforms,
   taxRates,
   formatMoney,
   t,
+  currencyCode,
   breakdown = 'channel',
-}: ProductPnlTaxMatrixProps) {
+}: ProductCobroTaxMatrixProps) {
   const byProduct = breakdown === 'product'
   const estimates = useMemo(() => {
     if (!taxRates) return null
-    return estimateTaxByPlatform(
+    return estimateSettlementTaxByPlatform(
       metrics,
       platforms.map((p) => p.slug),
       taxRates,
@@ -114,6 +150,11 @@ export function ProductPnlTaxMatrix({
     () => [...platforms, { slug: 'total', label: t('channelsColTotal') }],
     [platforms, t],
   )
+
+  const hasShopify = platforms.some(
+    (p) => p.slug.trim().toLowerCase() === 'shopify',
+  )
+  const totalWithheld = estimates?.total?.withholding_total ?? 0
 
   const columns = useMemo(
     () => [
@@ -126,20 +167,19 @@ export function ProductPnlTaxMatrix({
           const line = row.original
           const label = t(line.labelKey)
           return (
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <span className={cn('text-text-primary', emphasisClass(line.kind))}>
-                {line.isDeduction && line.kind === 'line'
-                  ? `(−) ${label}`
-                  : line.kind !== 'line'
-                    ? `= ${label}`
-                    : label}
-              </span>
-              {line.hintKey ? (
-                <span className="text-[11px] leading-tight text-text-tertiary">
-                  {t(line.hintKey)}
-                </span>
-              ) : null}
-            </div>
+            <span
+              className={cn(
+                'text-text-primary',
+                line.kind === 'rate' && 'text-[11px] text-text-tertiary',
+                emphasisClass(line.kind),
+              )}
+            >
+              {line.isDeduction && line.kind === 'line'
+                ? `(−) ${label}`
+                : line.kind === 'subtotal' || line.kind === 'total'
+                  ? `= ${label}`
+                  : label}
+            </span>
           )
         },
         meta: {
@@ -187,7 +227,25 @@ export function ProductPnlTaxMatrix({
           cell: ({ row }) => {
             const line = row.original
             const m = estimates?.[col.slug]
-            const raw = m ? line.value(m) : 0
+            const settlement = metrics[col.slug]
+            const raw = m ? line.value(m, settlement) : null
+            if (raw == null) {
+              return (
+                <span className="w-full text-right text-text-tertiary tabular-nums">—</span>
+              )
+            }
+            if (line.format === 'pct') {
+              return (
+                <span
+                  className={cn(
+                    'w-full text-right font-numeric tabular-nums text-text-tertiary',
+                    col.slug === 'total' && line.id === 'payout_pct' && 'font-semibold text-text-primary',
+                  )}
+                >
+                  {raw.toFixed(1)}%
+                </span>
+              )
+            }
             const display = line.isDeduction ? -Math.abs(raw) : raw
             return (
               <span
@@ -216,7 +274,7 @@ export function ProductPnlTaxMatrix({
         }),
       ),
     ],
-    [byProduct, cols, estimates, formatMoney, t],
+    [byProduct, cols, estimates, formatMoney, metrics, t],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
@@ -248,10 +306,10 @@ export function ProductPnlTaxMatrix({
     )
   }
 
-  const totalWithheld = estimates?.total?.withholding_total ?? 0
-  const taxRetentionTitle = t('productsDetailTaxRetentionAlert').replace(
+  const creditAmount = formatMoney(Math.abs(totalWithheld))
+  const creditTitle = t('productsDetailCobroFiscalCreditAlert').replace(
     '{amount}',
-    formatMoney(Math.abs(totalWithheld)),
+    currencyCode ? `${creditAmount} ${currencyCode}` : creditAmount,
   )
 
   return (
@@ -270,10 +328,33 @@ export function ProductPnlTaxMatrix({
           hasEverLoaded={true}
           scrollClassName=""
           emptyContent={<EmptyState icon="channels" title={t('reportsNoData')} />}
-          skeletonRowCount={4}
+          skeletonRowCount={7}
         />
+        {hasShopify ? (
+          <ContextAlertCard
+            title={t('productsDetailCobroShopifyNoTaxAlert')}
+            icon={Info}
+            tone="info"
+          />
+        ) : null}
+        {totalWithheld > 0 ? (
+          <ContextAlertCard
+            title={creditTitle}
+            subtitle={t('productsDetailCobroFiscalCreditAlertHint')}
+            icon={Info}
+            tone="info"
+            action={
+              <Link
+                to="/dashboard/configuration/tax-rates"
+                className="text-xs font-medium text-text-primary underline-offset-2 hover:underline"
+              >
+                {t('productsDetailCobroFiscalCreditAlertLink')}
+              </Link>
+            }
+          />
+        ) : null}
         <ContextAlertCard
-          title={taxRetentionTitle}
+          title={t('productsDetailTaxRetentionAlert').replace('{amount}', creditAmount)}
           subtitle={t('productsDetailTaxRetentionAlertHint')}
           icon={Info}
           tone="info"

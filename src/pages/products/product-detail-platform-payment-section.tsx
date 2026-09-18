@@ -255,10 +255,15 @@ export function ProductDetailPlatformPaymentSection({
       displaySettlement.estimated_payout,
       prevDisplay.estimated_payout,
     )
+    const prevPayout = prevDisplay.estimated_payout
+    const unavailable =
+      !prevDetailQuery.isSuccess ||
+      !Number.isFinite(prevPayout) ||
+      (prevPayout === 0 && displaySettlement.estimated_payout !== 0)
     return {
       pct: delta?.pct ?? null,
       trend: delta?.trend ?? ('flat' as const),
-      unavailable: !prevDetailQuery.isSuccess,
+      unavailable,
     }
   }, [
     displaySettlement,

@@ -4,6 +4,7 @@ import {
   classifyGrowthDisplay,
   formatGrowthPctDisplay,
   formatGrowthSegmentDisplay,
+  pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
 
 describe('classifyGrowthDisplay', () => {
@@ -19,6 +20,28 @@ describe('classifyGrowthDisplay', () => {
 
   it('returns no_baseline when ready and pct is null', () => {
     expect(classifyGrowthDisplay(true, null)).toBe('no_baseline')
+  })
+
+  it('treats non-finite pct as no_baseline', () => {
+    expect(classifyGrowthDisplay(true, Number.POSITIVE_INFINITY)).toBe('no_baseline')
+    expect(classifyGrowthDisplay(true, Number.NaN)).toBe('no_baseline')
+  })
+})
+
+describe('pctVersusPrevious', () => {
+  it('returns null when previous is zero and current is not', () => {
+    expect(pctVersusPrevious(6690, 0)).toBeNull()
+  })
+
+  it('returns null for non-finite inputs (avoids Infinity %)', () => {
+    expect(pctVersusPrevious(6690, Number.NaN)).toBeNull()
+    expect(pctVersusPrevious(Number.POSITIVE_INFINITY, 100)).toBeNull()
+    expect(pctVersusPrevious(6690, null as unknown as number)).toBeNull()
+  })
+
+  it('computes finite growth when previous is non-zero', () => {
+    expect(pctVersusPrevious(110, 100)).toEqual({ pct: 10, trend: 'up' })
+    expect(pctVersusPrevious(90, 100)).toEqual({ pct: -10, trend: 'down' })
   })
 })
 

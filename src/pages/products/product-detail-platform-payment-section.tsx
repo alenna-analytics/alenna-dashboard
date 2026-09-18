@@ -9,6 +9,11 @@ import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChannelsSettlementTable } from '@/pages/channels/channels-settlement-table'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
+import { useTaxRatesQuery } from '@/pages/configuration/tax-rates/use-tax-rates-queries'
+import {
+  computeShiftedPreviousPeriod,
+  pctVersusPrevious,
+} from '@/pages/reports/reports-ui-helpers'
 import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 import { Card, CardContent, CardHeader } from '@/ui/card'
@@ -23,6 +28,8 @@ import {
   connectionIdsForPlatform,
   PRODUCT_DETAIL_ALL_CHANNELS,
 } from './product-detail-analytics-filter'
+import { ProductCobroTaxMatrix } from './product-cobro-tax-matrix'
+import { ProductCobroTimingTable } from './product-cobro-timing-table'
 import { ProductDetailInsightKpiTile } from './product-detail-insight-kpi-tile'
 import { ProductDetailInventoryByChannel } from './product-detail-inventory-by-channel'
 import { ProductDetailTrendChart } from './product-detail-trend-chart'
@@ -39,22 +46,19 @@ import {
 } from './product-detail-trend-metrics'
 import { productPlatformLabel } from './product-platform-label'
 import {
+  estimateSettlementTaxByPlatform,
+  resolveRetainedSat,
+  settlementWithEstimatedTax,
+} from './product-pnl-tax-estimates'
+import {
   productSettlementByPlatformMetrics,
   settlementPlatformsFromProduct,
 } from './product-settlement-channel-metrics'
+import { useProductDetailQuery } from './use-catalog-queries'
 
-type VistaBKpiKey =
-  | 'gross-sales'
-  | 'net-sales'
-  | 'payout'
-  | 'payout-pct'
-  | 'discounts'
-  | 'returns'
-  | 'fees'
-  | 'shipping'
+type VistaBKpiKey = 'net-sales' | 'retained-sat' | 'payout' | 'payout-pct'
 
 const VISTA_B_TREND_METRIC: Partial<Record<VistaBKpiKey, ProductDetailTrendMetricId>> = {
-  'gross-sales': 'gross-sales',
   'net-sales': 'net-sales',
 }
 
@@ -100,6 +104,7 @@ export function ProductDetailPlatformPaymentSection({
   ])
   const [channelFilter, setChannelFilter] = useState(PRODUCT_DETAIL_ALL_CHANNELS)
   const connectionsQuery = usePlatformConnectionsQuery()
+  const taxRatesQuery = useTaxRatesQuery()
 
   const platformSlugs = useMemo(
     () =>
@@ -149,13 +154,106 @@ export function ProductDetailPlatformPaymentSection({
     ],
   )
 
+  const platforms = useMemo(() => settlementPlatformsFromProduct(detail, t), [detail, t])
+  const settlementMetrics = useMemo(
+    () => productSettlementByPlatformMetrics(detail, platforms),
+    [detail, platforms],
+  )
+
+  const taxEstimates = useMemo(() => {
+    const rates = taxRatesQuery.data?.settings
+    if (!rates) return null
+    return estimateSettlementTaxByPlatform(
+      settlementMetrics,
+      platforms.map((p) => p.slug),
+      rates,
+    )
+  }, [platforms, settlementMetrics, taxRatesQuery.data?.settings])
+
+  const retainedSat = useMemo(() => {
+    if (!settlement) return 0
+    return resolveRetainedSat(
+      settlement.tax_withholdings,
+      taxEstimates?.total?.withholding_total ?? 0,
+    )
+  }, [settlement, taxEstimates])
+
+  const displaySettlement = useMemo(() => {
+    if (!settlement) return null
+    return settlementWithEstimatedTax(settlement, retainedSat)
+  }, [retainedSat, settlement])
+
   const settlementSegments = useMemo(
     () =>
-      settlement
-        ? buildSettlementWaterfallSegments(settlement, t, { includeTaxWithholdings: false })
+      displaySettlement
+        ? buildSettlementWaterfallSegments(displaySettlement, t, {
+            includeTaxWithholdings: true,
+          })
         : [],
-    [settlement, t],
+    [displaySettlement, t],
   )
+
+  const previousRange = useMemo(
+    () => computeShiftedPreviousPeriod(insightStart, insightEnd),
+    [insightEnd, insightStart],
+  )
+  const prevDetailQuery = useProductDetailQuery(
+    previousRange ? productId : undefined,
+    previousRange
+      ? {
+          metricsStart: previousRange.start,
+          metricsEnd: previousRange.end,
+        }
+      : undefined,
+  )
+  const prevSettlement = useMemo(() => {
+    if (!prevDetailQuery.data) return null
+    return resolveProductPlatformSettlement({
+      channelFilter: activeChannel,
+      periodSettlement: prevDetailQuery.data.period_settlement,
+      periodSettlementByPlatform: prevDetailQuery.data.period_settlement_by_platform,
+      listings: prevDetailQuery.data.listings,
+    })
+  }, [activeChannel, prevDetailQuery.data])
+
+  const prevTaxEstimates = useMemo(() => {
+    if (!prevDetailQuery.data || !taxRatesQuery.data?.settings) return null
+    const prevPlatforms = settlementPlatformsFromProduct(prevDetailQuery.data, t)
+    const prevMetrics = productSettlementByPlatformMetrics(
+      prevDetailQuery.data,
+      prevPlatforms,
+    )
+    return estimateSettlementTaxByPlatform(
+      prevMetrics,
+      prevPlatforms.map((p) => p.slug),
+      taxRatesQuery.data.settings,
+    )
+  }, [prevDetailQuery.data, t, taxRatesQuery.data?.settings])
+
+  const payoutGrowth = useMemo(() => {
+    if (!displaySettlement || !prevSettlement) {
+      return { pct: null as number | null, trend: 'flat' as const, unavailable: true }
+    }
+    const prevRetained = resolveRetainedSat(
+      prevSettlement.tax_withholdings,
+      prevTaxEstimates?.total?.withholding_total ?? 0,
+    )
+    const prevDisplay = settlementWithEstimatedTax(prevSettlement, prevRetained)
+    const delta = pctVersusPrevious(
+      displaySettlement.estimated_payout,
+      prevDisplay.estimated_payout,
+    )
+    return {
+      pct: delta?.pct ?? null,
+      trend: delta?.trend ?? ('flat' as const),
+      unavailable: !prevDetailQuery.isSuccess,
+    }
+  }, [
+    displaySettlement,
+    prevDetailQuery.isSuccess,
+    prevSettlement,
+    prevTaxEstimates,
+  ])
 
   const chartConnectionIds = useMemo(
     () => connectionIdsForPlatform(connectionsQuery.data, activeChannel),
@@ -170,12 +268,6 @@ export function ProductDetailPlatformPaymentSection({
     granularity,
     enabled: Boolean(productId && insightStart && insightEnd),
   })
-
-  const platforms = useMemo(() => settlementPlatformsFromProduct(detail, t), [detail, t])
-  const settlementMetrics = useMemo(
-    () => productSettlementByPlatformMetrics(detail, platforms),
-    [detail, platforms],
-  )
 
   const dateLocale = lang === 'en' ? enUS : esLocale
   const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
@@ -197,13 +289,26 @@ export function ProductDetailPlatformPaymentSection({
     }
   }
 
+  const pendingByPlatform = useMemo(() => {
+    const out: Record<string, number> = {}
+    for (const platform of platforms) {
+      const estimate = taxEstimates?.[platform.slug]
+      out[platform.slug] =
+        estimate?.expected_net_cash ??
+        settlementMetrics[platform.slug]?.estimated_payout ??
+        0
+    }
+    return out
+  }, [platforms, settlementMetrics, taxEstimates])
+
   if (!isFetching && !settlement) {
     return <EmptyState size="sm" icon="products" title={t('productsDetailPlatformPaymentEmpty')} />
   }
 
+  const cobroNeto = displaySettlement?.estimated_payout ?? 0
   const payoutPct =
-    settlement && settlement.net_revenue > 0
-      ? (settlement.estimated_payout / settlement.net_revenue) * 100
+    displaySettlement && displaySettlement.net_revenue > 0
+      ? (cobroNeto / displaySettlement.net_revenue) * 100
       : null
 
   const vistaBPrimary: Array<{
@@ -213,76 +318,53 @@ export function ProductDetailPlatformPaymentSection({
     value: ReactNode
     currencyCode?: string
     numericValue?: number
-    ratePct?: number | null
-  }> = settlement
+    footer?: ReactNode
+    growthPct?: number | null
+    growthTrend?: 'up' | 'down' | 'flat'
+    growthUnavailable?: boolean
+  }> = displaySettlement
     ? [
-        {
-          key: 'gross-sales',
-          label: t('reportsGrossRevenue'),
-          value: insightKpi(fmtCard(settlement.gross_revenue)),
-          currencyCode,
-          numericValue: settlement.gross_revenue,
-        },
         {
           key: 'net-sales',
           label: t('productsDetailPlatformPaymentNetSales'),
-          helpText: t('productsDetailPlatformPaymentGrossSalesHelp'),
-          value: insightKpi(fmtCard(settlement.net_revenue)),
+          value: insightKpi(fmtCard(displaySettlement.net_revenue)),
           currencyCode,
-          numericValue: settlement.net_revenue,
+          numericValue: displaySettlement.net_revenue,
+        },
+        {
+          key: 'retained-sat',
+          label: t('productsDetailPlatformPaymentRetainedSat'),
+          helpText: t('productsDetailPlatformPaymentRetainedSatHelp'),
+          value: insightKpi(fmtCard(retainedSat)),
+          currencyCode,
+          numericValue: retainedSat,
+          footer: (
+            <span className="text-[11px] text-text-tertiary">
+              {t('productsDetailPlatformPaymentRetainedSatFooter')}
+            </span>
+          ),
         },
         {
           key: 'payout',
-          label: t('productsDetailPlatformPaymentTotalPayout'),
+          label: t('productsDetailPlatformPaymentCobroNeto'),
           helpText: t('productsDetailPlatformPaymentTotalPayoutHelp'),
-          value: insightKpi(fmtCard(settlement.estimated_payout)),
+          value: insightKpi(fmtCard(cobroNeto)),
           currencyCode,
-          numericValue: settlement.estimated_payout,
+          numericValue: cobroNeto,
+          growthPct: payoutGrowth.pct,
+          growthTrend: payoutGrowth.trend,
+          growthUnavailable: payoutGrowth.unavailable,
         },
         {
           key: 'payout-pct',
           label: t('productsDetailPlatformPaymentPayoutPct'),
           helpText: t('productsDetailPlatformPaymentPayoutPctHelp'),
           value: insightKpi(payoutPct == null ? '—' : `${payoutPct.toFixed(1)}%`),
-        },
-      ]
-    : []
-
-  const vistaBSecondary: Array<{
-    key: VistaBKpiKey
-    label: string
-    value: ReactNode
-    currencyCode?: string
-    numericValue?: number
-  }> = settlement
-    ? [
-        {
-          key: 'discounts',
-          label: t('settlementWfDiscounts'),
-          value: insightKpi(fmtCard(settlement.discounts)),
-          currencyCode,
-          numericValue: settlement.discounts,
-        },
-        {
-          key: 'returns',
-          label: t('settlementWfReturns'),
-          value: insightKpi(fmtCard(settlement.returns)),
-          currencyCode,
-          numericValue: settlement.returns,
-        },
-        {
-          key: 'fees',
-          label: t('settlementWfMarketplaceFees'),
-          value: insightKpi(fmtCard(settlement.marketplace_fees)),
-          currencyCode,
-          numericValue: settlement.marketplace_fees,
-        },
-        {
-          key: 'shipping',
-          label: t('settlementWfShippingCharges'),
-          value: insightKpi(fmtCard(settlement.shipping_charges)),
-          currencyCode,
-          numericValue: settlement.shipping_charges,
+          footer: (
+            <span className="text-[11px] text-text-tertiary">
+              {t('productsDetailPlatformPaymentPayoutPctFooter')}
+            </span>
+          ),
         },
       ]
     : []
@@ -314,7 +396,7 @@ export function ProductDetailPlatformPaymentSection({
         </CardHeader>
         <CardContent className="flex flex-col gap-4 p-0 pt-4">
           <div className="grid grid-cols-1 items-stretch gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
-            {isFetching && !settlement
+            {isFetching && !displaySettlement
               ? Array.from({ length: 4 }).map((_, index) => (
                   <ProductDetailInsightKpiTile
                     key={`sk-p-${index}`}
@@ -336,32 +418,10 @@ export function ProductDetailPlatformPaymentSection({
                     numericValue={kpi.numericValue}
                     currencyCode={kpi.currencyCode}
                     value={kpi.value}
-                    {...vistaBTileProps(kpi.key)}
-                  />
-                ))}
-          </div>
-          <div className="grid grid-cols-1 items-stretch gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
-            {isFetching && !settlement
-              ? Array.from({ length: 4 }).map((_, index) => (
-                  <ProductDetailInsightKpiTile
-                    key={`sk-s-${index}`}
-                    label="—"
-                    value=""
-                    showValues={false}
-                    isFetching
-                    skeleton={kpiSkeleton}
-                  />
-                ))
-              : vistaBSecondary.map((kpi) => (
-                  <ProductDetailInsightKpiTile
-                    key={kpi.key}
-                    label={kpi.label}
-                    showValues={showInsightValues}
-                    isFetching={isFetching}
-                    skeleton={kpiSkeleton}
-                    numericValue={kpi.numericValue}
-                    currencyCode={kpi.currencyCode}
-                    value={kpi.value}
+                    footer={kpi.footer}
+                    growthPct={kpi.growthPct}
+                    growthTrend={kpi.growthTrend}
+                    growthUnavailable={kpi.growthUnavailable ?? true}
                     {...vistaBTileProps(kpi.key)}
                   />
                 ))}
@@ -392,13 +452,13 @@ export function ProductDetailPlatformPaymentSection({
         </CardContent>
       </Card>
 
-      {settlement ? (
+      {displaySettlement ? (
         <ProductDetailWaterfallBlock
           title={t('productsDetailSettlementTitle')}
           description={t('reportsSectionSettlementSubtitle')}
           segments={settlementSegments}
           currency={detail.base_currency}
-          grossRevenue={settlement.gross_revenue}
+          grossRevenue={displaySettlement.gross_revenue}
           t={t}
           finalBarCaption={t('reportsSettlementFinalHint')}
           isLoading={isFetching}
@@ -414,6 +474,27 @@ export function ProductDetailPlatformPaymentSection({
           formatMoney={fmtBase}
           t={t}
           includeTaxWithholdings={false}
+        />
+      ) : null}
+
+      {platforms.length > 0 ? (
+        <ProductCobroTaxMatrix
+          metrics={settlementMetrics}
+          platforms={platforms}
+          taxRates={taxRatesQuery.data?.settings}
+          formatMoney={fmtBase}
+          t={t}
+          currencyCode={currencyCode}
+        />
+      ) : null}
+
+      {platforms.length > 0 ? (
+        <ProductCobroTimingTable
+          platforms={platforms}
+          metrics={settlementMetrics}
+          pendingByPlatform={pendingByPlatform}
+          formatMoney={fmtBase}
+          t={t}
         />
       ) : null}
 

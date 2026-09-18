@@ -8,6 +8,9 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
   type ChannelPlatform,
+  channelMarginAmount,
+  channelMarginPct,
+  cmPerUnit,
   grossMarginPct,
   type PlatformMetrics,
 } from '@/pages/channels/channels-platform-aggregate'
@@ -24,7 +27,7 @@ import {
   truncateProductHeaderLabel,
 } from '@/pages/channels/channels-product-header-label'
 
-type ChannelsPnlLineId = PnlRowId | 'order_count' | 'aov'
+type ChannelsPnlLineId = PnlRowId | 'order_count' | 'aov' | 'units_sold' | 'cm_per_unit'
 
 type PnlLine = {
   id: ChannelsPnlLineId
@@ -37,7 +40,7 @@ type PnlLine = {
   marginPct?: (m: PlatformMetrics) => number | null
 }
 
-const LINES: PnlLine[] = [
+const CORE_LINES: PnlLine[] = [
   {
     id: 'gross_revenue',
     labelKey: 'reportsWfGrossRevenue',
@@ -101,6 +104,14 @@ const LINES: PnlLine[] = [
     value: (m) => m.merchant_shipping_cost,
   },
   {
+    id: 'channel_margin',
+    labelKey: 'reportsChannelMargin',
+    kind: 'subtotal',
+    format: 'money',
+    value: (m) => channelMarginAmount(m),
+    marginPct: (m) => channelMarginPct(m),
+  },
+  {
     id: 'ads_spend',
     labelKey: 'reportsWfAdsSpend',
     kind: 'line',
@@ -116,6 +127,9 @@ const LINES: PnlLine[] = [
     value: (m) => m.contribution_margin,
     marginPct: (m) => m.contribution_margin_pct,
   },
+]
+
+const FOOTER_ORDERS: PnlLine[] = [
   {
     id: 'order_count',
     labelKey: 'channelsMetricOrders',
@@ -132,6 +146,23 @@ const LINES: PnlLine[] = [
   },
 ]
 
+const FOOTER_UNITS: PnlLine[] = [
+  {
+    id: 'units_sold',
+    labelKey: 'reportsUnitsSoldLabel',
+    kind: 'line',
+    format: 'count',
+    value: (m) => m.units_sold,
+  },
+  {
+    id: 'cm_per_unit',
+    labelKey: 'productsDetailCmPerUnit',
+    kind: 'line',
+    format: 'money',
+    value: (m) => cmPerUnit(m),
+  },
+]
+
 const columnHelper = createColumnHelper<PnlLine>()
 
 type ChannelsPnlTableProps = {
@@ -143,6 +174,8 @@ type ChannelsPnlTableProps = {
   cmIncomplete?: boolean
   /** Defaults to channel breakdown copy. */
   breakdown?: 'channel' | 'product'
+  /** Product/group detail uses units + CM/unit; channels module keeps orders + AOV. */
+  footerMode?: 'orders' | 'units'
 }
 
 function emphasisClass(kind: PnlLine['kind']): string {
@@ -157,8 +190,13 @@ export function ChannelsPnlTable({
   labelForRow,
   cmIncomplete = false,
   breakdown = 'channel',
+  footerMode = 'orders',
 }: ChannelsPnlTableProps) {
   const byProduct = breakdown === 'product'
+  const lines = useMemo(
+    () => [...CORE_LINES, ...(footerMode === 'units' ? FOOTER_UNITS : FOOTER_ORDERS)],
+    [footerMode],
+  )
   const cols = useMemo(
     () => [...platforms, { slug: 'total', label: t('channelsColTotal') }],
     [platforms, t],
@@ -173,12 +211,13 @@ export function ChannelsPnlTable({
         ),
         cell: ({ row }) => {
           const line = row.original
+          const footerIds = new Set(['order_count', 'aov', 'units_sold', 'cm_per_unit'])
           const label =
             line.id === 'contribution_margin' && cmIncomplete
               ? t('channelsCmProductScopeLabel')
-              : line.id === 'order_count' || line.id === 'aov'
+              : footerIds.has(line.id)
                 ? t(line.labelKey)
-                : labelForRow(line.id)
+                : labelForRow(line.id as PnlRowId)
           return (
             <span className={cn('text-text-primary', emphasisClass(line.kind))}>
               {line.isDeduction
@@ -287,7 +326,7 @@ export function ChannelsPnlTable({
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
   const table = useReactTable({
-    data: LINES,
+    data: lines,
     columns,
     getCoreRowModel: getCoreRowModel(),
     enableSorting: false,

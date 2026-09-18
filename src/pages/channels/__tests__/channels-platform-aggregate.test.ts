@@ -95,12 +95,13 @@ describe('aggregateChannelKpisByPlatform', () => {
 })
 
 describe('grossMarginPct', () => {
-  it('uses gross revenue denominator', () => {
+  it('uses net revenue denominator', () => {
     const agg = aggregateChannelKpisByPlatform(
       [
         row({
           platform: 'shopify',
           gross_revenue: 1000,
+          net_revenue: 1000,
           gross_profit: 600,
         }),
       ],

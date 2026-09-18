@@ -9,6 +9,7 @@ import type { ProductLinkGroupApi, ProductLinkGroupMemberApi } from '@/lib/types
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 import { EmptyState } from '@/ui/empty-state'
+import { StatusPill } from '@/ui/status-pill'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +23,10 @@ import {
 import { productsLinkingGroupPath } from '../products-inner-nav'
 import { ProductPlatformLogoName } from '../product-platform-logo-name'
 import { ProductTableThumb } from '../product-table-thumb'
+import {
+  primaryProductImageUrl,
+  uniquePlatformSlugs,
+} from './vinculacion-table-helpers'
 
 type ShellT = (key: ShellStringKey) => string
 
@@ -113,30 +118,66 @@ function createColumns({
 }: CreateColumnsArgs): ColumnDef<ProductLinkGroupApi>[] {
   return [
     {
-      id: 'group',
-      accessorFn: (row) => row.title,
-      meta: TEXT_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('productsVinculacionTabLinked')} />
-      ),
+      id: 'image',
+      enableSorting: false,
+      meta: {
+        headerClassName: 'w-14 [&>div]:justify-start',
+        cellClassName: 'w-14 [&>div]:justify-start',
+      },
+      header: () => <span className="sr-only">{t('productsColImage')}</span>,
       cell: ({ row }) => {
         const group = row.original
-        const expanded = expandedId === group.id
         return (
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex items-center gap-2">
             <ChevronDown
               className={cn(
                 'size-4 shrink-0 text-text-tertiary transition-transform',
-                expanded ? 'rotate-0' : '-rotate-90',
+                expandedId === group.id ? 'rotate-0' : '-rotate-90',
               )}
               aria-hidden
             />
-            <div className="min-w-0 truncate">
-              <span className="font-medium text-text-primary">{group.title}</span>
-            </div>
+            <ProductTableThumb url={groupImageUrl(group)} alt={group.title} />
           </div>
         )
       },
+    },
+    {
+      id: 'name',
+      accessorFn: (row) => row.title,
+      meta: {
+        ...TEXT_CELL_META,
+        cellClassName: 'max-w-[14rem] min-w-0 overflow-hidden [&>div]:justify-start sm:max-w-[20rem]',
+      },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsColProduct')} />
+      ),
+      cell: ({ row }) => {
+        const group = row.original
+        return (
+          <Link
+            to={productsLinkingGroupPath(group.id)}
+            className="block min-w-0 truncate font-medium text-text-primary underline underline-offset-2 hover:text-text-primary"
+            title={group.title}
+            onClick={(event) => event.stopPropagation()}
+          >
+            {group.title}
+          </Link>
+        )
+      },
+    },
+    {
+      id: 'matchType',
+      enableSorting: false,
+      meta: {
+        ...TEXT_CELL_META,
+        cellClassName: 'max-w-[11rem] min-w-0 overflow-hidden [&>div]:justify-start',
+      },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsVinculacionColMatchType')} />
+      ),
+      cell: () => (
+        <StatusPill variant="neutral">{t('productsVinculacionKindLinked')}</StatusPill>
+      ),
     },
     {
       id: 'productCount',
@@ -144,9 +185,11 @@ function createColumns({
       enableSorting: false,
       meta: {
         headerClassName: '[&>div]:justify-end',
-        cellClassName: 'w-[7.5rem] text-right [&>div]:justify-end',
+        cellClassName: 'w-[7.5rem] whitespace-nowrap text-right [&>div]:justify-end',
       },
-      header: () => <span className="sr-only">{t('productsVinculacionSectionProducts')}</span>,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsVinculacionSectionProducts')} />
+      ),
       cell: ({ row }) => (
         <span className="whitespace-nowrap text-text-tertiary">
           {t('productsVinculacionMatchProductCount').replace(
@@ -157,55 +200,75 @@ function createColumns({
       ),
     },
     {
-      id: 'actions',
+      id: 'channels',
+      accessorFn: (row) => groupPlatforms(row).join(','),
       enableSorting: false,
-      meta: { headerClassName: '[&>div]:justify-end', cellClassName: 'w-12 text-right [&>div]:justify-end' },
-      header: () => <span className="sr-only">{t('productsTableActions')}</span>,
+      meta: {
+        ...TEXT_CELL_META,
+        cellClassName: 'max-w-[14rem] min-w-0 overflow-hidden [&>div]:justify-start',
+      },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsColChannels')} />
+      ),
       cell: ({ row }) => {
         const group = row.original
+        const platforms = groupPlatforms(group)
         return (
-          <div
-            className="flex justify-end"
-            onClick={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}
-          >
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                className={cn(
-                  'inline-flex size-8 items-center justify-center rounded-full border border-transparent text-foreground outline-none',
-                  'hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30',
-                )}
-                aria-label={t('productsTableActions')}
-              >
-                <MoreVertical className="size-4 shrink-0" aria-hidden />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel>{t('productsTableActions')}</DropdownMenuLabel>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      void navigate(productsLinkingGroupPath(group.id))
-                    }}
-                  >
-                    <Eye className="h-4 w-4" aria-hidden />
-                    <span>{t('productsVinculacionViewGroup')}</span>
-                  </DropdownMenuItem>
-                  {canEdit ? (
+          <div className="flex min-w-0 items-start justify-between gap-2">
+            <div className="flex min-w-0 flex-col gap-1">
+              {platforms.map((slug) => (
+                <ProductPlatformLogoName
+                  key={slug}
+                  platformSlug={slug}
+                  t={t}
+                  className="min-w-0"
+                  textClassName="truncate"
+                />
+              ))}
+            </div>
+            <div
+              className="shrink-0"
+              onClick={(event) => event.stopPropagation()}
+              onKeyDown={(event) => event.stopPropagation()}
+            >
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className={cn(
+                    'inline-flex size-8 items-center justify-center rounded-full border border-transparent text-foreground outline-none',
+                    'hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30',
+                  )}
+                  aria-label={t('productsTableActions')}
+                >
+                  <MoreVertical className="size-4 shrink-0" aria-hidden />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>{t('productsTableActions')}</DropdownMenuLabel>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
                     <DropdownMenuItem
-                      variant="destructive"
-                      disabled={unlinkingId !== null}
-                      onClick={() => onUnlink(group.id)}
+                      onClick={() => {
+                        void navigate(productsLinkingGroupPath(group.id))
+                      }}
                     >
-                      <Unlink className="h-4 w-4" aria-hidden />
-                      <span>{t('productsVinculacionUnlink')}</span>
+                      <Eye className="h-4 w-4" aria-hidden />
+                      <span>{t('productsVinculacionViewGroup')}</span>
                     </DropdownMenuItem>
-                  ) : null}
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    {canEdit ? (
+                      <DropdownMenuItem
+                        variant="destructive"
+                        disabled={unlinkingId !== null}
+                        onClick={() => onUnlink(group.id)}
+                      >
+                        <Unlink className="h-4 w-4" aria-hidden />
+                        <span>{t('productsVinculacionUnlink')}</span>
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         )
       },
@@ -248,9 +311,25 @@ function LinkedMemberLine({
         onClick={(event) => event.stopPropagation()}
       >
         <ProductTableThumb url={product.image_url} alt={label} />
-        <span className="min-w-0 truncate font-medium">{label}</span>
+        <span className="min-w-0 truncate font-medium" title={label}>
+          {label}
+        </span>
       </Link>
-      <ProductPlatformLogoName platformSlug={slug} t={t} className="shrink-0" />
+      <ProductPlatformLogoName platformSlug={slug} t={t} className="max-w-[9rem] shrink-0" />
     </div>
   )
+}
+
+function groupImageUrl(group: ProductLinkGroupApi): string | null {
+  const shopify = group.members.find(
+    (member) => member.platform.trim().toLowerCase() === 'shopify',
+  )
+  return primaryProductImageUrl([
+    shopify?.image_url ?? null,
+    ...group.members.map((member) => member.image_url),
+  ])
+}
+
+function groupPlatforms(group: ProductLinkGroupApi): string[] {
+  return uniquePlatformSlugs(group.members.map((member) => member.platform))
 }

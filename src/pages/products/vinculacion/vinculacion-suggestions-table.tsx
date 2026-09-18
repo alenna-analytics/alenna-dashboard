@@ -17,6 +17,10 @@ import { StatusPill } from '@/ui/status-pill'
 
 import { ProductPlatformLogoName } from '../product-platform-logo-name'
 import { ProductTableThumb } from '../product-table-thumb'
+import {
+  primaryProductImageUrl,
+  uniquePlatformSlugs,
+} from './vinculacion-table-helpers'
 
 type ShellT = (key: ShellStringKey) => string
 
@@ -110,33 +114,64 @@ type CreateColumnsArgs = {
 function createColumns({ t, expandedId }: CreateColumnsArgs): ColumnDef<ProductLinkSuggestionApi>[] {
   return [
     {
-      id: 'match',
-      accessorFn: (row) => proposedGroupTitle(row),
-      meta: TEXT_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('productsVinculacionTabMatches')} />
-      ),
+      id: 'image',
+      enableSorting: false,
+      meta: {
+        headerClassName: 'w-14 [&>div]:justify-start',
+        cellClassName: 'w-14 [&>div]:justify-start',
+      },
+      header: () => <span className="sr-only">{t('productsColImage')}</span>,
       cell: ({ row }) => {
-        const item = row.original
-        const expanded = expandedId === item.id
+        const title = proposedGroupTitle(row.original)
         return (
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex items-center gap-2">
             <ChevronDown
               className={cn(
                 'size-4 shrink-0 text-text-tertiary transition-transform',
-                expanded ? 'rotate-0' : '-rotate-90',
+                expandedId === row.original.id ? 'rotate-0' : '-rotate-90',
               )}
               aria-hidden
             />
-            <span className="min-w-0 truncate font-medium text-text-primary">
-              {proposedGroupTitle(item)}
-            </span>
-            <StatusPill variant={item.kind === 'sku' ? 'info' : 'neutral'}>
-              {suggestionKindLabel(item, t)}
-            </StatusPill>
+            <ProductTableThumb url={suggestionImageUrl(row.original)} alt={title} />
           </div>
         )
       },
+    },
+    {
+      id: 'name',
+      accessorFn: (row) => proposedGroupTitle(row),
+      meta: {
+        ...TEXT_CELL_META,
+        cellClassName: 'max-w-[14rem] min-w-0 overflow-hidden [&>div]:justify-start sm:max-w-[20rem]',
+      },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsColProduct')} />
+      ),
+      cell: ({ row }) => {
+        const title = proposedGroupTitle(row.original)
+        return (
+          <span className="block min-w-0 truncate font-medium text-text-primary" title={title}>
+            {title}
+          </span>
+        )
+      },
+    },
+    {
+      id: 'matchType',
+      accessorFn: (row) => row.kind,
+      enableSorting: false,
+      meta: {
+        ...TEXT_CELL_META,
+        cellClassName: 'max-w-[11rem] min-w-0 overflow-hidden [&>div]:justify-start',
+      },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsVinculacionColMatchType')} />
+      ),
+      cell: ({ row }) => (
+        <StatusPill variant={row.original.kind === 'sku' ? 'info' : 'neutral'}>
+          {suggestionKindLabel(row.original, t)}
+        </StatusPill>
+      ),
     },
     {
       id: 'productCount',
@@ -144,14 +179,45 @@ function createColumns({ t, expandedId }: CreateColumnsArgs): ColumnDef<ProductL
       enableSorting: false,
       meta: {
         headerClassName: '[&>div]:justify-end',
-        cellClassName: 'w-[7.5rem] text-right [&>div]:justify-end',
+        cellClassName: 'w-[7.5rem] whitespace-nowrap text-right [&>div]:justify-end',
       },
-      header: () => <span className="sr-only">{t('productsVinculacionSectionProducts')}</span>,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsVinculacionSectionProducts')} />
+      ),
       cell: ({ row }) => (
         <span className="whitespace-nowrap text-text-tertiary">
           {suggestionProductCountLabel(row.original, t)}
         </span>
       ),
+    },
+    {
+      id: 'channels',
+      accessorFn: (row) => suggestionPlatforms(row).join(','),
+      enableSorting: false,
+      meta: {
+        ...TEXT_CELL_META,
+        cellClassName: 'max-w-[12rem] min-w-0 overflow-hidden [&>div]:justify-start',
+      },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsColChannels')} />
+      ),
+      cell: ({ row }) => {
+        const platforms = suggestionPlatforms(row.original)
+        if (platforms.length === 0) return null
+        return (
+          <div className="flex min-w-0 flex-col gap-1">
+            {platforms.map((slug) => (
+              <ProductPlatformLogoName
+                key={slug}
+                platformSlug={slug}
+                t={t}
+                className="min-w-0"
+                textClassName="truncate"
+              />
+            ))}
+          </div>
+        )
+      },
     },
   ]
 }
@@ -238,9 +304,11 @@ function SuggestionProductLine({ product, t }: SuggestionProductLineProps) {
         onClick={(event) => event.stopPropagation()}
       >
         <ProductTableThumb url={product.image_url} alt={product.title} />
-        <span className="min-w-0 truncate font-medium">{product.title}</span>
+        <span className="min-w-0 truncate font-medium" title={product.title}>
+          {product.title}
+        </span>
       </Link>
-      <ProductPlatformLogoName platformSlug={slug} t={t} className="shrink-0" />
+      <ProductPlatformLogoName platformSlug={slug} t={t} className="max-w-[9rem] shrink-0" />
     </div>
   )
 }
@@ -264,4 +332,17 @@ function suggestionProductCountLabel(item: ProductLinkSuggestionApi, t: ShellT):
     '{count}',
     String(suggestionProducts(item).length),
   )
+}
+
+function suggestionImageUrl(item: ProductLinkSuggestionApi): string | null {
+  const products = suggestionProducts(item)
+  const shopify = products.find((product) => product.platform.trim().toLowerCase() === 'shopify')
+  return primaryProductImageUrl([
+    shopify?.image_url ?? null,
+    ...products.map((product) => product.image_url),
+  ])
+}
+
+function suggestionPlatforms(item: ProductLinkSuggestionApi): string[] {
+  return uniquePlatformSlugs(suggestionProducts(item).map((product) => product.platform))
 }

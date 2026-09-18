@@ -142,7 +142,8 @@ function createColumns({ t, expandedId }: CreateColumnsArgs): ColumnDef<ProductL
       accessorFn: (row) => proposedGroupTitle(row),
       meta: {
         ...TEXT_CELL_META,
-        cellClassName: 'max-w-[14rem] min-w-0 overflow-hidden [&>div]:justify-start sm:max-w-[20rem]',
+        headerClassName: 'w-[18rem] max-w-[18rem] [&>div]:justify-start',
+        cellClassName: 'w-[18rem] max-w-[18rem] min-w-0 overflow-hidden [&>div]:justify-start',
       },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsColProduct')} />
@@ -162,7 +163,8 @@ function createColumns({ t, expandedId }: CreateColumnsArgs): ColumnDef<ProductL
       enableSorting: false,
       meta: {
         ...TEXT_CELL_META,
-        cellClassName: 'max-w-[11rem] min-w-0 overflow-hidden [&>div]:justify-start',
+        headerClassName: 'w-[12rem] max-w-[12rem] [&>div]:justify-start',
+        cellClassName: 'w-[12rem] max-w-[12rem] min-w-0 overflow-hidden [&>div]:justify-start',
       },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsVinculacionColMatchType')} />
@@ -195,8 +197,8 @@ function createColumns({ t, expandedId }: CreateColumnsArgs): ColumnDef<ProductL
       accessorFn: (row) => suggestionPlatforms(row).join(','),
       enableSorting: false,
       meta: {
-        ...TEXT_CELL_META,
-        cellClassName: 'max-w-[12rem] min-w-0 overflow-hidden [&>div]:justify-start',
+        headerClassName: 'w-full min-w-0 [&>div]:justify-start',
+        cellClassName: 'w-full min-w-0 overflow-hidden [&>div]:justify-start',
       },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsColChannels')} />
@@ -205,7 +207,7 @@ function createColumns({ t, expandedId }: CreateColumnsArgs): ColumnDef<ProductL
         const platforms = suggestionPlatforms(row.original)
         if (platforms.length === 0) return null
         return (
-          <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex w-full min-w-0 flex-col gap-1">
             {platforms.map((slug) => (
               <ProductPlatformLogoName
                 key={slug}

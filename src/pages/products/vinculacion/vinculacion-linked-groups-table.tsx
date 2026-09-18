@@ -146,7 +146,8 @@ function createColumns({
       accessorFn: (row) => row.title,
       meta: {
         ...TEXT_CELL_META,
-        cellClassName: 'max-w-[14rem] min-w-0 overflow-hidden [&>div]:justify-start sm:max-w-[20rem]',
+        headerClassName: 'w-[18rem] max-w-[18rem] [&>div]:justify-start',
+        cellClassName: 'w-[18rem] max-w-[18rem] min-w-0 overflow-hidden [&>div]:justify-start',
       },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsColProduct')} />
@@ -170,7 +171,8 @@ function createColumns({
       enableSorting: false,
       meta: {
         ...TEXT_CELL_META,
-        cellClassName: 'max-w-[11rem] min-w-0 overflow-hidden [&>div]:justify-start',
+        headerClassName: 'w-[12rem] max-w-[12rem] [&>div]:justify-start',
+        cellClassName: 'w-[12rem] max-w-[12rem] min-w-0 overflow-hidden [&>div]:justify-start',
       },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsVinculacionColMatchType')} />
@@ -204,8 +206,8 @@ function createColumns({
       accessorFn: (row) => groupPlatforms(row).join(','),
       enableSorting: false,
       meta: {
-        ...TEXT_CELL_META,
-        cellClassName: 'max-w-[14rem] min-w-0 overflow-hidden [&>div]:justify-start',
+        headerClassName: 'w-full min-w-0 [&>div]:justify-start',
+        cellClassName: 'w-full min-w-0 overflow-hidden [&>div]:justify-start',
       },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsColChannels')} />
@@ -214,7 +216,7 @@ function createColumns({
         const group = row.original
         const platforms = groupPlatforms(group)
         return (
-          <div className="flex min-w-0 items-start justify-between gap-2">
+          <div className="flex w-full min-w-0 items-start justify-between gap-2">
             <div className="flex min-w-0 flex-col gap-1">
               {platforms.map((slug) => (
                 <ProductPlatformLogoName

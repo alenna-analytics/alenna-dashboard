@@ -1,4 +1,4 @@
-import { useCallback, useState, type ReactNode } from 'react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { enUS } from 'date-fns/locale/en-US'
 import { es as esLocale } from 'date-fns/locale/es'
 
@@ -8,6 +8,11 @@ import type { ProductLinkGroupApi } from '@/lib/types/product-links'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
+import {
+  computePreviousPeriod,
+  computeShiftedPreviousPeriod,
+  pctVersusPrevious,
+} from '@/pages/reports/reports-ui-helpers'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 import { Card, CardContent, CardHeader } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
@@ -24,7 +29,12 @@ import {
   toggleProductDetailTrendMetric,
   type ProductDetailTrendMetricId,
 } from '../product-detail-trend-metrics'
+import {
+  filterGroupPeriod,
+  selectFilteredGroupMembers,
+} from './group-insight-dimension'
 import { useGroupInsight } from './use-group-insight'
+import { useProductLinkGroupQuery } from './use-product-link-queries'
 import { VinculacionInsightDimensionFilter } from './vinculacion-insight-dimension-filter'
 
 type ShellT = (key: ShellStringKey) => string
@@ -62,6 +72,7 @@ type VinculacionGroupAnalyticsProps = {
 }
 
 export function VinculacionGroupAnalytics({
+  group,
   lang,
   t,
   baseCurrency,
@@ -86,11 +97,22 @@ export function VinculacionGroupAnalytics({
   const dateLocale = lang === 'en' ? enUS : esLocale
   const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
   const insightKpi = (value: ReactNode): ReactNode => value
+  const kpiDeltaTooltip = t('homeKpiDeltaTooltip')
 
   const units = period.units
   const cmPerUnit = units > 0 ? period.contribution_margin / units : 0
   const avgPrice = units > 0 ? period.period_net_sales / units : 0
   const unitCogs = units > 0 ? period.period_cogs / units : 0
+
+  const trendPrevPeriod = useMemo(() => {
+    if (granularity === 'month') return computePreviousPeriod(insightStart, insightEnd)
+    return computeShiftedPreviousPeriod(insightStart, insightEnd)
+  }, [granularity, insightEnd, insightStart])
+
+  const kpiPrevPeriod = useMemo(
+    () => computeShiftedPreviousPeriod(insightStart, insightEnd),
+    [insightEnd, insightStart],
+  )
 
   const { data: series, isError } = useMonthlyRevenueSeries({
     productIds: chartProductIds,
@@ -100,6 +122,80 @@ export function VinculacionGroupAnalytics({
     granularity,
     enabled: chartProductIds.length > 0 && Boolean(insightStart && insightEnd),
   })
+
+  const { data: seriesPrev } = useMonthlyRevenueSeries({
+    productIds: chartProductIds,
+    connectionIds: chartConnectionIds,
+    startDate: trendPrevPeriod?.start ?? '',
+    endDate: trendPrevPeriod?.end ?? '',
+    granularity,
+    enabled: chartProductIds.length > 0 && Boolean(trendPrevPeriod),
+  })
+
+  const prevGroupQuery = useProductLinkGroupQuery(
+    kpiPrevPeriod ? group.id : undefined,
+    kpiPrevPeriod?.start ?? '',
+    kpiPrevPeriod?.end ?? '',
+  )
+
+  const filteredPrevPeriod = useMemo(() => {
+    const prevGroup = prevGroupQuery.data
+    if (!prevGroup) return null
+    const { members, allSelected } = selectFilteredGroupMembers(prevGroup, {
+      dimension: insight.dimension,
+      channelFilter: insight.channelFilter,
+      productFilter: insight.productFilter,
+    })
+    return filterGroupPeriod(prevGroup, members, allSelected)
+  }, [
+    insight.channelFilter,
+    insight.dimension,
+    insight.productFilter,
+    prevGroupQuery.data,
+  ])
+
+  const previousReady = Boolean(kpiPrevPeriod) && !prevGroupQuery.isLoading
+  const prevUnits = filteredPrevPeriod?.units
+  const prevCmPerUnit =
+    filteredPrevPeriod != null && prevUnits != null && prevUnits > 0
+      ? filteredPrevPeriod.contribution_margin / prevUnits
+      : undefined
+  const prevAvgPrice =
+    filteredPrevPeriod != null && prevUnits != null && prevUnits > 0
+      ? filteredPrevPeriod.period_net_sales / prevUnits
+      : undefined
+  const prevUnitCogs =
+    filteredPrevPeriod != null && prevUnits != null && prevUnits > 0
+      ? filteredPrevPeriod.period_cogs / prevUnits
+      : undefined
+
+  function growthBlock(current: number, previous: number | undefined) {
+    const priorUnavailable = !previousReady || previous === undefined
+    const delta =
+      previous !== undefined && previousReady ? pctVersusPrevious(current, previous) : null
+    return {
+      pct: delta?.pct ?? null,
+      trend: delta?.trend ?? ('flat' as const),
+      unavailable: priorUnavailable,
+    }
+  }
+
+  const growthByKey: Record<
+    VistaAKpiKey,
+    { pct: number | null; trend: 'up' | 'down' | 'flat'; unavailable: boolean }
+  > = {
+    'net-sales': growthBlock(period.period_net_sales, filteredPrevPeriod?.period_net_sales),
+    'gross-profit': growthBlock(
+      period.period_gross_profit,
+      filteredPrevPeriod?.period_gross_profit,
+    ),
+    'channel-margin': growthBlock(period.channel_margin, filteredPrevPeriod?.channel_margin),
+    cm: growthBlock(period.contribution_margin, filteredPrevPeriod?.contribution_margin),
+    units: growthBlock(units, prevUnits),
+    'cm-unit': growthBlock(cmPerUnit, prevCmPerUnit),
+    'avg-price': growthBlock(avgPrice, prevAvgPrice),
+    'unit-cogs': growthBlock(unitCogs, prevUnitCogs),
+  }
 
   const onVistaAClick = useCallback((key: VistaAKpiKey) => {
     const metricId = VISTA_A_TREND_METRIC[key]
@@ -263,6 +359,10 @@ export function VinculacionGroupAnalytics({
               numericValue={kpi.numericValue}
               currencyCode={kpi.currencyCode}
               ratePct={kpi.ratePct}
+              growthPct={growthByKey[kpi.key].pct}
+              growthTrend={growthByKey[kpi.key].trend}
+              growthUnavailable={growthByKey[kpi.key].unavailable}
+              growthTooltip={kpiDeltaTooltip}
               value={kpi.value}
               {...vistaATileProps(kpi.key)}
             />
@@ -278,6 +378,10 @@ export function VinculacionGroupAnalytics({
               skeleton={kpiSkeleton}
               numericValue={kpi.numericValue}
               currencyCode={kpi.currencyCode}
+              growthPct={growthByKey[kpi.key].pct}
+              growthTrend={growthByKey[kpi.key].trend}
+              growthUnavailable={growthByKey[kpi.key].unavailable}
+              growthTooltip={kpiDeltaTooltip}
               value={kpi.value}
               {...vistaATileProps(kpi.key)}
             />
@@ -295,6 +399,10 @@ export function VinculacionGroupAnalytics({
             endDate={insightEnd}
             granularity={granularity}
             rows={series?.months ?? []}
+            prevStart={trendPrevPeriod?.start}
+            prevEnd={trendPrevPeriod?.end}
+            rowsPrev={seriesPrev?.months ?? []}
+            comparePrevious={Boolean(trendPrevPeriod && seriesPrev)}
             selectedMetrics={selectedMetrics}
             formatMoney={fmtBase}
             dateLocale={dateLocale}

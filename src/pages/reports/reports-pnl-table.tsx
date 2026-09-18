@@ -12,6 +12,7 @@ import { settingsDescriptionClassName } from '@/pages/configuration/settings-lay
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { statementTableColumnResize } from '@/ui/data-table/statement-table-column-resize'
 import { TableEmptyCell } from '@/ui/data-table/table-empty-cell'
 import { EmptyState } from '@/ui/empty-state'
 
@@ -266,6 +267,7 @@ export function ReportsPnlTable({
     columns,
     getCoreRowModel: getCoreRowModel(),
     enableSorting: false,
+    ...statementTableColumnResize,
   })
 
   return (

@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 import { EmptyState } from '@/ui/empty-state'
+import { statementTableColumnResize } from '@/ui/data-table/statement-table-column-resize'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
 type ChannelsPnlLineId =
@@ -553,6 +554,7 @@ export function ChannelsPnlTable({
     columns,
     getCoreRowModel: getCoreRowModel(),
     enableSorting: false,
+    ...statementTableColumnResize,
   })
 
   const title = byProduct ? t('channelsPnlTitleByProduct') : t('channelsPnlTitle')

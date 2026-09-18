@@ -47,6 +47,51 @@ export function memberPlatformSlug(member: ProductLinkGroupMemberApi): string {
   return (member.platform ?? '').trim().toLowerCase()
 }
 
+/** Apply the same dimension filters used by `useGroupInsightDimension` to any group payload. */
+export function selectFilteredGroupMembers(
+  group: ProductLinkGroupApi,
+  opts: {
+    dimension: GroupInsightDimension
+    channelFilter: string
+    productFilter: string
+  },
+): { members: ProductLinkGroupMemberApi[]; allSelected: boolean } {
+  const platformSlugs = new Set(
+    group.members.map(memberPlatformSlug).filter(Boolean),
+  )
+  const memberIds = new Set(group.members.map((member) => member.product_id))
+  const activeChannel =
+    opts.channelFilter === PRODUCT_DETAIL_ALL_CHANNELS ||
+    platformSlugs.has(opts.channelFilter)
+      ? opts.channelFilter
+      : PRODUCT_DETAIL_ALL_CHANNELS
+  const activeProduct =
+    opts.productFilter === GROUP_INSIGHT_ALL_PRODUCTS ||
+    memberIds.has(opts.productFilter)
+      ? opts.productFilter
+      : GROUP_INSIGHT_ALL_PRODUCTS
+
+  if (opts.dimension === 'product') {
+    if (activeProduct === GROUP_INSIGHT_ALL_PRODUCTS) {
+      return { members: group.members, allSelected: true }
+    }
+    return {
+      members: group.members.filter((member) => member.product_id === activeProduct),
+      allSelected: false,
+    }
+  }
+  if (activeChannel === PRODUCT_DETAIL_ALL_CHANNELS) {
+    return { members: group.members, allSelected: true }
+  }
+  return {
+    members: group.members.filter(
+      (member) => memberPlatformSlug(member) === activeChannel,
+    ),
+    allSelected: false,
+  }
+}
+
+
 export function filterGroupPeriod(
   group: ProductLinkGroupApi,
   members: ProductLinkGroupMemberApi[],

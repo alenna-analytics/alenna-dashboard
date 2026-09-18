@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { EmptyState } from '@/ui/empty-state'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { statementTableColumnResize } from '@/ui/data-table/statement-table-column-resize'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 import {
   productHeaderColumnClassName,
@@ -307,6 +308,7 @@ export function ChannelsSettlementTable({
     columns,
     getCoreRowModel: getCoreRowModel(),
     enableSorting: false,
+    ...statementTableColumnResize,
   })
 
   return (

@@ -11,6 +11,11 @@ import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filt
 import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
 import { useTaxRatesQuery } from '@/pages/configuration/tax-rates/use-tax-rates-queries'
 import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
+import {
+  computePreviousPeriod,
+  computeShiftedPreviousPeriod,
+  pctVersusPrevious,
+} from '@/pages/reports/reports-ui-helpers'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
 import { Card, CardContent, CardHeader } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
@@ -41,8 +46,10 @@ import {
   settlementPlatformsFromGroup,
 } from '../product-settlement-channel-metrics'
 import {
+  allocateGroupSettlement,
   groupProductPlatforms,
   groupProductSettlementMetrics,
+  selectFilteredGroupMembers,
 } from './group-insight-dimension'
 import { useGroupInsight } from './use-group-insight'
 import { useProductLinkGroupQuery } from './use-product-link-queries'
@@ -179,9 +186,70 @@ export function VinculacionGroupRentabilidad({
     enabled: chartProductIds.length > 0 && Boolean(insightStart && insightEnd),
   })
 
+  const trendPrevPeriod = useMemo(() => {
+    if (granularity === 'month') return computePreviousPeriod(insightStart, insightEnd)
+    return computeShiftedPreviousPeriod(insightStart, insightEnd)
+  }, [granularity, insightEnd, insightStart])
+
+  const kpiPrevPeriod = useMemo(
+    () => computeShiftedPreviousPeriod(insightStart, insightEnd),
+    [insightEnd, insightStart],
+  )
+
+  const { data: seriesPrev } = useMonthlyRevenueSeries({
+    productIds: chartProductIds,
+    connectionIds: chartConnectionIds,
+    startDate: trendPrevPeriod?.start ?? '',
+    endDate: trendPrevPeriod?.end ?? '',
+    granularity,
+    enabled: chartProductIds.length > 0 && Boolean(trendPrevPeriod),
+  })
+
+  const prevGroupQuery = useProductLinkGroupQuery(
+    kpiPrevPeriod ? group.id : undefined,
+    kpiPrevPeriod?.start ?? '',
+    kpiPrevPeriod?.end ?? '',
+  )
+
+  const prevDisplaySettlement = useMemo(() => {
+    const prevGroup = prevGroupQuery.data
+    if (!prevGroup) return null
+    const { members, allSelected } = selectFilteredGroupMembers(prevGroup, {
+      dimension: insight.dimension,
+      channelFilter: insight.channelFilter,
+      productFilter: insight.productFilter,
+    })
+    const prevSettlement = allocateGroupSettlement(prevGroup, members, allSelected)
+    const rates = taxRatesQuery.data?.settings
+    if (!rates) {
+      return settlementWithEstimatedTax(prevSettlement, prevSettlement.tax_withholdings)
+    }
+    const platforms = byProduct
+      ? groupProductPlatforms(prevGroup)
+      : settlementPlatformsFromGroup(prevGroup, t)
+    const metrics = byProduct
+      ? groupProductSettlementMetrics(prevGroup, platforms)
+      : groupSettlementByPlatformMetrics(prevGroup, platforms)
+    const estimates = estimateSettlementTaxByPlatform(metrics, platforms, rates)
+    const prevRetained = resolveRetainedSat(
+      prevSettlement.tax_withholdings,
+      estimates.total.withholding_total,
+    )
+    return settlementWithEstimatedTax(prevSettlement, prevRetained)
+  }, [
+    byProduct,
+    insight.channelFilter,
+    insight.dimension,
+    insight.productFilter,
+    prevGroupQuery.data,
+    t,
+    taxRatesQuery.data?.settings,
+  ])
+
   const dateLocale = lang === 'en' ? enUS : esLocale
   const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
   const insightKpi = (value: ReactNode): ReactNode => value
+  const kpiDeltaTooltip = t('homeKpiDeltaTooltip')
 
   const onVistaBClick = useCallback((key: VistaBKpiKey) => {
     const metricId = VISTA_B_TREND_METRIC[key]
@@ -205,6 +273,41 @@ export function VinculacionGroupRentabilidad({
     displaySettlement.net_revenue > 0
       ? (cobroNeto / displaySettlement.net_revenue) * 100
       : null
+
+  const previousReady = Boolean(kpiPrevPeriod) && !prevGroupQuery.isLoading
+  const prevCobroNeto = prevDisplaySettlement?.estimated_payout
+  const prevRetainedSat = prevDisplaySettlement?.tax_withholdings
+  const prevPayoutPct =
+    prevDisplaySettlement != null && prevDisplaySettlement.net_revenue > 0
+      ? (prevDisplaySettlement.estimated_payout / prevDisplaySettlement.net_revenue) * 100
+      : undefined
+
+  function growthBlock(current: number, previous: number | undefined) {
+    const priorUnavailable = !previousReady || previous === undefined
+    const delta =
+      previous !== undefined && previousReady ? pctVersusPrevious(current, previous) : null
+    return {
+      pct: delta?.pct ?? null,
+      trend: delta?.trend ?? ('flat' as const),
+      unavailable: priorUnavailable,
+    }
+  }
+
+  const growthByKey: Record<
+    VistaBKpiKey,
+    { pct: number | null; trend: 'up' | 'down' | 'flat'; unavailable: boolean }
+  > = {
+    'net-sales': growthBlock(
+      displaySettlement.net_revenue,
+      prevDisplaySettlement?.net_revenue,
+    ),
+    'retained-sat': growthBlock(retainedSat, prevRetainedSat),
+    payout: growthBlock(cobroNeto, prevCobroNeto),
+    'payout-pct':
+      payoutPct == null
+        ? { pct: null, trend: 'flat' as const, unavailable: true }
+        : growthBlock(payoutPct, prevPayoutPct),
+  }
 
   const vistaBPrimary: Array<{
     key: VistaBKpiKey
@@ -315,6 +418,10 @@ export function VinculacionGroupRentabilidad({
                 skeleton={kpiSkeleton}
                 numericValue={kpi.numericValue}
                 currencyCode={kpi.currencyCode}
+                growthPct={growthByKey[kpi.key].pct}
+                growthTrend={growthByKey[kpi.key].trend}
+                growthUnavailable={growthByKey[kpi.key].unavailable}
+                growthTooltip={kpiDeltaTooltip}
                 value={kpi.value}
                 footer={kpi.footer}
                 {...vistaBTileProps(kpi.key)}
@@ -333,6 +440,10 @@ export function VinculacionGroupRentabilidad({
               endDate={insightEnd}
               granularity={granularity}
               rows={series?.months ?? []}
+              prevStart={trendPrevPeriod?.start}
+              prevEnd={trendPrevPeriod?.end}
+              rowsPrev={seriesPrev?.months ?? []}
+              comparePrevious={Boolean(trendPrevPeriod && seriesPrev)}
               selectedMetrics={selectedMetrics}
               formatMoney={fmtBase}
               dateLocale={dateLocale}

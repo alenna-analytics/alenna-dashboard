@@ -213,17 +213,22 @@ const SHELL_STRINGS = {
     workspaceConfigPnlTermsDescription: 'Renombra conceptos del P&L por idioma.',
     workspaceConfigTaxRatesTitle: 'Impuestos',
     workspaceConfigTaxRatesDescription:
-      'Configura retenciones y traslado IVA para estimaciones de liquidez en Reportes.',
+      'Configura retenciones de plataformas para estimaciones de liquidez.',
     workspaceConfigTaxRatesSubtitle:
-      'Porcentajes del espacio de trabajo usados solo para estimar retenciones de plataformas. No modifican contribución marginal ni EBITDA.',
+      'Porcentajes del espacio de trabajo usados solo para estimar retenciones de marketplaces. No modifican contribución marginal ni EBITDA.',
     workspaceConfigTaxRatesUnsetHint:
       'Aún no hay tasas configuradas. Completa los campos o usa la recomendación.',
     workspaceConfigTaxRatesWithholdingsGroup: 'Retenciones',
     workspaceConfigTaxRatesTransferGroup: 'Traslado',
     workspaceConfigTaxRatesWithholdingIsr: 'Retención ISR %',
     workspaceConfigTaxRatesWithholdingIsrDesc: 'Porcentaje sobre la base (ingresos brutos, placeholder).',
+    workspaceConfigTaxRatesWithholdingIsrCalcDescription:
+      'Tasa sobre ingresos brutos estimados en marketplaces (Amazon, Mercado Libre). No afecta margen ni EBITDA.',
     workspaceConfigTaxRatesWithholdingIva: 'Retención IVA %',
     workspaceConfigTaxRatesWithholdingIvaDesc: 'Porcentaje que la plataforma retiene al SAT.',
+    workspaceConfigTaxRatesWithholdingIvaCalcDescription:
+      'Tasa de IVA que marketplaces retienen y enteran al SAT a tu nombre. No afecta margen ni EBITDA.',
+    workspaceConfigTaxRatesAffectsPrefix: 'Afecta → ',
     workspaceConfigTaxRatesTransferredIva: 'IVA trasladado %',
     workspaceConfigTaxRatesTransferredIvaDesc: 'Informativo; no afecta el efectivo neto estimado.',
     workspaceConfigTaxRatesSave: 'Guardar tasas',
@@ -1818,12 +1823,21 @@ const SHELL_STRINGS = {
     productsDetailPlatformPaymentPayoutPctFooter: 'de ventas netas',
     productsDetailCobroTaxAppliedRate: 'tasa aplicada',
     productsDetailCobroTaxPayoutPctOfNet: '% de ventas netas',
-    productsDetailCobroShopifyNoTaxAlert:
-      'Shopify no retiene impuestos: no es marketplace, tú facturas directo al cliente final. Amazon y Mercado Libre actúan como intermediarios y enteran ISR e IVA al SAT a tu nombre. Las tasas son configurables en Ajustes → Configuración fiscal.',
+    productsDetailCobroShopifyNoTaxAlertBody:
+      'Shopify no retiene impuestos: no es marketplace, tú facturas directo al cliente final. Amazon y Mercado Libre actúan como intermediarios y enteran ISR e IVA al SAT a tu nombre.',
+    productsDetailCobroShopifyNoTaxAlertRates: 'Las tasas son configurables en',
+    productsDetailCobroShopifyTaxSettingsLink: 'Ajustes › Impuestos',
     productsDetailCobroFiscalCreditAlert:
-      'Saldo a favor fiscal generado por este producto: {amount}. Acreditable en tu declaración.',
-    productsDetailCobroFiscalCreditAlertHint: 'Acumulado estimado del periodo seleccionado.',
-    productsDetailCobroFiscalCreditAlertLink: 'Ver configuración fiscal →',
+      'Saldo a favor fiscal generado por este producto: {amount}',
+    productsDetailCobroFiscalCreditAlertHint: 'Acreditable en tu declaración.',
+    productsDetailCobroFiscalCreditAlertLink: 'Ver acumulado del año →',
+    productsDetailCobroFiscalYearModalTitle: 'Saldo a favor fiscal',
+    productsDetailCobroFiscalYearModalDescription:
+      'Estimación con las tasas configuradas del espacio (no usa retenciones ingeridas de liquidación).',
+    productsDetailCobroFiscalYearModalPeriodLabel: 'Periodo seleccionado',
+    productsDetailCobroFiscalYearModalYtdLabel: 'Acumulado del año (YTD)',
+    productsDetailCobroFiscalYearModalFootnote:
+      'El acumulado del año usa ventas brutas desde el 1 de enero hasta hoy con las mismas tasas de retenciones.',
     productsDetailCobroTimingTitle: 'Timing de cobro por canal',
     productsDetailCobroTimingPending: 'Monto pendiente',
     productsDetailCobroTimingWhen: 'Cuándo llega',
@@ -2480,17 +2494,22 @@ const SHELL_STRINGS = {
     workspaceConfigPnlTermsDescription: 'Rename P&L concepts per language.',
     workspaceConfigTaxRatesTitle: 'Taxes',
     workspaceConfigTaxRatesDescription:
-      'Configure withholdings and transferred VAT for liquidity estimates in Reports.',
+      'Configure platform withholdings for liquidity estimates.',
     workspaceConfigTaxRatesSubtitle:
-      'Workspace percentages used only to estimate platform withholdings. They do not change contribution margin or EBITDA.',
+      'Workspace percentages used only to estimate marketplace withholdings. They do not change contribution margin or EBITDA.',
     workspaceConfigTaxRatesUnsetHint:
       'No rates configured yet. Fill the fields or use the recommendation.',
     workspaceConfigTaxRatesWithholdingsGroup: 'Withholdings',
     workspaceConfigTaxRatesTransferGroup: 'Transferred',
     workspaceConfigTaxRatesWithholdingIsr: 'ISR withholding %',
     workspaceConfigTaxRatesWithholdingIsrDesc: 'Percent of the base (gross revenue placeholder).',
+    workspaceConfigTaxRatesWithholdingIsrCalcDescription:
+      'Rate on estimated gross revenue in marketplaces (Amazon, Mercado Libre). Does not affect margin or EBITDA.',
     workspaceConfigTaxRatesWithholdingIva: 'VAT withholding %',
     workspaceConfigTaxRatesWithholdingIvaDesc: 'Percent the platform withholds for the tax authority.',
+    workspaceConfigTaxRatesWithholdingIvaCalcDescription:
+      'VAT rate that marketplaces withhold and remit to the tax authority on your behalf. Does not affect margin or EBITDA.',
+    workspaceConfigTaxRatesAffectsPrefix: 'Affects → ',
     workspaceConfigTaxRatesTransferredIva: 'Transferred VAT %',
     workspaceConfigTaxRatesTransferredIvaDesc: 'Informational; does not affect estimated net cash.',
     workspaceConfigTaxRatesSave: 'Save rates',
@@ -4063,12 +4082,21 @@ const SHELL_STRINGS = {
     productsDetailPlatformPaymentPayoutPctFooter: 'of net sales',
     productsDetailCobroTaxAppliedRate: 'applied rate',
     productsDetailCobroTaxPayoutPctOfNet: '% of net sales',
-    productsDetailCobroShopifyNoTaxAlert:
-      'Shopify does not withhold tax: it is not a marketplace — you invoice the end customer directly. Amazon and Mercado Libre act as intermediaries and remit ISR and VAT to the tax authority on your behalf. Rates are configurable in Settings → Tax configuration.',
+    productsDetailCobroShopifyNoTaxAlertBody:
+      'Shopify does not withhold tax: it is not a marketplace — you invoice the end customer directly. Amazon and Mercado Libre act as intermediaries and remit ISR and VAT to the tax authority on your behalf.',
+    productsDetailCobroShopifyNoTaxAlertRates: 'Rates are configurable in',
+    productsDetailCobroShopifyTaxSettingsLink: 'Settings › Taxes',
     productsDetailCobroFiscalCreditAlert:
-      'Tax credit generated by this product: {amount}. Creditable on your return.',
-    productsDetailCobroFiscalCreditAlertHint: 'Estimated total for the selected period.',
-    productsDetailCobroFiscalCreditAlertLink: 'View tax settings →',
+      'Tax credit generated by this product: {amount}',
+    productsDetailCobroFiscalCreditAlertHint: 'Creditable on your return.',
+    productsDetailCobroFiscalCreditAlertLink: 'View year-to-date →',
+    productsDetailCobroFiscalYearModalTitle: 'Tax credit balance',
+    productsDetailCobroFiscalYearModalDescription:
+      'Estimate from workspace-configured rates (does not use ingested settlement withholdings).',
+    productsDetailCobroFiscalYearModalPeriodLabel: 'Selected period',
+    productsDetailCobroFiscalYearModalYtdLabel: 'Year-to-date (YTD)',
+    productsDetailCobroFiscalYearModalFootnote:
+      'Year-to-date uses gross revenue from January 1 through today with the same withholding rates.',
     productsDetailCobroTimingTitle: 'Payout timing by channel',
     productsDetailCobroTimingPending: 'Pending amount',
     productsDetailCobroTimingWhen: 'When it arrives',

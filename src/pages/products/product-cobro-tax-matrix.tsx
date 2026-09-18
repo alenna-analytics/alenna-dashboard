@@ -5,7 +5,6 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { Info } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { TaxSettingsRates } from '@/lib/types/tax-settings'
@@ -19,12 +18,12 @@ import {
 } from '@/pages/channels/channels-product-header-label'
 import { SectionSplit } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
-import { ContextAlertCard } from '@/ui/context-alert'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 import { EmptyState } from '@/ui/empty-state'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
+import { ProductCobroFiscalAlerts } from './product-cobro-fiscal-alerts'
 import {
   estimateSettlementTaxByPlatform,
   type PlatformTaxEstimate,
@@ -121,6 +120,8 @@ type ProductCobroTaxMatrixProps = {
   t: (key: ShellStringKey) => string
   currencyCode?: string
   breakdown?: 'channel' | 'product'
+  yearWithheld?: number | null
+  yearWithheldLoading?: boolean
 }
 
 function emphasisClass(kind: TaxLine['kind']): string {
@@ -135,15 +136,13 @@ export function ProductCobroTaxMatrix({
   t,
   currencyCode,
   breakdown = 'channel',
+  yearWithheld = null,
+  yearWithheldLoading = false,
 }: ProductCobroTaxMatrixProps) {
   const byProduct = breakdown === 'product'
   const estimates = useMemo(() => {
     if (!taxRates) return null
-    return estimateSettlementTaxByPlatform(
-      metrics,
-      platforms.map((p) => p.slug),
-      taxRates,
-    )
+    return estimateSettlementTaxByPlatform(metrics, platforms, taxRates)
   }, [metrics, platforms, taxRates])
 
   const cols = useMemo(
@@ -151,9 +150,10 @@ export function ProductCobroTaxMatrix({
     [platforms, t],
   )
 
-  const hasShopify = platforms.some(
-    (p) => p.slug.trim().toLowerCase() === 'shopify',
-  )
+  const hasShopify = platforms.some((p) => {
+    const market = (p.marketplaceSlug ?? p.slug).trim().toLowerCase()
+    return market === 'shopify'
+  })
   const totalWithheld = estimates?.total?.withholding_total ?? 0
 
   const columns = useMemo(
@@ -306,12 +306,6 @@ export function ProductCobroTaxMatrix({
     )
   }
 
-  const creditAmount = formatMoney(Math.abs(totalWithheld))
-  const creditTitle = t('productsDetailCobroFiscalCreditAlert').replace(
-    '{amount}',
-    currencyCode ? `${creditAmount} ${currencyCode}` : creditAmount,
-  )
-
   return (
     <SectionSplit
       title={t('reportsTaxBlockTitle')}
@@ -330,34 +324,15 @@ export function ProductCobroTaxMatrix({
           emptyContent={<EmptyState icon="channels" title={t('reportsNoData')} />}
           skeletonRowCount={7}
         />
-        {hasShopify ? (
-          <ContextAlertCard
-            title={t('productsDetailCobroShopifyNoTaxAlert')}
-            icon={Info}
-            tone="info"
-          />
-        ) : null}
-        {totalWithheld > 0 ? (
-          <ContextAlertCard
-            title={creditTitle}
-            subtitle={t('productsDetailCobroFiscalCreditAlertHint')}
-            icon={Info}
-            tone="info"
-            action={
-              <Link
-                to="/dashboard/configuration/tax-rates"
-                className="text-xs font-medium text-text-primary underline-offset-2 hover:underline"
-              >
-                {t('productsDetailCobroFiscalCreditAlertLink')}
-              </Link>
-            }
-          />
-        ) : null}
-        <ContextAlertCard
-          title={t('productsDetailTaxRetentionAlert').replace('{amount}', creditAmount)}
-          subtitle={t('productsDetailTaxRetentionAlertHint')}
-          icon={Info}
-          tone="info"
+        <ProductCobroFiscalAlerts
+          t={t}
+          formatMoney={formatMoney}
+          currencyCode={currencyCode}
+          periodWithheld={totalWithheld}
+          yearWithheld={yearWithheld}
+          yearWithheldLoading={yearWithheldLoading}
+          showShopifyAlert={hasShopify}
+          showFiscalCreditAlert
         />
       </div>
     </SectionSplit>

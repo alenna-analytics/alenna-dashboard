@@ -85,14 +85,15 @@ function sumEstimates(
 /** Build per-platform + total tax estimates from P&L metrics (product/group matrices). */
 export function estimateTaxByPlatform(
   metrics: Record<string, PlatformMetrics>,
-  platformSlugs: string[],
+  platforms: Array<{ slug: string; marketplaceSlug?: string }>,
   rates: TaxSettingsRates,
 ): Record<string, PlatformTaxEstimate> {
   const out: Record<string, PlatformTaxEstimate> = {}
   const perPlatform: PlatformTaxEstimate[] = []
-  for (const slug of platformSlugs) {
+  for (const platform of platforms) {
+    const slug = platform.slug
     const m = metrics[slug]
-    const effective = ratesForPlatform(slug, rates)
+    const effective = ratesForPlatform(platform.marketplaceSlug ?? slug, rates)
     const estimate = m
       ? estimatePlatformTaxAmounts(m.gross_revenue, m.contribution_margin, effective)
       : estimatePlatformTaxAmounts(0, 0, effective)
@@ -109,14 +110,15 @@ export function estimateTaxByPlatform(
  */
 export function estimateSettlementTaxByPlatform(
   metrics: Record<string, PlatformSettlementMetrics>,
-  platformSlugs: string[],
+  platforms: Array<{ slug: string; marketplaceSlug?: string }>,
   rates: TaxSettingsRates,
 ): Record<string, PlatformTaxEstimate> {
   const out: Record<string, PlatformTaxEstimate> = {}
   const perPlatform: PlatformTaxEstimate[] = []
-  for (const slug of platformSlugs) {
+  for (const platform of platforms) {
+    const slug = platform.slug
     const m = metrics[slug]
-    const effective = ratesForPlatform(slug, rates)
+    const effective = ratesForPlatform(platform.marketplaceSlug ?? slug, rates)
     if (!m) {
       const empty = estimatePlatformTaxAmounts(0, 0, effective)
       out[slug] = empty

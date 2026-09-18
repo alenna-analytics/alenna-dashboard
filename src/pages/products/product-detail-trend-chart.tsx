@@ -45,6 +45,10 @@ export type ProductDetailTrendChartProps = {
   endDate: string
   granularity: RevenueSeriesGranularity
   rows: MonthlyRevenueMonthRow[]
+  prevStart?: string
+  prevEnd?: string
+  rowsPrev?: MonthlyRevenueMonthRow[]
+  comparePrevious?: boolean
   selectedMetrics: ProductDetailTrendMetricId[]
   formatMoney: (value: number) => string
   dateLocale: Locale
@@ -52,7 +56,15 @@ export type ProductDetailTrendChartProps = {
   chartType?: SeriesChartView
 }
 
-type ChartRow = Record<string, number | string> & { label: string; __idx: number }
+type ChartRow = Record<string, number | string | null> & {
+  label: string
+  __idx: number
+  previousBucketLabel: string | null
+}
+
+function previousMetricKey(id: ProductDetailTrendMetricId): string {
+  return `${id}__previous`
+}
 
 function fmtMoneyCompact(value: number): string {
   const abs = Math.abs(value)
@@ -86,28 +98,58 @@ function MultiTrendTooltip({
   selectedMetrics,
   formatMoney,
   t,
+  comparePrevious,
+  previousPeriodLabel,
 }: {
   active?: boolean
   payload?: ReadonlyArray<{ payload?: ChartRow }>
   selectedMetrics: ProductDetailTrendMetricId[]
   formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
+  comparePrevious: boolean
+  previousPeriodLabel: string
 }) {
   if (!active || !payload?.length) return null
   const row = payload[0]?.payload
   if (!row) return null
+  const prevSuffix =
+    comparePrevious && row.previousBucketLabel
+      ? ` (${previousPeriodLabel}: ${row.previousBucketLabel})`
+      : comparePrevious
+        ? ` (${previousPeriodLabel})`
+        : ''
   return (
     <ChartTooltipFrame>
       <ChartTooltipTitle>{String(row.label)}</ChartTooltipTitle>
       <div className="space-y-1.5">
-        {selectedMetrics.map((id) => (
-          <ChartTooltipSeriesRow
-            key={id}
-            color={PRODUCT_DETAIL_METRIC_COLORS[id]}
-            label={productDetailTrendMetricLabel(id, t)}
-            value={formatProductDetailTrendMetricValue(id, Number(row[id] ?? 0), formatMoney)}
-          />
-        ))}
+        {selectedMetrics.map((id) => {
+          const prevKey = previousMetricKey(id)
+          const prevValue = row[prevKey]
+          return (
+            <div key={id} className="space-y-1.5">
+              <ChartTooltipSeriesRow
+                color={PRODUCT_DETAIL_METRIC_COLORS[id]}
+                label={productDetailTrendMetricLabel(id, t)}
+                value={formatProductDetailTrendMetricValue(
+                  id,
+                  Number(row[id] ?? 0),
+                  formatMoney,
+                )}
+              />
+              {comparePrevious && prevValue != null && Number.isFinite(Number(prevValue)) ? (
+                <ChartTooltipSeriesRow
+                  color="var(--text-tertiary)"
+                  label={`${productDetailTrendMetricLabel(id, t)}${prevSuffix}`}
+                  value={formatProductDetailTrendMetricValue(
+                    id,
+                    Number(prevValue),
+                    formatMoney,
+                  )}
+                />
+              ) : null}
+            </div>
+          )
+        })}
       </div>
     </ChartTooltipFrame>
   )
@@ -118,6 +160,10 @@ export function ProductDetailTrendChart({
   endDate,
   granularity,
   rows,
+  prevStart = '',
+  prevEnd = '',
+  rowsPrev = [],
+  comparePrevious = false,
   selectedMetrics,
   formatMoney,
   dateLocale,
@@ -125,6 +171,8 @@ export function ProductDetailTrendChart({
   chartType = 'line',
 }: ProductDetailTrendChartProps) {
   const chartMetrics = selectedMetrics.filter((id) => id !== 'inventory-days')
+  const previousPeriodLabel = t('dashboardRevenueSeriesPrevious')
+  const showPrevious = comparePrevious && Boolean(prevStart && prevEnd)
   const axisKinds = useMemo(
     () => new Set(chartMetrics.map((id) => metricAxisKind(id))),
     [chartMetrics],
@@ -132,23 +180,62 @@ export function ProductDetailTrendChart({
   const useDualAxis = axisKinds.size > 1
 
   const data = useMemo((): ChartRow[] => {
-    return mergeRevenueSeriesRows(startDate, endDate, granularity, rows, dateLocale).map(
-      (row, index) => {
-        const point: ChartRow = { label: row.label, __idx: index }
+    const cur = mergeRevenueSeriesRows(startDate, endDate, granularity, rows, dateLocale)
+    if (!showPrevious) {
+      return cur.map((row, index) => {
+        const point: ChartRow = {
+          label: row.label,
+          __idx: index,
+          previousBucketLabel: null,
+        }
         for (const id of chartMetrics) {
           point[id] = productDetailTrendSeriesValue(row, id)
         }
         return point
-      },
-    )
-  }, [startDate, endDate, granularity, rows, dateLocale, chartMetrics])
+      })
+    }
+
+    const prev = mergeRevenueSeriesRows(prevStart, prevEnd, granularity, rowsPrev, dateLocale)
+    const n = Math.min(cur.length, prev.length)
+    const out: ChartRow[] = []
+    for (let i = 0; i < n; i++) {
+      const c = cur[i]
+      const p = prev[i]
+      const point: ChartRow = {
+        label: c?.label ?? p?.label ?? '',
+        __idx: i,
+        previousBucketLabel: p?.label ?? null,
+      }
+      for (const id of chartMetrics) {
+        point[id] = c ? productDetailTrendSeriesValue(c, id) : 0
+        point[previousMetricKey(id)] = p ? productDetailTrendSeriesValue(p, id) : null
+      }
+      out.push(point)
+    }
+    return out
+  }, [
+    startDate,
+    endDate,
+    prevStart,
+    prevEnd,
+    granularity,
+    rows,
+    rowsPrev,
+    dateLocale,
+    chartMetrics,
+    showPrevious,
+  ])
 
   const zoomResetKey = useMemo(() => {
     const sig = data
-      .map((d) => chartMetrics.map((id) => `${id}:${d[id]}`).join(','))
+      .map((d) =>
+        chartMetrics
+          .map((id) => `${id}:${d[id]}:${d[previousMetricKey(id)] ?? ''}`)
+          .join(','),
+      )
       .join(';')
-    return `${startDate}|${endDate}|${granularity}|${chartMetrics.join(',')}|${sig}`
-  }, [startDate, endDate, granularity, chartMetrics, data])
+    return `${startDate}|${endDate}|${prevStart}|${prevEnd}|${granularity}|${chartMetrics.join(',')}|${showPrevious}|${sig}`
+  }, [startDate, endDate, prevStart, prevEnd, granularity, chartMetrics, showPrevious, data])
 
   const [zoomRangeKey, setZoomRangeKey] = useState(zoomResetKey)
   const [zoomStart, setZoomStart] = useState(0)
@@ -246,6 +333,8 @@ export function ProductDetailTrendChart({
                 selectedMetrics={chartMetrics}
                 formatMoney={formatMoney}
                 t={t}
+                comparePrevious={showPrevious}
+                previousPeriodLabel={previousPeriodLabel}
               />
             }
             {...chartRechartsTooltipProps}
@@ -291,6 +380,34 @@ export function ProductDetailTrendChart({
               />
             )
           })}
+          {showPrevious
+            ? chartMetrics.map((id) => {
+                const kind = metricAxisKind(id)
+                const yAxisId =
+                  !useDualAxis || kind === primaryKind
+                    ? 'left'
+                    : secondaryKind != null && kind === secondaryKind
+                      ? 'right'
+                      : 'left'
+                const prevKey = previousMetricKey(id)
+                return (
+                  <Line
+                    key={prevKey}
+                    type="monotone"
+                    dataKey={prevKey}
+                    name={`${productDetailTrendMetricLabel(id, t)} (${previousPeriodLabel})`}
+                    yAxisId={yAxisId}
+                    stroke="var(--text-tertiary)"
+                    strokeWidth={1.75}
+                    strokeDasharray="6 4"
+                    dot={false}
+                    connectNulls={false}
+                    opacity={hiddenKeys[prevKey] ? 0.18 : 0.85}
+                    {...mainAnimProps}
+                  />
+                )
+              })
+            : null}
         </ComposedChart>
       </ResponsiveContainer>
 
@@ -328,6 +445,25 @@ export function ProductDetailTrendChart({
                       {...miniAnimProps}
                     />
                   ))}
+                  {showPrevious
+                    ? chartMetrics.map((id) => {
+                        const prevKey = previousMetricKey(id)
+                        return (
+                          <Line
+                            key={`mini-${prevKey}`}
+                            type="monotone"
+                            dataKey={prevKey}
+                            stroke="var(--text-tertiary)"
+                            strokeWidth={1.1}
+                            strokeDasharray="4 3"
+                            dot={false}
+                            connectNulls={false}
+                            opacity={hiddenKeys[prevKey] ? 0.2 : 0.75}
+                            {...miniAnimProps}
+                          />
+                        )
+                      })
+                    : null}
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -369,13 +505,39 @@ export function ProductDetailTrendChart({
             )}
           >
             <span
-              className="inline-block size-2 shrink-0 rounded-full"
-              style={{ backgroundColor: PRODUCT_DETAIL_METRIC_COLORS[id] }}
+              className="inline-block h-0 w-3 shrink-0 border-t-2 border-solid"
+              style={{ borderColor: PRODUCT_DETAIL_METRIC_COLORS[id] }}
               aria-hidden
             />
             <span>{productDetailTrendMetricLabel(id, t)}</span>
           </button>
         ))}
+        {showPrevious
+          ? chartMetrics.map((id) => {
+              const prevKey = previousMetricKey(id)
+              return (
+                <button
+                  key={`legend-${prevKey}`}
+                  type="button"
+                  onClick={() =>
+                    setHiddenKeys((prev) => ({ ...prev, [prevKey]: !prev[prevKey] }))
+                  }
+                  className={cn(
+                    'inline-flex items-center gap-1.5 text-text-secondary outline-none transition-opacity focus:outline-none',
+                    hiddenKeys[prevKey] ? 'opacity-40' : 'opacity-100',
+                  )}
+                >
+                  <span
+                    className="inline-block h-0 w-3 shrink-0 border-t-2 border-dashed border-[var(--text-tertiary)]"
+                    aria-hidden
+                  />
+                  <span>
+                    {productDetailTrendMetricLabel(id, t)} ({previousPeriodLabel})
+                  </span>
+                </button>
+              )
+            })
+          : null}
       </div>
     </div>
   )

@@ -174,8 +174,8 @@ function createColumns({ t, expandedId }: CreateColumnsArgs): ColumnDef<ProductL
       accessorFn: (row) => suggestionProducts(row).length,
       enableSorting: false,
       meta: {
-        headerClassName: 'w-[20%] min-w-0 [&>div]:justify-end',
-        cellClassName: 'w-[20%] min-w-0 whitespace-nowrap text-right [&>div]:justify-end',
+        headerClassName: 'w-[20%] min-w-0 [&>div]:justify-start',
+        cellClassName: 'w-[20%] min-w-0 whitespace-nowrap [&>div]:justify-start',
       },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t('productsVinculacionSectionProducts')} />

@@ -1,6 +1,7 @@
 import type { ProductDetailApi, ProductSettlementApi } from '@/lib/types/catalog'
 import type { ProductLinkGroupApi } from '@/lib/types/product-links'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
+import { zeroPlatformCancelCosts } from '@/lib/settlement-utils'
 import type {
   ChannelPlatform,
   PlatformSettlementMetrics,
@@ -20,6 +21,7 @@ function emptySettlement(platform: string): PlatformSettlementMetrics {
     tax_withholdings: 0,
     estimated_payout: 0,
     completeness: '',
+    platform_cancel_costs: zeroPlatformCancelCosts(),
   }
 }
 
@@ -36,6 +38,15 @@ function addSettlement(
   target.tax_withholdings += row.tax_withholdings
   target.estimated_payout += row.estimated_payout
   if (!target.completeness) target.completeness = row.completeness ?? ''
+  const c = row.platform_cancel_costs
+  if (c) {
+    target.platform_cancel_costs.merchandise_gross += c.merchandise_gross
+    target.platform_cancel_costs.merchandise_annulled += c.merchandise_annulled
+    target.platform_cancel_costs.marketplace_fees += c.marketplace_fees
+    target.platform_cancel_costs.shipping_charges += c.shipping_charges
+    target.platform_cancel_costs.tax_withholdings += c.tax_withholdings
+    target.platform_cancel_costs.total += c.total
+  }
 }
 
 export function settlementPlatformsFromProduct(

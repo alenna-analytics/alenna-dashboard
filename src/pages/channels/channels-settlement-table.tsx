@@ -28,6 +28,12 @@ type SettlementLineId =
   | 'shipping_charges'
   | 'tax_withholdings'
   | 'estimated_payout'
+  | 'cancel_merch'
+  | 'cancel_annul'
+  | 'cancel_fees'
+  | 'cancel_shipping'
+  | 'cancel_tax'
+  | 'cancel_total'
 
 type SettlementLine = {
   id: SettlementLineId
@@ -93,6 +99,49 @@ const ALL_SETTLEMENT_LINES: SettlementLine[] = [
   },
 ]
 
+const CANCEL_COST_LINES: SettlementLine[] = [
+  {
+    id: 'cancel_merch',
+    labelKey: 'settlementCancelCostMerchandise',
+    kind: 'line',
+    value: (m) => m.platform_cancel_costs.merchandise_gross,
+  },
+  {
+    id: 'cancel_annul',
+    labelKey: 'settlementCancelCostAnnulled',
+    kind: 'line',
+    isDeduction: true,
+    value: (m) => m.platform_cancel_costs.merchandise_annulled,
+  },
+  {
+    id: 'cancel_fees',
+    labelKey: 'settlementCancelCostFees',
+    kind: 'line',
+    isDeduction: true,
+    value: (m) => m.platform_cancel_costs.marketplace_fees,
+  },
+  {
+    id: 'cancel_shipping',
+    labelKey: 'settlementCancelCostShipping',
+    kind: 'line',
+    isDeduction: true,
+    value: (m) => m.platform_cancel_costs.shipping_charges,
+  },
+  {
+    id: 'cancel_tax',
+    labelKey: 'settlementCancelCostTax',
+    kind: 'line',
+    isDeduction: true,
+    value: (m) => m.platform_cancel_costs.tax_withholdings,
+  },
+  {
+    id: 'cancel_total',
+    labelKey: 'settlementCancelCostTotal',
+    kind: 'total',
+    value: (m) => m.platform_cancel_costs.total,
+  },
+]
+
 const columnHelper = createColumnHelper<SettlementLine>()
 
 type ChannelsSettlementTableProps = {
@@ -118,13 +167,16 @@ export function ChannelsSettlementTable({
   includeTaxWithholdings = true,
   truncateLongHeaders = false,
 }: ChannelsSettlementTableProps) {
-  const lines = useMemo(
-    () =>
-      includeTaxWithholdings
-        ? ALL_SETTLEMENT_LINES
-        : ALL_SETTLEMENT_LINES.filter((line) => line.id !== 'tax_withholdings'),
-    [includeTaxWithholdings],
-  )
+  const lines = useMemo(() => {
+    const base = includeTaxWithholdings
+      ? ALL_SETTLEMENT_LINES
+      : ALL_SETTLEMENT_LINES.filter((line) => line.id !== 'tax_withholdings')
+    const hasCancel = Object.values(metrics).some((m) => {
+      const c = m.platform_cancel_costs
+      return c.total !== 0 || c.shipping_charges !== 0 || c.merchandise_gross !== 0
+    })
+    return hasCancel ? [...base, ...CANCEL_COST_LINES] : base
+  }, [includeTaxWithholdings, metrics])
   const cols = useMemo(
     () => [...platforms, { slug: 'total', label: t('channelsColTotal') }],
     [platforms, t],
@@ -193,7 +245,26 @@ export function ChannelsSettlementTable({
           },
           cell: ({ row }) => {
             const line = row.original
-            const m = metrics[col.slug]
+            const m = metrics[col.slug] ?? {
+              platform: col.slug,
+              gross_revenue: 0,
+              discounts: 0,
+              returns: 0,
+              net_revenue: 0,
+              marketplace_fees: 0,
+              shipping_charges: 0,
+              tax_withholdings: 0,
+              estimated_payout: 0,
+              completeness: 'unavailable',
+              platform_cancel_costs: {
+                merchandise_gross: 0,
+                merchandise_annulled: 0,
+                marketplace_fees: 0,
+                shipping_charges: 0,
+                tax_withholdings: 0,
+                total: 0,
+              },
+            }
             const raw = line.value(m)
             const display = line.isDeduction ? -Math.abs(raw) : raw
             return (
@@ -243,6 +314,13 @@ export function ChannelsSettlementTable({
       title={t('channelsSettlementTitle')}
       description={t('channelsSettlementSubtitle')}
     >
+      {Object.values(metrics).some(
+        (m) =>
+          m.platform_cancel_costs.total !== 0 ||
+          m.platform_cancel_costs.shipping_charges !== 0,
+      ) ? (
+        <p className="mb-3 text-xs text-text-secondary">{t('settlementCancelCostHint')}</p>
+      ) : null}
       <DataTable
         table={table}
         variant="plain"

@@ -1,4 +1,5 @@
-import type { ChannelKpiRow } from '@/lib/types/reports'
+import type { ChannelKpiRow, PlatformCancelCosts } from '@/lib/types/reports'
+import { zeroPlatformCancelCosts } from '@/lib/settlement-utils'
 
 export type ChannelPlatform = {
   slug: string
@@ -39,6 +40,7 @@ export type PlatformSettlementMetrics = {
   tax_withholdings: number
   estimated_payout: number
   completeness: string
+  platform_cancel_costs: PlatformCancelCosts
 }
 
 function emptySettlementMetrics(platform: string): PlatformSettlementMetrics {
@@ -53,6 +55,7 @@ function emptySettlementMetrics(platform: string): PlatformSettlementMetrics {
     tax_withholdings: 0,
     estimated_payout: 0,
     completeness: '',
+    platform_cancel_costs: zeroPlatformCancelCosts(),
   }
 }
 
@@ -67,6 +70,16 @@ function mergeCompleteness(current: string, incoming: string): string {
   return rank(current) <= rank(incoming) ? current : incoming
 }
 
+function addCancelCosts(target: PlatformCancelCosts, incoming?: PlatformCancelCosts): void {
+  if (!incoming) return
+  target.merchandise_gross += incoming.merchandise_gross
+  target.merchandise_annulled += incoming.merchandise_annulled
+  target.marketplace_fees += incoming.marketplace_fees
+  target.shipping_charges += incoming.shipping_charges
+  target.tax_withholdings += incoming.tax_withholdings
+  target.total += incoming.total
+}
+
 function addSettlementRow(target: PlatformSettlementMetrics, row: ChannelKpiRow): void {
   target.gross_revenue += row.gross_revenue
   target.discounts += row.discounts
@@ -77,6 +90,7 @@ function addSettlementRow(target: PlatformSettlementMetrics, row: ChannelKpiRow)
   target.tax_withholdings += row.tax_withholdings
   target.estimated_payout += row.estimated_payout
   target.completeness = mergeCompleteness(target.completeness, row.settlement_completeness)
+  addCancelCosts(target.platform_cancel_costs, row.platform_cancel_costs)
 }
 
 export function aggregateChannelSettlementByPlatform(

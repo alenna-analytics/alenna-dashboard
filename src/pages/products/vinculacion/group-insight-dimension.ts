@@ -11,6 +11,7 @@ import type {
   PlatformMetrics,
   PlatformSettlementMetrics,
 } from '@/pages/channels/channels-platform-aggregate'
+import { zeroPlatformCancelCosts } from '@/lib/settlement-utils'
 import type { FilterOption } from '@/ui/filters/types'
 
 import {
@@ -233,6 +234,7 @@ function scaleSettlement(
   settlement: ProductLinkGroupSettlementApi,
   share: number,
 ): ProductLinkGroupSettlementApi {
+  const c = settlement.platform_cancel_costs
   return {
     gross_revenue: settlement.gross_revenue * share,
     discounts: settlement.discounts * share,
@@ -243,6 +245,16 @@ function scaleSettlement(
     tax_withholdings: settlement.tax_withholdings * share,
     estimated_payout: settlement.estimated_payout * share,
     completeness: settlement.completeness,
+    platform_cancel_costs: c
+      ? {
+          merchandise_gross: c.merchandise_gross * share,
+          merchandise_annulled: c.merchandise_annulled * share,
+          marketplace_fees: c.marketplace_fees * share,
+          shipping_charges: c.shipping_charges * share,
+          tax_withholdings: c.tax_withholdings * share,
+          total: c.total * share,
+        }
+      : undefined,
   }
 }
 
@@ -258,6 +270,7 @@ function emptySettlementMetrics(platform: string): PlatformSettlementMetrics {
     tax_withholdings: 0,
     estimated_payout: 0,
     completeness: '',
+    platform_cancel_costs: zeroPlatformCancelCosts(),
   }
 }
 
@@ -274,6 +287,15 @@ function addSettlementMetrics(
   target.tax_withholdings += row.tax_withholdings
   target.estimated_payout += row.estimated_payout
   if (!target.completeness) target.completeness = row.completeness
+  const c = row.platform_cancel_costs
+  if (c) {
+    target.platform_cancel_costs.merchandise_gross += c.merchandise_gross
+    target.platform_cancel_costs.merchandise_annulled += c.merchandise_annulled
+    target.platform_cancel_costs.marketplace_fees += c.marketplace_fees
+    target.platform_cancel_costs.shipping_charges += c.shipping_charges
+    target.platform_cancel_costs.tax_withholdings += c.tax_withholdings
+    target.platform_cancel_costs.total += c.total
+  }
 }
 
 /**

@@ -20,6 +20,7 @@ import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs'
 
+import { calendarYearToDateRange } from '../calendar-year-to-date'
 import {
   buildProductPnlWaterfallSegments,
   productPnlWaterfallSourceFromPeriod,
@@ -28,15 +29,18 @@ import { defaultProductInsightRange } from '../product-detail-range'
 import { ProductDetailWaterfallBlock } from '../product-detail-waterfall-block'
 import { ProductDetailUnsavedBar } from '../product-detail-unsaved-bar'
 import { GroupInventoryByChannel } from '../product-detail-inventory-by-channel'
+import { estimateTaxByPlatform } from '../product-pnl-tax-estimates'
 import { ProductPnlTaxMatrix } from '../product-pnl-tax-matrix'
 import { PRODUCTS_LINKING_PATH } from '../products-inner-nav'
 import { GroupInsightProvider } from './group-insight-context'
+import { groupChannelPnlMetrics, groupChannelPlatforms } from './group-channel-pnl-metrics'
 import { useGroupInsight } from './use-group-insight'
 import { VinculacionDissolveConfirmDialog } from './vinculacion-dissolve-confirm-dialog'
 import { VinculacionGroupAnalytics } from './vinculacion-group-analytics'
 import { VinculacionGroupHeader } from './vinculacion-group-header'
 import { VinculacionGroupMembersTable } from './vinculacion-group-members-table'
 import { VinculacionGroupRentabilidad } from './vinculacion-group-rentabilidad'
+import { VinculacionInsightDimensionFilter } from './vinculacion-insight-dimension-filter'
 import { VinculacionPickerSheet } from './VinculacionPickerSheet'
 import {
   useAddProductLinkMembersMutation,
@@ -274,6 +278,17 @@ function GroupAnalyticsVistaA({
   const taxRatesQuery = useTaxRatesQuery()
   const { period, settlement, pnlPlatforms, pnlMetrics, allSelected } = insight
 
+  const ytdRange = useMemo(() => calendarYearToDateRange(), [])
+  const ytdGroupQuery = useProductLinkGroupQuery(group.id, ytdRange.start, ytdRange.end)
+  const yearWithheld = useMemo(() => {
+    const rates = taxRatesQuery.data?.settings
+    const ytdGroup = ytdGroupQuery.data
+    if (!rates || !ytdGroup) return null
+    const platforms = groupChannelPlatforms(ytdGroup, t)
+    const metrics = groupChannelPnlMetrics(ytdGroup, platforms)
+    return estimateTaxByPlatform(metrics, platforms, rates).total.withholding_total
+  }, [t, taxRatesQuery.data?.settings, ytdGroupQuery.data])
+
   const pnlSegments = useMemo(
     () =>
       buildProductPnlWaterfallSegments(
@@ -321,6 +336,14 @@ function GroupAnalyticsVistaA({
       />
       {pnlPlatforms.length > 0 ? (
         <div className="flex flex-col gap-6">
+          <div className="flex justify-end">
+            <VinculacionInsightDimensionFilter
+              value={insight.dimension}
+              onChange={insight.setDimension}
+              t={t}
+              switchId="group-insight-dimension-analytics-pnl"
+            />
+          </div>
           <ChannelsPnlTable
             metrics={pnlMetrics}
             platforms={pnlPlatforms}
@@ -338,6 +361,9 @@ function GroupAnalyticsVistaA({
             formatMoney={fmtBase}
             t={t}
             breakdown={insight.dimension === 'product' ? 'product' : 'channel'}
+            currencyCode={baseCurrency}
+            yearWithheld={yearWithheld}
+            yearWithheldLoading={ytdGroupQuery.isFetching}
           />
         </div>
       ) : null}

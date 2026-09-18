@@ -3,6 +3,11 @@ import type { ChannelKpiRow } from '@/lib/types/reports'
 export type ChannelPlatform = {
   slug: string
   label: string
+  /**
+   * Marketplace slug used for tax-withholding rules when `slug` is a product id
+   * (group insight “by product” columns).
+   */
+  marketplaceSlug?: string
 }
 
 export type PlatformMetrics = {

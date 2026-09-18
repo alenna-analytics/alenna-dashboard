@@ -5,7 +5,6 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { Info } from 'lucide-react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { TaxSettingsRates } from '@/lib/types/tax-settings'
@@ -19,12 +18,12 @@ import {
 } from '@/pages/channels/channels-product-header-label'
 import { SectionSplit } from '@/pages/reports/report-ui'
 import { cn } from '@/lib/utils'
-import { ContextAlertCard } from '@/ui/context-alert'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
 import { EmptyState } from '@/ui/empty-state'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
+import { ProductCobroFiscalAlerts } from './product-cobro-fiscal-alerts'
 import {
   estimateTaxByPlatform,
   type PlatformTaxEstimate,
@@ -86,6 +85,9 @@ type ProductPnlTaxMatrixProps = {
   formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
   breakdown?: 'channel' | 'product'
+  currencyCode?: string
+  yearWithheld?: number | null
+  yearWithheldLoading?: boolean
 }
 
 function emphasisClass(kind: TaxLine['kind']): string {
@@ -99,15 +101,14 @@ export function ProductPnlTaxMatrix({
   formatMoney,
   t,
   breakdown = 'channel',
+  currencyCode,
+  yearWithheld = null,
+  yearWithheldLoading = false,
 }: ProductPnlTaxMatrixProps) {
   const byProduct = breakdown === 'product'
   const estimates = useMemo(() => {
     if (!taxRates) return null
-    return estimateTaxByPlatform(
-      metrics,
-      platforms.map((p) => p.slug),
-      taxRates,
-    )
+    return estimateTaxByPlatform(metrics, platforms, taxRates)
   }, [metrics, platforms, taxRates])
 
   const cols = useMemo(
@@ -249,10 +250,10 @@ export function ProductPnlTaxMatrix({
   }
 
   const totalWithheld = estimates?.total?.withholding_total ?? 0
-  const taxRetentionTitle = t('productsDetailTaxRetentionAlert').replace(
-    '{amount}',
-    formatMoney(Math.abs(totalWithheld)),
-  )
+  const showShopifyAlert = platforms.some((p) => {
+    const market = (p.marketplaceSlug ?? p.slug).trim().toLowerCase()
+    return market === 'shopify'
+  })
 
   return (
     <SectionSplit
@@ -272,11 +273,15 @@ export function ProductPnlTaxMatrix({
           emptyContent={<EmptyState icon="channels" title={t('reportsNoData')} />}
           skeletonRowCount={4}
         />
-        <ContextAlertCard
-          title={taxRetentionTitle}
-          subtitle={t('productsDetailTaxRetentionAlertHint')}
-          icon={Info}
-          tone="info"
+        <ProductCobroFiscalAlerts
+          t={t}
+          formatMoney={formatMoney}
+          currencyCode={currencyCode}
+          periodWithheld={totalWithheld}
+          yearWithheld={yearWithheld}
+          yearWithheldLoading={yearWithheldLoading}
+          showShopifyAlert={showShopifyAlert}
+          showRetentionTip
         />
       </div>
     </SectionSplit>

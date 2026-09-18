@@ -18,6 +18,7 @@ import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import { Skeleton } from '@/ui/skeleton'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 
+import { calendarYearToDateRange } from '../calendar-year-to-date'
 import { ProductCobroTaxMatrix } from '../product-cobro-tax-matrix'
 import { ProductCobroTimingTable } from '../product-cobro-timing-table'
 import { ProductDetailInsightKpiTile } from '../product-detail-insight-kpi-tile'
@@ -44,6 +45,7 @@ import {
   groupProductSettlementMetrics,
 } from './group-insight-dimension'
 import { useGroupInsight } from './use-group-insight'
+import { useProductLinkGroupQuery } from './use-product-link-queries'
 import { VinculacionInsightDimensionFilter } from './vinculacion-insight-dimension-filter'
 
 type ShellT = (key: ShellStringKey) => string
@@ -110,12 +112,29 @@ export function VinculacionGroupRentabilidad({
   const taxEstimates = useMemo(() => {
     const rates = taxRatesQuery.data?.settings
     if (!rates) return null
-    return estimateSettlementTaxByPlatform(
-      settlementMetrics,
-      settlementPlatforms.map((p) => p.slug),
-      rates,
-    )
+    return estimateSettlementTaxByPlatform(settlementMetrics, settlementPlatforms, rates)
   }, [settlementMetrics, settlementPlatforms, taxRatesQuery.data?.settings])
+
+  const channelSettlementMetrics = useMemo(
+    () => groupSettlementByPlatformMetrics(group, channelPlatforms),
+    [channelPlatforms, group],
+  )
+  const channelTaxEstimates = useMemo(() => {
+    const rates = taxRatesQuery.data?.settings
+    if (!rates) return null
+    return estimateSettlementTaxByPlatform(channelSettlementMetrics, channelPlatforms, rates)
+  }, [channelPlatforms, channelSettlementMetrics, taxRatesQuery.data?.settings])
+
+  const ytdRange = useMemo(() => calendarYearToDateRange(), [])
+  const ytdGroupQuery = useProductLinkGroupQuery(group.id, ytdRange.start, ytdRange.end)
+  const yearWithheld = useMemo(() => {
+    const rates = taxRatesQuery.data?.settings
+    const ytdGroup = ytdGroupQuery.data
+    if (!rates || !ytdGroup) return null
+    const platforms = settlementPlatformsFromGroup(ytdGroup, t)
+    const metrics = groupSettlementByPlatformMetrics(ytdGroup, platforms)
+    return estimateSettlementTaxByPlatform(metrics, platforms, rates).total.withholding_total
+  }, [t, taxRatesQuery.data?.settings, ytdGroupQuery.data])
 
   const retainedSat = useMemo(
     () =>
@@ -141,15 +160,15 @@ export function VinculacionGroupRentabilidad({
 
   const pendingByPlatform = useMemo(() => {
     const out: Record<string, number> = {}
-    for (const platform of settlementPlatforms) {
-      const estimate = taxEstimates?.[platform.slug]
+    for (const platform of channelPlatforms) {
+      const estimate = channelTaxEstimates?.[platform.slug]
       out[platform.slug] =
         estimate?.expected_net_cash ??
-        settlementMetrics[platform.slug]?.estimated_payout ??
+        channelSettlementMetrics[platform.slug]?.estimated_payout ??
         0
     }
     return out
-  }, [settlementMetrics, settlementPlatforms, taxEstimates])
+  }, [channelPlatforms, channelSettlementMetrics, channelTaxEstimates])
 
   const { data: series, isError } = useMonthlyRevenueSeries({
     productIds: chartProductIds,
@@ -336,14 +355,24 @@ export function VinculacionGroupRentabilidad({
       />
 
       {settlementPlatforms.length > 0 ? (
-        <ChannelsSettlementTable
-          metrics={settlementMetrics}
-          platforms={settlementPlatforms}
-          formatMoney={fmtBase}
-          t={t}
-          includeTaxWithholdings={false}
-          truncateLongHeaders={byProduct}
-        />
+        <div className="flex flex-col gap-3">
+          <div className="flex justify-end">
+            <VinculacionInsightDimensionFilter
+              value={insight.dimension}
+              onChange={insight.setDimension}
+              t={t}
+              switchId="group-insight-dimension-rentabilidad-pnl"
+            />
+          </div>
+          <ChannelsSettlementTable
+            metrics={settlementMetrics}
+            platforms={settlementPlatforms}
+            formatMoney={fmtBase}
+            t={t}
+            includeTaxWithholdings={false}
+            truncateLongHeaders={byProduct}
+          />
+        </div>
       ) : null}
 
       {settlementPlatforms.length > 0 ? (
@@ -355,13 +384,15 @@ export function VinculacionGroupRentabilidad({
           t={t}
           currencyCode={baseCurrency}
           breakdown={byProduct ? 'product' : 'channel'}
+          yearWithheld={yearWithheld}
+          yearWithheldLoading={ytdGroupQuery.isFetching}
         />
       ) : null}
 
-      {settlementPlatforms.length > 0 ? (
+      {channelPlatforms.length > 0 ? (
         <ProductCobroTimingTable
-          platforms={settlementPlatforms}
-          metrics={settlementMetrics}
+          platforms={channelPlatforms}
+          metrics={channelSettlementMetrics}
           pendingByPlatform={pendingByPlatform}
           formatMoney={fmtBase}
           t={t}

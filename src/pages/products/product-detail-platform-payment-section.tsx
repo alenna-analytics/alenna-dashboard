@@ -24,6 +24,7 @@ import type { FilterOption } from '@/ui/filters/types'
 import { Skeleton } from '@/ui/skeleton'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 
+import { calendarYearToDateRange } from './calendar-year-to-date'
 import {
   connectionIdsForPlatform,
   PRODUCT_DETAIL_ALL_CHANNELS,
@@ -163,12 +164,23 @@ export function ProductDetailPlatformPaymentSection({
   const taxEstimates = useMemo(() => {
     const rates = taxRatesQuery.data?.settings
     if (!rates) return null
-    return estimateSettlementTaxByPlatform(
-      settlementMetrics,
-      platforms.map((p) => p.slug),
-      rates,
-    )
+    return estimateSettlementTaxByPlatform(settlementMetrics, platforms, rates)
   }, [platforms, settlementMetrics, taxRatesQuery.data?.settings])
+
+  const ytdRange = useMemo(() => calendarYearToDateRange(), [])
+  const ytdDetailQuery = useProductDetailQuery(productId, {
+    metricsStart: ytdRange.start,
+    metricsEnd: ytdRange.end,
+  })
+  const yearWithheld = useMemo(() => {
+    const rates = taxRatesQuery.data?.settings
+    const ytdDetail = ytdDetailQuery.data
+    if (!rates || !ytdDetail) return null
+    const ytdPlatforms = settlementPlatformsFromProduct(ytdDetail, t)
+    const ytdMetrics = productSettlementByPlatformMetrics(ytdDetail, ytdPlatforms)
+    return estimateSettlementTaxByPlatform(ytdMetrics, ytdPlatforms, rates).total
+      .withholding_total
+  }, [t, taxRatesQuery.data?.settings, ytdDetailQuery.data])
 
   const retainedSat = useMemo(() => {
     if (!settlement) return 0
@@ -225,7 +237,7 @@ export function ProductDetailPlatformPaymentSection({
     )
     return estimateSettlementTaxByPlatform(
       prevMetrics,
-      prevPlatforms.map((p) => p.slug),
+      prevPlatforms,
       taxRatesQuery.data.settings,
     )
   }, [prevDetailQuery.data, t, taxRatesQuery.data?.settings])
@@ -485,6 +497,8 @@ export function ProductDetailPlatformPaymentSection({
           formatMoney={fmtBase}
           t={t}
           currencyCode={currencyCode}
+          yearWithheld={yearWithheld}
+          yearWithheldLoading={ytdDetailQuery.isFetching}
         />
       ) : null}
 

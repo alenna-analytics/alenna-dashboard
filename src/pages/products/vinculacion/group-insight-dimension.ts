@@ -146,6 +146,7 @@ export function groupProductPlatforms(group: ProductLinkGroupApi): ChannelPlatfo
   return group.members.map((member) => ({
     slug: member.product_id,
     label: member.variant_label?.trim() || member.title,
+    marketplaceSlug: memberPlatformSlug(member) || undefined,
   }))
 }
 

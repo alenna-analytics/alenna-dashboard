@@ -48,6 +48,14 @@ function settlement(
     tax_withholdings: 0,
     estimated_payout: 0,
     completeness: '',
+    platform_cancel_costs: {
+      merchandise_gross: 0,
+      merchandise_annulled: 0,
+      marketplace_fees: 0,
+      shipping_charges: 0,
+      tax_withholdings: 0,
+      total: 0,
+    },
     ...partial,
   }
 }

@@ -1,5 +1,16 @@
 import type { ProductSettlementApi } from '@/lib/types/catalog'
-import type { SettlementBreakdown } from '@/lib/types/reports'
+import type { PlatformCancelCosts, SettlementBreakdown } from '@/lib/types/reports'
+
+export function zeroPlatformCancelCosts(): PlatformCancelCosts {
+  return {
+    merchandise_gross: 0,
+    merchandise_annulled: 0,
+    marketplace_fees: 0,
+    shipping_charges: 0,
+    tax_withholdings: 0,
+    total: 0,
+  }
+}
 
 export function zeroSettlementBreakdown(): SettlementBreakdown {
   return {
@@ -12,6 +23,7 @@ export function zeroSettlementBreakdown(): SettlementBreakdown {
     tax_withholdings: 0,
     estimated_payout: 0,
     completeness: 'unavailable',
+    platform_cancel_costs: zeroPlatformCancelCosts(),
   }
 }
 
@@ -21,6 +33,61 @@ export type SettlementWaterfallLine = {
   value: number
   kind: 'line' | 'subtotal' | 'total'
   isDeduction?: boolean
+}
+
+export function settlementHasPlatformCancelCosts(
+  settlement: SettlementBreakdown | ProductSettlementApi,
+): boolean {
+  const c = settlement.platform_cancel_costs
+  if (!c) return false
+  return c.total !== 0 || c.shipping_charges !== 0 || c.merchandise_gross !== 0
+}
+
+export function platformCancelCostWaterfallLines(
+  costs: PlatformCancelCosts,
+): SettlementWaterfallLine[] {
+  return [
+    {
+      key: 'cancel_merch',
+      labelKey: 'settlementCancelCostMerchandise',
+      value: costs.merchandise_gross,
+      kind: 'line',
+    },
+    {
+      key: 'cancel_annul',
+      labelKey: 'settlementCancelCostAnnulled',
+      value: costs.merchandise_annulled,
+      kind: 'line',
+      isDeduction: true,
+    },
+    {
+      key: 'cancel_fees',
+      labelKey: 'settlementCancelCostFees',
+      value: costs.marketplace_fees,
+      kind: 'line',
+      isDeduction: true,
+    },
+    {
+      key: 'cancel_shipping',
+      labelKey: 'settlementCancelCostShipping',
+      value: costs.shipping_charges,
+      kind: 'line',
+      isDeduction: true,
+    },
+    {
+      key: 'cancel_tax',
+      labelKey: 'settlementCancelCostTax',
+      value: costs.tax_withholdings,
+      kind: 'line',
+      isDeduction: true,
+    },
+    {
+      key: 'cancel_total',
+      labelKey: 'settlementCancelCostTotal',
+      value: costs.total,
+      kind: 'total',
+    },
+  ]
 }
 
 export function settlementWaterfallLines(

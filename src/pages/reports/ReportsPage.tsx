@@ -43,7 +43,8 @@ import { buildWaterfallSegments } from '@/pages/reports/waterfall-segments'
 import { usePnlAwareT, usePnlLabelResolver } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
 import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
 import { WaterfallChart } from '@/pages/reports/waterfall-chart'
-import { zeroSettlementBreakdown } from '@/lib/settlement-utils'
+import { settlementHasPlatformCancelCosts, zeroSettlementBreakdown } from '@/lib/settlement-utils'
+import { SettlementWaterfallList } from '@/pages/products/settlement-waterfall-list'
 import { useChannelTimeSeries } from '@/pages/reports/use-channel-time-series'
 import { useProductReports } from '@/pages/reports/use-product-reports'
 import { useReports } from '@/pages/reports/use-reports'
@@ -743,15 +744,28 @@ export function ReportsPage() {
                 }
               />
               {showSettlementWaterfall ? (
-                <WaterfallChart
-                  segments={settlementWaterfallSegments}
-                  currency={effectiveDisplayCurrency}
-                  grossRevenue={convertFromBase(settlementSource?.gross_revenue ?? 0)}
-                  formatPctOfGross={(pct) =>
-                    t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))
-                  }
-                  finalBarCaption={t('reportsSettlementFinalHint')}
-                />
+                <>
+                  <WaterfallChart
+                    segments={settlementWaterfallSegments}
+                    currency={effectiveDisplayCurrency}
+                    grossRevenue={convertFromBase(settlementSource?.gross_revenue ?? 0)}
+                    formatPctOfGross={(pct) =>
+                      t('reportsWaterfallPctOfGross').replace('{pct}', pct.toFixed(1))
+                    }
+                    finalBarCaption={t('reportsSettlementFinalHint')}
+                  />
+                  {settlementSource && settlementHasPlatformCancelCosts(settlementSource) ? (
+                    <div className="mt-6">
+                      <SettlementWaterfallList
+                        settlement={settlementSource}
+                        fmtBase={formatConverted}
+                        t={t}
+                        includeTaxWithholdings
+                        showSaleWaterfall={false}
+                      />
+                    </div>
+                  ) : null}
+                </>
               ) : pnlWaterfallReady && displayKpi ? (
                 <WaterfallChart
                   segments={waterfallSegments}

@@ -18,6 +18,14 @@ export type ProductSettlementApi = {
   tax_withholdings: number
   estimated_payout: number
   completeness: string
+  platform_cancel_costs?: {
+    merchandise_gross: number
+    merchandise_annulled: number
+    marketplace_fees: number
+    shipping_charges: number
+    tax_withholdings: number
+    total: number
+  }
 }
 
 export type ProductPlatformSettlementApi = ProductSettlementApi & {

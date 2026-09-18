@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useMemo, useState } from 'react'
+import type { PaginationState } from '@tanstack/react-table'
 import { toast } from 'sonner'
 
 import { shellT } from '@/lib/i18n/shell-strings'
@@ -24,6 +25,8 @@ import { productsLinkingGroupPath } from './products-inner-nav'
 
 type CatalogTab = 'products' | 'groups'
 
+const GROUPS_PAGE_SIZE = 15
+
 export function ProductsListPage() {
   const navigate = useNavigate()
   const { lang } = useLanguage()
@@ -35,7 +38,15 @@ export function ProductsListPage() {
   const [q, setQ] = useState('')
   const [filters, setFilters] = useState<ProductsListFiltersState>(EMPTY_PRODUCTS_LIST_FILTERS)
   const [catalogTab, setCatalogTab] = useState<CatalogTab>('products')
-  const groupsQuery = useProductLinkGroupsQuery({ enabled: catalogTab === 'groups' })
+  const [groupsPagination, setGroupsPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: GROUPS_PAGE_SIZE,
+  })
+  const groupsQuery = useProductLinkGroupsQuery({
+    enabled: catalogTab === 'groups',
+    limit: groupsPagination.pageSize,
+    offset: groupsPagination.pageIndex * groupsPagination.pageSize,
+  })
   const dissolve = useDissolveProductLinkGroupMutation()
   const [unlinkingId, setUnlinkingId] = useState<string | null>(null)
 
@@ -52,6 +63,7 @@ export function ProductsListPage() {
   const errorContent = <p className="text-destructive">{t('productsCatalogLoadError')}</p>
 
   const groups = useMemo(() => groupsQuery.data?.items ?? [], [groupsQuery.data?.items])
+  const groupsTotal = groupsQuery.data?.total ?? 0
 
   return (
     <DashboardPage className="flex flex-1 flex-col gap-5">
@@ -131,6 +143,9 @@ export function ProductsListPage() {
               isFetching={groupsQuery.isFetching}
               hasEverLoaded={groupsQuery.data !== undefined}
               unlinkingId={unlinkingId}
+              total={groupsTotal}
+              pagination={groupsPagination}
+              onPaginationChange={setGroupsPagination}
               onUnlink={(groupId) => {
                 setUnlinkingId(groupId)
                 void dissolve

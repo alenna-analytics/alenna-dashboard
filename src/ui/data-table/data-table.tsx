@@ -215,7 +215,7 @@ export function DataTable<TData>({
                 <TableRow
                   key={`sk-${i}`}
                   className={cn(
-                    'hover:bg-transparent data-[state=selected]:bg-transparent',
+                    'border-0 hover:bg-transparent data-[state=selected]:bg-transparent',
                     isPlain ? 'bg-transparent' : 'bg-white hover:bg-white data-[state=selected]:bg-white',
                   )}
                 >
@@ -223,8 +223,9 @@ export function DataTable<TData>({
                     <TableCell
                       key={col.id}
                       className={cn(
-                        isCompact &&
-                          'h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0',
+                        isCompact
+                          ? 'h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0'
+                          : 'border-0 border-b border-solid border-border-subtle',
                         columnResizeEnabled && 'overflow-hidden',
                       )}
                       style={columnResizeEnabled ? { width: col.getSize() } : undefined}
@@ -251,9 +252,9 @@ export function DataTable<TData>({
                     <TableRow
                       data-state={row.getIsSelected() ? "selected" : undefined}
                       className={cn(
-                        "group",
+                        "group border-0",
                         isCompact
-                          ? "border-0 bg-background hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
+                          ? "bg-background hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
                           : isPlain
                             ? "bg-transparent hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
                             : "bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]",
@@ -267,8 +268,9 @@ export function DataTable<TData>({
                           <TableCell
                             key={cell.id}
                             className={cn(
-                              isCompact &&
-                                'h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0',
+                              isCompact
+                                ? 'h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0'
+                                : 'border-0 border-b border-solid border-border-subtle',
                               columnResizeEnabled && 'overflow-hidden',
                               meta?.cellClassName,
                             )}
@@ -287,13 +289,30 @@ export function DataTable<TData>({
                         )
                       })}
                     </TableRow>
-                    {isExpanded && renderExpandedContent ? (
+                    {renderExpandedContent ? (
                       <TableRow
                         key={`${row.id}-detail`}
-                        className="bg-white hover:bg-white"
+                        className="border-0 bg-white hover:bg-white"
+                        aria-hidden={!isExpanded}
                       >
-                        <TableCell colSpan={colSpan} className="p-0">
-                          {renderExpandedContent(row.original)}
+                        <TableCell colSpan={colSpan} className="border-0 p-0">
+                          <div
+                            className={cn(
+                              'grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none',
+                              isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+                            )}
+                          >
+                            <div className="min-h-0 overflow-hidden">
+                              <div
+                                className={cn(
+                                  'transition-opacity duration-300 ease-out motion-reduce:transition-none',
+                                  isExpanded ? 'opacity-100' : 'opacity-0',
+                                )}
+                              >
+                                {renderExpandedContent(row.original)}
+                              </div>
+                            </div>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ) : null}

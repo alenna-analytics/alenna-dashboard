@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import type { PaginationState } from '@tanstack/react-table'
 import { toast } from 'sonner'
 
 import { useWorkspace } from '@/shell/providers/workspace-context'
@@ -21,12 +22,22 @@ import {
 
 import { useMatchSuggestionsSheet } from './match-suggestions-sheet-context'
 
+const PAGE_SIZE = 15
+
 export function MatchSuggestionsReviewSheetHost() {
   const { lang } = useLanguage()
   const { me } = useWorkspace()
   const { open, setOpen } = useMatchSuggestionsSheet()
   const canEdit = can(me, 'products.groups.edit')
-  const suggestionsQuery = useProductLinkSuggestionsQuery({ enabled: open })
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: PAGE_SIZE,
+  })
+  const suggestionsQuery = useProductLinkSuggestionsQuery({
+    enabled: open,
+    limit: pagination.pageSize,
+    offset: pagination.pageIndex * pagination.pageSize,
+  })
   const accept = useAcceptProductLinkSuggestionMutation()
   const reject = useRejectProductLinkSuggestionMutation()
   const [hasEverLoaded, setHasEverLoaded] = useState(false)
@@ -41,6 +52,7 @@ export function MatchSuggestionsReviewSheetHost() {
   const rejectId = reject.isPending ? (reject.variables ?? null) : null
   const busy = acceptId !== null || rejectId !== null
   const items = suggestionsQuery.data?.items ?? []
+  const total = suggestionsQuery.data?.total ?? 0
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -62,6 +74,9 @@ export function MatchSuggestionsReviewSheetHost() {
             busy={busy}
             acceptingId={acceptId}
             rejectingId={rejectId}
+            total={total}
+            pagination={pagination}
+            onPaginationChange={setPagination}
             onAccept={(suggestionId) => {
               void accept
                 .mutateAsync(suggestionId)

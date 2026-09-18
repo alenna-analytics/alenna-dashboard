@@ -1,7 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Check, ChevronDown, X } from 'lucide-react'
-import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table'
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type OnChangeFn,
+  type PaginationState,
+} from '@tanstack/react-table'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { cn } from '@/lib/utils'
@@ -12,6 +19,7 @@ import type {
 import { Button } from '@/ui/button'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { DataTablePagination } from '@/ui/data-table/data-table-pagination'
 import { EmptyState } from '@/ui/empty-state'
 import { StatusPill } from '@/ui/status-pill'
 
@@ -37,6 +45,9 @@ type VinculacionSuggestionsTableProps = {
   rejectingId: string | null
   onAccept: (suggestionId: string) => void
   onReject: (suggestionId: string) => void
+  total?: number
+  pagination?: PaginationState
+  onPaginationChange?: OnChangeFn<PaginationState>
 }
 
 export function VinculacionSuggestionsTable({
@@ -51,6 +62,9 @@ export function VinculacionSuggestionsTable({
   rejectingId,
   onAccept,
   onReject,
+  total,
+  pagination,
+  onPaginationChange,
 }: VinculacionSuggestionsTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const expandedRowIds = useMemo(
@@ -58,6 +72,10 @@ export function VinculacionSuggestionsTable({
     [expandedId],
   )
   const columns = useMemo(() => createColumns({ t, expandedId }), [expandedId, t])
+  const showPagination = Boolean(pagination && onPaginationChange && total !== undefined)
+  const pageCount = showPagination
+    ? Math.max(1, Math.ceil((total ?? 0) / (pagination?.pageSize ?? 15)))
+    : 1
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
   const table = useReactTable({
@@ -66,6 +84,11 @@ export function VinculacionSuggestionsTable({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getRowId: (row) => row.id,
+    manualPagination: showPagination,
+    pageCount: showPagination ? pageCount : undefined,
+    rowCount: showPagination ? total : undefined,
+    onPaginationChange: showPagination ? onPaginationChange : undefined,
+    state: showPagination && pagination ? { pagination } : undefined,
   })
 
   return (
@@ -74,6 +97,7 @@ export function VinculacionSuggestionsTable({
       isLoading={isLoading}
       isFetching={isFetching}
       hasEverLoaded={hasEverLoaded}
+      skeletonRowCount={pagination?.pageSize ?? 10}
       emptyContent={
         <EmptyState
           icon="products"
@@ -99,6 +123,23 @@ export function VinculacionSuggestionsTable({
           onReject={() => onReject(item.id)}
         />
       )}
+      footer={
+        showPagination ? (
+          <DataTablePagination
+            table={table}
+            labels={{
+              ariaPrevious: t('productsTablePrev'),
+              ariaNext: t('productsTableNext'),
+              pageStatus: (page, totalPages) =>
+                `${t('productsTablePageLabel')} ${page} ${t('productsTableOf')} ${totalPages}`,
+              pageButtonAria: (page, totalPages) =>
+                `${t('productsTablePageLabel')} ${page} ${t('productsTableOf')} ${totalPages}`,
+              goToPageLabel: t('productsTableGoToPage'),
+              goToPageAria: t('productsTableGoToPageAria'),
+            }}
+          />
+        ) : undefined
+      }
     />
   )
 }
@@ -124,7 +165,7 @@ function createColumns({ t, expandedId }: CreateColumnsArgs): ColumnDef<ProductL
           <div className="flex items-center gap-2">
             <ChevronDown
               className={cn(
-                'size-4 shrink-0 text-text-tertiary transition-transform',
+                'size-4 shrink-0 text-text-tertiary transition-transform duration-300 ease-out motion-reduce:transition-none',
                 expandedId === row.original.id ? 'rotate-0' : '-rotate-90',
               )}
               aria-hidden

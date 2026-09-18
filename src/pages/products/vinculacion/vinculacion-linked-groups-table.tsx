@@ -1,13 +1,21 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronDown, Eye, MoreVertical, Unlink } from 'lucide-react'
-import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table'
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type OnChangeFn,
+  type PaginationState,
+} from '@tanstack/react-table'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { cn } from '@/lib/utils'
 import type { ProductLinkGroupApi, ProductLinkGroupMemberApi } from '@/lib/types/product-links'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { DataTablePagination } from '@/ui/data-table/data-table-pagination'
 import { EmptyState } from '@/ui/empty-state'
 import { StatusPill } from '@/ui/status-pill'
 import {
@@ -40,6 +48,10 @@ type VinculacionLinkedGroupsTableProps = {
   hasEverLoaded: boolean
   unlinkingId: string | null
   onUnlink: (groupId: string) => void
+  /** When set with pagination handlers, shows total + pager like the products table. */
+  total?: number
+  pagination?: PaginationState
+  onPaginationChange?: OnChangeFn<PaginationState>
 }
 
 export function VinculacionLinkedGroupsTable({
@@ -51,6 +63,9 @@ export function VinculacionLinkedGroupsTable({
   hasEverLoaded,
   unlinkingId,
   onUnlink,
+  total,
+  pagination,
+  onPaginationChange,
 }: VinculacionLinkedGroupsTableProps) {
   const navigate = useNavigate()
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -62,6 +77,10 @@ export function VinculacionLinkedGroupsTable({
     () => createColumns({ t, canEdit, unlinkingId, onUnlink, navigate, expandedId }),
     [canEdit, expandedId, navigate, onUnlink, t, unlinkingId],
   )
+  const showPagination = Boolean(pagination && onPaginationChange && total !== undefined)
+  const pageCount = showPagination
+    ? Math.max(1, Math.ceil((total ?? 0) / (pagination?.pageSize ?? 15)))
+    : 1
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
   const table = useReactTable({
@@ -70,6 +89,11 @@ export function VinculacionLinkedGroupsTable({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getRowId: (row) => row.id,
+    manualPagination: showPagination,
+    pageCount: showPagination ? pageCount : undefined,
+    rowCount: showPagination ? total : undefined,
+    onPaginationChange: showPagination ? onPaginationChange : undefined,
+    state: showPagination && pagination ? { pagination } : undefined,
   })
 
   return (
@@ -78,6 +102,7 @@ export function VinculacionLinkedGroupsTable({
       isLoading={isLoading}
       isFetching={isFetching}
       hasEverLoaded={hasEverLoaded}
+      skeletonRowCount={pagination?.pageSize ?? 10}
       emptyContent={
         <EmptyState
           icon="products"
@@ -92,6 +117,23 @@ export function VinculacionLinkedGroupsTable({
         setExpandedId((current) => (current === group.id ? null : group.id))
       }}
       renderExpandedContent={(group) => <LinkedGroupExpandedDetail group={group} t={t} />}
+      footer={
+        showPagination ? (
+          <DataTablePagination
+            table={table}
+            labels={{
+              ariaPrevious: t('productsTablePrev'),
+              ariaNext: t('productsTableNext'),
+              pageStatus: (page, totalPages) =>
+                `${t('productsTablePageLabel')} ${page} ${t('productsTableOf')} ${totalPages}`,
+              pageButtonAria: (page, totalPages) =>
+                `${t('productsTablePageLabel')} ${page} ${t('productsTableOf')} ${totalPages}`,
+              goToPageLabel: t('productsTableGoToPage'),
+              goToPageAria: t('productsTableGoToPageAria'),
+            }}
+          />
+        ) : undefined
+      }
     />
   )
 }
@@ -128,7 +170,7 @@ function createColumns({
           <div className="flex items-center gap-2">
             <ChevronDown
               className={cn(
-                'size-4 shrink-0 text-text-tertiary transition-transform',
+                'size-4 shrink-0 text-text-tertiary transition-transform duration-300 ease-out motion-reduce:transition-none',
                 expandedId === group.id ? 'rotate-0' : '-rotate-90',
               )}
               aria-hidden

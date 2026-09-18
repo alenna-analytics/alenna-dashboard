@@ -21,6 +21,12 @@ import { Skeleton } from '@/ui/skeleton'
 
 import { usePutTaxRatesMutation, useTaxRatesQuery } from './use-tax-rates-queries'
 
+/**
+ * Transferred IVA is stored in the API but not consumed by product/report
+ * estimates yet. Keep the field wired; flip to true when the UI should show it.
+ */
+const SHOW_TRANSFERRED_IVA_RATE = false
+
 type DraftRates = {
   withholding_iva_pct: string
   withholding_isr_pct: string
@@ -80,7 +86,10 @@ function normalizePctOnBlur(raw: string): string {
 function parseDraft(draft: DraftRates): TaxSettingsRates | null {
   const withholding_iva_pct = parsePct(draft.withholding_iva_pct)
   const withholding_isr_pct = parsePct(draft.withholding_isr_pct)
-  const transferred_iva_pct = parsePct(draft.transferred_iva_pct)
+  const transferredFromDraft = parsePct(draft.transferred_iva_pct)
+  const transferred_iva_pct = SHOW_TRANSFERRED_IVA_RATE
+    ? transferredFromDraft
+    : (transferredFromDraft ?? MX_TYPICAL_TAX_RATES.transferred_iva_pct)
   if (
     withholding_iva_pct === null ||
     withholding_isr_pct === null ||
@@ -92,11 +101,11 @@ function parseDraft(draft: DraftRates): TaxSettingsRates | null {
 }
 
 function draftsEqual(a: DraftRates, b: DraftRates): boolean {
-  return (
+  const visibleEqual =
     a.withholding_iva_pct === b.withholding_iva_pct &&
-    a.withholding_isr_pct === b.withholding_isr_pct &&
-    a.transferred_iva_pct === b.transferred_iva_pct
-  )
+    a.withholding_isr_pct === b.withholding_isr_pct
+  if (!SHOW_TRANSFERRED_IVA_RATE) return visibleEqual
+  return visibleEqual && a.transferred_iva_pct === b.transferred_iva_pct
 }
 
 export function TaxRatesConfigurationPage() {
@@ -134,7 +143,15 @@ export function TaxRatesConfigurationPage() {
       toast.error(t('workspaceConfigTaxRatesInvalid'))
       return
     }
-    await save(parsed)
+    // Preserve stored transferred IVA when the field is hidden.
+    const settings: TaxSettingsRates = SHOW_TRANSFERRED_IVA_RATE
+      ? parsed
+      : {
+          ...parsed,
+          transferred_iva_pct:
+            data?.settings?.transferred_iva_pct ?? MX_TYPICAL_TAX_RATES.transferred_iva_pct,
+        }
+    await save(settings)
   }
 
   const applyTypicalMx = async () => {
@@ -176,7 +193,16 @@ export function TaxRatesConfigurationPage() {
           <SettingsCard>
             <SettingsRow
               label={t('workspaceConfigTaxRatesWithholdingIsr')}
-              description={t('workspaceConfigTaxRatesWithholdingIsrDesc')}
+              calcDescription={t('workspaceConfigTaxRatesWithholdingIsrCalcDescription')}
+              calcFormulaLeft={t('workspaceConfigTaxRatesAffectsPrefix')}
+              calcFormulaParts={[
+                t('reportsTaxBlockWithholdingIsr'),
+                t('reportsTaxBlockWithholdingTotal'),
+                t('productsDetailPlatformPaymentRetainedSat'),
+                t('productsDetailPlatformPaymentCobroNeto'),
+                t('productsDetailPlatformPaymentPayoutPct'),
+              ]}
+              calcFormulaJoiner=" · "
             >
               <Input
                 type="number"
@@ -198,7 +224,16 @@ export function TaxRatesConfigurationPage() {
             </SettingsRow>
             <SettingsRow
               label={t('workspaceConfigTaxRatesWithholdingIva')}
-              description={t('workspaceConfigTaxRatesWithholdingIvaDesc')}
+              calcDescription={t('workspaceConfigTaxRatesWithholdingIvaCalcDescription')}
+              calcFormulaLeft={t('workspaceConfigTaxRatesAffectsPrefix')}
+              calcFormulaParts={[
+                t('reportsTaxBlockWithholdingIva'),
+                t('reportsTaxBlockWithholdingTotal'),
+                t('productsDetailPlatformPaymentRetainedSat'),
+                t('productsDetailPlatformPaymentCobroNeto'),
+                t('productsDetailPlatformPaymentPayoutPct'),
+              ]}
+              calcFormulaJoiner=" · "
             >
               <Input
                 type="number"
@@ -218,28 +253,30 @@ export function TaxRatesConfigurationPage() {
                 aria-label={t('workspaceConfigTaxRatesWithholdingIva')}
               />
             </SettingsRow>
-            <SettingsRow
-              label={t('workspaceConfigTaxRatesTransferredIva')}
-              description={t('workspaceConfigTaxRatesTransferredIvaDesc')}
-            >
-              <Input
-                type="number"
-                min={0}
-                max={100}
-                step="0.1"
-                inputMode="decimal"
-                disabled={!canManage || putMutation.isPending}
-                value={working.transferred_iva_pct}
-                onChange={(e) => setField('transferred_iva_pct', e.target.value)}
-                onBlur={() => blurField('transferred_iva_pct')}
-                onKeyDown={(e) => {
-                  if (e.key === '-' || e.key === 'e' || e.key === 'E' || e.key === '+') {
-                    e.preventDefault()
-                  }
-                }}
-                aria-label={t('workspaceConfigTaxRatesTransferredIva')}
-              />
-            </SettingsRow>
+            {SHOW_TRANSFERRED_IVA_RATE ? (
+              <SettingsRow
+                label={t('workspaceConfigTaxRatesTransferredIva')}
+                description={t('workspaceConfigTaxRatesTransferredIvaDesc')}
+              >
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="0.1"
+                  inputMode="decimal"
+                  disabled={!canManage || putMutation.isPending}
+                  value={working.transferred_iva_pct}
+                  onChange={(e) => setField('transferred_iva_pct', e.target.value)}
+                  onBlur={() => blurField('transferred_iva_pct')}
+                  onKeyDown={(e) => {
+                    if (e.key === '-' || e.key === 'e' || e.key === 'E' || e.key === '+') {
+                      e.preventDefault()
+                    }
+                  }}
+                  aria-label={t('workspaceConfigTaxRatesTransferredIva')}
+                />
+              </SettingsRow>
+            ) : null}
             {canManage ? (
               <div className="flex flex-wrap justify-end gap-2 px-4 py-3">
                 <Button

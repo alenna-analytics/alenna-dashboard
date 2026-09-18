@@ -213,17 +213,22 @@ const SHELL_STRINGS = {
     workspaceConfigPnlTermsDescription: 'Renombra conceptos del P&L por idioma.',
     workspaceConfigTaxRatesTitle: 'Impuestos',
     workspaceConfigTaxRatesDescription:
-      'Configura retenciones y traslado IVA para estimaciones de liquidez en Reportes.',
+      'Configura retenciones de plataformas para estimaciones de liquidez.',
     workspaceConfigTaxRatesSubtitle:
-      'Porcentajes del espacio de trabajo usados solo para estimar retenciones de plataformas. No modifican contribución marginal ni EBITDA.',
+      'Porcentajes del espacio de trabajo usados solo para estimar retenciones de marketplaces. No modifican contribución marginal ni EBITDA.',
     workspaceConfigTaxRatesUnsetHint:
       'Aún no hay tasas configuradas. Completa los campos o usa la recomendación.',
     workspaceConfigTaxRatesWithholdingsGroup: 'Retenciones',
     workspaceConfigTaxRatesTransferGroup: 'Traslado',
     workspaceConfigTaxRatesWithholdingIsr: 'Retención ISR %',
     workspaceConfigTaxRatesWithholdingIsrDesc: 'Porcentaje sobre la base (ingresos brutos, placeholder).',
+    workspaceConfigTaxRatesWithholdingIsrCalcDescription:
+      'Tasa sobre ingresos brutos estimados en marketplaces (Amazon, Mercado Libre). No afecta margen ni EBITDA.',
     workspaceConfigTaxRatesWithholdingIva: 'Retención IVA %',
     workspaceConfigTaxRatesWithholdingIvaDesc: 'Porcentaje que la plataforma retiene al SAT.',
+    workspaceConfigTaxRatesWithholdingIvaCalcDescription:
+      'Tasa de IVA que marketplaces retienen y enteran al SAT a tu nombre. No afecta margen ni EBITDA.',
+    workspaceConfigTaxRatesAffectsPrefix: 'Afecta → ',
     workspaceConfigTaxRatesTransferredIva: 'IVA trasladado %',
     workspaceConfigTaxRatesTransferredIvaDesc: 'Informativo; no afecta el efectivo neto estimado.',
     workspaceConfigTaxRatesSave: 'Guardar tasas',
@@ -2489,17 +2494,22 @@ const SHELL_STRINGS = {
     workspaceConfigPnlTermsDescription: 'Rename P&L concepts per language.',
     workspaceConfigTaxRatesTitle: 'Taxes',
     workspaceConfigTaxRatesDescription:
-      'Configure withholdings and transferred VAT for liquidity estimates in Reports.',
+      'Configure platform withholdings for liquidity estimates.',
     workspaceConfigTaxRatesSubtitle:
-      'Workspace percentages used only to estimate platform withholdings. They do not change contribution margin or EBITDA.',
+      'Workspace percentages used only to estimate marketplace withholdings. They do not change contribution margin or EBITDA.',
     workspaceConfigTaxRatesUnsetHint:
       'No rates configured yet. Fill the fields or use the recommendation.',
     workspaceConfigTaxRatesWithholdingsGroup: 'Withholdings',
     workspaceConfigTaxRatesTransferGroup: 'Transferred',
     workspaceConfigTaxRatesWithholdingIsr: 'ISR withholding %',
     workspaceConfigTaxRatesWithholdingIsrDesc: 'Percent of the base (gross revenue placeholder).',
+    workspaceConfigTaxRatesWithholdingIsrCalcDescription:
+      'Rate on estimated gross revenue in marketplaces (Amazon, Mercado Libre). Does not affect margin or EBITDA.',
     workspaceConfigTaxRatesWithholdingIva: 'VAT withholding %',
     workspaceConfigTaxRatesWithholdingIvaDesc: 'Percent the platform withholds for the tax authority.',
+    workspaceConfigTaxRatesWithholdingIvaCalcDescription:
+      'VAT rate that marketplaces withhold and remit to the tax authority on your behalf. Does not affect margin or EBITDA.',
+    workspaceConfigTaxRatesAffectsPrefix: 'Affects → ',
     workspaceConfigTaxRatesTransferredIva: 'Transferred VAT %',
     workspaceConfigTaxRatesTransferredIvaDesc: 'Informational; does not affect estimated net cash.',
     workspaceConfigTaxRatesSave: 'Save rates',

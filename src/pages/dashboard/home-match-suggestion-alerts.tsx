@@ -30,7 +30,7 @@ export function HomeMatchSuggestionAlerts({
         <button
           type="button"
           onClick={onReview}
-          className={cn(buttonVariants({ variant: 'outline', size: 'xs' }), 'px-2.5')}
+          className={cn(buttonVariants({ variant: 'inverse', size: 'xs' }), 'px-2.5')}
         >
           {t('homeMatchSuggestionBannerView')}
         </button>

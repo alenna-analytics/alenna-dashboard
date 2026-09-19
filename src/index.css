@@ -456,6 +456,7 @@
   --sidebar-accent: var(--chrome-muted);
   --sidebar-accent-foreground: var(--firefly-base);
   --table-row-hover-bg: var(--sidebar-accent);
+  --table-expanded-row-bg: color-mix(in srgb, var(--sidebar-active-bg) 38%, white);
   --sidebar-border: transparent;
   --sidebar-ring: var(--firefly-base);
 

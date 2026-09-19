@@ -42,17 +42,24 @@ function invalidateProductLinkQueries(qc: QueryClient, tenantId: string | null) 
   invalidateAlertsQueries(qc, tenantId)
 }
 
-export function useProductLinkSuggestionsQuery(options?: { enabled?: boolean }) {
+export function useProductLinkSuggestionsQuery(options?: {
+  enabled?: boolean
+  limit?: number
+  offset?: number
+}) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const enabled = options?.enabled ?? true
+  const limit = options?.limit ?? 50
+  const offset = options?.offset ?? 0
 
   return useQuery({
-    queryKey: productLinkSuggestionsQueryKey(tenantId),
+    queryKey: [...productLinkSuggestionsQueryKey(tenantId), limit, offset],
     enabled: Boolean(tenantId) && enabled,
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<ProductLinkSuggestionsPageApi> => {
       const res = await apiFetch(
-        '/catalog/product-link-suggestions?status=pending&limit=50&offset=0',
+        `/catalog/product-link-suggestions?status=pending&limit=${limit}&offset=${offset}`,
         (a) => getToken(a),
         {},
         tenantId,
@@ -63,17 +70,24 @@ export function useProductLinkSuggestionsQuery(options?: { enabled?: boolean }) 
   })
 }
 
-export function useProductLinkGroupsQuery(options?: { enabled?: boolean }) {
+export function useProductLinkGroupsQuery(options?: {
+  enabled?: boolean
+  limit?: number
+  offset?: number
+}) {
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const enabled = options?.enabled ?? true
+  const limit = options?.limit ?? 50
+  const offset = options?.offset ?? 0
 
   return useQuery({
-    queryKey: productLinkGroupsQueryKey(tenantId),
+    queryKey: [...productLinkGroupsQueryKey(tenantId), limit, offset],
     enabled: Boolean(tenantId) && enabled,
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<ProductLinkGroupsPageApi> => {
       const res = await apiFetch(
-        '/catalog/product-link-groups?limit=50&offset=0',
+        `/catalog/product-link-groups?limit=${limit}&offset=${offset}`,
         (a) => getToken(a),
         {},
         tenantId,

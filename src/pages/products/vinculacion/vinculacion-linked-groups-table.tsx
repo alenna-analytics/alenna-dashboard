@@ -112,6 +112,7 @@ export function VinculacionLinkedGroupsTable({
       }
       tableWidth="full"
       fixedLayout
+      scrollClassName="overflow-x-auto"
       expandedRowIds={expandedRowIds}
       onRowClick={(group) => {
         setExpandedId((current) => (current === group.id ? null : group.id))
@@ -323,7 +324,7 @@ function LinkedGroupExpandedDetail({
   t: ShellT
 }) {
   return (
-    <ul className="divide-y divide-border-subtle border-b border-border-subtle">
+    <ul className="divide-y divide-border-subtle border-b border-border-subtle bg-[var(--table-expanded-row-bg)]">
       {group.members.map((member) => (
         <li key={member.product_id}>
           <LinkedMemberLine product={member} t={t} />
@@ -346,7 +347,7 @@ function LinkedMemberLine({
     <div
       className={cn(
         VINCULACION_DETAIL_ROW_GRID,
-        'py-2.5 hover:bg-[var(--table-row-hover-bg)]',
+        'bg-[var(--table-expanded-row-bg)] py-2.5',
       )}
     >
       <div className="flex items-center justify-start px-2 pl-8">

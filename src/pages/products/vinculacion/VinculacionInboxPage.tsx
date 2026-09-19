@@ -130,7 +130,7 @@ export function VinculacionInboxPage() {
           </TabsTrigger>
         </TabsList>
 
-        <div className="relative mt-6 grid w-full grid-cols-1 overflow-hidden">
+        <div className="relative mt-6 grid w-full grid-cols-1">
           <TabsContent value="matches" className="space-y-4">
             <p className={pageSubtitleClassName}>{t('productsVinculacionTabMatchesDescription')}</p>
             <VinculacionSuggestionsTable

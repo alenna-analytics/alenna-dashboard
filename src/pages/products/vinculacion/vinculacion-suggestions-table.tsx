@@ -107,6 +107,7 @@ export function VinculacionSuggestionsTable({
       }
       tableWidth="full"
       fixedLayout
+      scrollClassName="overflow-x-auto"
       expandedRowIds={expandedRowIds}
       onRowClick={(item) => {
         setExpandedId((current) => (current === item.id ? null : item.id))
@@ -283,7 +284,7 @@ function SuggestionExpandedDetail({
 }: SuggestionExpandedDetailProps) {
   const products = suggestionProducts(item)
   return (
-    <div className="border-b border-border-subtle">
+    <div className="border-b border-border-subtle bg-[var(--table-expanded-row-bg)]">
       <ul className="divide-y divide-border-subtle">
         {products.map((product) => (
           <li key={product.product_id}>
@@ -292,7 +293,7 @@ function SuggestionExpandedDetail({
         ))}
       </ul>
       {canEdit ? (
-        <div className="flex justify-end gap-2 border-t border-border-subtle px-4 py-3">
+        <div className="flex justify-end gap-2 border-t border-border-subtle bg-[var(--table-expanded-row-bg)] px-4 py-3">
           <Button
             type="button"
             variant="destructive"
@@ -338,7 +339,7 @@ function SuggestionProductLine({ product, t }: SuggestionProductLineProps) {
     <div
       className={cn(
         VINCULACION_DETAIL_ROW_GRID,
-        'py-2.5 hover:bg-[var(--table-row-hover-bg)]',
+        'bg-[var(--table-expanded-row-bg)] py-2.5',
       )}
     >
       <div className="flex items-center justify-start px-2 pl-8">

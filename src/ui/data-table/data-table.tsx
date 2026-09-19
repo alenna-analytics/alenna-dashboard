@@ -253,11 +253,13 @@ export function DataTable<TData>({
                       data-state={row.getIsSelected() ? "selected" : undefined}
                       className={cn(
                         "group border-0",
-                        isCompact
-                          ? "bg-background hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
-                          : isPlain
-                            ? "bg-transparent hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
-                            : "bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]",
+                        isExpanded
+                          ? "bg-[var(--table-expanded-row-bg)] hover:bg-[var(--table-expanded-row-bg)] data-[state=selected]:bg-[var(--table-expanded-row-bg)]"
+                          : isCompact
+                            ? "bg-background hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
+                            : isPlain
+                              ? "bg-transparent hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
+                              : "bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]",
                         onRowClick && "cursor-pointer",
                       )}
                       onClick={onRowClick ? () => onRowClick(row.original) : undefined}
@@ -292,7 +294,12 @@ export function DataTable<TData>({
                     {renderExpandedContent ? (
                       <TableRow
                         key={`${row.id}-detail`}
-                        className="border-0 bg-white hover:bg-white"
+                        className={cn(
+                          'border-0',
+                          isExpanded
+                            ? 'bg-[var(--table-expanded-row-bg)] hover:bg-[var(--table-expanded-row-bg)]'
+                            : 'bg-white hover:bg-white',
+                        )}
                         aria-hidden={!isExpanded}
                       >
                         <TableCell colSpan={colSpan} className="border-0 p-0">

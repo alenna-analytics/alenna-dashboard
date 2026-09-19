@@ -35,6 +35,8 @@ import { ProductDetailInsightKpiTile } from './product-detail-insight-kpi-tile'
 import { ProductDetailInventoryByChannel } from './product-detail-inventory-by-channel'
 import { ProductDetailTrendChart } from './product-detail-trend-chart'
 import { ProductDetailWaterfallBlock } from './product-detail-waterfall-block'
+import { SettlementWaterfallList } from './settlement-waterfall-list'
+import { settlementHasPlatformCancelCosts } from '@/lib/settlement-utils'
 import {
   platformSettlementFilterOptions,
   resolveProductPlatformSettlement,
@@ -492,6 +494,17 @@ export function ProductDetailPlatformPaymentSection({
           t={t}
           includeTaxWithholdings={false}
         />
+      ) : null}
+
+      {displaySettlement && settlementHasPlatformCancelCosts(displaySettlement) ? (
+        <div className="rounded-none border border-border-subtle/80 p-4">
+          <SettlementWaterfallList
+            settlement={displaySettlement}
+            fmtBase={fmtBase}
+            t={t}
+            showSaleWaterfall={false}
+          />
+        </div>
       ) : null}
 
       {platforms.length > 0 ? (

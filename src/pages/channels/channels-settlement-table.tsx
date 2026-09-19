@@ -32,6 +32,7 @@ type SettlementLineId =
   | 'shipping_charges'
   | 'tax_withholdings'
   | 'estimated_payout'
+  | 'cancel_section'
   | 'cancel_merch'
   | 'cancel_annul'
   | 'cancel_fees'
@@ -42,7 +43,7 @@ type SettlementLineId =
 type SettlementLine = {
   id: SettlementLineId
   labelKey: ShellStringKey
-  kind: 'line' | 'subtotal' | 'total'
+  kind: 'line' | 'subtotal' | 'total' | 'section'
   isDeduction?: boolean
   value: (m: PlatformSettlementMetrics) => number
 }
@@ -104,6 +105,12 @@ const ALL_SETTLEMENT_LINES: SettlementLine[] = [
 ]
 
 const CANCEL_COST_LINES: SettlementLine[] = [
+  {
+    id: 'cancel_section',
+    labelKey: 'settlementCancelCostSection',
+    kind: 'section',
+    value: () => 0,
+  },
   {
     id: 'cancel_merch',
     labelKey: 'settlementCancelCostMerchandise',
@@ -196,6 +203,13 @@ export function ChannelsSettlementTable({
         ),
         cell: ({ row }) => {
           const line = row.original
+          if (line.kind === 'section') {
+            return (
+              <span className="pt-2 text-sm font-semibold text-text-primary">
+                {t(line.labelKey)}
+              </span>
+            )
+          }
           return (
             <span className={cn('text-text-primary', emphasisClass(line.kind))}>
               {line.isDeduction
@@ -251,6 +265,9 @@ export function ChannelsSettlementTable({
           },
           cell: ({ row }) => {
             const line = row.original
+            if (line.kind === 'section') {
+              return <span className="w-full text-right text-text-secondary">—</span>
+            }
             const m = metrics[col.slug] ?? {
               platform: col.slug,
               gross_revenue: 0,

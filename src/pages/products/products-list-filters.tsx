@@ -132,17 +132,6 @@ export function ProductsListFilters({
             deselectAllLabel={t('homeFilterDeselectAll')}
           />
           )}
-          <FilterComboboxMulti
-            label={t('productsDetailListingColAlert')}
-            options={alertOptions}
-            values={filters.stockAlertLevels}
-            onValuesChange={(stockAlertLevels) => onFiltersChange({ stockAlertLevels })}
-            searchPlaceholder={t('filterSearch')}
-            emptyLabel={t('filterComingSoon')}
-            clearAriaLabel={t('filterClear')}
-            selectAllLabel={t('homeFilterSelectAll')}
-            deselectAllLabel={t('homeFilterDeselectAll')}
-          />
         </>
       ) : null}
       <FilterComboboxMulti
@@ -158,6 +147,19 @@ export function ProductsListFilters({
         loading={connectionsQuery.isLoading}
         loadingLabel={t('filterComingSoon')}
       />
+      {!channelsOnly ? (
+        <FilterComboboxMulti
+          label={t('productsDetailListingColAlert')}
+          options={alertOptions}
+          values={filters.stockAlertLevels}
+          onValuesChange={(stockAlertLevels) => onFiltersChange({ stockAlertLevels })}
+          searchPlaceholder={t('filterSearch')}
+          emptyLabel={t('filterComingSoon')}
+          clearAriaLabel={t('filterClear')}
+          selectAllLabel={t('homeFilterSelectAll')}
+          deselectAllLabel={t('homeFilterDeselectAll')}
+        />
+      ) : null}
     </div>
   )
 }

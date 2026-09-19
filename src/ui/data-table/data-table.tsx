@@ -31,6 +31,8 @@ type DataTableProps<TData> = {
   density?: 'default' | 'compact'
   /** Compact tables hug content by default; `full` stretches to the container. */
   tableWidth?: 'content' | 'full'
+  /** Use `table-fixed` so column % / rem widths distribute across the full table. */
+  fixedLayout?: boolean
   /** Renders above the table (outside the card), e.g. bulk selection. */
   toolbar?: ReactNode
   /** Renders in the toolbar row on the left (e.g. bulk selection summary). */
@@ -52,6 +54,7 @@ export function DataTable<TData>({
   variant = 'card',
   density = 'default',
   tableWidth = 'content',
+  fixedLayout = false,
   toolbar,
   selectionBanner,
   footer,
@@ -67,6 +70,7 @@ export function DataTable<TData>({
   const isCompact = density === 'compact'
   const stretchTable = !isCompact || tableWidth === 'full'
   const columnResizeEnabled = Boolean(table.options.enableColumnResizing)
+  const useFixedLayout = columnResizeEnabled || fixedLayout
   const frameRef = useRef<HTMLDivElement>(null)
   const columnSizing = table.getState().columnSizing
   const resizingColumnId = table.getState().columnSizingInfo.isResizingColumn
@@ -140,7 +144,7 @@ export function DataTable<TData>({
           className={cn(
             'caption-bottom border-separate border-spacing-0',
             isCompact ? cn(tableFontClass, stretchTable ? 'w-full' : 'w-max min-w-0') : cn('w-full', tableFontClass),
-            columnResizeEnabled && 'table-fixed w-full',
+            useFixedLayout && 'table-fixed w-full',
           )}
         >
           <TableHeader className="[&_tr]:border-b">
@@ -211,7 +215,7 @@ export function DataTable<TData>({
                 <TableRow
                   key={`sk-${i}`}
                   className={cn(
-                    'hover:bg-transparent data-[state=selected]:bg-transparent',
+                    'border-0 hover:bg-transparent data-[state=selected]:bg-transparent',
                     isPlain ? 'bg-transparent' : 'bg-white hover:bg-white data-[state=selected]:bg-white',
                   )}
                 >
@@ -219,8 +223,9 @@ export function DataTable<TData>({
                     <TableCell
                       key={col.id}
                       className={cn(
-                        isCompact &&
-                          'h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0',
+                        isCompact
+                          ? 'h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0'
+                          : 'border-0 border-b border-solid border-border-subtle',
                         columnResizeEnabled && 'overflow-hidden',
                       )}
                       style={columnResizeEnabled ? { width: col.getSize() } : undefined}
@@ -247,12 +252,14 @@ export function DataTable<TData>({
                     <TableRow
                       data-state={row.getIsSelected() ? "selected" : undefined}
                       className={cn(
-                        "group",
-                        isCompact
-                          ? "border-0 bg-background hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
-                          : isPlain
-                            ? "bg-transparent hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
-                            : "bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]",
+                        "group border-0",
+                        isExpanded
+                          ? "bg-[var(--table-expanded-row-bg)] hover:bg-[var(--table-expanded-row-bg)] data-[state=selected]:bg-[var(--table-expanded-row-bg)]"
+                          : isCompact
+                            ? "bg-background hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
+                            : isPlain
+                              ? "bg-transparent hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]"
+                              : "bg-white hover:bg-[var(--table-row-hover-bg)] data-[state=selected]:bg-[var(--table-row-hover-bg)]",
                         onRowClick && "cursor-pointer",
                       )}
                       onClick={onRowClick ? () => onRowClick(row.original) : undefined}
@@ -263,8 +270,9 @@ export function DataTable<TData>({
                           <TableCell
                             key={cell.id}
                             className={cn(
-                              isCompact &&
-                                'h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0',
+                              isCompact
+                                ? 'h-9 border-0 border-r border-b border-border-subtle px-2.5 py-0 last:border-r-0'
+                                : 'border-0 border-b border-solid border-border-subtle',
                               columnResizeEnabled && 'overflow-hidden',
                               meta?.cellClassName,
                             )}
@@ -283,13 +291,35 @@ export function DataTable<TData>({
                         )
                       })}
                     </TableRow>
-                    {isExpanded && renderExpandedContent ? (
+                    {renderExpandedContent ? (
                       <TableRow
                         key={`${row.id}-detail`}
-                        className="bg-white hover:bg-white"
+                        className={cn(
+                          'border-0',
+                          isExpanded
+                            ? 'bg-[var(--table-expanded-row-bg)] hover:bg-[var(--table-expanded-row-bg)]'
+                            : 'bg-white hover:bg-white',
+                        )}
+                        aria-hidden={!isExpanded}
                       >
-                        <TableCell colSpan={colSpan} className="p-0">
-                          {renderExpandedContent(row.original)}
+                        <TableCell colSpan={colSpan} className="border-0 p-0">
+                          <div
+                            className={cn(
+                              'grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none',
+                              isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+                            )}
+                          >
+                            <div className="min-h-0 overflow-hidden">
+                              <div
+                                className={cn(
+                                  'transition-opacity duration-300 ease-out motion-reduce:transition-none',
+                                  isExpanded ? 'opacity-100' : 'opacity-0',
+                                )}
+                              >
+                                {renderExpandedContent(row.original)}
+                              </div>
+                            </div>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ) : null}

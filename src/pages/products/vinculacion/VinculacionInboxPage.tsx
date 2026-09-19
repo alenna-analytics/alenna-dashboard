@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { PaginationState } from '@tanstack/react-table'
 import { toast } from 'sonner'
 
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
@@ -26,6 +27,8 @@ import {
 type VinculacionTabId = 'matches' | 'linked'
 type ShellT = (key: ShellStringKey) => string
 
+const PAGE_SIZE = 15
+
 function isVinculacionTabId(value: string | number | null): value is VinculacionTabId {
   return value === 'matches' || value === 'linked'
 }
@@ -35,8 +38,22 @@ export function VinculacionInboxPage() {
   const { me } = useWorkspace()
   const t: ShellT = (key) => shellT(lang, key)
   const canEdit = can(me, 'products.groups.edit')
-  const suggestionsQuery = useProductLinkSuggestionsQuery()
-  const groupsQuery = useProductLinkGroupsQuery()
+  const [matchesPagination, setMatchesPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: PAGE_SIZE,
+  })
+  const [linkedPagination, setLinkedPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: PAGE_SIZE,
+  })
+  const suggestionsQuery = useProductLinkSuggestionsQuery({
+    limit: matchesPagination.pageSize,
+    offset: matchesPagination.pageIndex * matchesPagination.pageSize,
+  })
+  const groupsQuery = useProductLinkGroupsQuery({
+    limit: linkedPagination.pageSize,
+    offset: linkedPagination.pageIndex * linkedPagination.pageSize,
+  })
   const page = suggestionsQuery.data
   const { searching, refresh } = useProductLinkRefreshOnEnter(
     page?.stale,
@@ -55,8 +72,8 @@ export function VinculacionInboxPage() {
   const acceptId = accept.isPending ? (accept.variables ?? null) : null
   const rejectId = reject.isPending ? (reject.variables ?? null) : null
   const busy = acceptId !== null || rejectId !== null
-  const matchesCount = suggestionsQuery.isSuccess ? items.length : null
-  const linkedCount = groupsQuery.isSuccess ? groups.length : null
+  const matchesCount = suggestionsQuery.isSuccess ? (page?.total ?? 0) : null
+  const linkedCount = groupsQuery.isSuccess ? (groupsQuery.data?.total ?? 0) : null
 
   return (
     <DashboardPage className="flex flex-1 flex-col gap-6">
@@ -113,7 +130,7 @@ export function VinculacionInboxPage() {
           </TabsTrigger>
         </TabsList>
 
-        <div className="relative mt-6 grid w-full grid-cols-1 overflow-hidden">
+        <div className="relative mt-6 grid w-full grid-cols-1">
           <TabsContent value="matches" className="space-y-4">
             <p className={pageSubtitleClassName}>{t('productsVinculacionTabMatchesDescription')}</p>
             <VinculacionSuggestionsTable
@@ -126,6 +143,9 @@ export function VinculacionInboxPage() {
               busy={busy}
               acceptingId={acceptId}
               rejectingId={rejectId}
+              total={page?.total ?? 0}
+              pagination={matchesPagination}
+              onPaginationChange={setMatchesPagination}
               onAccept={(suggestionId) => {
                 void accept
                   .mutateAsync(suggestionId)
@@ -150,6 +170,9 @@ export function VinculacionInboxPage() {
               isFetching={groupsQuery.isFetching}
               hasEverLoaded={groupsQuery.data !== undefined}
               unlinkingId={dissolve.isPending ? (dissolve.variables ?? unlinkGroupId) : unlinkGroupId}
+              total={groupsQuery.data?.total ?? 0}
+              pagination={linkedPagination}
+              onPaginationChange={setLinkedPagination}
               onUnlink={(groupId) => {
                 setUnlinkGroupId(groupId)
               }}
@@ -185,4 +208,3 @@ export function VinculacionInboxPage() {
     </DashboardPage>
   )
 }
-

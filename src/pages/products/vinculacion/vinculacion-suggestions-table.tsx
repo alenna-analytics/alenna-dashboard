@@ -1,7 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Check, ChevronDown, X } from 'lucide-react'
-import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table'
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type OnChangeFn,
+  type PaginationState,
+} from '@tanstack/react-table'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import { cn } from '@/lib/utils'
@@ -12,11 +19,17 @@ import type {
 import { Button } from '@/ui/button'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
+import { DataTablePagination } from '@/ui/data-table/data-table-pagination'
 import { EmptyState } from '@/ui/empty-state'
 import { StatusPill } from '@/ui/status-pill'
 
 import { ProductPlatformLogoName } from '../product-platform-logo-name'
 import { ProductTableThumb } from '../product-table-thumb'
+import {
+  primaryProductImageUrl,
+  uniquePlatformSlugs,
+  VINCULACION_DETAIL_ROW_GRID,
+} from './vinculacion-table-helpers'
 
 type ShellT = (key: ShellStringKey) => string
 
@@ -32,12 +45,10 @@ type VinculacionSuggestionsTableProps = {
   rejectingId: string | null
   onAccept: (suggestionId: string) => void
   onReject: (suggestionId: string) => void
+  total?: number
+  pagination?: PaginationState
+  onPaginationChange?: OnChangeFn<PaginationState>
 }
-
-const TEXT_CELL_META = {
-  headerClassName: '[&>div]:justify-start',
-  cellClassName: '[&>div]:justify-start',
-} as const
 
 export function VinculacionSuggestionsTable({
   items,
@@ -51,6 +62,9 @@ export function VinculacionSuggestionsTable({
   rejectingId,
   onAccept,
   onReject,
+  total,
+  pagination,
+  onPaginationChange,
 }: VinculacionSuggestionsTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const expandedRowIds = useMemo(
@@ -58,6 +72,10 @@ export function VinculacionSuggestionsTable({
     [expandedId],
   )
   const columns = useMemo(() => createColumns({ t, expandedId }), [expandedId, t])
+  const showPagination = Boolean(pagination && onPaginationChange && total !== undefined)
+  const pageCount = showPagination
+    ? Math.max(1, Math.ceil((total ?? 0) / (pagination?.pageSize ?? 15)))
+    : 1
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
   const table = useReactTable({
@@ -66,6 +84,11 @@ export function VinculacionSuggestionsTable({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getRowId: (row) => row.id,
+    manualPagination: showPagination,
+    pageCount: showPagination ? pageCount : undefined,
+    rowCount: showPagination ? total : undefined,
+    onPaginationChange: showPagination ? onPaginationChange : undefined,
+    state: showPagination && pagination ? { pagination } : undefined,
   })
 
   return (
@@ -74,6 +97,7 @@ export function VinculacionSuggestionsTable({
       isLoading={isLoading}
       isFetching={isFetching}
       hasEverLoaded={hasEverLoaded}
+      skeletonRowCount={pagination?.pageSize ?? 10}
       emptyContent={
         <EmptyState
           icon="products"
@@ -82,6 +106,8 @@ export function VinculacionSuggestionsTable({
         />
       }
       tableWidth="full"
+      fixedLayout
+      scrollClassName="overflow-x-auto"
       expandedRowIds={expandedRowIds}
       onRowClick={(item) => {
         setExpandedId((current) => (current === item.id ? null : item.id))
@@ -98,6 +124,23 @@ export function VinculacionSuggestionsTable({
           onReject={() => onReject(item.id)}
         />
       )}
+      footer={
+        showPagination ? (
+          <DataTablePagination
+            table={table}
+            labels={{
+              ariaPrevious: t('productsTablePrev'),
+              ariaNext: t('productsTableNext'),
+              pageStatus: (page, totalPages) =>
+                `${t('productsTablePageLabel')} ${page} ${t('productsTableOf')} ${totalPages}`,
+              pageButtonAria: (page, totalPages) =>
+                `${t('productsTablePageLabel')} ${page} ${t('productsTableOf')} ${totalPages}`,
+              goToPageLabel: t('productsTableGoToPage'),
+              goToPageAria: t('productsTableGoToPageAria'),
+            }}
+          />
+        ) : undefined
+      }
     />
   )
 }
@@ -110,48 +153,110 @@ type CreateColumnsArgs = {
 function createColumns({ t, expandedId }: CreateColumnsArgs): ColumnDef<ProductLinkSuggestionApi>[] {
   return [
     {
-      id: 'match',
-      accessorFn: (row) => proposedGroupTitle(row),
-      meta: TEXT_CELL_META,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('productsVinculacionTabMatches')} />
-      ),
+      id: 'image',
+      enableSorting: false,
+      meta: {
+        headerClassName: 'w-[4.5rem] [&>div]:justify-start',
+        cellClassName: 'w-[4.5rem] [&>div]:justify-start',
+      },
+      header: () => <span className="sr-only">{t('productsColImage')}</span>,
       cell: ({ row }) => {
-        const item = row.original
-        const expanded = expandedId === item.id
+        const title = proposedGroupTitle(row.original)
         return (
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex items-center gap-2">
             <ChevronDown
               className={cn(
-                'size-4 shrink-0 text-text-tertiary transition-transform',
-                expanded ? 'rotate-0' : '-rotate-90',
+                'size-4 shrink-0 text-text-tertiary transition-transform duration-300 ease-out motion-reduce:transition-none',
+                expandedId === row.original.id ? 'rotate-0' : '-rotate-90',
               )}
               aria-hidden
             />
-            <span className="min-w-0 truncate font-medium text-text-primary">
-              {proposedGroupTitle(item)}
-            </span>
-            <StatusPill variant={item.kind === 'sku' ? 'info' : 'neutral'}>
-              {suggestionKindLabel(item, t)}
-            </StatusPill>
+            <ProductTableThumb url={suggestionImageUrl(row.original)} alt={title} />
           </div>
         )
       },
+    },
+    {
+      id: 'name',
+      accessorFn: (row) => proposedGroupTitle(row),
+      meta: {
+        headerClassName: 'w-[40%] min-w-0 [&>div]:justify-start',
+        cellClassName: 'w-[40%] min-w-0 overflow-hidden [&>div]:justify-start',
+      },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsColProduct')} />
+      ),
+      cell: ({ row }) => {
+        const title = proposedGroupTitle(row.original)
+        return (
+          <span className="block min-w-0 truncate font-medium text-text-primary" title={title}>
+            {title}
+          </span>
+        )
+      },
+    },
+    {
+      id: 'matchType',
+      accessorFn: (row) => row.kind,
+      enableSorting: false,
+      meta: {
+        headerClassName: 'w-[20%] min-w-0 [&>div]:justify-start',
+        cellClassName: 'w-[20%] min-w-0 overflow-hidden [&>div]:justify-start',
+      },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsVinculacionColMatchType')} />
+      ),
+      cell: ({ row }) => (
+        <StatusPill variant={row.original.kind === 'sku' ? 'info' : 'neutral'}>
+          {suggestionKindLabel(row.original, t)}
+        </StatusPill>
+      ),
     },
     {
       id: 'productCount',
       accessorFn: (row) => suggestionProducts(row).length,
       enableSorting: false,
       meta: {
-        headerClassName: '[&>div]:justify-end',
-        cellClassName: 'w-[7.5rem] text-right [&>div]:justify-end',
+        headerClassName: 'w-[20%] min-w-0 [&>div]:justify-start',
+        cellClassName: 'w-[20%] min-w-0 whitespace-nowrap [&>div]:justify-start',
       },
-      header: () => <span className="sr-only">{t('productsVinculacionSectionProducts')}</span>,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsVinculacionSectionProducts')} />
+      ),
       cell: ({ row }) => (
         <span className="whitespace-nowrap text-text-tertiary">
           {suggestionProductCountLabel(row.original, t)}
         </span>
       ),
+    },
+    {
+      id: 'channels',
+      accessorFn: (row) => suggestionPlatforms(row).join(','),
+      enableSorting: false,
+      meta: {
+        headerClassName: 'w-[20%] min-w-0 [&>div]:justify-start',
+        cellClassName: 'w-[20%] min-w-0 overflow-hidden align-middle [&>div]:items-center [&>div]:justify-start',
+      },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={t('productsColChannels')} />
+      ),
+      cell: ({ row }) => {
+        const platforms = suggestionPlatforms(row.original)
+        if (platforms.length === 0) return null
+        return (
+          <div className="flex w-full min-w-0 flex-col justify-center gap-1">
+            {platforms.map((slug) => (
+              <ProductPlatformLogoName
+                key={slug}
+                platformSlug={slug}
+                t={t}
+                className="min-w-0"
+                textClassName="truncate"
+              />
+            ))}
+          </div>
+        )
+      },
     },
   ]
 }
@@ -179,7 +284,7 @@ function SuggestionExpandedDetail({
 }: SuggestionExpandedDetailProps) {
   const products = suggestionProducts(item)
   return (
-    <div className="border-b border-border-subtle">
+    <div className="border-b border-border-subtle bg-[var(--table-expanded-row-bg)]">
       <ul className="divide-y divide-border-subtle">
         {products.map((product) => (
           <li key={product.product_id}>
@@ -188,7 +293,7 @@ function SuggestionExpandedDetail({
         ))}
       </ul>
       {canEdit ? (
-        <div className="flex justify-end gap-2 border-t border-border-subtle px-4 py-3">
+        <div className="flex justify-end gap-2 border-t border-border-subtle bg-[var(--table-expanded-row-bg)] px-4 py-3">
           <Button
             type="button"
             variant="destructive"
@@ -231,16 +336,30 @@ type SuggestionProductLineProps = {
 function SuggestionProductLine({ product, t }: SuggestionProductLineProps) {
   const slug = product.platform.trim().toLowerCase()
   return (
-    <div className="flex min-w-0 items-center gap-3 py-2.5 pr-4 pl-8 hover:bg-[var(--table-row-hover-bg)]">
-      <Link
-        to={`/dashboard/products/${product.product_id}`}
-        className="flex min-w-0 flex-1 items-center gap-2"
-        onClick={(event) => event.stopPropagation()}
-      >
+    <div
+      className={cn(
+        VINCULACION_DETAIL_ROW_GRID,
+        'bg-[var(--table-expanded-row-bg)] py-2.5',
+      )}
+    >
+      <div className="flex items-center justify-start px-2 pl-8">
         <ProductTableThumb url={product.image_url} alt={product.title} />
-        <span className="min-w-0 truncate font-medium">{product.title}</span>
-      </Link>
-      <ProductPlatformLogoName platformSlug={slug} t={t} className="shrink-0" />
+      </div>
+      <div className="min-w-0 overflow-hidden px-2">
+        <Link
+          to={`/dashboard/products/${product.product_id}`}
+          className="block min-w-0 truncate font-medium text-text-primary"
+          title={product.title}
+          onClick={(event) => event.stopPropagation()}
+        >
+          {product.title}
+        </Link>
+      </div>
+      <div aria-hidden />
+      <div aria-hidden />
+      <div className="min-w-0 overflow-hidden px-2">
+        <ProductPlatformLogoName platformSlug={slug} t={t} className="min-w-0" textClassName="truncate" />
+      </div>
     </div>
   )
 }
@@ -264,4 +383,17 @@ function suggestionProductCountLabel(item: ProductLinkSuggestionApi, t: ShellT):
     '{count}',
     String(suggestionProducts(item).length),
   )
+}
+
+function suggestionImageUrl(item: ProductLinkSuggestionApi): string | null {
+  const products = suggestionProducts(item)
+  const shopify = products.find((product) => product.platform.trim().toLowerCase() === 'shopify')
+  return primaryProductImageUrl([
+    shopify?.image_url ?? null,
+    ...products.map((product) => product.image_url),
+  ])
+}
+
+function suggestionPlatforms(item: ProductLinkSuggestionApi): string[] {
+  return uniquePlatformSlugs(suggestionProducts(item).map((product) => product.platform))
 }

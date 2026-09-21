@@ -12,7 +12,11 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { buttonVariants } from '@/ui/button'
 
-function renewPlanForMe(signupIntent: 'trial' | 'growth' | undefined): CheckoutPlanSlug {
+function renewPlanForMe(
+  signupIntent: 'trial' | 'growth' | undefined,
+  pendingSlug: 'basic' | 'growth' | null | undefined,
+): CheckoutPlanSlug {
+  if (pendingSlug === 'basic' || pendingSlug === 'growth') return pendingSlug
   return signupIntent === 'growth' ? 'growth' : 'basic'
 }
 
@@ -23,12 +27,34 @@ export function PaymentPendingScreen() {
     shellT(lang, key, vars)
 
   const lapsedCustomer = Boolean(me?.has_stripe_customer)
-  const renewPlan = renewPlanForMe(me?.signup_intent)
+  const pendingSlug = me?.pending_stripe_plan_slug
+  const renewPlan = renewPlanForMe(me?.signup_intent, pendingSlug)
   const renewPlanLabel =
     renewPlan === 'growth' ? t('billingPlanNameGrowth') : t('billingPlanNameBasic')
   const renewLabel = t('billingRenewWithPlan', { plan: renewPlanLabel })
   const checkoutOptions = { cancelUrl: paymentPendingCancelUrl() }
   const gateButtonClass = 'min-w-44 rounded-lg px-6'
+
+  // After Shopify uninstall, prefer the mapped pending Stripe plan only.
+  if (pendingSlug === 'basic' || pendingSlug === 'growth') {
+    return (
+      <BillingGateScreen
+        title={t('subscriptionInactiveTitle')}
+        description={t('subscriptionInactiveBody')}
+        actions={
+          <PlanCtaButton
+            plan={pendingSlug}
+            label={renewLabel}
+            variant="accent"
+            size="default"
+            className={gateButtonClass}
+            checkoutOptions={checkoutOptions}
+          />
+        }
+        footer={<BillingGateSignOutButton label={t('paymentPendingSignOut')} />}
+      />
+    )
+  }
 
   // Growth onboarding unpaid: single renew CTA.
   // Lapsed Stripe customers: offer Basic + Growth (prior plan is unknown after cancel → trial).

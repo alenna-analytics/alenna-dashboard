@@ -784,7 +784,7 @@ const SHELL_STRINGS = {
     billingCheckoutCancel: 'Checkout cancelado. No se realizó ningún cargo.',
     billingPaymentMethodBanner: 'Tu forma de pago: {provider}',
     billingTransitionToShopify:
-      'Completa tu plan en Shopify para terminar el cambio de facturación.',
+      'Completa el plan en Shopify; seguimos cobrando por Stripe hasta que apruebes. Al activar Shopify te devolvemos en Stripe los días no usados.',
     billingTransitionToStripe:
       'Completa el checkout en Stripe para volver a facturación con tarjeta.',
     billingShopifyConfirmSuccess: 'Suscripción de Shopify confirmada. Tu plan está activo.',
@@ -3090,7 +3090,8 @@ const SHELL_STRINGS = {
     billingCheckoutSuccess: 'Payment received. Your plan will update in a few seconds.',
     billingCheckoutCancel: 'Checkout canceled. No charge was made.',
     billingPaymentMethodBanner: 'Your payment method: {provider}',
-    billingTransitionToShopify: 'Finish your plan in Shopify to complete the billing switch.',
+    billingTransitionToShopify:
+      'Finish your plan in Shopify; we keep charging Stripe until you approve. When Shopify activates we refund unused Stripe days.',
     billingTransitionToStripe: 'Complete Stripe checkout to return to card billing.',
     billingShopifyConfirmSuccess: 'Shopify subscription confirmed. Your plan is active.',
     billingShopifyConfirmSuccessRefund:

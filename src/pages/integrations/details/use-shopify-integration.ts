@@ -362,8 +362,12 @@ export function useShopifyIntegration() {
       document.getElementById('shop-domain-detail')?.focus()
       return
     }
+    if (me?.has_stripe_subscription) {
+      const ok = window.confirm(shellT(lang, 'billingShopifySwitchStripeConfirm'))
+      if (!ok) return
+    }
     void startOAuth()
-  }, [shopInput, startOAuth])
+  }, [shopInput, startOAuth, me?.has_stripe_subscription, lang])
 
   const syncMutation = useMutation({
     mutationFn: async (): Promise<ShopifySyncEnqueueResponse> => {

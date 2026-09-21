@@ -782,6 +782,17 @@ const SHELL_STRINGS = {
     billingUsageDescription: 'Consumo del periodo de facturación actual respecto a los límites de tu plan.',
     billingCheckoutSuccess: 'Pago recibido. Tu plan se actualizará en unos segundos.',
     billingCheckoutCancel: 'Checkout cancelado. No se realizó ningún cargo.',
+    billingPaymentMethodBanner: 'Tu forma de pago: {provider}',
+    billingTransitionToShopify:
+      'Completa el plan en Shopify; seguimos cobrando por Stripe hasta que apruebes. Al activar Shopify te devolvemos en Stripe los días no usados.',
+    billingTransitionToStripe:
+      'Completa el checkout en Stripe para volver a facturación con tarjeta.',
+    billingShopifyConfirmSuccess: 'Suscripción de Shopify confirmada. Tu plan está activo.',
+    billingShopifyConfirmSuccessRefund:
+      'Plan activado en Shopify. Reembolsamos {amount} del tiempo no usado en Stripe.',
+    billingShopifyConfirmFailed: 'No pudimos confirmar tu suscripción de Shopify.',
+    billingShopifySwitchStripeConfirm:
+      'Al usar Shopify para tu plan, cancelaremos tu suscripción de Stripe y reembolsaremos los días no usados. ¿Continuar?',
     billingOwnerOnly: 'Solo el propietario del espacio de trabajo puede gestionar la facturación.',
     workspaceConfigBillingDescription: 'Plan, límites de uso y facturación.',
     planLimitBannerTitle: 'Llegaste al límite de tu plan',
@@ -3078,6 +3089,16 @@ const SHELL_STRINGS = {
     billingUsageDescription: 'Current billing period usage against your plan limits.',
     billingCheckoutSuccess: 'Payment received. Your plan will update in a few seconds.',
     billingCheckoutCancel: 'Checkout canceled. No charge was made.',
+    billingPaymentMethodBanner: 'Your payment method: {provider}',
+    billingTransitionToShopify:
+      'Finish your plan in Shopify; we keep charging Stripe until you approve. When Shopify activates we refund unused Stripe days.',
+    billingTransitionToStripe: 'Complete Stripe checkout to return to card billing.',
+    billingShopifyConfirmSuccess: 'Shopify subscription confirmed. Your plan is active.',
+    billingShopifyConfirmSuccessRefund:
+      'Shopify plan activated. We refunded {amount} for unused Stripe time.',
+    billingShopifyConfirmFailed: 'We could not confirm your Shopify subscription.',
+    billingShopifySwitchStripeConfirm:
+      'Using Shopify for your plan will cancel your Stripe subscription and refund unused days. Continue?',
     billingOwnerOnly: 'Only the workspace owner can manage billing.',
     workspaceConfigBillingDescription: 'Plan, usage limits, and billing.',
     planLimitBannerTitle: 'You reached your plan limit',

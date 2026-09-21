@@ -1,4 +1,4 @@
-import { StripeCheckoutButton } from '@/components/billing/stripe-checkout-button'
+import { PlanCtaButton } from '@/components/billing/plan-cta-button'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import { BillingGateScreen } from '@/shell/billing-gate-screen'
 import { BillingGateSignOutButton } from '@/shell/billing-gate-sign-out-button'
@@ -14,14 +14,14 @@ export function TrialExpiredScreen() {
       description={t('trialExpiredBody')}
       actions={
         <>
-          <StripeCheckoutButton
+          <PlanCtaButton
             plan="basic"
             label={t('billingSubscribeBasic')}
             variant="accent"
             size="default"
             className="min-w-44 rounded-lg px-6"
           />
-          <StripeCheckoutButton
+          <PlanCtaButton
             plan="growth"
             label={t('billingUpgradeGrowth')}
             variant="success"

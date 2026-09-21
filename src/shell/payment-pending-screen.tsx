@@ -1,4 +1,4 @@
-import { StripeCheckoutButton } from '@/components/billing/stripe-checkout-button'
+import { PlanCtaButton } from '@/components/billing/plan-cta-button'
 import {
   paymentPendingCancelUrl,
   type CheckoutPlanSlug,
@@ -42,7 +42,7 @@ export function PaymentPendingScreen() {
       description={t('subscriptionInactiveBody')}
       actions={
         singleRenewOnly ? (
-          <StripeCheckoutButton
+          <PlanCtaButton
             plan="growth"
             label={renewLabel}
             variant="accent"
@@ -52,7 +52,7 @@ export function PaymentPendingScreen() {
           />
         ) : lapsedCustomer ? (
           <>
-            <StripeCheckoutButton
+            <PlanCtaButton
               plan="basic"
               label={t('billingRenewWithPlan', { plan: t('billingPlanNameBasic') })}
               variant="accent"
@@ -60,7 +60,7 @@ export function PaymentPendingScreen() {
               className={gateButtonClass}
               checkoutOptions={checkoutOptions}
             />
-            <StripeCheckoutButton
+            <PlanCtaButton
               plan="growth"
               label={t('billingRenewWithPlan', { plan: t('billingPlanNameGrowth') })}
               variant="success"
@@ -71,7 +71,7 @@ export function PaymentPendingScreen() {
           </>
         ) : renewPlan === 'growth' ? (
           <>
-            <StripeCheckoutButton
+            <PlanCtaButton
               plan="growth"
               label={renewLabel}
               variant="accent"
@@ -88,7 +88,7 @@ export function PaymentPendingScreen() {
           </>
         ) : (
           <>
-            <StripeCheckoutButton
+            <PlanCtaButton
               plan="basic"
               label={renewLabel}
               variant="accent"
@@ -96,7 +96,7 @@ export function PaymentPendingScreen() {
               className={gateButtonClass}
               checkoutOptions={checkoutOptions}
             />
-            <StripeCheckoutButton
+            <PlanCtaButton
               plan="growth"
               label={t('planUpgradeToGrowth')}
               variant="success"

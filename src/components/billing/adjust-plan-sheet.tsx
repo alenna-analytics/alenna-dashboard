@@ -1,3 +1,4 @@
+import { PlanCtaButton } from '@/components/billing/plan-cta-button'
 import { StripeCheckoutButton, StripePortalButton } from '@/components/billing/stripe-checkout-button'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { UPGRADE_ENTERPRISE_MAILTO } from '@/lib/plan/plan-limit-ui'
@@ -34,6 +35,7 @@ export function AdjustPlanSheet({ open, onOpenChange, me }: AdjustPlanSheetProps
   const { lang } = useLanguage()
   const current = currentPlanId(me)
   const hasStripe = Boolean(me.has_stripe_subscription)
+  const preferShopifyPlans = Boolean(me.can_use_shopify_plans && !hasStripe)
 
   const plans: Array<{
     id: AdjustPlanId
@@ -132,6 +134,13 @@ export function AdjustPlanSheet({ open, onOpenChange, me }: AdjustPlanSheetProps
                       <StripePortalButton
                         label={shellT(lang, 'billingAdjustPlanChoose')}
                         variant="primary"
+                        className="w-full"
+                      />
+                    ) : preferShopifyPlans ? (
+                      <PlanCtaButton
+                        plan={plan.id}
+                        label={shellT(lang, 'billingAdjustPlanChoose')}
+                        variant={plan.id === 'growth' ? 'accent' : 'primary'}
                         className="w-full"
                       />
                     ) : (

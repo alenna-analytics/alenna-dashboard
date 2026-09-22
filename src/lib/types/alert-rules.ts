@@ -11,6 +11,15 @@ export type StockRuleApi = {
   template_description: string | null
 }
 
+export type MatchSuggestionRuleApi = {
+  id: string
+  alert_type: string
+  enabled: boolean
+  template_slug: string | null
+  template_name: string | null
+  template_description: string | null
+}
+
 export type StockOverrideApi = {
   id: string
   alert_type: string
@@ -44,6 +53,10 @@ export type PatchStockRuleBody = {
   enabled?: boolean
   out_of_stock_enabled?: boolean
   velocity_pct?: number
+}
+
+export type PatchMatchSuggestionRuleBody = {
+  enabled?: boolean
 }
 
 export type PatchStockOverrideBody = {

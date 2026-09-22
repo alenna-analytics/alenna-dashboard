@@ -350,6 +350,14 @@ const SHELL_STRINGS = {
     alarmsStockTypeTitle: 'Inventario',
     alarmsStockTypeDescription:
       'Configura alertas de sin inventario y bajo inventario. Las reglas por canal, producto o variante tienen prioridad.',
+    alarmsMatchTypeTitle: 'Coincidencias de productos',
+    alarmsMatchTypeDescription:
+      'Activa o desactiva las alertas cuando se detectan posibles coincidencias de productos entre canales.',
+    alarmsMatchEnabledLabel: 'Alertas de coincidencia de productos',
+    alarmsMatchEnabledDescription:
+      'Notifica cuando el sistema encuentra posibles productos duplicados para vincular.',
+    alarmsMatchEnabledHelp:
+      'Desactivar resuelve las alertas de coincidencia activas. Las sugerencias de vinculación siguen disponibles.',
     alarmsHeroTitle: 'Alertas',
     alarmsHeroSubtitle:
       'Las reglas por alcance tienen prioridad sobre los valores generales del espacio de trabajo.',
@@ -2659,6 +2667,14 @@ const SHELL_STRINGS = {
     alarmsStockTypeTitle: 'Stock',
     alarmsStockTypeDescription:
       'Configure out-of-stock and low-stock alerts. Channel, product, or variant rules take priority.',
+    alarmsMatchTypeTitle: 'Product matches',
+    alarmsMatchTypeDescription:
+      'Turn alerts on or off when possible product matches are found across channels.',
+    alarmsMatchEnabledLabel: 'Product match alerts',
+    alarmsMatchEnabledDescription:
+      'Notify when the system finds possible duplicate products to link.',
+    alarmsMatchEnabledHelp:
+      'Disabling resolves active match alerts. Linking suggestions remain available.',
     alarmsHeroTitle: 'Alerts',
     alarmsHeroSubtitle: 'Scoped rules take priority over workspace-wide defaults.',
     alarmsOpenActiveAlerts: 'View active alerts',

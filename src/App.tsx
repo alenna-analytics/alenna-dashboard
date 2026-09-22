@@ -36,6 +36,7 @@ import { ExpensesPage } from '@/pages/expenses/ExpensesPage'
 import { ConfigurationShellLayout } from '@/pages/configuration/configuration-shell-layout'
 import { ConfigurationIndexRedirect } from '@/pages/configuration/configuration-index-redirect'
 import { AlarmsConfigurationListPage } from '@/pages/configuration/alarms/AlarmsConfigurationListPage'
+import { MatchSuggestionAlarmConfigurationPage } from '@/pages/configuration/alarms/match-suggestion/MatchSuggestionAlarmConfigurationPage'
 import { StockAlarmConfigurationPage } from '@/pages/configuration/alarms/stock/StockAlarmConfigurationPage'
 import { GeneralConfigurationPage } from '@/pages/configuration/general/GeneralConfigurationPage'
 import { PnlTermsConfigurationPage } from '@/pages/configuration/pnl-terms/PnlTermsConfigurationPage'
@@ -102,8 +103,20 @@ function App() {
           <Route path="billing" element={<RequireModule moduleId="workspace-config" permission="billing.view"><BillingConfigurationPage /></RequireModule>} />
           <Route path="configuration/billing" element={<BillingLegacyRedirect />} />
           <Route path="configuration/alarms/stock" element={<Navigate to="/dashboard/alarms/stock" replace />} />
+          <Route
+            path="configuration/alarms/match-suggestion"
+            element={<Navigate to="/dashboard/alarms/match-suggestion" replace />}
+          />
           <Route path="configuration/alarms" element={<Navigate to="/dashboard/alarms" replace />} />
           <Route path="alarms/stock" element={<RequireModule moduleId="alarms"><StockAlarmConfigurationPage /></RequireModule>} />
+          <Route
+            path="alarms/match-suggestion"
+            element={
+              <RequireModule moduleId="alarms">
+                <MatchSuggestionAlarmConfigurationPage />
+              </RequireModule>
+            }
+          />
           <Route path="alarms" element={<RequireModule moduleId="alarms"><AlarmsConfigurationListPage /></RequireModule>} />
           <Route path="configuration" element={<RequireModule moduleId="workspace-config"><ConfigurationShellLayout /></RequireModule>}>
             <Route index element={<ConfigurationIndexRedirect />} />

@@ -13,6 +13,7 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { useIntegrationsListQueries } from '@/pages/integrations/hooks/use-integrations-list-queries'
 import { formatShopifyLastSync } from '@/lib/integrations/shopify-format'
+import { buildAdsProgressSubtitle } from '@/lib/integrations/ads-job-progress'
 import { findActiveConnection, findPendingGoogleAdsConnection } from '@/pages/integrations/dashboard/integration-connection'
 import { useCatalogJobQuery, useRetryCatalogJobMutation } from '@/pages/products/use-catalog-queries'
 import {
@@ -267,10 +268,7 @@ export function useAdsIntegration(slug: AdsPlatformSlug) {
         id: GLOBAL_ACTIVITY_ADS_SYNC_ID,
         phase: 'loading',
         title: shellT(lang, 'adsSyncProgressTitle'),
-        subtitle:
-          job.status === 'queued'
-            ? shellT(lang, 'amazonSyncProgressQueued')
-            : shellT(lang, 'syncRunning'),
+        subtitle: buildAdsProgressSubtitle(job, lang),
         href: adsActivityHref(slug),
         minimized: false,
         jobId: job.id,

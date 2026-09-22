@@ -3,7 +3,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 
 export const ALARMS_BASE_PATH = '/dashboard/alarms'
 
-export type ConfigurableAlarmTypeId = 'stock'
+export type ConfigurableAlarmTypeId = 'stock' | 'match_suggestion'
 
 export type ConfigurableAlarmType = {
   id: ConfigurableAlarmTypeId
@@ -20,5 +20,12 @@ export const CONFIGURABLE_ALARM_TYPES: readonly ConfigurableAlarmType[] = [
     descriptionKey: 'alarmsStockTypeDescription',
     path: `${ALARMS_BASE_PATH}/stock`,
     icon: 'orders',
+  },
+  {
+    id: 'match_suggestion',
+    titleKey: 'alarmsMatchTypeTitle',
+    descriptionKey: 'alarmsMatchTypeDescription',
+    path: `${ALARMS_BASE_PATH}/match-suggestion`,
+    icon: 'products',
   },
 ] as const

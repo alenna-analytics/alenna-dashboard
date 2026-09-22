@@ -12,6 +12,7 @@ import { IntegrationEnableCard } from '@/components/integrations/integration-ena
 import { IntegrationSyncActionCard } from '@/components/integrations/integration-sync-action-card'
 import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
+import { buildAdsProgressSubtitle } from '@/lib/integrations/ads-job-progress'
 import { useCancelPlatformSyncJob } from '@/hooks/use-cancel-platform-sync-job'
 import { GLOBAL_ACTIVITY_ADS_SYNC_ID } from '@/shell/providers/global-activity-provider'
 import { useLanguage } from '@/shell/providers/language-provider'
@@ -264,12 +265,15 @@ function AdsSyncSection({
   }
 
   if (adsSyncPhase === 'working') {
-    const queued = adsJobQuery.data?.status === 'queued'
+    const job = adsJobQuery.data
+    const waitingLabel = job
+      ? buildAdsProgressSubtitle(job, lang)
+      : shellT(lang, 'syncRunning')
     return (
       <IntegrationSyncActionCard
         title={shellT(lang, 'syncSectionTitle')}
-        description={queued ? shellT(lang, 'amazonSyncProgressQueued') : shellT(lang, 'syncRunning')}
-        actionLabel={shellT(lang, 'syncRunning')}
+        description={waitingLabel}
+        actionLabel={waitingLabel}
         onAction={() => {}}
         actionDisabled
         actionLoading

@@ -235,7 +235,7 @@ export function AmazonManageBody({
   return (
     <div className="flex w-full flex-col gap-4">
       {amazon.feesNoticeState !== 'none' ? (
-        <AmazonFeesUnavailableNotice lang={lang} state={amazon.feesNoticeState} />
+        <AmazonFeesUnavailableNotice lang={lang} />
       ) : null}
 
       {!amazon.isAdmin ? (

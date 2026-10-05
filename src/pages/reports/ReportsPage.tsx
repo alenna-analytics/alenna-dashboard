@@ -437,11 +437,7 @@ export function ReportsPage() {
     if (amazonFeesNoticeState !== 'none') {
       items.push({
         key: 'amazon-fees',
-        title: t(
-          amazonFeesNoticeState === 'partial'
-            ? 'integrationAmazonFeesPartialBanner'
-            : 'integrationAmazonFeesUnavailableBanner',
-        ),
+        title: t('integrationAmazonFeesUnavailableBanner'),
         icon: AlertTriangle,
         tone: 'warning',
       })

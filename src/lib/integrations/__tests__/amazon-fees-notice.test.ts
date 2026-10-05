@@ -17,11 +17,11 @@ function amazonConn(fees_status: string | null): PlatformConnection {
 }
 
 describe('amazon-fees-notice', () => {
-  it('resolveAmazonFeesNoticeState returns partial when only partial', () => {
-    expect(resolveAmazonFeesNoticeState([amazonConn('partial')], [])).toBe('partial')
+  it('resolveAmazonFeesNoticeState ignores partial fees that a later sync will fill', () => {
+    expect(resolveAmazonFeesNoticeState([amazonConn('partial')], [])).toBe('none')
   })
 
-  it('resolveAmazonFeesNoticeState prefers unavailable over partial', () => {
+  it('resolveAmazonFeesNoticeState still warns when fees are unavailable', () => {
     expect(
       resolveAmazonFeesNoticeState([amazonConn('partial'), amazonConn('unavailable')], []),
     ).toBe('unavailable')

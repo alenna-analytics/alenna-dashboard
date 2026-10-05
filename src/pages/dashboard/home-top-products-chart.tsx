@@ -98,7 +98,7 @@ export function HomeTopProductsChart({
         .map((r) => ({
           productId: r.product_id,
           title: r.title,
-          revenue: convertValue(r.gross_revenue),
+          revenue: convertValue(r.net_revenue),
         }))
         .filter((r) => r.revenue > 0),
     [rows, convertValue],

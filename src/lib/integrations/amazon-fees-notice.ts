@@ -1,6 +1,6 @@
 import type { PlatformConnection } from '@/lib/types/connectors'
 
-export type AmazonFeesNoticeState = 'none' | 'unavailable' | 'partial'
+export type AmazonFeesNoticeState = 'none' | 'unavailable'
 
 function selectedAmazonConnections(
   connections: PlatformConnection[],
@@ -27,7 +27,6 @@ export function resolveAmazonFeesNoticeState(
   const amazon = selectedAmazonConnections(connections, activeConnectionIds)
   if (amazon.length === 0) return 'none'
   if (amazon.some((c) => c.fees_status === 'unavailable')) return 'unavailable'
-  if (amazon.some((c) => c.fees_status === 'partial')) return 'partial'
   return 'none'
 }
 
@@ -51,6 +50,5 @@ export function amazonFeesNoticeStateFromConnection(
     return 'none'
   }
   if (connection.fees_status === 'unavailable') return 'unavailable'
-  if (connection.fees_status === 'partial') return 'partial'
   return 'none'
 }

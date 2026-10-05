@@ -17,8 +17,6 @@ type ReportsPnlTaxBlockProps = {
   taxesEstimatedYoy?: TaxesEstimated | null
   formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
-  /** When true, omit outer SectionSplit chrome (continuation under P&L). */
-  continueStatement?: boolean
 }
 
 type TaxEstimateRowId =
@@ -131,7 +129,6 @@ export function ReportsPnlTaxBlock({
   taxesEstimatedYoy = null,
   formatMoney,
   t,
-  continueStatement = false,
 }: ReportsPnlTaxBlockProps) {
   const rows = useMemo(() => {
     if (!taxesEstimated) return []
@@ -144,62 +141,31 @@ export function ReportsPnlTaxBlock({
   }
 
   if (taxesEstimated == null) {
-    const unsetBody = (
-      <div className="rounded-md border border-border-subtle px-4 py-3">
-        <div className="space-y-2 text-sm text-text-secondary">
-          <p>{t('reportsTaxBlockUnset')}</p>
-          <Link
-            to="/dashboard/configuration/tax-rates"
-            className="font-medium text-text-primary underline-offset-2 hover:underline"
-          >
-            {t('reportsTaxBlockConfigLink')}
-          </Link>
-        </div>
-      </div>
-    )
-    if (continueStatement) {
-      return (
-        <div className="mt-6 space-y-2">
-          <h3 className="text-sm font-semibold text-text-primary">{t('reportsTaxBlockTitle')}</h3>
-          <p className="text-xs leading-relaxed text-text-secondary">
-            {t('reportsTaxBlockSubtitle')}
-          </p>
-          {unsetBody}
-        </div>
-      )
-    }
     return (
-      <SectionSplit
-        title={t('reportsTaxBlockTitle')}
-        description={t('reportsTaxBlockSubtitle')}
-      >
-        {unsetBody}
+      <SectionSplit title={t('reportsTaxBlockTitle')} description={t('reportsTaxBlockSubtitle')}>
+        <div className="rounded-md border border-border-subtle px-4 py-3">
+          <div className="space-y-2 text-sm text-text-secondary">
+            <p>{t('reportsTaxBlockUnset')}</p>
+            <Link
+              to="/dashboard/configuration/tax-rates"
+              className="font-medium text-text-primary underline-offset-2 hover:underline"
+            >
+              {t('reportsTaxBlockConfigLink')}
+            </Link>
+          </div>
+        </div>
       </SectionSplit>
     )
   }
 
-  const table = (
+  return (
     <ReportsPnlTable
       rows={rows}
       formatMoney={formatMoney}
       t={t}
       labelForRow={labelForRow}
-      title={continueStatement ? undefined : t('reportsTaxBlockTitle')}
-      description={continueStatement ? undefined : t('reportsTaxBlockSubtitle')}
+      title={t('reportsTaxBlockTitle')}
+      description={t('reportsTaxBlockSubtitle')}
     />
   )
-
-  if (continueStatement) {
-    return (
-      <div className="mt-6 space-y-2">
-        <h3 className="text-sm font-semibold text-text-primary">{t('reportsTaxBlockTitle')}</h3>
-        <p className="text-xs leading-relaxed text-text-secondary">
-          {t('reportsTaxBlockSubtitle')}
-        </p>
-        {table}
-      </div>
-    )
-  }
-
-  return table
 }

@@ -668,7 +668,6 @@ export function ReportsPage() {
               taxesEstimatedYoy={marketplaceTaxesYoy}
               formatMoney={formatConverted}
               t={t}
-              continueStatement
             />
           ) : null}
 

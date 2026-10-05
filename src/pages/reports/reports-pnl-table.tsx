@@ -55,10 +55,12 @@ export function ReportsPnlTable({
   formatMoney,
   t,
   labelForRow,
-  title = t('reportsPnlTableTitle'),
-  description = t('reportsPnlTableSubtitle'),
+  title: titleProp,
+  description: descriptionProp,
   emptyTitle,
 }: ReportsPnlTableProps) {
+  const title = titleProp ?? t('reportsPnlTableTitle')
+  const description = descriptionProp ?? t('reportsPnlTableSubtitle')
   const columns = useMemo(
     () => [
       columnHelper.display({

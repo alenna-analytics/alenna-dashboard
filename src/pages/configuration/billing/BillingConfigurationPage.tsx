@@ -2,17 +2,18 @@ import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
 import { ExternalLink, FileText, AlertTriangle } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { AdjustPlanSheet } from '@/components/billing/adjust-plan-sheet'
+import { BillingProviderBanner } from '@/components/billing/billing-provider-banner'
 import { UsageProgressRing } from '@/components/billing/usage-progress-ring'
 import { CancelSubscriptionButton } from '@/components/billing/cancel-subscription-button'
+import { PlanCtaButton } from '@/components/billing/plan-cta-button'
+import { StripePortalButton } from '@/components/billing/stripe-checkout-button'
 import {
-  StripeCheckoutButton,
-  StripePortalButton,
-} from '@/components/billing/stripe-checkout-button'
-import {
+  confirmShopifySubscription,
   fetchBillingOrdersDaily,
   fetchBillingOverview,
   type BillingInvoice,
@@ -93,8 +94,8 @@ function PlanChangeActions({
   if (normalized === 'trial') {
     return (
       <div className="flex shrink-0 flex-row flex-nowrap items-center gap-2">
-        <StripeCheckoutButton plan="basic" label={t('billingSubscribeBasic')} variant="primary" size="tiny" />
-        <StripeCheckoutButton plan="growth" label={t('billingUpgradeGrowth')} variant="accent" size="tiny" />
+        <PlanCtaButton plan="basic" label={t('billingSubscribeBasic')} variant="primary" size="tiny" />
+        <PlanCtaButton plan="growth" label={t('billingUpgradeGrowth')} variant="accent" size="tiny" />
       </div>
     )
   }
@@ -110,10 +111,20 @@ function PlanChangeActions({
     )
   }
 
+  if (me.has_shopify_subscription) {
+    return (
+      <div className="flex shrink-0 flex-row flex-nowrap items-center gap-2">
+        <Button type="button" variant="success" size="tiny" onClick={onChangePlan}>
+          {t('billingChangePlan')}
+        </Button>
+      </div>
+    )
+  }
+
   if (normalized === 'basic') {
     return (
       <div className="flex shrink-0 flex-row flex-nowrap items-center gap-2">
-        <StripeCheckoutButton plan="growth" label={t('billingUpgradeGrowth')} variant="accent" size="tiny" />
+        <PlanCtaButton plan="growth" label={t('billingUpgradeGrowth')} variant="accent" size="tiny" />
       </div>
     )
   }
@@ -294,6 +305,7 @@ export function BillingConfigurationPage() {
   const [checkoutFeedbackKey, setCheckoutFeedbackKey] = useState<
     'billingCheckoutSuccess' | 'billingCheckoutCancel' | null
   >(null)
+  const shopifyConfirmStarted = useRef(false)
 
   useEffect(() => {
     const status = searchParams.get('checkout')
@@ -313,7 +325,45 @@ export function BillingConfigurationPage() {
 
   const canManage = isBillingOwner(me)
   const canView = canViewBilling(me)
-  const subscribed = Boolean(canView && me?.has_stripe_subscription)
+
+  useEffect(() => {
+    if (shopifyConfirmStarted.current) return
+    if (searchParams.get('shopify_billing') !== '1') return
+    if (!me?.tenant_id || !canManage) return
+
+    shopifyConfirmStarted.current = true
+    const next = new URLSearchParams(searchParams)
+    next.delete('shopify_billing')
+    setSearchParams(next, { replace: true })
+
+    void (async () => {
+      try {
+        const result = await confirmShopifySubscription(
+          (args) => getToken(args),
+          me.tenant_id,
+        )
+        await refetchMe()
+        if (result.stripe_refunded && result.refund_amount_cents != null) {
+          toast.success(
+            t('billingShopifyConfirmSuccessRefund', {
+              amount: formatMoneyCents(result.refund_amount_cents, 'usd', lang),
+            }),
+          )
+        } else {
+          toast.success(t('billingShopifyConfirmSuccess'))
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : t('billingShopifyConfirmFailed')
+        toast.error(message)
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on landing with ?shopify_billing=
+  }, [])
+
+  const subscribed = Boolean(
+    canView && (me?.has_stripe_subscription || me?.has_shopify_subscription),
+  )
   const overviewQuery = useQuery({
     queryKey: ['billing', 'overview', me?.tenant_id],
     enabled: subscribed && Boolean(me?.tenant_id),
@@ -369,6 +419,8 @@ export function BillingConfigurationPage() {
         </h1>
         <p className="mt-1.5 text-sm text-[#464646]">{t('billingPageSubtitle')}</p>
       </section>
+
+      {me ? <BillingProviderBanner me={me} /> : null}
 
       {checkoutFeedbackKey ? (
         <p className="rounded-md border border-border-default bg-[var(--platinum-blonde-300)] px-4 py-3 text-sm text-text-primary">
@@ -435,7 +487,7 @@ export function BillingConfigurationPage() {
           </div>
         </BillingSection>
 
-        {subscribed && canManage && me ? (
+        {subscribed && canManage && me?.has_stripe_subscription ? (
           <BillingSection
             label={t('billingPaymentLabel')}
             description={t('billingPaymentDescription')}
@@ -520,7 +572,7 @@ export function BillingConfigurationPage() {
           />
         </BillingSection>
 
-        {subscribed ? (
+        {subscribed && me?.has_stripe_subscription ? (
           <BillingSection
             label={t('billingPastInvoicesLabel')}
             description={t('billingPastInvoicesDescription')}

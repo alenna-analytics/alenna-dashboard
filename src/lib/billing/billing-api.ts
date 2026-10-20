@@ -85,6 +85,57 @@ export function redirectToStripe(url: string): void {
   window.location.assign(url)
 }
 
+export function redirectToShopifyBilling(url: string): void {
+  window.location.assign(url)
+}
+
+export function shopifyBillingConfirmLandingUrl(): string {
+  return `${window.location.origin}/dashboard/billing?shopify_billing=1`
+}
+
+export type ShopifyConfirmSubscriptionResult = {
+  plan_slug: CheckoutPlanSlug
+  billing_provider: 'shopify'
+  stripe_refunded: boolean
+  refund_amount_cents: number | null
+}
+
+export async function createShopifyPlanRedirect(
+  getToken: GetTokenFn,
+  tenantId: string,
+): Promise<string> {
+  const res = await apiPostJson('/billing/shopify/plan-redirect', getToken, {}, {}, tenantId)
+  return parseBillingUrl(res)
+}
+
+export async function confirmShopifySubscription(
+  getToken: GetTokenFn,
+  tenantId: string,
+): Promise<ShopifyConfirmSubscriptionResult> {
+  const res = await apiPostJson('/billing/shopify/confirm-subscription', getToken, {}, {}, tenantId)
+  if (!res.ok) {
+    let message = 'Unable to confirm Shopify subscription.'
+    try {
+      const body = (await res.json()) as BillingErrorDetail
+      const detail = body.detail
+      if (typeof detail === 'string' && detail.trim()) {
+        message = detail
+      } else if (
+        typeof detail === 'object' &&
+        detail !== null &&
+        typeof detail.message === 'string' &&
+        detail.message.trim()
+      ) {
+        message = detail.message
+      }
+    } catch {
+      /* ignore */
+    }
+    throw new Error(message)
+  }
+  return (await res.json()) as ShopifyConfirmSubscriptionResult
+}
+
 export function paymentPendingCancelUrl(): string {
   return `${window.location.origin}/payment-pending`
 }
@@ -118,6 +169,12 @@ export type BillingOverview = {
   users_used: number
   users_limit: number | null
   invoices: BillingInvoice[]
+  billing_provider?: 'stripe' | 'shopify'
+  billing_transition?: 'to_shopify' | 'to_stripe' | null
+  billing_provider_label?: string
+  can_use_stripe_checkout?: boolean
+  can_use_shopify_plans?: boolean
+  pending_stripe_plan_slug?: CheckoutPlanSlug | null
 }
 
 export async function fetchBillingOverview(

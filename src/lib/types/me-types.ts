@@ -58,6 +58,13 @@ export type MeResponse = {
   upgrade_cta?: 'growth' | 'enterprise' | 'none'
   has_stripe_subscription?: boolean
   has_stripe_customer?: boolean
+  has_shopify_subscription?: boolean
+  billing_provider?: 'stripe' | 'shopify'
+  billing_transition?: 'to_shopify' | 'to_stripe' | null
+  billing_provider_label?: string
+  can_use_stripe_checkout?: boolean
+  can_use_shopify_plans?: boolean
+  pending_stripe_plan_slug?: 'basic' | 'growth' | null
   signup_intent: 'trial' | 'growth'
   payment_required: boolean
 }

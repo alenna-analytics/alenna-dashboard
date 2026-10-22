@@ -43,11 +43,11 @@ describe('buildMarketplaceAwareTaxesEstimated', () => {
       ebitda,
     )
 
-    // Only Amazon: 2.5% ISR + 8% IVA on 100_000
-    expect(result.withholding_isr).toBe(2500)
-    expect(result.withholding_iva).toBe(8000)
-    expect(result.withholding_total).toBe(10_500)
-    expect(result.expected_net_cash).toBe(69_500)
-    expect(result.base_amount).toBe(100_000)
+    // Only Amazon: 2.5% ISR + 8% IVA on net sales without 16% VAT.
+    expect(result.withholding_isr).toBe(2155.17)
+    expect(result.withholding_iva).toBe(6896.55)
+    expect(result.withholding_total).toBe(9051.72)
+    expect(result.expected_net_cash).toBe(70948.28)
+    expect(result.base_amount).toBe(86206.9)
   })
 })

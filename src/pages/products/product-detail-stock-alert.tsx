@@ -9,6 +9,7 @@ import { useCurrentTenant } from '@/auth/hooks'
 import type { AlertPostponeDuration } from '@/lib/types/alerts'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
+import type { ProductLinkGroupApi } from '@/lib/types/product-links'
 import {
   alertsListQueryKey,
   useAlertsListQuery,
@@ -24,22 +25,33 @@ import {
 import { buttonVariants } from '@/ui/button'
 import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 import { ContextAlertCard, ContextAlertsGroup } from '@/ui/context-alert'
-import { Skeleton } from '@/ui/skeleton'
 import { cn } from '@/lib/utils'
 
+import { inventoryCoverAlertCopy } from './inventory-cover-alert'
+import { buildProductCoverRows } from './product-detail-cover'
+import { buildChannelCoverRows } from './vinculacion/group-channel-cover'
+import { PRODUCT_DETAIL_ALL_CHANNELS } from './product-detail-analytics-filter'
 import {
   activeStockAlertsForProduct,
-  alertRowKey,
   buildAlertRows,
-  filterVisibleAlertRows,
   hasSummaryStockAlerts,
+  resolveAlertIdsForRow,
   type ProductDetailAlertRow,
 } from './product-detail-stock-alert-utils'
 
 type ProductDetailStockAlertProps = {
   detail: ProductDetailApi
   productId: string
+  lang: string
   t: (key: ShellStringKey) => string
+}
+
+type ShownInventoryAlert = {
+  key: string
+  title: string
+  subtitle: string
+  tone: 'critical' | 'warning'
+  alertIds: string[]
 }
 
 const POSTPONE_DURATIONS = ['1h', '1d', '1w'] as const satisfies readonly AlertPostponeDuration[]
@@ -54,22 +66,6 @@ const postponeDurationIcon: Record<AlertPostponeDuration, LucideIcon> = {
   '1h': Clock,
   '1d': Calendar,
   '1w': CalendarDays,
-}
-
-function ProductDetailStockAlertCardSkeleton() {
-  return (
-    <div
-      className="flex items-center gap-3 rounded-lg border border-border-subtle bg-white px-4 py-3.5"
-      aria-hidden
-    >
-      <Skeleton className="size-9 shrink-0 rounded-md" />
-      <div className="min-w-0 flex-1 space-y-1.5">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-3 w-16" />
-      </div>
-      <Skeleton className="h-7 w-[4.5rem] shrink-0 rounded-md" />
-    </div>
-  )
 }
 
 function ProductDetailAlertPostponeButton({
@@ -137,23 +133,20 @@ function ProductDetailStockAlertCard({
   postponePending,
   onPostpone,
 }: {
-  row: ProductDetailAlertRow
+  row: ShownInventoryAlert
   t: (key: ShellStringKey) => string
   isAdmin: boolean
   postponePending: boolean
   onPostpone: (alertIds: string[], duration: AlertPostponeDuration) => void
 }) {
-  const isOut = row.level === 'out'
-  const title = isOut ? t('productsDetailStockAlertOut') : t('productsDetailStockAlertLow')
-
   return (
     <ContextAlertCard
-      title={title}
-      subtitle={row.platformLabel}
+      title={row.title}
+      subtitle={row.subtitle}
       icon={<AppIcon name="orders" colorize className="size-4" />}
-      tone={isOut ? 'critical' : 'warning'}
+      tone={row.tone}
       action={
-        isAdmin ? (
+        isAdmin && row.alertIds.length > 0 ? (
           <ProductDetailAlertPostponeButton
             alertIds={row.alertIds}
             t={t}
@@ -166,24 +159,41 @@ function ProductDetailStockAlertCard({
   )
 }
 
-export function ProductDetailStockAlert({ detail, productId, t }: ProductDetailStockAlertProps) {
+function fill(template: string, vars: Record<string, string>): string {
+  return template.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, name: string) => vars[name] ?? match)
+}
+
+function alertIdsForPlatform(rows: ProductDetailAlertRow[], platformSlug: string): string[] {
+  return rows.find((row) => row.platformSlug === platformSlug)?.alertIds ?? []
+}
+
+export function ProductDetailStockAlert({
+  detail,
+  productId,
+  lang,
+  t,
+}: ProductDetailStockAlertProps) {
   const { data: rule } = useStockRuleQuery()
-  const { me } = useWorkspace()
-  const { tenantId } = useCurrentTenant()
-  const queryClient = useQueryClient()
-  const isAdmin = can(me, 'alerts.manage')
-  const postponeAlertMutation = usePostponeAlertMutation()
-  const [pendingAlertIds, setPendingAlertIds] = useState<ReadonlySet<string>>(() => new Set())
 
   const resolvedProductId = detail.id ?? productId
+  const today = useMemo(() => new Date(), [])
   const hasSummaryAlerts = useMemo(
     () => hasSummaryStockAlerts(detail.stock_alert_summary, rule),
     [detail.stock_alert_summary, rule],
   )
+  const coverAlerts = useMemo(
+    () =>
+      buildProductCoverRows(detail, PRODUCT_DETAIL_ALL_CHANNELS, today).flatMap((row) => {
+        const copy = inventoryCoverAlertCopy(row, lang, t)
+        if (!copy) return []
+        return [{ platformSlug: row.platform.trim().toLowerCase(), ...copy }]
+      }),
+    [detail, lang, t, today],
+  )
   const alertsLimit = 50
   const activeAlertsQuery = useAlertsListQuery(
     'active',
-    hasSummaryAlerts && Boolean(resolvedProductId),
+    (hasSummaryAlerts || coverAlerts.length > 0) && Boolean(resolvedProductId),
     { productId: resolvedProductId, limit: alertsLimit },
   )
 
@@ -202,50 +212,111 @@ export function ProductDetailStockAlert({ detail, productId, t }: ProductDetailS
     [detail.stock_alert_summary, rule, activeStockAlerts, t],
   )
 
-  const visibleRows = useMemo(
+  const shown = useMemo(() => {
+    const covered = new Set(coverAlerts.map((row) => row.platformSlug))
+    const fromCover: ShownInventoryAlert[] = coverAlerts.map((row) => ({
+      key: row.platformSlug,
+      title: row.title,
+      subtitle: row.subtitle,
+      tone: row.tone,
+      alertIds: alertIdsForPlatform(rows, row.platformSlug),
+    }))
+    const fromSummary: ShownInventoryAlert[] = rows
+      .filter((row) => !covered.has(row.platformSlug))
+      .map((row) => ({
+        key: `${row.level}-${row.platformSlug}`,
+        title: fill(
+          t(
+            row.level === 'out'
+              ? 'productsInventoryAlertCriticalOn'
+              : 'productsInventoryAlertAttentionOn',
+          ),
+          { platform: row.platformLabel },
+        ),
+        subtitle:
+          row.stockQuantity != null
+            ? fill(t('productsInventoryAlertStockOnly'), {
+                stock: row.stockQuantity.toLocaleString(lang === 'en' ? 'en-US' : 'es-MX'),
+              })
+            : row.platformLabel,
+        tone: row.level === 'out' ? 'critical' : 'warning',
+        alertIds: row.alertIds,
+      }))
+    return [...fromCover, ...fromSummary]
+  }, [coverAlerts, lang, rows, t])
+
+  if (shown.length === 0) return null
+
+  return <InventoryAlertCards items={shown} productId={resolvedProductId} t={t} />
+}
+
+export function GroupInventoryCoverAlert({
+  group,
+  lang,
+  t,
+}: {
+  group: ProductLinkGroupApi
+  lang: string
+  t: (key: ShellStringKey) => string
+}) {
+  const today = useMemo(() => new Date(), [])
+  const coverAlerts = useMemo(
     () =>
-      filterVisibleAlertRows(rows, {
-        isSuccess: activeAlertsQuery.isSuccess,
-        isError: activeAlertsQuery.isError,
-        isLoading: activeAlertsQuery.isLoading || activeAlertsQuery.isPending,
+      buildChannelCoverRows(group, group.members, today).flatMap((row) => {
+        const copy = inventoryCoverAlertCopy(row, lang, t)
+        if (!copy) return []
+        return [{ platformSlug: row.platform.trim().toLowerCase(), ...copy }]
       }),
-    [rows, activeAlertsQuery.isSuccess, activeAlertsQuery.isError, activeAlertsQuery.isLoading, activeAlertsQuery.isPending],
+    [group, lang, t, today],
+  )
+  const activeAlertsQuery = useAlertsListQuery('active', coverAlerts.length > 0, { limit: 50 })
+  const shown = useMemo(
+    () =>
+      coverAlerts.map((row) => ({
+        key: row.platformSlug,
+        title: row.title,
+        subtitle: row.subtitle,
+        tone: row.tone,
+        alertIds: resolveAlertIdsForRow(
+          (activeAlertsQuery.data?.items ?? []).filter((alert) => alert.alert_type === 'stock'),
+          row.platformSlug,
+          [],
+        ),
+      })),
+    [activeAlertsQuery.data?.items, coverAlerts],
   )
 
-  if (!hasSummaryAlerts) return null
+  if (shown.length === 0) return null
+  return <InventoryAlertCards items={shown} t={t} />
+}
 
-  if (activeAlertsQuery.isError) return null
+function InventoryAlertCards({
+  items,
+  productId,
+  t,
+}: {
+  items: ShownInventoryAlert[]
+  productId?: string
+  t: (key: ShellStringKey) => string
+}) {
+  const { me } = useWorkspace()
+  const { tenantId } = useCurrentTenant()
+  const queryClient = useQueryClient()
+  const isAdmin = can(me, 'alerts.manage')
+  const postponeAlertMutation = usePostponeAlertMutation()
+  const [pendingAlertIds, setPendingAlertIds] = useState<ReadonlySet<string>>(() => new Set())
+  const alertsLimit = 50
+  const sectionTitle = t('productsDetailStockAlertsTitle').replace('{count}', String(items.length))
 
-  if (activeAlertsQuery.isLoading || activeAlertsQuery.isPending) {
-    return (
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-24" />
-        <ProductDetailStockAlertCardSkeleton />
-      </div>
-    )
-  }
-
-  if (visibleRows.length === 0) return null
-
-  const sectionTitle = t('productsDetailStockAlertsTitle').replace(
-    '{count}',
-    String(visibleRows.length),
-  )
-
-  const handlePostpone = async (
-    alertIds: string[],
-    duration: AlertPostponeDuration,
-  ) => {
+  const handlePostpone = async (alertIds: string[], duration: AlertPostponeDuration) => {
     if (alertIds.length === 0) return
     setPendingAlertIds(new Set(alertIds))
     try {
       await Promise.all(
-        alertIds.map((alertId) =>
-          postponeAlertMutation.mutateAsync({ alertId, duration }),
-        ),
+        alertIds.map((alertId) => postponeAlertMutation.mutateAsync({ alertId, duration })),
       )
       await queryClient.refetchQueries({
-        queryKey: alertsListQueryKey(tenantId, 'active', alertsLimit, resolvedProductId),
+        queryKey: alertsListQueryKey(tenantId, 'active', alertsLimit, productId),
       })
       toast.success(t('productsDetailStockAlertPostponeToast'))
     } catch {
@@ -259,9 +330,9 @@ export function ProductDetailStockAlert({ detail, productId, t }: ProductDetailS
 
   return (
     <ContextAlertsGroup title={sectionTitle}>
-      {visibleRows.map((row) => (
+      {items.map((row) => (
         <ProductDetailStockAlertCard
-          key={alertRowKey(row)}
+          key={row.key}
           row={row}
           t={t}
           isAdmin={isAdmin}

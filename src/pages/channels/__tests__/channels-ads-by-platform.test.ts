@@ -59,6 +59,18 @@ describe('aggregateAdsByEcommercePlatform', () => {
     expect(result.total.attributedSales).toBe(600)
   })
 
+  it('assigns unlinked Amazon Ads to the Amazon column', () => {
+    const result = aggregateAdsByEcommercePlatform(
+      [adsRow({ platform: 'amazon_ads', spend: 24450, linked_commerce_connection_id: null })],
+      {},
+      [{ slug: 'amazon' }, { slug: 'mercadolibre' }],
+    )
+    expect(result.amazon.linkedSpend).toBe(24450)
+    expect(result.amazon.byNetwork.amazon_ads).toBe(24450)
+    expect(result.mercadolibre.linkedSpend).toBe(0)
+    expect(result.total.linkedSpend).toBe(24450)
+  })
+
   it('ignores unlinked ads for platform columns', () => {
     const result = aggregateAdsByEcommercePlatform(
       [adsRow({ platform: 'google_ads', spend: 10, linked_commerce_connection_id: null })],

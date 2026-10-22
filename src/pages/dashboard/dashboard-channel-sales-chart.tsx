@@ -22,7 +22,7 @@ import {
 } from 'recharts'
 
 import { cn } from '@/lib/utils'
-import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
+import { ChartSeriesMark, ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { EmptyState } from '@/ui/empty-state'
 import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
@@ -76,11 +76,13 @@ function ChannelSalesTooltip({
   label,
   payload,
   formatValue,
+  dashedNet = false,
 }: {
   active?: boolean
   label?: string | number
   payload?: readonly ChannelSalesTooltipPayloadItem[]
   formatValue: (value: number) => string
+  dashedNet?: boolean
 }) {
   if (!active || !payload?.length) return null
   const title = label !== undefined && label !== null ? String(label) : ''
@@ -97,6 +99,7 @@ function ChannelSalesTooltip({
             <ChartTooltipSeriesRow
               key={key}
               color={swatch}
+              dashed={dashedNet && String(entry.dataKey ?? '').startsWith('n')}
               label={entry.name ?? ''}
               value={formatValue(n)}
             />
@@ -334,7 +337,7 @@ export function DashboardChannelSalesChart({
             cursor={
               chartType === 'bar' ? { fill: 'var(--muted)', opacity: 0.45 } : undefined
             }
-            content={<ChannelSalesTooltip formatValue={formatValue} />}
+            content={<ChannelSalesTooltip formatValue={formatValue} dashedNet={chartType === 'line'} />}
             {...chartRechartsTooltipProps}
           />
           {series}
@@ -391,11 +394,7 @@ export function DashboardChannelSalesChart({
                 grossHidden ? 'opacity-40' : 'opacity-100',
               )}
             >
-              <span
-                className="inline-block size-2 shrink-0 rounded-full"
-                style={{ background: stroke }}
-                aria-hidden
-              />
+              <ChartSeriesMark color={stroke} />
               <span className="truncate">{`${lbl} · ${t('reportsGrossRevenue')}`}</span>
             </button>,
             <button
@@ -407,11 +406,7 @@ export function DashboardChannelSalesChart({
                 netHidden ? 'opacity-40' : 'opacity-100',
               )}
             >
-              <span
-                className="inline-block size-2 shrink-0 rounded-full"
-                style={{ background: stroke }}
-                aria-hidden
-              />
+              <ChartSeriesMark color={stroke} dashed={chartType === 'line'} />
               <span className="truncate">{`${lbl} · ${t('reportsNetRevenue')}`}</span>
             </button>,
           ]

@@ -117,6 +117,31 @@ export function computeYoyPeriod(
 
 export type PctTrend = 'up' | 'down' | 'flat'
 
+/**
+ * A previous window is comparable when it has a value, the first sale is on
+ * or before that window starts, and the channel was already connected then.
+ */
+export function historyIsComparable(input: {
+  previousValue: number | null | undefined
+  firstActivity?: string | null
+  previousStart?: string | null
+  channelConnectedOn?: string | null
+}): boolean {
+  const previous = input.previousValue
+  if (previous == null || !Number.isFinite(previous) || previous === 0) return false
+  if (input.firstActivity && input.previousStart && input.firstActivity > input.previousStart) {
+    return false
+  }
+  if (
+    input.channelConnectedOn &&
+    input.previousStart &&
+    input.channelConnectedOn > input.previousStart
+  ) {
+    return false
+  }
+  return true
+}
+
 export function pctVersusPrevious(
   current: number,
   previous: number,

@@ -58,12 +58,23 @@ export type ProductLinkGroupMemberApi = {
   listings_count: number
   stock_quantity: number | null
   platform_price: number | null
+  platform_synced_at?: string | null
   matchable: boolean
   period_gross_units_sold: number
   period_net_units_sold: number
   period_gross_sales: number
   period_net_sales: number
   period_orders: number
+  /** Real line COGS (units × cost). Absent on older payloads. */
+  period_cogs?: number
+  period_settlement_gross?: number
+  period_settlement_net?: number
+  period_discounts?: number
+  period_returns?: number
+  period_marketplace_fees?: number
+  period_shipping_charges?: number
+  period_tax_withholdings?: number
+  period_cancel_costs?: number
 }
 
 export type ProductLinkGroupPlatformPeriodApi = {
@@ -133,6 +144,8 @@ export type ProductLinkGroupApi = {
   period_settlement_by_platform: ProductLinkGroupPlatformSettlementApi[]
   period_start: string | null
   period_end: string | null
+  /** Earliest order date for the group, independent of the selected range. */
+  first_order_date?: string | null
   base_currency: string
 }
 

@@ -62,7 +62,6 @@ export function ProductDetailChannelPnlMatrix({
       <ChannelsPnlTable
         metrics={metrics}
         platforms={platforms}
-        formatMoney={fmtBase}
         t={t}
         labelForRow={labelForRow}
         cmIncomplete={detail.cm_incomplete}

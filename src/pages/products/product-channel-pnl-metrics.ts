@@ -31,10 +31,7 @@ function finishMetrics(m: PlatformMetrics): PlatformMetrics {
   const aov = m.order_count > 0 ? m.net_revenue / m.order_count : 0
   const contribution_margin_pct =
     m.net_revenue !== 0 ? (m.contribution_margin / m.net_revenue) * 100 : 0
-  const channelMargin = m.gross_profit - m.platform_fees_total - m.merchant_shipping_cost
-  const ads_spend =
-    m.ads_spend !== 0 ? m.ads_spend : Math.max(0, channelMargin - m.contribution_margin)
-  return { ...m, aov, contribution_margin_pct, ads_spend }
+  return { ...m, aov, contribution_margin_pct }
 }
 
 export function productChannelPlatforms(
@@ -82,9 +79,11 @@ export function productChannelPnlMetrics(
     const settlement = settlements.get(slug)
     const share =
       detail.period_net_sales > 0 ? row.net_sales / detail.period_net_sales : 0
-    const grossProfit = detail.gross_profit * share
-    const cogs = detail.period_cogs * share
-    const contribution = detail.contribution_margin * share
+    const units = row.net_units_sold
+    const unitCost =
+      detail.period_net_units_sold > 0 ? detail.period_cogs / detail.period_net_units_sold : 0
+    const cogs = units * unitCost
+    const grossProfit = row.net_sales - cogs
     const discounts =
       settlement?.discounts ?? detail.period_settlement.discounts * share
     const returns = settlement?.returns ?? detail.period_settlement.returns * share
@@ -92,7 +91,7 @@ export function productChannelPnlMetrics(
       settlement?.gross_revenue ?? detail.period_settlement.gross_revenue * share
     const fees = settlement?.marketplace_fees ?? 0
     const shipping = settlement?.shipping_charges ?? 0
-    const units = row.net_units_sold || row.gross_units_sold || row.units_sold || 0
+    const contribution = grossProfit - fees - shipping
     const ordersShare = share * detail.period_orders
 
     target.gross_revenue += grossRevenue

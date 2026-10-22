@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 
-import { AlertTriangle, Package, type LucideIcon } from 'lucide-react'
+import { Package, type LucideIcon } from 'lucide-react'
 
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
@@ -50,7 +50,6 @@ import { useProductReports } from '@/pages/reports/use-product-reports'
 import { useReports } from '@/pages/reports/use-reports'
 import { DashboardPage, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
-import { resolveAmazonFeesNoticeState } from '@/lib/integrations/amazon-fees-notice'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { dateRangePickerStrings, presetDateRangeYmd } from '@/ui/date-range-picker'
@@ -254,10 +253,6 @@ export function ReportsPage() {
   const taxRates = taxRatesResponse?.settings ?? null
 
   const queriesEnabled = activeConnectionIds.length > 0
-  const amazonFeesNoticeState = resolveAmazonFeesNoticeState(
-    activeConnections,
-    activeConnectionIds,
-  )
   const prevPeriod = useMemo(
     () => computeShiftedPreviousPeriod(startDate, endDate),
     [startDate, endDate],
@@ -434,14 +429,6 @@ export function ReportsPage() {
       tone: ContextAlertTone
     }
     const items: PageAlertItem[] = []
-    if (amazonFeesNoticeState !== 'none') {
-      items.push({
-        key: 'amazon-fees',
-        title: t('integrationAmazonFeesUnavailableBanner'),
-        icon: AlertTriangle,
-        tone: 'warning',
-      })
-    }
     if (!productMode && displayKpi?.cogs_incomplete) {
       items.push({
         key: 'cogs-incomplete',
@@ -451,7 +438,7 @@ export function ReportsPage() {
       })
     }
     return items
-  }, [amazonFeesNoticeState, productMode, displayKpi?.cogs_incomplete, t])
+  }, [productMode, displayKpi?.cogs_incomplete, t])
 
   const currency =
     (productMode ? pkpi?.currency : displayKpi?.currency) ?? baseCurrency

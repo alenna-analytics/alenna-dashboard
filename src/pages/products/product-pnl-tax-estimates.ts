@@ -6,7 +6,7 @@ import type {
 
 import { platformWithholdsMarketplaceTax } from './platform-withholds-tax'
 
-/** Matches API `compute_platform_tax_amounts` (v0-placeholder / gross_revenue base). */
+/** Matches the cobro withholding: net sales without transferred VAT. */
 export type PlatformTaxEstimate = {
   withholding_isr: number
   withholding_iva: number
@@ -27,6 +27,14 @@ const ZERO_RATES: TaxSettingsRates = {
 
 function roundMoney(value: number): number {
   return Math.round(value * 100) / 100
+}
+
+/** Net sales without transferred VAT. Withholding rates apply to this base. */
+function withholdingBase(netRevenue: number, rates: TaxSettingsRates): number {
+  if (netRevenue <= 0) return 0
+  const pct = rates.transferred_iva_pct
+  const divisor = pct > 0 ? 1 + pct / 100 : 1
+  return netRevenue / divisor
 }
 
 export function ratesForPlatform(
@@ -95,7 +103,11 @@ export function estimateTaxByPlatform(
     const m = metrics[slug]
     const effective = ratesForPlatform(platform.marketplaceSlug ?? slug, rates)
     const estimate = m
-      ? estimatePlatformTaxAmounts(m.gross_revenue, m.contribution_margin, effective)
+      ? estimatePlatformTaxAmounts(
+          withholdingBase(m.net_revenue, effective),
+          m.contribution_margin,
+          effective,
+        )
       : estimatePlatformTaxAmounts(0, 0, effective)
     out[slug] = estimate
     perPlatform.push(estimate)
@@ -105,8 +117,8 @@ export function estimateTaxByPlatform(
 }
 
 /**
- * Cobro-view tax estimates: withholdings from gross; expected net cash =
- * net_revenue − fees − shipping − withholdings.
+ * Cobro-view tax estimates: withholdings on net sales without VAT.
+ * Expected net cash = net_revenue − fees − shipping − withholdings.
  */
 export function estimateSettlementTaxByPlatform(
   metrics: Record<string, PlatformSettlementMetrics>,
@@ -127,7 +139,11 @@ export function estimateSettlementTaxByPlatform(
     }
     const liquidityBase =
       m.net_revenue - m.marketplace_fees - m.shipping_charges
-    const estimate = estimatePlatformTaxAmounts(m.gross_revenue, liquidityBase, effective)
+    const estimate = estimatePlatformTaxAmounts(
+      withholdingBase(m.net_revenue, effective),
+      liquidityBase,
+      effective,
+    )
     out[slug] = estimate
     perPlatform.push(estimate)
   }

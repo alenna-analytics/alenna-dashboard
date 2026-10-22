@@ -213,26 +213,45 @@ export function ChartTooltipTitle({ children }: { children: ReactNode }) {
   return <p className="mb-1.5 text-[13px] font-semibold text-text-primary">{children}</p>
 }
 
-/** Series row: color dot + label + gray value badge (img 3). */
+/** Short stroke matching a chart series: solid, or dashed when the line is dotted. */
+export function ChartSeriesMark({
+  color,
+  dashed = false,
+}: {
+  color: string
+  dashed?: boolean
+}) {
+  return (
+    <svg width="18" height="8" viewBox="0 0 18 8" className="shrink-0" aria-hidden>
+      <line
+        x1="1"
+        y1="4"
+        x2="17"
+        y2="4"
+        stroke={color}
+        strokeWidth="2"
+        strokeDasharray={dashed ? '4 3' : undefined}
+      />
+    </svg>
+  )
+}
+
+/** Series row: color line + label + gray value badge (img 3). */
 export function ChartTooltipSeriesRow({
   color,
   label,
   value,
+  dashed = false,
 }: {
   color?: string
   label: ReactNode
   value: ReactNode
+  dashed?: boolean
 }) {
   return (
     <div className="flex flex-col gap-1 py-0.5">
       <div className="flex items-center gap-1.5 text-[12px] text-text-secondary">
-        {color ? (
-          <span
-            className="size-2 shrink-0 rounded-full"
-            style={{ background: color }}
-            aria-hidden
-          />
-        ) : null}
+        {color ? <ChartSeriesMark color={color} dashed={dashed} /> : null}
         <span className="min-w-0 truncate">{label}</span>
       </div>
       <span className="inline-flex w-fit max-w-full rounded-md bg-muted px-1.5 py-0.5 text-[12px] font-medium tabular-nums text-text-primary">

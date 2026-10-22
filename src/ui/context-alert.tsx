@@ -63,23 +63,9 @@ function ContextAlertCard({
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <p
-          className={cn(
-            'text-[13px] font-medium text-foreground',
-            subtitle && action ? 'truncate' : 'leading-snug',
-          )}
-        >
-          {title}
-        </p>
+        <p className="text-[13px] font-medium leading-snug text-foreground">{title}</p>
         {subtitle ? (
-          <p
-            className={cn(
-              'mt-0.5 text-xs text-muted-foreground',
-              action ? 'truncate' : 'leading-snug',
-            )}
-          >
-            {subtitle}
-          </p>
+          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{subtitle}</p>
         ) : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}

@@ -182,10 +182,7 @@ function finishMetrics(m: PlatformMetrics): PlatformMetrics {
   const aov = m.order_count > 0 ? m.net_revenue / m.order_count : 0
   const contribution_margin_pct =
     m.net_revenue !== 0 ? (m.contribution_margin / m.net_revenue) * 100 : 0
-  const channelMargin = m.gross_profit - m.platform_fees_total - m.merchant_shipping_cost
-  const ads_spend =
-    m.ads_spend !== 0 ? m.ads_spend : Math.max(0, channelMargin - m.contribution_margin)
-  return { ...m, aov, contribution_margin_pct, ads_spend }
+  return { ...m, aov, contribution_margin_pct }
 }
 
 /** Build ChannelsPnlTable columns from group members (product dimension). */
@@ -228,18 +225,34 @@ export function groupProductPnlMetrics(
       0,
     )
     const platformShare = platformNet > 0 ? netSales / platformNet : share
-    const fees = (settlement?.marketplace_fees ?? 0) * platformShare
-    const shipping = (settlement?.shipping_charges ?? 0) * platformShare
-    const discounts = (settlement?.discounts ?? group.period_settlement.discounts * share)
-    const returns = settlement?.returns ?? group.period_settlement.returns * share
-    const grossRevenue =
-      settlement?.gross_revenue != null
+    const hasListingSettlement = member.period_marketplace_fees != null
+    const fees = hasListingSettlement
+      ? member.period_marketplace_fees ?? 0
+      : (settlement?.marketplace_fees ?? 0) * platformShare
+    const shipping = hasListingSettlement
+      ? member.period_shipping_charges ?? 0
+      : (settlement?.shipping_charges ?? 0) * platformShare
+    const discounts = hasListingSettlement
+      ? member.period_discounts ?? 0
+      : (settlement?.discounts ?? group.period_settlement.discounts * share)
+    const returns = hasListingSettlement
+      ? member.period_returns ?? 0
+      : (settlement?.returns ?? group.period_settlement.returns * share)
+    const grossRevenue = hasListingSettlement
+      ? member.period_settlement_gross ?? grossSales
+      : settlement?.gross_revenue != null
         ? settlement.gross_revenue * platformShare
         : grossSales || group.period_settlement.gross_revenue * share
-    const grossProfit = groupNetBasisGrossProfit(group) * share
-    const cogs = group.period_cogs * share
-    const contribution = group.contribution_margin * share
-    const units = member.period_net_units_sold || member.period_gross_units_sold || 0
+    const units = member.period_net_units_sold
+    const catalogCost = member.cost
+    const groupUnitCost =
+      group.period_net_units_sold > 0 ? group.period_cogs / group.period_net_units_sold : 0
+    const unitCost =
+      catalogCost != null && Number.isFinite(catalogCost) ? catalogCost : groupUnitCost
+    const cogs =
+      member.period_cogs != null && member.period_cogs > 0 ? member.period_cogs : units * unitCost
+    const grossProfit = netSales - cogs
+    const contribution = grossProfit - fees - shipping
     const orders = member.period_orders ?? 0
 
     target.gross_revenue += grossRevenue

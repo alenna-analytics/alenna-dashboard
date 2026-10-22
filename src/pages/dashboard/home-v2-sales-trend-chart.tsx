@@ -17,7 +17,7 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
-import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
+import { ChartSeriesMark, ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import {
@@ -136,6 +136,7 @@ function TrendTooltip({
         {comparePrevious && row.primaryPrevious !== null ? (
           <ChartTooltipSeriesRow
             color="var(--text-tertiary)"
+            dashed
             label={`${primaryLabel}${prevSuffix}`}
             value={formatHomeV2TrendMetricValue(primaryMetric, row.primaryPrevious, formatValue)}
           />
@@ -147,7 +148,8 @@ function TrendTooltip({
         />
         {comparePrevious && row.secondaryPrevious !== null ? (
           <ChartTooltipSeriesRow
-            color="var(--text-tertiary)"
+            color="var(--text-secondary)"
+            dashed
             label={`${secondaryLabel}${prevSuffix}`}
             value={formatHomeV2TrendMetricValue(
               secondaryMetric,
@@ -578,10 +580,7 @@ export function HomeV2SalesTrendChart({
             hiddenKeys.primary ? 'opacity-40' : 'opacity-100',
           )}
         >
-          <span
-            className="inline-block h-0 w-3 shrink-0 border-t-2 border-solid border-[var(--chart-3)]"
-            aria-hidden
-          />
+          <ChartSeriesMark color="var(--chart-3)" />
           <span>{primaryLabel}</span>
         </button>
         <button
@@ -592,10 +591,7 @@ export function HomeV2SalesTrendChart({
             hiddenKeys.secondary ? 'opacity-40' : 'opacity-100',
           )}
         >
-          <span
-            className="inline-block h-0 w-3 shrink-0 border-t-2 border-solid border-[var(--chart-monthly-gross-bar)]"
-            aria-hidden
-          />
+          <ChartSeriesMark color="var(--chart-monthly-gross-bar)" />
           <span>{secondaryLabel}</span>
         </button>
         {showPrevious ? (
@@ -608,10 +604,7 @@ export function HomeV2SalesTrendChart({
                 hiddenKeys.primaryPrevious ? 'opacity-40' : 'opacity-100',
               )}
             >
-              <span
-                className="inline-block h-0 w-3 shrink-0 border-t-2 border-dashed border-[var(--text-tertiary)]"
-                aria-hidden
-              />
+              <ChartSeriesMark color="var(--text-tertiary)" dashed />
               <span>
                 {primaryLabel} ({previousPeriodLabel})
               </span>
@@ -624,10 +617,7 @@ export function HomeV2SalesTrendChart({
                 hiddenKeys.secondaryPrevious ? 'opacity-40' : 'opacity-100',
               )}
             >
-              <span
-                className="inline-block h-0 w-3 shrink-0 border-t-2 border-dashed border-[var(--text-secondary)]"
-                aria-hidden
-              />
+              <ChartSeriesMark color="var(--text-secondary)" dashed />
               <span>
                 {secondaryLabel} ({previousPeriodLabel})
               </span>

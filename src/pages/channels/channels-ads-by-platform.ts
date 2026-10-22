@@ -45,9 +45,26 @@ function emptyRollup(): PlatformAdsRollup {
   }
 }
 
+const MARKETPLACE_FOR_NETWORK: Partial<Record<AdsNetworkId, string>> = {
+  amazon_ads: 'amazon',
+  mercadolibre_ads: 'mercadolibre',
+}
+
+function marketplaceColumn(
+  slug: string | undefined,
+  columns: Record<string, PlatformAdsRollup>,
+): string | undefined {
+  if (!slug) return undefined
+  if (columns[slug]) return slug
+  if (slug === 'mercadolibre' && columns.meli) return 'meli'
+  return undefined
+}
+
 /**
- * Map ads channel rows onto ecommerce platform slugs via linked commerce connections.
- * Unlinked ads are ignored for per-platform columns (caller may show tenant_ads_spend as Otros).
+ * Map ads channel rows onto ecommerce platform slugs.
+ * Amazon Ads and Mercado Libre Ads land on their marketplace even when the
+ * ads connection has no linked store. Other unlinked networks stay out of
+ * the columns (caller may show the remainder as Otros).
  */
 export function aggregateAdsByEcommercePlatform(
   adsItems: AdsChannelRow[],
@@ -61,12 +78,16 @@ export function aggregateAdsByEcommercePlatform(
   out.total = emptyRollup()
 
   for (const row of adsItems) {
+    const network = normalizeNetwork(row.platform)
     const commerceId = row.linked_commerce_connection_id
-    if (!commerceId) continue
-    const ecommerceSlug = connectionIdToPlatform[commerceId]?.trim().toLowerCase()
+    const linkedSlug = commerceId
+      ? connectionIdToPlatform[commerceId]?.trim().toLowerCase()
+      : undefined
+    const fallbackSlug = network ? MARKETPLACE_FOR_NETWORK[network] : undefined
+    const ecommerceSlug =
+      linkedSlug && out[linkedSlug] ? linkedSlug : marketplaceColumn(fallbackSlug, out)
     if (!ecommerceSlug || !out[ecommerceSlug]) continue
 
-    const network = normalizeNetwork(row.platform)
     const spend = Number(row.spend) || 0
     const sales = Number(row.attributed_sales) || 0
 

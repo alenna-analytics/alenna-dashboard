@@ -157,6 +157,7 @@ export function useMercadoLibreIntegration() {
 
   const pollMeliJob = Boolean(effectiveJobId && activeConnectionId)
   const meliJobQuery = useCatalogJobQuery(effectiveJobId, pollMeliJob)
+  const liveJobStatus = meliJobQuery.data?.status ?? null
   const retryCatalogJobMutation = useRetryCatalogJobMutation()
   const settledJobSigRef = useRef<string | null>(null)
 
@@ -248,6 +249,28 @@ export function useMercadoLibreIntegration() {
     lang,
   ])
 
+  useEffect(() => {
+    if (!pollMeliJob || !effectiveJobId) return
+    if (!meliJobQuery.isFetched) return
+    if (meliJobQuery.data?.id === effectiveJobId) return
+    if (meliJobQuery.isError || !meliJobQuery.data) {
+      if (syncPanel.pendingJobId === effectiveJobId) {
+        setSyncPanel({
+          pendingJobId: null,
+          pendingConnectionId: null,
+        })
+      }
+    }
+  }, [
+    pollMeliJob,
+    effectiveJobId,
+    meliJobQuery.isFetched,
+    meliJobQuery.isError,
+    meliJobQuery.data,
+    syncPanel.pendingJobId,
+    setSyncPanel,
+  ])
+
   const syncPanelBlockSuccess = useMemo((): MercadoLibreSyncBlockSuccess | null => {
     if (syncPanel.blockSuccess?.connectionId === activeConnectionId) {
       return syncPanel.blockSuccess
@@ -257,6 +280,12 @@ export function useMercadoLibreIntegration() {
 
   const meliSyncPhase = useMemo((): 'idle' | 'working' | 'done_ok' | 'done_fail' => {
     if (!activeConnectionId) return 'idle'
+
+    if (effectiveJobId && liveJobStatus === 'queued') return 'working'
+    if (effectiveJobId && liveJobStatus === 'running') return 'working'
+    if (effectiveJobId && liveJobStatus === 'failed') return 'done_fail'
+    if (effectiveJobId && liveJobStatus === 'succeeded') return 'done_ok'
+
     if (
       syncPanel.failedJobId &&
       syncPanel.failedConnectionId === activeConnectionId &&
@@ -264,7 +293,21 @@ export function useMercadoLibreIntegration() {
     ) {
       return 'done_fail'
     }
-    if (syncPanel.pendingJobId && syncPanel.pendingConnectionId === activeConnectionId) {
+
+    const pendingMatches =
+      syncPanel.pendingJobId && syncPanel.pendingConnectionId === activeConnectionId
+    if (pendingMatches && !liveJobStatus && !meliJobQuery.isFetched) return 'working'
+
+    if (
+      (syncPlan?.current_job_id || pendingMatches) &&
+      !liveJobStatus &&
+      meliJobQuery.isFetched &&
+      (meliJobQuery.isError || !meliJobQuery.data)
+    ) {
+      return 'idle'
+    }
+
+    if (syncPlan?.current_job_id && !liveJobStatus && !meliJobQuery.isFetched) {
       return 'working'
     }
     if (syncPlan?.last_sync_status === 'syncing') return 'working'
@@ -275,6 +318,12 @@ export function useMercadoLibreIntegration() {
     activeConnectionId,
     syncPanel,
     syncPlan?.last_sync_status,
+    syncPlan?.current_job_id,
+    liveJobStatus,
+    effectiveJobId,
+    meliJobQuery.isFetched,
+    meliJobQuery.isError,
+    meliJobQuery.data,
   ])
 
   const startOAuth = useCallback(async () => {

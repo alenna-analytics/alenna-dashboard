@@ -197,6 +197,7 @@ export function useShopifyIntegration() {
   const pollShopifyJob = Boolean(effectiveJobId && activeConnectionId)
 
   const shopifyJobQuery = useCatalogJobQuery(effectiveJobId, pollShopifyJob)
+  const liveJobStatus = shopifyJobQuery.data?.status ?? null
 
   const retryCatalogJobMutation = useRetryCatalogJobMutation()
 
@@ -279,6 +280,28 @@ export function useShopifyIntegration() {
   ])
 
   useEffect(() => {
+    if (!pollShopifyJob || !effectiveJobId) return
+    if (!shopifyJobQuery.isFetched) return
+    if (shopifyJobQuery.data?.id === effectiveJobId) return
+    if (shopifyJobQuery.isError || !shopifyJobQuery.data) {
+      if (syncPanel.pendingJobId === effectiveJobId) {
+        setSyncPanel({
+          pendingJobId: null,
+          pendingConnectionId: null,
+        })
+      }
+    }
+  }, [
+    pollShopifyJob,
+    effectiveJobId,
+    shopifyJobQuery.isFetched,
+    shopifyJobQuery.isError,
+    shopifyJobQuery.data,
+    syncPanel.pendingJobId,
+    setSyncPanel,
+  ])
+
+  useEffect(() => {
     if (!activeConnectionId) return
     if (!syncPanel.failedJobId || syncPanel.failedConnectionId !== activeConnectionId) return
     if (syncPanel.pendingJobId) return
@@ -303,6 +326,12 @@ export function useShopifyIntegration() {
 
   const shopifySyncPhase = useMemo((): 'idle' | 'working' | 'done_ok' | 'done_fail' => {
     if (!activeConnectionId) return 'idle'
+
+    if (effectiveJobId && liveJobStatus === 'queued') return 'working'
+    if (effectiveJobId && liveJobStatus === 'running') return 'working'
+    if (effectiveJobId && liveJobStatus === 'failed') return 'done_fail'
+    if (effectiveJobId && liveJobStatus === 'succeeded') return 'done_ok'
+
     if (
       syncPanel.failedJobId &&
       syncPanel.failedConnectionId === activeConnectionId &&
@@ -310,15 +339,25 @@ export function useShopifyIntegration() {
     ) {
       return 'done_fail'
     }
-    if (syncPanel.pendingJobId && syncPanel.pendingConnectionId === activeConnectionId) {
+
+    const pendingMatches =
+      syncPanel.pendingJobId && syncPanel.pendingConnectionId === activeConnectionId
+    if (pendingMatches && !liveJobStatus && !shopifyJobQuery.isFetched) return 'working'
+
+    if (
+      (syncPlan?.current_job_id || pendingMatches) &&
+      !liveJobStatus &&
+      shopifyJobQuery.isFetched &&
+      (shopifyJobQuery.isError || !shopifyJobQuery.data)
+    ) {
+      return 'idle'
+    }
+
+    if (syncPlan?.current_job_id && !liveJobStatus && !shopifyJobQuery.isFetched) {
       return 'working'
     }
-    if (syncPlan?.last_sync_status === 'syncing') {
-      return 'working'
-    }
-    if (syncPanel.blockSuccess?.connectionId === activeConnectionId) {
-      return 'done_ok'
-    }
+    if (syncPlan?.last_sync_status === 'syncing') return 'working'
+    if (syncPanel.blockSuccess?.connectionId === activeConnectionId) return 'done_ok'
     return 'idle'
   }, [
     activeConnectionId,
@@ -328,6 +367,12 @@ export function useShopifyIntegration() {
     syncPanel.failedJobId,
     syncPanel.failedConnectionId,
     syncPlan?.last_sync_status,
+    syncPlan?.current_job_id,
+    liveJobStatus,
+    effectiveJobId,
+    shopifyJobQuery.isFetched,
+    shopifyJobQuery.isError,
+    shopifyJobQuery.data,
   ])
 
   const startOAuth = useCallback(async () => {

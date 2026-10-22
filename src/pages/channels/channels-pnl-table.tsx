@@ -265,11 +265,12 @@ const columnHelper = createColumnHelper<PnlLine>()
 
 export type ChannelsPnlDetailLevel = 'full' | 'core'
 
-function wholeAmount(value: number, deduction: boolean): string {
+function wholeAmount(value: number, deduction: boolean, currency?: string): string {
   if (Math.abs(value) < 0.5) return '—'
   const rounded = Math.round(Math.abs(value))
   const text = rounded.toLocaleString()
-  return deduction ? `−${text}` : text
+  const withCurrency = currency ? `${text} ${currency}` : text
+  return deduction ? `−${withCurrency}` : withCurrency
 }
 
 type ChannelsPnlTableProps = {
@@ -286,6 +287,8 @@ type ChannelsPnlTableProps = {
   /** Line ids whose Total cell stays blank when Channels and Reports disagree. */
   blankTotalLineIds?: readonly string[]
   amountBasis?: 'money' | 'pct'
+  /** ISO code of the amounts, shown after each money figure. */
+  currency?: string
   /** Day-prorated fixed costs. Shown only on the Total column. */
   fixedOperatingExpenses?: number | null
 }
@@ -341,6 +344,7 @@ export function ChannelsPnlTable({
   tenantAdsSpend = 0,
   blankTotalLineIds = [],
   amountBasis = 'money',
+  currency,
   fixedOperatingExpenses = null,
 }: ChannelsPnlTableProps) {
   const byProduct = breakdown === 'product'
@@ -640,7 +644,7 @@ export function ChannelsPnlTable({
         },
         meta: {
           headerClassName: 'overflow-hidden',
-          cellClassName: 'h-auto py-1.5 align-middle [&>div]:items-start',
+          cellClassName: 'h-auto py-1.5 align-middle [&>div]:h-full [&>div]:items-center',
         },
       }),
       ...cols.map((col) =>
@@ -732,7 +736,7 @@ export function ChannelsPnlTable({
                         ? '100%'
                         : `${((Math.abs(raw) / net) * 100).toFixed(1)}%`
                 } else {
-                  formatted = wholeAmount(raw, Boolean(line.isDeduction))
+                  formatted = wholeAmount(raw, Boolean(line.isDeduction), currency)
                 }
                 if (
                   formatted !== '—' &&
@@ -763,12 +767,13 @@ export function ChannelsPnlTable({
           },
           meta: {
             headerClassName: 'text-right overflow-hidden',
-            cellClassName: 'h-auto py-1.5 text-right tabular-nums [&>div]:items-center',
+            cellClassName:
+              'h-auto py-1.5 text-right tabular-nums align-middle [&>div]:h-full [&>div]:items-center',
           },
         }),
       ),
     ],
-    [amountBasis, blankTotalLineIds, byProduct, cols, labelForRow, metrics, platforms, t],
+    [amountBasis, blankTotalLineIds, byProduct, cols, currency, labelForRow, metrics, platforms, t],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design

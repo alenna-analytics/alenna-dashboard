@@ -6,6 +6,7 @@ import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
 
 import { useCurrentTenant } from '@/auth/hooks'
+import { useMoney } from '@/hooks/use-money'
 import { apiFetch } from '@/lib/api'
 import { filterEcommerceConnections, resolveAdsApiScope } from '@/lib/integrations/ads-scope'
 import type { PlatformConnection } from '@/lib/types/connectors'
@@ -80,6 +81,7 @@ export function ChannelsPage() {
   const { startDate, endDate, connectionIds } = filters
   const [vista, setVista] = useState<'pnl' | 'cobro'>('pnl')
   const [amountBasis, setAmountBasis] = useState<'money' | 'pct'>('money')
+  const { baseCurrency } = useMoney()
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -162,6 +164,7 @@ export function ChannelsPage() {
     [kpis, displayedPlatforms],
   )
   const cmIncomplete = Boolean(kpis?.cm_incomplete)
+  const currency = (kpis?.currency || baseCurrency).trim()
 
   const adsScope = useMemo(
     () => resolveAdsApiScope(allConnections, activeConnectionIds),
@@ -317,7 +320,7 @@ export function ChannelsPage() {
             <FilterComboboxSingle
               label={t('channelsValueFilter')}
               options={[
-                { value: 'money', label: t('channelsMoneyBasis') },
+                { value: 'money', label: currency || t('channelsMoneyBasis') },
                 { value: 'pct', label: t('channelsPctOfNet') },
               ]}
               value={amountBasis}
@@ -325,7 +328,7 @@ export function ChannelsPage() {
                 if (value === 'money' || value === 'pct') setAmountBasis(value)
               }}
               searchPlaceholder={t('filterSearch')}
-              emptyLabel={t('channelsMoneyBasis')}
+              emptyLabel={currency || t('channelsMoneyBasis')}
               allowClear={false}
               triggerClassName="cursor-pointer"
             />
@@ -400,6 +403,7 @@ export function ChannelsPage() {
             tenantAdsSpend={alignedPnl.unlinkedAds}
             blankTotalLineIds={blankTotalLineIds}
             amountBasis={amountBasis}
+            currency={currency}
             fixedOperatingExpenses={reportsKpis.data?.fixed_operating_expenses ?? null}
           />
           ) : (
@@ -408,6 +412,7 @@ export function ChannelsPage() {
             platforms={displayedPlatforms}
             t={t}
             amountBasis={amountBasis}
+            currency={currency}
           />
           )}
           {vista === 'pnl' ? (

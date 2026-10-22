@@ -112,7 +112,7 @@ export function GroupStatementTable({
         },
         meta: {
           headerClassName: 'overflow-hidden',
-          cellClassName: 'h-auto py-1.5 align-middle [&>div]:items-start',
+          cellClassName: 'h-auto py-1.5 align-middle [&>div]:h-full [&>div]:items-center',
         },
       }),
       ...visible.map((column) =>
@@ -166,7 +166,8 @@ export function GroupStatementTable({
           },
           meta: {
             headerClassName: 'text-right overflow-hidden',
-            cellClassName: 'h-auto py-1.5 text-right tabular-nums [&>div]:items-center',
+            cellClassName:
+              'h-auto py-1.5 text-right tabular-nums align-middle [&>div]:h-full [&>div]:items-center',
           },
         }),
       ),

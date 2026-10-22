@@ -155,11 +155,12 @@ const CANCEL_COST_LINES: SettlementLine[] = [
 
 const columnHelper = createColumnHelper<SettlementLine>()
 
-function wholeAmount(value: number, deduction: boolean): string {
+function wholeAmount(value: number, deduction: boolean, currency?: string): string {
   if (Math.abs(value) < 0.5) return '—'
   const rounded = Math.round(Math.abs(value))
   const text = rounded.toLocaleString()
-  return deduction ? `−${text}` : text
+  const withCurrency = currency ? `${text} ${currency}` : text
+  return deduction ? `−${withCurrency}` : withCurrency
 }
 
 type ChannelsSettlementTableProps = {
@@ -173,6 +174,8 @@ type ChannelsSettlementTableProps = {
   /** Truncate product column headers (group detail by product). */
   truncateLongHeaders?: boolean
   amountBasis?: 'money' | 'pct'
+  /** ISO code of the amounts, shown after each money figure. */
+  currency?: string
 }
 
 function emphasisClass(kind: SettlementLine['kind']): string {
@@ -187,6 +190,7 @@ export function ChannelsSettlementTable({
   includeTaxWithholdings = true,
   truncateLongHeaders = false,
   amountBasis = 'money',
+  currency,
 }: ChannelsSettlementTableProps) {
   const lines = useMemo(() => {
     const base = includeTaxWithholdings
@@ -238,7 +242,7 @@ export function ChannelsSettlementTable({
         },
         meta: {
           headerClassName: 'overflow-hidden',
-          cellClassName: 'h-auto py-1.5 align-middle [&>div]:items-start',
+          cellClassName: 'h-auto py-1.5 align-middle [&>div]:h-full [&>div]:items-center',
         },
       }),
       ...cols.map((col) =>
@@ -316,7 +320,7 @@ export function ChannelsSettlementTable({
               } else if (formatMoney) {
                 formatted = formatMoney(line.isDeduction ? -Math.abs(raw) : raw)
               } else {
-                formatted = wholeAmount(raw, Boolean(line.isDeduction))
+                formatted = wholeAmount(raw, Boolean(line.isDeduction), currency)
               }
             }
             return (
@@ -334,12 +338,13 @@ export function ChannelsSettlementTable({
           },
           meta: {
             headerClassName: 'text-right overflow-hidden',
-            cellClassName: 'h-auto py-1.5 text-right tabular-nums [&>div]:items-center',
+            cellClassName:
+              'h-auto py-1.5 text-right tabular-nums align-middle [&>div]:h-full [&>div]:items-center',
           },
         }),
       ),
     ],
-    [amountBasis, cols, formatMoney, metrics, t, truncateLongHeaders],
+    [amountBasis, cols, currency, formatMoney, metrics, t, truncateLongHeaders],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design

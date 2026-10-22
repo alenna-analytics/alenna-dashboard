@@ -11,6 +11,7 @@ import { IntegrationConsentDialog } from '@/pages/integrations/dashboard/integra
 import { IntegrationDetailSkeleton } from '@/pages/integrations/dashboard/integration-detail-skeleton'
 import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
+import { formatConnectionLastSyncFooter } from '@/lib/integrations/sync-freshness-pill-label'
 import type { AmazonIntegrationHook } from '@/pages/integrations/details/use-amazon-integration'
 import { useCancelPlatformSyncJob } from '@/hooks/use-cancel-platform-sync-job'
 import { GLOBAL_ACTIVITY_AMAZON_SYNC_ID } from '@/shell/providers/global-activity-provider'
@@ -75,6 +76,7 @@ function AmazonSyncSection({
   const syncPill = resolveConnectionSyncFreshnessPillContent(activeConnection, {
     forceSyncing: amazonSyncPhase === 'working',
     suppressSyncing: amazonSyncPhase === 'done_fail',
+    fixtureWorkspace: isFixture,
   })
 
   const buttonLabel = shellT(lang, lifecycleButtonLabelKey(syncPlan))
@@ -164,7 +166,7 @@ function AmazonSyncSection({
         actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
         actionLoading={syncMutation.isPending}
         badge={<AppIcon name="validation" colorize className="size-4 shrink-0 text-success" />}
-        footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
+        footer={formatConnectionLastSyncFooter(lang, lastSyncDisplay, isFixture)}
         className="w-full"
       />
     )
@@ -196,7 +198,7 @@ function AmazonSyncSection({
         actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
         actionLoading={syncMutation.isPending}
         badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
-        footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
+        footer={formatConnectionLastSyncFooter(lang, lastSyncDisplay, isFixture)}
         className="w-full"
       />
     </>

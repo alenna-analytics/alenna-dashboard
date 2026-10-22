@@ -14,6 +14,7 @@ import type { PlatformConnection } from '@/lib/types/connectors'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { usePlatformConnectionsQuery } from '@/hooks/use-platform-connections-query'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { AppIcon, LoadingIcon } from '@/ui/app-icon'
 import { StatusPill } from '@/ui/status-pill'
 import { cn } from '@/lib/utils'
@@ -28,7 +29,14 @@ function ConnectionLastSyncPill({
   conn: PlatformConnection
   lang: string
 }) {
+  const { me } = useWorkspace()
   const line = resolveConnectionLastSuccessfulSyncLine(conn)
+
+  if (me?.is_fixture) {
+    return (
+      <StatusPill variant="neutral">{shellT(lang, 'syncFreshnessFixtureDemo')}</StatusPill>
+    )
+  }
 
   if (line.kind === 'syncing') {
     return (

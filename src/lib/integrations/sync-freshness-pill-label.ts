@@ -7,6 +7,7 @@ export function formatSyncFreshnessPillLabel(
   pill: SyncFreshnessPillContent,
 ): string {
   if (pill.kind === 'syncing') return shellT(lang, 'syncFreshnessPillSyncing')
+  if (pill.kind === 'fixture') return shellT(lang, 'syncFreshnessFixtureDemo')
   if (pill.kind === 'now') return shellT(lang, 'syncFreshnessPillNow')
   if (pill.kind === 'hours_ago') {
     return shellT(
@@ -27,6 +28,15 @@ export function formatSyncFreshnessPillLabel(
     pill.minutes === 1 ? 'syncFreshnessPillOneMinuteAgo' : 'syncFreshnessPillMinutesAgo',
     { minutes: String(pill.minutes) },
   )
+}
+
+export function formatConnectionLastSyncFooter(
+  lang: string,
+  lastSyncDisplay: string,
+  isFixture: boolean,
+): string {
+  if (isFixture) return shellT(lang, 'syncFreshnessFixtureDemo')
+  return `${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`
 }
 
 export function formatRelativeAgeLabel(

@@ -17,6 +17,7 @@ import { useWorkspace } from '@/shell/providers/workspace-context'
 import { shellT, type ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { SyncPlan } from '@/lib/types/connectors'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
+import { formatConnectionLastSyncFooter } from '@/lib/integrations/sync-freshness-pill-label'
 import { formatShopifySyncUserError } from '@/lib/integrations/shopify-sync-user-error'
 import { PlanLimitSyncAlert } from '@/components/integrations/plan-limit-sync-alert'
 import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
@@ -153,6 +154,7 @@ function ShopifySyncSection({
 
   const syncPill = resolveConnectionSyncFreshnessPillContent(activeConnection, {
     forceSyncing: shopifySyncPhase === 'working',
+    fixtureWorkspace: isFixture,
   })
 
   const buttonLabel = shellT(lang, lifecycleButtonLabelKey(syncPlan))
@@ -255,8 +257,8 @@ function ShopifySyncSection({
   }
 
   const syncFooter = [
-    `${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`,
-    cooldownHelper,
+    formatConnectionLastSyncFooter(lang, lastSyncDisplay, isFixture),
+    isFixture ? null : cooldownHelper,
   ]
     .filter(Boolean)
     .join(' · ')

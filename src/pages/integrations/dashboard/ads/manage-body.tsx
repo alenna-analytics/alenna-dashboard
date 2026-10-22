@@ -12,6 +12,7 @@ import { IntegrationEnableCard } from '@/components/integrations/integration-ena
 import { IntegrationSyncActionCard } from '@/components/integrations/integration-sync-action-card'
 import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
+import { formatConnectionLastSyncFooter } from '@/lib/integrations/sync-freshness-pill-label'
 import { buildAdsProgressSubtitle } from '@/lib/integrations/ads-job-progress'
 import { useCancelPlatformSyncJob } from '@/hooks/use-cancel-platform-sync-job'
 import { GLOBAL_ACTIVITY_ADS_SYNC_ID } from '@/shell/providers/global-activity-provider'
@@ -249,6 +250,7 @@ function AdsSyncSection({
   const syncPill = resolveConnectionSyncFreshnessPillContent(ads.activeConnection, {
     forceSyncing: adsSyncPhase === 'working',
     suppressSyncing: adsSyncPhase === 'done_fail',
+    fixtureWorkspace: isFixture,
   })
   const buttonLabel = shellT(lang, lifecycleButtonLabelKey(syncPlan))
 
@@ -306,7 +308,7 @@ function AdsSyncSection({
         actionDisabled={ads.retryAdsSyncPending || isFixture || planSyncPaused}
         actionLoading={ads.retryAdsSyncPending}
         badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
-        footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
+        footer={formatConnectionLastSyncFooter(lang, lastSyncDisplay, isFixture)}
         className="w-full"
       />
     )
@@ -322,7 +324,7 @@ function AdsSyncSection({
       actionDisabled={ads.syncMutation.isPending || isFixture || planSyncPaused}
       actionLoading={ads.syncMutation.isPending}
       badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
-      footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
+      footer={formatConnectionLastSyncFooter(lang, lastSyncDisplay, isFixture)}
       className="w-full"
     />
   )

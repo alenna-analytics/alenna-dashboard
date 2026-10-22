@@ -30,6 +30,7 @@ import { useAmazonIntegration } from '@/pages/integrations/details/use-amazon-in
 import { useShopifyIntegration } from '@/pages/integrations/details/use-shopify-integration'
 import { DashboardPage } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { shellT } from '@/lib/i18n/shell-strings'
 import { StatusPill } from '@/ui/status-pill'
 
@@ -47,6 +48,8 @@ function IntegrationPlaceholderSettings({ lang }: { lang: string }) {
 export function IntegrationDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { lang } = useLanguage()
+  const { me } = useWorkspace()
+  const isFixture = Boolean(me?.is_fixture)
   const [disconnectDataDialogOpen, setDisconnectDataDialogOpen] = useState(false)
   const [disconnectConfirmDialogOpen, setDisconnectConfirmDialogOpen] = useState(false)
   const [purgeDataOnDisconnect, setPurgeDataOnDisconnect] = useState(false)
@@ -130,6 +133,7 @@ export function IntegrationDetailPage() {
   const syncPill =
     connected && activeConnection
       ? resolveConnectionSyncFreshnessPillContent(activeConnection, {
+          fixtureWorkspace: isFixture,
           forceSyncing:
             (isShopify && shopifyIntegration.shopifySyncPhase === 'working') ||
             (isMercadolibre && mercadolibreIntegration.meliSyncPhase === 'working') ||
@@ -144,7 +148,7 @@ export function IntegrationDetailPage() {
       : null
 
   const titleBadges = connected ? (
-    needsInitialSync ? (
+    !isFixture && needsInitialSync ? (
       <StatusPill variant="warning">{shellT(lang, 'integrationCardSyncPending')}</StatusPill>
     ) : syncPill ? (
       <SyncFreshnessPillBadge pill={syncPill} lang={lang} />

@@ -137,7 +137,7 @@ function SegmentedControl<T extends string>({
             aria-pressed={selected}
             onClick={() => onChange(option.value)}
             className={cn(
-              'h-7 rounded-md px-3 text-xs font-medium transition-colors',
+              'h-7 cursor-pointer rounded-md px-3 text-xs font-medium transition-colors',
               selected
                 ? 'bg-text-primary text-white'
                 : 'text-[#767676] hover:text-text-primary',
@@ -376,13 +376,6 @@ export function VinculacionGroupRentabilidad({
       : cogsDiffer
         ? t('productsGroupCardCogsDiff')
         : t('productsGroupCardCogsSame')
-  const channelNames = [
-    ...new Set(statement.columns.map((column) => productPlatformLabel(column.platform, t))),
-  ]
-  const channelList =
-    channelNames.length <= 1
-      ? (channelNames[0] ?? '')
-      : `${channelNames.slice(0, -1).join(', ')}${lang === 'en' ? ' and ' : ' y '}${channelNames[channelNames.length - 1]}`
   const publicationDetail = (count: number) =>
     countLabel(
       count,
@@ -451,23 +444,33 @@ export function VinculacionGroupRentabilidad({
             <div className="flex shrink-0 flex-row flex-nowrap items-center justify-end gap-2">
               {vista === 'pnl' ? (
                 <>
-                  <SegmentedControl
-                    ariaLabel={t('productsGroupIvaOn')}
-                    value={includeIva ? 'with' : 'without'}
-                    onChange={(value) => setIncludeIva(value === 'with')}
+                  <FilterComboboxSingle
+                    label={t('productsGroupIvaFilter')}
                     options={[
                       { value: 'with', label: t('productsGroupIvaOn') },
                       { value: 'without', label: t('productsGroupIvaOff') },
                     ]}
+                    value={includeIva ? 'with' : 'without'}
+                    onValueChange={(value) => setIncludeIva(value !== 'without')}
+                    searchPlaceholder={t('productsSearchPlaceholder')}
+                    emptyLabel={t('productsVinculacionPickerEmpty')}
+                    allowClear={false}
+                    triggerClassName="cursor-pointer"
                   />
-                  <SegmentedControl
-                    ariaLabel={t('productsGroupByChannel')}
-                    value={breakdown}
-                    onChange={setBreakdown}
+                  <FilterComboboxSingle
+                    label={t('productsGroupBreakdownFilter')}
                     options={[
                       { value: 'channel', label: t('productsGroupByChannel') },
                       { value: 'publication', label: t('productsGroupByPublication') },
                     ]}
+                    value={breakdown}
+                    onValueChange={(value) => {
+                      if (value === 'channel' || value === 'publication') setBreakdown(value)
+                    }}
+                    searchPlaceholder={t('productsSearchPlaceholder')}
+                    emptyLabel={t('productsVinculacionPickerEmpty')}
+                    allowClear={false}
+                    triggerClassName="cursor-pointer"
                   />
                 </>
               ) : (
@@ -748,12 +751,11 @@ export function VinculacionGroupRentabilidad({
                 ? t('productsGroupPnlTableTitlePublication')
                 : t('productsGroupPnlTableTitle')
             }
-            description={fill(
+            description={
               statementMode === 'publication'
                 ? t('productsGroupPnlTableSubtitlePublication')
-                : t('productsGroupPnlTableSubtitle'),
-              { channels: channelList },
-            )}
+                : t('productsGroupPnlTableSubtitle')
+            }
             columns={statement.columns}
             total={totals}
             details={columnDetails}

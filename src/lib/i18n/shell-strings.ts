@@ -1862,6 +1862,11 @@ const SHELL_STRINGS = {
     productsGroupInventoryMissingLeadTime: 'Falta lead time',
     productsGroupInventoryAlertCritical: 'Crítico',
     productsGroupInventoryAlertAttention: 'Atención',
+    productsInventoryAlertCriticalOn: 'Inventario crítico en {platform}',
+    productsInventoryAlertAttentionOn: 'Inventario en atención en {platform}',
+    productsInventoryAlertDetail:
+      '{stock} unidades · {days} días al ritmo actual · se agota cerca del {date}',
+    productsInventoryAlertStockOnly: '{stock} unidades',
     productsGroupInventoryAlertNormal: 'Normal',
     productsGroupInventoryNoRecentSales: 'Sin ventas recientes',
     productsGroupInventoryVelocityCaption: 'Velocidad: promedio de los últimos 90 días',
@@ -4277,6 +4282,11 @@ const SHELL_STRINGS = {
     productsGroupInventoryMissingLeadTime: 'Lead time missing',
     productsGroupInventoryAlertCritical: 'Critical',
     productsGroupInventoryAlertAttention: 'Watch',
+    productsInventoryAlertCriticalOn: 'Critical inventory on {platform}',
+    productsInventoryAlertAttentionOn: 'Inventory to watch on {platform}',
+    productsInventoryAlertDetail:
+      '{stock} units · {days} days at the current pace · runs out around {date}',
+    productsInventoryAlertStockOnly: '{stock} units',
     productsGroupInventoryAlertNormal: 'Normal',
     productsGroupInventoryNoRecentSales: 'No recent sales',
     productsGroupInventoryVelocityCaption: 'Velocity: average of the last 90 days',

@@ -23,6 +23,7 @@ import {
 import { Input } from '@/ui/input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
+import { GroupInventoryCoverAlert } from '../product-detail-stock-alert'
 import { formatProductDetailDate } from '../product-detail-header-utils'
 import { productPlatformLabel } from '../product-platform-label'
 
@@ -329,6 +330,7 @@ export function VinculacionGroupHeader({
       </div>
 
       <div className="sm:hidden">{stats}</div>
+      <GroupInventoryCoverAlert group={group} lang={lang} t={t} />
     </div>
   )
 }

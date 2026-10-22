@@ -408,20 +408,6 @@ export function ChannelsPage() {
             />
           ) : null}
           {vista === 'pnl' ? (
-          <ChannelsPnlTable
-            metrics={currentAgg}
-            platforms={displayedPlatforms}
-            t={t}
-            labelForRow={labelForRow}
-            cmIncomplete={cmIncomplete}
-            detailLevel="full"
-            adsByPlatform={adsByPlatform}
-            tenantAdsSpend={alignedPnl.unlinkedAds}
-            blankTotalLineIds={blankTotalLineIds}
-          />
-          ) : null}
-
-          {vista === 'pnl' ? (
           <div className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
             <SectionContainer framed>
               <ChartSectionHeader
@@ -490,6 +476,20 @@ export function ChannelsPage() {
               />
             </SectionContainer>
           </div>
+          ) : null}
+
+          {vista === 'pnl' ? (
+          <ChannelsPnlTable
+            metrics={currentAgg}
+            platforms={displayedPlatforms}
+            t={t}
+            labelForRow={labelForRow}
+            cmIncomplete={cmIncomplete}
+            detailLevel="full"
+            adsByPlatform={adsByPlatform}
+            tenantAdsSpend={alignedPnl.unlinkedAds}
+            blankTotalLineIds={blankTotalLineIds}
+          />
           ) : (
           <ChannelsSettlementTable
             metrics={cobroSettlement}

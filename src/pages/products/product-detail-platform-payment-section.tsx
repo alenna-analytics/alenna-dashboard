@@ -308,18 +308,6 @@ export function ProductDetailPlatformPaymentSection({
     }
   }
 
-  const pendingByPlatform = useMemo(() => {
-    const out: Record<string, number> = {}
-    for (const platform of platforms) {
-      const estimate = taxEstimates?.[platform.slug]
-      out[platform.slug] =
-        estimate?.expected_net_cash ??
-        settlementMetrics[platform.slug]?.estimated_payout ??
-        0
-    }
-    return out
-  }, [platforms, settlementMetrics, taxEstimates])
-
   if (!isFetching && !settlement) {
     return <EmptyState size="sm" icon="products" title={t('productsDetailPlatformPaymentEmpty')} />
   }
@@ -524,8 +512,6 @@ export function ProductDetailPlatformPaymentSection({
         <ProductCobroTimingTable
           platforms={platforms}
           metrics={settlementMetrics}
-          pendingByPlatform={pendingByPlatform}
-          formatMoney={fmtBase}
           t={t}
         />
       ) : null}

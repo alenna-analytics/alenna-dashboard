@@ -409,6 +409,8 @@ export function VinculacionGroupRentabilidad({
     columns: statement.columns,
     total: totals,
     transferredIvaPct: taxRates?.transferred_iva_pct ?? 16,
+    factor: (column) =>
+      cobroBasis === 'total' ? 1 : column.netUnits > 0 ? 1 / column.netUnits : 0,
     t,
   })
   const tenantName = me?.tenant_name?.trim() || t('shellSidebarWorkspaceFallback')

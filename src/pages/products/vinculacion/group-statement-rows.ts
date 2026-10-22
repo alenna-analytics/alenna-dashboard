@@ -23,14 +23,24 @@ function isAmazon(platform: string): boolean {
   return platform.trim().toLowerCase().replace(/_/g, '') === 'amazon'
 }
 
+type MoneyFactor = number | ((column: GroupStatementColumn) => number)
+
+function applyFactor(factor: MoneyFactor, column: GroupStatementColumn): number {
+  return typeof factor === 'function' ? factor(column) : factor
+}
+
 function moneyValues(
   columns: GroupStatementColumn[],
   total: GroupStatementColumn,
   pick: (column: GroupStatementColumn) => number,
-  factor: number,
+  factor: MoneyFactor,
 ): Record<string, number> {
-  const values: Record<string, number> = { total: pick(total) * factor }
-  for (const column of columns) values[column.id] = pick(column) * factor
+  const values: Record<string, number> = {
+    total: pick(total) * applyFactor(factor, total),
+  }
+  for (const column of columns) {
+    values[column.id] = pick(column) * applyFactor(factor, column)
+  }
   return values
 }
 
@@ -190,11 +200,12 @@ export function buildCobroStatementRows(input: {
   columns: GroupStatementColumn[]
   total: GroupStatementColumn
   transferredIvaPct: number
+  factor?: MoneyFactor
   t: ShellT
 }): GroupStatementRow[] {
-  const { columns, total, transferredIvaPct, t } = input
+  const { columns, total, transferredIvaPct, factor = 1, t } = input
   const money = (pick: (column: GroupStatementColumn) => number) =>
-    moneyValues(columns, total, pick, 1)
+    moneyValues(columns, total, pick, factor)
   const hasAmazon = columns.some((column) => isAmazon(column.platform))
   const otherText: Record<string, string | null> = { total: hasAmazon ? t('productsGroupCobroToCapture') : '—' }
   for (const column of columns) {

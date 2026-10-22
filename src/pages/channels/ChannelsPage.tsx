@@ -14,6 +14,7 @@ import type { PlatformConnection } from '@/lib/types/connectors'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { useAdsChannels } from '@/pages/ads/use-ads-kpis'
 import { aggregateAdsByEcommercePlatform } from '@/pages/channels/channels-ads-by-platform'
+import { alignChannelPnl } from '@/pages/channels/channels-pnl-align'
 import { ChannelsCmChart } from '@/pages/channels/channels-cm-chart'
 import { ChannelsCostStructureChart } from '@/pages/channels/channels-cost-structure-chart'
 import { ChannelsPnlTable } from '@/pages/channels/channels-pnl-table'
@@ -26,7 +27,10 @@ import {
 } from '@/pages/channels/channels-platform-aggregate'
 import { useChannelsPageFilters } from '@/pages/channels/use-channels-page-filters'
 import { useTaxRatesQuery } from '@/pages/configuration/tax-rates/use-tax-rates-queries'
-import { ProductPnlTaxMatrix } from '@/pages/products/product-pnl-tax-matrix'
+import {
+  estimateSettlementTaxByPlatform,
+  settlementWithEstimatedTax,
+} from '@/pages/products/product-pnl-tax-estimates'
 import { resolveAmazonFeesNoticeState } from '@/lib/integrations/amazon-fees-notice'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
@@ -85,6 +89,7 @@ export function ChannelsPage() {
   const { startDate, endDate, connectionIds } = filters
   const [cmGranularity, setCmGranularity] = useState<RevenueSeriesGranularity>('day')
   const [cmChartType, setCmChartType] = useState<SeriesChartView>('line')
+  const [vista, setVista] = useState<'pnl' | 'cobro'>('pnl')
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -192,11 +197,6 @@ export function ChannelsPage() {
     [formatMoney, effectiveDisplayCurrency],
   )
 
-  const currentAgg = useMemo(() => {
-    const agg = aggregateChannelKpisByPlatform(kpis?.items ?? [], displayedPlatforms)
-    agg.total.ads_spend += Number(kpis?.tenant_ads_spend ?? 0)
-    return agg
-  }, [kpis, displayedPlatforms])
   const settlementAgg = useMemo(
     () => aggregateChannelSettlementByPlatform(kpis?.items ?? [], displayedPlatforms),
     [kpis, displayedPlatforms],
@@ -235,7 +235,48 @@ export function ChannelsPage() {
   const tenantAdsSpend = Number(kpis?.tenant_ads_spend ?? 0)
   const { data: taxRatesResponse } = useTaxRatesQuery()
   const taxRates = taxRatesResponse?.settings ?? null
-  const hasShopifyColumn = displayedPlatforms.some((p) => p.slug === 'shopify')
+  const alignedPnl = useMemo(() => {
+    const metrics = aggregateChannelKpisByPlatform(kpis?.items ?? [], displayedPlatforms)
+    return alignChannelPnl({
+      metrics,
+      settlement: settlementAgg,
+      adsByPlatform,
+      tenantAdsSpend,
+    })
+  }, [adsByPlatform, displayedPlatforms, kpis?.items, settlementAgg, tenantAdsSpend])
+  const currentAgg = alignedPnl.metrics
+  const cobroSettlement = useMemo(() => {
+    if (!taxRates) return settlementAgg
+    const estimates = estimateSettlementTaxByPlatform(
+      settlementAgg,
+      displayedPlatforms,
+      taxRates,
+    )
+    const next = { ...settlementAgg }
+    let tax = 0
+    let payout = 0
+    for (const platform of displayedPlatforms) {
+      const aligned = settlementWithEstimatedTax(
+        settlementAgg[platform.slug],
+        estimates[platform.slug]?.withholding_total ?? 0,
+      )
+      const withPayout = {
+        ...aligned,
+        estimated_payout:
+          aligned.net_revenue -
+          aligned.marketplace_fees -
+          aligned.shipping_charges -
+          aligned.tax_withholdings,
+      }
+      next[platform.slug] = withPayout
+      tax += withPayout.tax_withholdings
+      payout += withPayout.estimated_payout
+    }
+    if (next.total) {
+      next.total = { ...next.total, tax_withholdings: tax, estimated_payout: payout }
+    }
+    return next
+  }, [displayedPlatforms, settlementAgg, taxRates])
 
   const amazonFeesNoticeState = resolveAmazonFeesNoticeState(
     connections,
@@ -305,6 +346,28 @@ export function ChannelsPage() {
               selectAllLabel={t('homeFilterSelectAll')}
               deselectAllLabel={t('homeFilterDeselectAll')}
             />
+            <div className="ml-auto inline-flex rounded-lg border border-border-subtle p-0.5">
+              {(
+                [
+                  ['pnl', t('channelsViewPnl')],
+                  ['cobro', t('channelsViewCobro')],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={cn(
+                    'h-7 cursor-pointer rounded-md px-3 text-xs font-medium transition-colors',
+                    vista === value
+                      ? 'bg-text-primary text-white'
+                      : 'text-[#767676] hover:text-text-primary',
+                  )}
+                  onClick={() => setVista(value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </header>
       ) : null}
@@ -333,6 +396,7 @@ export function ChannelsPage() {
               ))}
             </ContextAlertsGroup>
           ) : null}
+          {vista === 'pnl' ? (
           <ChannelsPnlTable
             metrics={currentAgg}
             platforms={displayedPlatforms}
@@ -342,20 +406,11 @@ export function ChannelsPage() {
             cmIncomplete={cmIncomplete}
             detailLevel="full"
             adsByPlatform={adsByPlatform}
-            tenantAdsSpend={tenantAdsSpend}
+            tenantAdsSpend={alignedPnl.unlinkedAds}
           />
+          ) : null}
 
-          <ProductPnlTaxMatrix
-            metrics={currentAgg}
-            platforms={displayedPlatforms}
-            taxRates={taxRates}
-            formatMoney={formatConverted}
-            t={t}
-            currencyCode={effectiveDisplayCurrency}
-            showRetentionTip={false}
-            showShopifyAlert={hasShopifyColumn}
-          />
-
+          {vista === 'pnl' ? (
           <div className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
             <SectionContainer framed>
               <ChartSectionHeader
@@ -424,13 +479,14 @@ export function ChannelsPage() {
               />
             </SectionContainer>
           </div>
-
+          ) : (
           <ChannelsSettlementTable
-            metrics={settlementAgg}
+            metrics={cobroSettlement}
             platforms={displayedPlatforms}
             formatMoney={formatConverted}
             t={t}
           />
+          )}
         </div>
       )}
     </DashboardPage>

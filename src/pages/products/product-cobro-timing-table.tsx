@@ -48,35 +48,26 @@ function timingCopyForPlatform(
 type ProductCobroTimingTableProps = {
   platforms: ChannelPlatform[]
   metrics: Record<string, PlatformSettlementMetrics>
-  /** Preferred pending amount per platform (e.g. estimated cobro neto). */
-  pendingByPlatform?: Record<string, number>
-  formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
 }
 
 export function ProductCobroTimingTable({
   platforms,
   metrics,
-  pendingByPlatform,
-  formatMoney,
   t,
 }: ProductCobroTimingTableProps) {
   const rows = useMemo((): TimingRow[] => {
     return platforms
       .map((platform) => {
         const m = metrics[platform.slug]
-        const amount =
-          pendingByPlatform?.[platform.slug] ??
-          m?.estimated_payout ??
-          0
         return {
           platform: platform.slug,
-          amount,
+          amount: m?.net_revenue ?? 0,
           whenLabel: timingCopyForPlatform(platform.slug, t),
         }
       })
-      .filter((row) => row.amount !== 0 || metrics[row.platform])
-  }, [metrics, pendingByPlatform, platforms, t])
+      .filter((row) => metrics[row.platform])
+  }, [metrics, platforms, t])
 
   const columns = useMemo(
     () => [
@@ -107,8 +98,8 @@ export function ProductCobroTimingTable({
             className="justify-end"
           />
         ),
-        cell: ({ getValue }) => (
-          <span className="tabular-nums">{formatMoney(getValue())}</span>
+        cell: () => (
+          <span className="text-sm text-[#767676]">{t('productsGroupTimingPending')}</span>
         ),
         meta: TEXT_END_META,
       }),
@@ -125,7 +116,7 @@ export function ProductCobroTimingTable({
         meta: TEXT_START_META,
       }),
     ],
-    [formatMoney, t],
+    [t],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design

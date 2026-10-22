@@ -50,6 +50,9 @@ type ChannelsPnlLineId =
   | 'ads_amazon'
   | 'ads_ml'
   | 'ads_other'
+  | 'gross_margin_pct'
+  | 'channel_margin_pct'
+  | 'cm_pct'
   | 'tacos'
   | 'roas'
 
@@ -62,7 +65,6 @@ type PnlLine = {
   indent?: boolean
   format: 'money' | 'count' | 'pct' | 'ratio'
   value: (m: PlatformMetrics, colSlug: string) => number | null
-  marginPct?: (m: PlatformMetrics) => number | null
 }
 
 const FEE_PLATFORM_SLUG: Record<string, string> = {
@@ -123,7 +125,13 @@ const CORE_BEFORE_FEES: PnlLine[] = [
     kind: 'subtotal',
     format: 'money',
     value: (m) => m.gross_profit,
-    marginPct: (m) => grossMarginPct(m),
+  },
+  {
+    id: 'gross_margin_pct',
+    labelKey: 'reportsKpiMargenBrutoPct',
+    kind: 'line',
+    format: 'pct',
+    value: (m) => (m.net_revenue === 0 ? null : grossMarginPct(m)),
   },
   {
     id: 'platform_fees',
@@ -156,7 +164,13 @@ const AFTER_FEES: PnlLine[] = [
     kind: 'subtotal',
     format: 'money',
     value: (m) => channelMarginAmount(m),
-    marginPct: (m) => channelMarginPct(m),
+  },
+  {
+    id: 'channel_margin_pct',
+    labelKey: 'productsGroupPnlChannelMarginPct',
+    kind: 'line',
+    format: 'pct',
+    value: (m) => channelMarginPct(m),
   },
   {
     id: 'ads_spend',
@@ -187,7 +201,13 @@ const AFTER_ADS: PnlLine[] = [
     kind: 'total',
     format: 'money',
     value: (m) => m.contribution_margin,
-    marginPct: (m) => m.contribution_margin_pct,
+  },
+  {
+    id: 'cm_pct',
+    labelKey: 'productsGroupPnlCmPct',
+    kind: 'line',
+    format: 'pct',
+    value: (m) => (m.net_revenue === 0 ? null : m.contribution_margin_pct),
   },
 ]
 
@@ -284,7 +304,8 @@ export function ChannelsPnlTable({
   const full = detailLevel === 'full'
 
   const lines = useMemo(() => {
-    const footer = footerMode === 'units' ? FOOTER_UNITS : FOOTER_ORDERS
+    const footer =
+      footerMode === 'units' ? FOOTER_UNITS : [...FOOTER_ORDERS, FOOTER_UNITS[0]]
     if (!full) {
       return [...CORE_BEFORE_FEES, ...AFTER_FEES, ...AFTER_ADS, ...footer]
     }
@@ -292,7 +313,8 @@ export function ChannelsPnlTable({
     const presentSlugs = new Set(platforms.map((p) => p.slug))
     const feeRows: PnlLine[] = FEE_SUBROW_DEFS.filter((def) => {
       const slug = FEE_PLATFORM_SLUG[def.id]
-      return slug ? presentSlugs.has(slug) : true
+      if (!slug || !presentSlugs.has(slug)) return false
+      return Math.abs(metrics[slug]?.platform_fees_total ?? 0) >= 0.5
     }).map((def) => {
       const platformSlug = FEE_PLATFORM_SLUG[def.id]
       return {
@@ -315,9 +337,18 @@ export function ChannelsPnlTable({
       }
     })
 
+    const adsNetworkSpend = (network: AdsNetworkId) =>
+      Object.values(adsByPlatform ?? {}).reduce(
+        (sum, rollup) => sum + (rollup.byNetwork[network] ?? 0),
+        0,
+      )
     const adsRows: PnlLine[] = ADS_SUBROW_DEFS.filter((def) => {
-      if (def.id === 'ads_other') return tenantAdsSpend > 0
-      return true
+      if (def.alwaysNull) return false
+      if (def.id === 'ads_other') return tenantAdsSpend >= 0.5
+      if (def.id === 'ads_google') return adsNetworkSpend('google_ads') >= 0.5
+      if (def.id === 'ads_amazon') return adsNetworkSpend('amazon_ads') >= 0.5
+      if (def.id === 'ads_ml') return adsNetworkSpend('mercadolibre_ads') >= 0.5
+      return false
     }).map((def) => {
       if (def.alwaysNull) {
         return {
@@ -409,13 +440,11 @@ export function ChannelsPnlTable({
             !footerIds.has(line.id) &&
             line.kind !== 'subrow' &&
             line.id !== 'tacos' &&
-            line.id !== 'roas'
-          const label =
-            line.id === 'contribution_margin' && cmIncomplete
-              ? t('channelsCmProductScopeLabel')
-              : useResolver
-                ? labelForRow(line.id as PnlRowId)
-                : t(line.labelKey)
+            line.id !== 'roas' &&
+            line.id !== 'gross_margin_pct' &&
+            line.id !== 'channel_margin_pct' &&
+            line.id !== 'cm_pct'
+          const label = useResolver ? labelForRow(line.id as PnlRowId) : t(line.labelKey)
           const prefix =
             line.kind === 'subrow'
               ? '• '
@@ -509,14 +538,12 @@ export function ChannelsPnlTable({
               formatted = `${raw.toFixed(2)}x`
             } else if (line.format === 'count') {
               formatted = String(Math.round(raw))
+            } else if (Math.abs(raw) < 0.005) {
+              formatted = '—'
             } else {
               const display = line.isDeduction ? -Math.abs(raw) : raw
               formatted = formatMoney(display)
             }
-            const margin =
-              cmIncomplete && line.id === 'contribution_margin'
-                ? null
-                : line.marginPct?.(m)
             return (
               <span
                 className={cn(
@@ -531,9 +558,6 @@ export function ChannelsPnlTable({
                 )}
               >
                 {formatted}
-                {margin !== null && margin !== undefined
-                  ? ` (${margin.toFixed(1)}%)`
-                  : ''}
               </span>
             )
           },

@@ -488,6 +488,8 @@ const SHELL_STRINGS = {
     channelsScoreboardTitle: 'Scoreboard por canal',
     channelsScoreboardSubtitle: 'Métricas clave por plataforma y variación vs periodo anterior.',
     channelsPnlTitle: 'P&L por canal',
+    channelsViewPnl: 'P&L por canal',
+    channelsViewCobro: 'Cobro por canal',
     channelsPnlTitleByProduct: 'P&L por producto',
     channelsSettlementTitle: 'Liquidación plataforma',
     channelsSettlementSubtitle:
@@ -1823,7 +1825,7 @@ const SHELL_STRINGS = {
     productsDetailTabPlatformPayment: 'Rentabilidad',
     productsDetailTabVariants: 'Variantes',
     productsDetailTabCogs: 'COGS',
-    productsDetailTabRelated: 'Productos',
+    productsDetailTabRelated: 'Vinculación',
     productsCatalogTabProducts: 'Productos',
     productsCatalogTabGroups: 'Grupos',
     productsTableGroupSelected: 'Agrupar',
@@ -2019,7 +2021,7 @@ const SHELL_STRINGS = {
     productsDetailPnlAnalyticsDescription: 'Desglose de ventas y métricas del producto',
     productsDetailPnlDescription:
       'De ventas brutas a utilidad neta. Sin publicidad, gastos fijos ni EBITDA.',
-    productsDetailPnlFinalHint: 'Utilidad neta del periodo',
+    productsDetailPnlFinalHint: 'Contribución marginal del periodo',
     productsDetailListingColChannel: 'Canal',
     productsDetailListingColVelocityPerDay: 'Velocidad/día',
     productsDetailListingColVelocityPerDayHelp:
@@ -2913,6 +2915,8 @@ const SHELL_STRINGS = {
     channelsScoreboardTitle: 'Channel scoreboard',
     channelsScoreboardSubtitle: 'Key metrics by platform and change vs the previous period.',
     channelsPnlTitle: 'P&L by channel',
+    channelsViewPnl: 'P&L by channel',
+    channelsViewCobro: 'Settlement by channel',
     channelsPnlTitleByProduct: 'P&L by product',
     channelsSettlementTitle: 'Platform settlement',
     channelsSettlementSubtitle:
@@ -4232,7 +4236,7 @@ const SHELL_STRINGS = {
     productsDetailTabPlatformPayment: 'Profitability',
     productsDetailTabVariants: 'Variants',
     productsDetailTabCogs: 'COGS',
-    productsDetailTabRelated: 'Products',
+    productsDetailTabRelated: 'Linking',
     productsCatalogTabProducts: 'Products',
     productsCatalogTabGroups: 'Groups',
     productsTableGroupSelected: 'Group',
@@ -4425,7 +4429,7 @@ const SHELL_STRINGS = {
     productsDetailPnlAnalyticsDescription: 'Product sales and metrics breakdown',
     productsDetailPnlDescription:
       'From gross sales to net profit. Ads, fixed opex, and EBITDA are not included.',
-    productsDetailPnlFinalHint: 'Net profit for the period',
+    productsDetailPnlFinalHint: 'Contribution margin for the period',
     productsDetailListingColChannel: 'Channel',
     productsDetailListingColVelocityPerDay: 'Velocity/day',
     productsDetailListingColVelocityPerDayHelp:

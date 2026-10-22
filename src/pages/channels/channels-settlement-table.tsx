@@ -290,6 +290,7 @@ export function ChannelsSettlementTable({
             }
             const raw = line.value(m)
             const display = line.isDeduction ? -Math.abs(raw) : raw
+            const formatted = Math.abs(raw) < 0.005 ? '—' : formatMoney(display)
             return (
               <span
                 className={cn(
@@ -300,7 +301,7 @@ export function ChannelsSettlementTable({
                   emphasisClass(line.kind),
                 )}
               >
-                {formatMoney(display)}
+                {formatted}
               </span>
             )
           },

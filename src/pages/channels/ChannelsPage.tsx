@@ -6,7 +6,6 @@ import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
 
 import { useCurrentTenant } from '@/auth/hooks'
-import { useMoney } from '@/hooks/use-money'
 import { apiFetch } from '@/lib/api'
 import { filterEcommerceConnections, resolveAdsApiScope } from '@/lib/integrations/ads-scope'
 import type { PlatformConnection } from '@/lib/types/connectors'
@@ -16,7 +15,6 @@ import { alignChannelPnl } from '@/pages/channels/channels-pnl-align'
 import { ChannelsCostStructureChart } from '@/pages/channels/channels-cost-structure-chart'
 import { ChannelsPnlTable } from '@/pages/channels/channels-pnl-table'
 import { usePnlAwareT, usePnlLabelResolver } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
-import { SettingsSectionHeader } from '@/pages/configuration/settings-layout'
 import { ChannelsSettlementTable } from '@/pages/channels/channels-settlement-table'
 import {
   aggregateChannelKpisByPlatform,
@@ -31,13 +29,14 @@ import {
 } from '@/pages/products/product-pnl-tax-estimates'
 import { formatInsightRange } from '@/pages/products/vinculacion/group-weekly-sales'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
-import { SectionContainer } from '@/pages/reports/report-ui'
+import { ChartSectionHeader, SectionContainer } from '@/pages/reports/report-ui'
 import { useKpisByChannel } from '@/pages/reports/use-kpis-by-channel'
 import { useReports } from '@/pages/reports/use-reports'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
+import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { dateRangePickerStrings } from '@/ui/date-range-picker'
 import { ContextAlertCard, ContextAlertsGroup, type ContextAlertTone } from '@/ui/context-alert'
@@ -157,20 +156,6 @@ export function ChannelsPage() {
     endDate,
     enabled: queriesEnabled,
   })
-
-  const { format: formatMoney, convert: convertMoney, effectiveDisplayCurrency, baseCurrency } =
-    useMoney()
-  const currency = kpis?.currency ?? baseCurrency
-
-  const convertFromBase = useMemo(
-    () => (n: number) => convertMoney(n, { nativeCurrency: currency }).amount,
-    [convertMoney, currency],
-  )
-  const formatConverted = useMemo(
-    () => (n: number) =>
-      formatMoney(convertFromBase(n), { nativeCurrency: effectiveDisplayCurrency }),
-    [formatMoney, convertFromBase, effectiveDisplayCurrency],
-  )
 
   const settlementAgg = useMemo(
     () => aggregateChannelSettlementByPlatform(kpis?.items ?? [], displayedPlatforms),
@@ -329,6 +314,21 @@ export function ChannelsPage() {
               selectAllLabel={t('homeFilterSelectAll')}
               deselectAllLabel={t('homeFilterDeselectAll')}
             />
+            <FilterComboboxSingle
+              label={t('channelsValueFilter')}
+              options={[
+                { value: 'money', label: t('channelsMoneyBasis') },
+                { value: 'pct', label: t('channelsPctOfNet') },
+              ]}
+              value={amountBasis}
+              onValueChange={(value) => {
+                if (value === 'money' || value === 'pct') setAmountBasis(value)
+              }}
+              searchPlaceholder={t('filterSearch')}
+              emptyLabel={t('channelsMoneyBasis')}
+              allowClear={false}
+              triggerClassName="cursor-pointer"
+            />
             <div className="ml-auto flex flex-wrap items-center gap-2">
               <div className="inline-flex rounded-lg border border-border-subtle p-0.5">
                 {(
@@ -347,29 +347,6 @@ export function ChannelsPage() {
                         : 'text-[#767676] hover:text-text-primary',
                     )}
                     onClick={() => setVista(value)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <div className="inline-flex rounded-lg border border-border-subtle p-0.5">
-                {(
-                  [
-                    ['money', effectiveDisplayCurrency || t('channelsMoneyBasis')],
-                    ['pct', t('channelsPctOfNet')],
-                  ] as const
-                ).map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={amountBasis === value}
-                    className={cn(
-                      'h-7 cursor-pointer rounded-md px-3 text-xs font-medium transition-colors',
-                      amountBasis === value
-                        ? 'bg-text-primary text-white'
-                        : 'text-[#767676] hover:text-text-primary',
-                    )}
-                    onClick={() => setAmountBasis(value)}
                   >
                     {label}
                   </button>
@@ -429,19 +406,19 @@ export function ChannelsPage() {
           <ChannelsSettlementTable
             metrics={cobroSettlement}
             platforms={displayedPlatforms}
-            formatMoney={formatConverted}
             t={t}
+            amountBasis={amountBasis}
           />
           )}
           {vista === 'pnl' ? (
-            <section className="flex flex-col gap-3">
-              <SettingsSectionHeader title={t('channelsNetSalesSplitTitle')} />
+            <SectionContainer framed>
+              <ChartSectionHeader title={t('channelsNetSalesSplitTitle')} />
               <ChannelsCostStructureChart
                 metrics={currentAgg}
                 platforms={displayedPlatforms}
                 t={t}
               />
-            </section>
+            </SectionContainer>
           ) : null}
           <p className="mb-8 text-xs text-text-tertiary">{dataNote}</p>
         </div>

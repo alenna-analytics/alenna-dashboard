@@ -8,7 +8,7 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ChannelPlatform } from '@/pages/channels/channels-platform-aggregate'
 import type { PlatformSettlementMetrics } from '@/pages/channels/channels-platform-aggregate'
-import { SectionSplit } from '@/pages/reports/report-ui'
+import { SettingsSectionHeader } from '@/pages/configuration/settings-layout'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { EmptyState } from '@/ui/empty-state'
@@ -155,15 +155,24 @@ const CANCEL_COST_LINES: SettlementLine[] = [
 
 const columnHelper = createColumnHelper<SettlementLine>()
 
+function wholeAmount(value: number, deduction: boolean): string {
+  if (Math.abs(value) < 0.5) return '—'
+  const rounded = Math.round(Math.abs(value))
+  const text = rounded.toLocaleString()
+  return deduction ? `−${text}` : text
+}
+
 type ChannelsSettlementTableProps = {
   metrics: Record<string, PlatformSettlementMetrics>
   platforms: ChannelPlatform[]
-  formatMoney: (value: number) => string
+  /** Currency formatter. Channels omits it and uses whole amounts, like the P&L. */
+  formatMoney?: (value: number) => string
   t: (key: ShellStringKey) => string
   /** When false, omit Retenido SAT / tax withholdings row (Vista B). */
   includeTaxWithholdings?: boolean
   /** Truncate product column headers (group detail by product). */
   truncateLongHeaders?: boolean
+  amountBasis?: 'money' | 'pct'
 }
 
 function emphasisClass(kind: SettlementLine['kind']): string {
@@ -177,6 +186,7 @@ export function ChannelsSettlementTable({
   t,
   includeTaxWithholdings = true,
   truncateLongHeaders = false,
+  amountBasis = 'money',
 }: ChannelsSettlementTableProps) {
   const lines = useMemo(() => {
     const base = includeTaxWithholdings
@@ -199,10 +209,15 @@ export function ChannelsSettlementTable({
         id: 'concept',
         ...STATEMENT_CONCEPT_COLUMN_SIZE,
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('reportsPnlColConcept')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('reportsPnlColConcept')}
+            className="text-[#767676]"
+          />
         ),
         cell: ({ row }) => {
           const line = row.original
+          const emphasize = line.id === 'estimated_payout'
           if (line.kind === 'section') {
             return (
               <span className="pt-2 text-sm font-semibold text-text-primary">
@@ -210,40 +225,38 @@ export function ChannelsSettlementTable({
               </span>
             )
           }
+          const prefix = line.isDeduction ? '(−) ' : line.kind !== 'line' ? '= ' : ''
           return (
-            <span className={cn('text-text-primary', emphasisClass(line.kind))}>
-              {line.isDeduction
-                ? `(−) ${t(line.labelKey)}`
-                : line.kind !== 'line'
-                  ? `= ${t(line.labelKey)}`
-                  : t(line.labelKey)}
+            <span
+              data-row-emphasis={emphasize ? '' : undefined}
+              className={cn('py-1 text-sm text-text-primary', emphasisClass(line.kind))}
+            >
+              {prefix}
+              {t(line.labelKey)}
             </span>
           )
         },
         meta: {
-          cellClassName: 'align-middle overflow-hidden pr-6',
           headerClassName: 'overflow-hidden',
+          cellClassName: 'h-auto py-1.5 align-middle [&>div]:items-start',
         },
       }),
       ...cols.map((col) =>
         columnHelper.display({
           id: col.slug,
           ...STATEMENT_VALUE_COLUMN_SIZE,
-          header: ({ column }) => {
+          header: () => {
             const isTotal = col.slug === 'total'
             const { display, full, truncated } =
               truncateLongHeaders && !isTotal
                 ? truncateProductHeaderLabel(col.label)
                 : { display: col.label, full: col.label, truncated: false }
             const header = (
-              <DataTableColumnHeader
-                column={column}
-                title={display}
-                className={cn(
-                  'justify-end',
-                  truncateLongHeaders && !isTotal && 'w-full overflow-hidden',
-                )}
-              />
+              <span className="flex w-full flex-col items-end gap-0.5 py-1">
+                <span className="max-w-full truncate font-numeric text-xs font-medium uppercase text-[#767676]">
+                  {display}
+                </span>
+              </span>
             )
             if (!truncated) return header
             return (
@@ -289,16 +302,30 @@ export function ChannelsSettlementTable({
               },
             }
             const raw = line.value(m)
-            const display = line.isDeduction ? -Math.abs(raw) : raw
-            const formatted = Math.abs(raw) < 0.005 ? '—' : formatMoney(display)
+            const emphasize = line.id === 'estimated_payout'
+            let formatted = '—'
+            if (Math.abs(raw) >= 0.5) {
+              if (amountBasis === 'pct') {
+                const net = Math.abs(m.net_revenue)
+                formatted =
+                  net < 0.5
+                    ? '—'
+                    : line.id === 'net_revenue'
+                      ? '100%'
+                      : `${((Math.abs(raw) / net) * 100).toFixed(1)}%`
+              } else if (formatMoney) {
+                formatted = formatMoney(line.isDeduction ? -Math.abs(raw) : raw)
+              } else {
+                formatted = wholeAmount(raw, Boolean(line.isDeduction))
+              }
+            }
             return (
               <span
+                data-row-emphasis={emphasize ? '' : undefined}
                 className={cn(
-                  'w-full text-right font-numeric tabular-nums',
-                  line.isDeduction && 'text-text-secondary',
-                  (line.kind === 'subtotal' || line.kind === 'total') &&
-                    'font-semibold text-text-primary',
+                  'w-full py-1 text-right font-numeric text-sm tabular-nums text-text-primary',
                   emphasisClass(line.kind),
+                  formatted === '—' && 'text-text-tertiary',
                 )}
               >
                 {formatted}
@@ -307,12 +334,12 @@ export function ChannelsSettlementTable({
           },
           meta: {
             headerClassName: 'text-right overflow-hidden',
-            cellClassName: 'text-right overflow-hidden',
+            cellClassName: 'h-auto py-1.5 text-right tabular-nums [&>div]:items-center',
           },
         }),
       ),
     ],
-    [cols, formatMoney, metrics, t, truncateLongHeaders],
+    [amountBasis, cols, formatMoney, metrics, t, truncateLongHeaders],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
@@ -324,11 +351,12 @@ export function ChannelsSettlementTable({
     ...statementTableColumnResize,
   })
 
+  const description =
+    amountBasis === 'pct' ? t('channelsPctOfNet') : t('channelsSettlementSubtitle')
+
   return (
-    <SectionSplit
-      title={t('channelsSettlementTitle')}
-      description={t('channelsSettlementSubtitle')}
-    >
+    <section className="flex flex-col gap-3 [&_td:has([data-row-emphasis])]:bg-[#f6f3d4]">
+      <SettingsSectionHeader title={t('channelsSettlementTitle')} description={description} />
       {Object.values(metrics).some(
         (m) =>
           m.platform_cancel_costs.total !== 0 ||
@@ -348,6 +376,6 @@ export function ChannelsSettlementTable({
         emptyContent={<EmptyState icon="channels" title={t('reportsNoData')} />}
         skeletonRowCount={8}
       />
-    </SectionSplit>
+    </section>
   )
 }

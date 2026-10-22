@@ -1,7 +1,6 @@
 import { toast } from 'sonner'
 import { useState } from 'react'
 
-import { AmazonFeesUnavailableNotice } from '@/components/integrations/amazon-fees-unavailable-notice'
 import { PlanLimitSyncAlert } from '@/components/integrations/plan-limit-sync-alert'
 import { SyncFreshnessPillBadge } from '@/components/integrations/sync-freshness-badge'
 import { isPlanLimitSyncPaused } from '@/lib/plan/plan-limit-ui'
@@ -234,10 +233,6 @@ export function AmazonManageBody({
 
   return (
     <div className="flex w-full flex-col gap-4">
-      {amazon.feesNoticeState !== 'none' ? (
-        <AmazonFeesUnavailableNotice lang={lang} />
-      ) : null}
-
       {!amazon.isAdmin ? (
         <p className="text-sm text-muted-foreground">{shellT(lang, 'connectionsAdminOnly')}</p>
       ) : amazon.isLoading ? (

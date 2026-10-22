@@ -50,7 +50,7 @@ export function productPnlWaterfallSourceFromPeriod(
   const shippingCharges = settlement?.shipping_charges ?? 0
   const channelMargin =
     period.channel_margin ?? period.gross_profit - marketplaceFees - shippingCharges
-  const adsAssigned = Math.max(0, channelMargin - period.contribution_margin)
+  const adsAssigned = 0
   return {
     grossSales: period.period_gross_sales,
     netSales: period.period_net_sales,
@@ -58,7 +58,7 @@ export function productPnlWaterfallSourceFromPeriod(
     grossProfit: period.gross_profit,
     channelMargin,
     adsAssigned,
-    contributionMargin: period.contribution_margin,
+    contributionMargin: channelMargin,
     discounts: useSettlementDeductions ? discounts : impliedDeductions,
     returns: useSettlementDeductions ? returns : 0,
     marketplaceFees,

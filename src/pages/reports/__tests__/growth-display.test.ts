@@ -4,6 +4,7 @@ import {
   classifyGrowthDisplay,
   formatGrowthPctDisplay,
   formatGrowthSegmentDisplay,
+  historyIsComparable,
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
 
@@ -50,6 +51,32 @@ describe('formatGrowthPctDisplay', () => {
     expect(formatGrowthPctDisplay(false, null, 'Sin base')).toBe('—')
     expect(formatGrowthPctDisplay(true, 12.34, 'Sin base')).toBe('12.3%')
     expect(formatGrowthPctDisplay(true, null, 'Sin base')).toBe('Sin base')
+  })
+})
+
+describe('historyIsComparable', () => {
+  it('rejects a first sale inside the previous window', () => {
+    expect(
+      historyIsComparable({
+        previousValue: 100,
+        firstActivity: '2026-07-24',
+        previousStart: '2026-06-05',
+      }),
+    ).toBe(false)
+  })
+
+  it('accepts a first sale on or before the previous window', () => {
+    expect(
+      historyIsComparable({
+        previousValue: 100,
+        firstActivity: '2026-06-01',
+        previousStart: '2026-06-05',
+      }),
+    ).toBe(true)
+  })
+
+  it('rejects a zero previous value', () => {
+    expect(historyIsComparable({ previousValue: 0, previousStart: '2026-06-05' })).toBe(false)
   })
 })
 

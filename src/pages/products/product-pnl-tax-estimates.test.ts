@@ -82,6 +82,7 @@ describe('estimateTaxByPlatform', () => {
         amazon: metrics({
           platform: 'amazon',
           gross_revenue: 100_000,
+          net_revenue: 100_000,
           contribution_margin: 40_000,
         }),
         total: metrics({
@@ -94,8 +95,8 @@ describe('estimateTaxByPlatform', () => {
       MX_TYPICAL_TAX_RATES,
     )
     expect(byPlatform.shopify.withholding_total).toBe(0)
-    expect(byPlatform.amazon.withholding_total).toBe(10_500)
-    expect(byPlatform.total.withholding_total).toBe(10_500)
+    expect(byPlatform.amazon.withholding_total).toBe(9051.72)
+    expect(byPlatform.total.withholding_total).toBe(9051.72)
   })
 
   it('uses marketplaceSlug when column slug is a product id', () => {
@@ -105,13 +106,14 @@ describe('estimateTaxByPlatform', () => {
         [productId]: metrics({
           platform: productId,
           gross_revenue: 100_000,
+          net_revenue: 100_000,
           contribution_margin: 40_000,
         }),
       },
       [{ slug: productId, marketplaceSlug: 'mercadolibre' }],
       MX_TYPICAL_TAX_RATES,
     )
-    expect(byPlatform[productId].withholding_total).toBe(10_500)
+    expect(byPlatform[productId].withholding_total).toBe(9051.72)
   })
 })
 
@@ -131,8 +133,8 @@ describe('estimateSettlementTaxByPlatform', () => {
       [{ slug: 'mercadolibre' }],
       MX_TYPICAL_TAX_RATES,
     )
-    expect(byPlatform.mercadolibre.withholding_total).toBe(10_500)
-    expect(byPlatform.mercadolibre.expected_net_cash).toBe(64_500)
+    expect(byPlatform.mercadolibre.withholding_total).toBe(8146.56)
+    expect(byPlatform.mercadolibre.expected_net_cash).toBe(66853.44)
   })
 })
 

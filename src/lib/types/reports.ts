@@ -145,6 +145,8 @@ export type ChannelKpiRow = {
   cogs: number
   gross_profit: number
   platform_fees_total: number
+  referral_fees?: number
+  fulfillment_fees?: number
   merchant_shipping_cost: number
   contribution_margin: number
   contribution_margin_pct: number

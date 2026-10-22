@@ -22,6 +22,8 @@ export type PlatformMetrics = {
   cogs: number
   gross_profit: number
   platform_fees_total: number
+  referral_fees?: number
+  fulfillment_fees?: number
   merchant_shipping_cost: number
   ads_spend: number
   contribution_margin: number
@@ -136,6 +138,8 @@ function emptyMetrics(platform: string): PlatformMetrics {
     cogs: 0,
     gross_profit: 0,
     platform_fees_total: 0,
+    referral_fees: 0,
+    fulfillment_fees: 0,
     merchant_shipping_cost: 0,
     ads_spend: 0,
     contribution_margin: 0,
@@ -160,6 +164,8 @@ function addRow(target: PlatformMetrics, row: ChannelKpiRow): void {
   target.cogs += row.cogs
   target.gross_profit += row.gross_profit
   target.platform_fees_total += row.platform_fees_total
+  target.referral_fees = (target.referral_fees ?? 0) + (row.referral_fees ?? 0)
+  target.fulfillment_fees = (target.fulfillment_fees ?? 0) + (row.fulfillment_fees ?? 0)
   target.merchant_shipping_cost += row.merchant_shipping_cost
   target.ads_spend += row.ads_spend ?? 0
   target.contribution_margin += row.contribution_margin

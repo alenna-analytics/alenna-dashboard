@@ -23,7 +23,7 @@ import {
 } from 'recharts'
 
 import { cn } from '@/lib/utils'
-import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
+import { ChartSeriesMark, ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
 
@@ -351,11 +351,7 @@ export function DashboardProfitMarginChart({
               hiddenKeys[layer.dataKey] ? 'opacity-40' : 'opacity-100',
             )}
           >
-            <span
-              className="inline-block size-2 shrink-0 rounded-full"
-              style={{ background: layer.fill }}
-              aria-hidden
-            />
+            <ChartSeriesMark color={layer.fill} />
             <span>{layer.name}</span>
           </button>
         ))}
@@ -367,10 +363,7 @@ export function DashboardProfitMarginChart({
             hiddenKeys.marginPct ? 'opacity-40' : 'opacity-100',
           )}
         >
-          <span
-            className="inline-block size-2 shrink-0 rounded-full bg-[var(--danger)]"
-            aria-hidden
-          />
+          <ChartSeriesMark color="var(--danger)" />
           <span>{t('reportsMonthlyLegendGrossMarginPct')}</span>
         </button>
       </div>

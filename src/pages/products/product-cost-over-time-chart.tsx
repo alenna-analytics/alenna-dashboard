@@ -12,7 +12,7 @@ import {
 } from 'recharts'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
+import { ChartSeriesMark, ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
 import { CHART_NARROW_MQ, lineChartXAxisLayout } from '@/pages/dashboard/chart-x-axis-layout'
 import { useMediaQuery } from '@/hooks/use-media-query'
@@ -70,6 +70,7 @@ function ChartTooltip({
             <ChartTooltipSeriesRow
               key={key}
               color={p.stroke ?? series.color}
+              dashed={series.kind === 'channel'}
               label={series.label}
               value={fmtCurrency(Number(p.value ?? 0), series.currency)}
             />
@@ -328,10 +329,7 @@ export function ProductCostOverTimeChart({ data, series, className, t }: Product
                 hidden ? 'opacity-40' : 'opacity-100',
               )}
             >
-              <span
-                className="inline-block size-2 shrink-0 rounded-full"
-                style={{ background: s.color }}
-              />
+              <ChartSeriesMark color={s.color} dashed={s.kind === 'channel'} />
               <span>{s.label}</span>
             </button>
           )

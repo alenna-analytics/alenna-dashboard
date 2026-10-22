@@ -4,17 +4,15 @@ import { AlertTriangle, BarChart3, type LucideIcon } from 'lucide-react'
 
 import { useAuth } from '@clerk/react'
 import { useQuery } from '@tanstack/react-query'
-import { enUS, es as esLocale } from 'date-fns/locale'
 
 import { useCurrentTenant } from '@/auth/hooks'
 import { useMoney } from '@/hooks/use-money'
 import { apiFetch } from '@/lib/api'
 import { filterEcommerceConnections, resolveAdsApiScope } from '@/lib/integrations/ads-scope'
 import type { PlatformConnection } from '@/lib/types/connectors'
-import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { useAdsChannels } from '@/pages/ads/use-ads-kpis'
 import { aggregateAdsByEcommercePlatform } from '@/pages/channels/channels-ads-by-platform'
-import { ChannelsCmChart } from '@/pages/channels/channels-cm-chart'
+import { alignChannelPnl } from '@/pages/channels/channels-pnl-align'
 import { ChannelsCostStructureChart } from '@/pages/channels/channels-cost-structure-chart'
 import { ChannelsPnlTable } from '@/pages/channels/channels-pnl-table'
 import { usePnlAwareT, usePnlLabelResolver } from '@/pages/configuration/pnl-terms/use-pnl-labels-queries'
@@ -26,18 +24,20 @@ import {
 } from '@/pages/channels/channels-platform-aggregate'
 import { useChannelsPageFilters } from '@/pages/channels/use-channels-page-filters'
 import { useTaxRatesQuery } from '@/pages/configuration/tax-rates/use-tax-rates-queries'
-import { ProductPnlTaxMatrix } from '@/pages/products/product-pnl-tax-matrix'
-import { resolveAmazonFeesNoticeState } from '@/lib/integrations/amazon-fees-notice'
-import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
-import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
-import type { SeriesChartView } from '@/ui/chart-view-toggle'
+import {
+  estimateSettlementTaxByPlatform,
+  settlementWithEstimatedTax,
+} from '@/pages/products/product-pnl-tax-estimates'
+import { formatInsightRange } from '@/pages/products/vinculacion/group-weekly-sales'
 import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-state'
-import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
-import { useChannelTimeSeries } from '@/pages/reports/use-channel-time-series'
+import { ChartSectionHeader, SectionContainer } from '@/pages/reports/report-ui'
 import { useKpisByChannel } from '@/pages/reports/use-kpis-by-channel'
+import { useReports } from '@/pages/reports/use-reports'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
+import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
 import { FilterDates } from '@/ui/filters/filter-dates'
 import { dateRangePickerStrings } from '@/ui/date-range-picker'
 import { ContextAlertCard, ContextAlertsGroup, type ContextAlertTone } from '@/ui/context-alert'
@@ -59,15 +59,11 @@ function ChannelsLoadingSkeleton() {
     <div className="flex flex-col gap-12">
       <SectionContainer>
         <Skeleton className="mb-4 h-6 w-48" />
-        <Skeleton className="h-64 w-full rounded-md" />
-      </SectionContainer>
-      <SectionContainer>
-        <Skeleton className="mb-4 h-6 w-48" />
         <Skeleton className="h-80 w-full rounded-md" />
       </SectionContainer>
       <SectionContainer>
-        <Skeleton className="mb-4 h-6 w-56" />
-        <Skeleton className="h-80 w-full rounded-md" />
+        <Skeleton className="mb-4 h-6 w-64" />
+        <Skeleton className="h-40 w-full rounded-md" />
       </SectionContainer>
     </div>
   )
@@ -75,7 +71,7 @@ function ChannelsLoadingSkeleton() {
 
 export function ChannelsPage() {
   const { lang } = useLanguage()
-  const dateLocale = lang === 'en' ? enUS : esLocale
+  const { me } = useWorkspace()
   const { getToken } = useAuth()
   const { tenantId } = useCurrentTenant()
   const t = usePnlAwareT()
@@ -83,8 +79,9 @@ export function ChannelsPage() {
 
   const [filters, setFilters] = useChannelsPageFilters(tenantId)
   const { startDate, endDate, connectionIds } = filters
-  const [cmGranularity, setCmGranularity] = useState<RevenueSeriesGranularity>('day')
-  const [cmChartType, setCmChartType] = useState<SeriesChartView>('line')
+  const [vista, setVista] = useState<'pnl' | 'cobro'>('pnl')
+  const [amountBasis, setAmountBasis] = useState<'money' | 'pct'>('money')
+  const { baseCurrency } = useMoney()
 
   const connectionsQuery = useQuery({
     queryKey: ['connectors', tenantId],
@@ -162,46 +159,12 @@ export function ChannelsPage() {
     enabled: queriesEnabled,
   })
 
-  const {
-    data: channelTimeSeries,
-    isError: channelTimeSeriesError,
-    isLoading: channelTimeSeriesLoading,
-  } = useChannelTimeSeries({
-    connectionIds: activeConnectionIds,
-    startDate,
-    endDate,
-    granularity: cmGranularity,
-    enabled: queriesEnabled,
-  })
-
-  const { format: formatMoney, convert: convertMoney, effectiveDisplayCurrency, baseCurrency } =
-    useMoney()
-  const currency = kpis?.currency ?? baseCurrency
-
-  const convertFromBase = useMemo(
-    () => (n: number) => convertMoney(n, { nativeCurrency: currency }).amount,
-    [convertMoney, currency],
-  )
-  const formatConverted = useMemo(
-    () => (n: number) =>
-      formatMoney(convertFromBase(n), { nativeCurrency: effectiveDisplayCurrency }),
-    [formatMoney, convertFromBase, effectiveDisplayCurrency],
-  )
-  const formatInDisplay = useMemo(
-    () => (n: number) => formatMoney(n, { nativeCurrency: effectiveDisplayCurrency }),
-    [formatMoney, effectiveDisplayCurrency],
-  )
-
-  const currentAgg = useMemo(() => {
-    const agg = aggregateChannelKpisByPlatform(kpis?.items ?? [], displayedPlatforms)
-    agg.total.ads_spend += Number(kpis?.tenant_ads_spend ?? 0)
-    return agg
-  }, [kpis, displayedPlatforms])
   const settlementAgg = useMemo(
     () => aggregateChannelSettlementByPlatform(kpis?.items ?? [], displayedPlatforms),
     [kpis, displayedPlatforms],
   )
   const cmIncomplete = Boolean(kpis?.cm_incomplete)
+  const currency = (kpis?.currency || baseCurrency).trim()
 
   const adsScope = useMemo(
     () => resolveAdsApiScope(allConnections, activeConnectionIds),
@@ -233,14 +196,71 @@ export function ChannelsPage() {
   )
 
   const tenantAdsSpend = Number(kpis?.tenant_ads_spend ?? 0)
+  const reportsKpis = useReports({
+    connectionIds: activeConnectionIds,
+    startDate,
+    endDate,
+    enabled: queriesEnabled,
+  })
   const { data: taxRatesResponse } = useTaxRatesQuery()
   const taxRates = taxRatesResponse?.settings ?? null
-  const hasShopifyColumn = displayedPlatforms.some((p) => p.slug === 'shopify')
-
-  const amazonFeesNoticeState = resolveAmazonFeesNoticeState(
-    connections,
-    activeConnectionIds,
-  )
+  const alignedPnl = useMemo(() => {
+    const metrics = aggregateChannelKpisByPlatform(kpis?.items ?? [], displayedPlatforms)
+    return alignChannelPnl({
+      metrics,
+      settlement: settlementAgg,
+      adsByPlatform,
+      tenantAdsSpend,
+    })
+  }, [adsByPlatform, displayedPlatforms, kpis?.items, settlementAgg, tenantAdsSpend])
+  const currentAgg = alignedPnl.metrics
+  const reportsCm = reportsKpis.data?.contribution_margin
+  const reportsNet = reportsKpis.data?.net_revenue
+  const cmMismatch =
+    reportsCm != null &&
+    Math.abs(reportsCm - (currentAgg.total?.contribution_margin ?? 0)) >= 1
+  const netMismatch =
+    reportsNet != null && Math.abs(reportsNet - (currentAgg.total?.net_revenue ?? 0)) >= 1
+  const blankTotalLineIds = [
+    ...(netMismatch ? (['net_revenue'] as const) : []),
+    ...(cmMismatch ? (['contribution_margin', 'cm_pct', 'ebitda', 'ebitda_pct'] as const) : []),
+  ]
+  const tenantName = me?.tenant_name?.trim() || t('shellSidebarWorkspaceFallback')
+  const dataNote = t('productsGroupAnalyticsDataNote')
+    .replace('{tenant}', tenantName)
+    .replace('{range}', formatInsightRange(startDate, endDate, lang))
+  const cobroSettlement = useMemo(() => {
+    if (!taxRates) return settlementAgg
+    const estimates = estimateSettlementTaxByPlatform(
+      settlementAgg,
+      displayedPlatforms,
+      taxRates,
+    )
+    const next = { ...settlementAgg }
+    let tax = 0
+    let payout = 0
+    for (const platform of displayedPlatforms) {
+      const aligned = settlementWithEstimatedTax(
+        settlementAgg[platform.slug],
+        estimates[platform.slug]?.withholding_total ?? 0,
+      )
+      const withPayout = {
+        ...aligned,
+        estimated_payout:
+          aligned.net_revenue -
+          aligned.marketplace_fees -
+          aligned.shipping_charges -
+          aligned.tax_withholdings,
+      }
+      next[platform.slug] = withPayout
+      tax += withPayout.tax_withholdings
+      payout += withPayout.estimated_payout
+    }
+    if (next.total) {
+      next.total = { ...next.total, tax_withholdings: tax, estimated_payout: payout }
+    }
+    return next
+  }, [displayedPlatforms, settlementAgg, taxRates])
 
   const pageAlerts = useMemo(() => {
     type PageAlertItem = {
@@ -250,14 +270,6 @@ export function ChannelsPage() {
       tone: ContextAlertTone
     }
     const items: PageAlertItem[] = []
-    if (amazonFeesNoticeState !== 'none') {
-      items.push({
-        key: 'amazon-fees',
-        title: t('integrationAmazonFeesUnavailableBanner'),
-        icon: AlertTriangle,
-        tone: 'warning',
-      })
-    }
     if (cmIncomplete) {
       items.push({
         key: 'cm-incomplete',
@@ -267,7 +279,7 @@ export function ChannelsPage() {
       })
     }
     return items
-  }, [amazonFeesNoticeState, cmIncomplete, t])
+  }, [cmIncomplete, t])
 
   const isInitialLoad =
     connectorsLoading || (queriesEnabled && kpisLoading && !kpis)
@@ -305,6 +317,45 @@ export function ChannelsPage() {
               selectAllLabel={t('homeFilterSelectAll')}
               deselectAllLabel={t('homeFilterDeselectAll')}
             />
+            <FilterComboboxSingle
+              label={t('channelsValueFilter')}
+              options={[
+                { value: 'money', label: currency || t('channelsMoneyBasis') },
+                { value: 'pct', label: t('channelsPctOfNet') },
+              ]}
+              value={amountBasis}
+              onValueChange={(value) => {
+                if (value === 'money' || value === 'pct') setAmountBasis(value)
+              }}
+              searchPlaceholder={t('filterSearch')}
+              emptyLabel={currency || t('channelsMoneyBasis')}
+              allowClear={false}
+              triggerClassName="cursor-pointer"
+            />
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <div className="inline-flex rounded-lg border border-border-subtle p-0.5">
+                {(
+                  [
+                    ['pnl', t('channelsViewPnl')],
+                    ['cobro', t('channelsViewCobro')],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={cn(
+                      'h-7 cursor-pointer rounded-md px-3 text-xs font-medium transition-colors',
+                      vista === value
+                        ? 'bg-text-primary text-white'
+                        : 'text-[#767676] hover:text-text-primary',
+                    )}
+                    onClick={() => setVista(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </header>
       ) : null}
@@ -333,104 +384,48 @@ export function ChannelsPage() {
               ))}
             </ContextAlertsGroup>
           ) : null}
+          {vista === 'pnl' && (cmMismatch || netMismatch) ? (
+            <ContextAlertCard
+              title={t('channelsReconciliationAlert')}
+              icon={AlertTriangle}
+              tone="warning"
+            />
+          ) : null}
+          {vista === 'pnl' ? (
           <ChannelsPnlTable
             metrics={currentAgg}
             platforms={displayedPlatforms}
-            formatMoney={formatConverted}
             t={t}
             labelForRow={labelForRow}
             cmIncomplete={cmIncomplete}
             detailLevel="full"
             adsByPlatform={adsByPlatform}
-            tenantAdsSpend={tenantAdsSpend}
+            tenantAdsSpend={alignedPnl.unlinkedAds}
+            blankTotalLineIds={blankTotalLineIds}
+            amountBasis={amountBasis}
+            currency={currency}
+            fixedOperatingExpenses={reportsKpis.data?.fixed_operating_expenses ?? null}
           />
-
-          <ProductPnlTaxMatrix
-            metrics={currentAgg}
+          ) : (
+          <ChannelsSettlementTable
+            metrics={cobroSettlement}
             platforms={displayedPlatforms}
-            taxRates={taxRates}
-            formatMoney={formatConverted}
             t={t}
-            currencyCode={effectiveDisplayCurrency}
-            showRetentionTip={false}
-            showShopifyAlert={hasShopifyColumn}
+            amountBasis={amountBasis}
+            currency={currency}
           />
-
-          <div className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
+          )}
+          {vista === 'pnl' ? (
             <SectionContainer framed>
-              <ChartSectionHeader
-                title={
-                  cmIncomplete
-                    ? t('channelsCmChartTitleProductScope')
-                    : t('channelsCmChartTitle')
-                }
-                calcDescription={
-                  cmIncomplete
-                    ? t('channelsCmChartSubtitleProductScope')
-                    : t('channelsCmChartCalcDescription')
-                }
-                calcFormulaLeft={t('channelsCmChartCalcLeft')}
-                calcFormulaParts={[t('channelsCmChartCalcFormula')]}
-                aside={
-                  <>
-                    <ChartGranularityFilter
-                      value={cmGranularity}
-                      onChange={setCmGranularity}
-                      t={t}
-                    />
-                    <AppSeriesChartViewToggle
-                      value={cmChartType}
-                      onChange={setCmChartType}
-                      t={t}
-                    />
-                  </>
-                }
-              />
-              {channelTimeSeriesError ? (
-                <p className="rounded-md px-2 py-6 text-sm text-text-secondary">
-                  {t('reportsMonthlyLoadError')}
-                </p>
-              ) : channelTimeSeriesLoading && !channelTimeSeries ? (
-                <Skeleton className="h-80 w-full rounded-md" />
-              ) : (
-                <ChannelsCmChart
-                  startDate={startDate}
-                  endDate={endDate}
-                  granularity={cmGranularity}
-                  rows={channelTimeSeries?.rows ?? []}
-                  formatValue={formatInDisplay}
-                  convertValue={convertFromBase}
-                  currency={effectiveDisplayCurrency}
-                  dateLocale={dateLocale}
-                  platforms={displayedPlatforms}
-                  t={t}
-                  cmIncomplete={cmIncomplete}
-                  chartType={cmChartType}
-                />
-              )}
-            </SectionContainer>
-
-            <SectionContainer framed>
-              <ChartSectionHeader
-                title={t('channelsCostStructureTitle')}
-                calcDescription={t('channelsCostStructureCalcDescription')}
-                calcFormulaLeft={t('channelsCostStructureCalcLeft')}
-                calcFormulaParts={[t('channelsCostStructureCalcFormula')]}
-              />
+              <ChartSectionHeader title={t('channelsNetSalesSplitTitle')} />
               <ChannelsCostStructureChart
                 metrics={currentAgg}
                 platforms={displayedPlatforms}
                 t={t}
               />
             </SectionContainer>
-          </div>
-
-          <ChannelsSettlementTable
-            metrics={settlementAgg}
-            platforms={displayedPlatforms}
-            formatMoney={formatConverted}
-            t={t}
-          />
+          ) : null}
+          <p className="mb-8 text-xs text-text-tertiary">{dataNote}</p>
         </div>
       )}
     </DashboardPage>

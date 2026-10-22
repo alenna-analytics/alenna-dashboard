@@ -1,60 +1,38 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
-import { enUS } from 'date-fns/locale/en-US'
-import { es as esLocale } from 'date-fns/locale/es'
+import { useMemo, type ReactNode } from 'react'
 
 import { usePlatformConnectionsQuery } from '@/hooks/use-platform-connections-query'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductLinkGroupApi } from '@/lib/types/product-links'
-import type { RevenueSeriesGranularity } from '@/lib/types/reports'
-import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
-import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
 import {
-  computePreviousPeriod,
   computeShiftedPreviousPeriod,
+  historyIsComparable,
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
+import { useWorkspace } from '@/shell/providers/workspace-context'
 import { Card, CardContent, CardHeader } from '@/ui/card'
 import { DateRangePicker, type DateRangePickerStrings } from '@/ui/date-range-picker'
 import { FilterComboboxSingle } from '@/ui/filters/filter-combobox-single'
+import { KpiCard } from '@/ui/kpi-card'
 import { Skeleton } from '@/ui/skeleton'
-import type { SeriesChartView } from '@/ui/chart-view-toggle'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
-import { ProductDetailInsightKpiTile } from '../product-detail-insight-kpi-tile'
-import { ProductDetailTrendChart } from '../product-detail-trend-chart'
 import {
-  isProductDetailTrendMetricChartable,
-  PRODUCT_DETAIL_METRIC_COLORS,
-  productDetailTrendMetricLabel,
-  toggleProductDetailTrendMetric,
-  type ProductDetailTrendMetricId,
-} from '../product-detail-trend-metrics'
+  connectionIdsForPlatform,
+} from '../product-detail-analytics-filter'
+import { productPlatformLabel } from '../product-platform-label'
+import { buildChannelCoverRows } from './group-channel-cover'
+import { GroupChannelCoverTable } from './group-channel-cover-table'
+import { formatInsightRange } from './group-weekly-sales'
+import { GroupWeeklyNetSalesChart } from './group-weekly-net-sales-chart'
+import { useGroupInsight } from './use-group-insight'
+import { useProductLinkGroupQuery } from './use-product-link-queries'
 import {
   filterGroupPeriod,
   selectFilteredGroupMembers,
 } from './group-insight-dimension'
-import { useGroupInsight } from './use-group-insight'
-import { useProductLinkGroupQuery } from './use-product-link-queries'
-import { VinculacionInsightDimensionFilter } from './vinculacion-insight-dimension-filter'
 
 type ShellT = (key: ShellStringKey) => string
-
-type VistaAKpiKey =
-  | 'net-sales'
-  | 'gross-profit'
-  | 'channel-margin'
-  | 'cm'
-  | 'units'
-  | 'cm-unit'
-  | 'avg-price'
-  | 'unit-cogs'
-
-const VISTA_A_TREND_METRIC: Partial<Record<VistaAKpiKey, ProductDetailTrendMetricId>> = {
-  'net-sales': 'net-sales',
-  'gross-profit': 'gross-profit',
-  cm: 'net-profit',
-  units: 'units',
-}
 
 type VinculacionGroupAnalyticsProps = {
   group: ProductLinkGroupApi
@@ -69,6 +47,42 @@ type VinculacionGroupAnalyticsProps = {
   setInsightEnd: (value: string) => void
   pickerStrings: DateRangePickerStrings
   insightsFetching: boolean
+}
+
+function fill(template: string, vars: Record<string, string | number>): string {
+  return template.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, name: string) => {
+    const value = vars[name]
+    return value == null ? match : String(value)
+  })
+}
+
+function PlatformDetail({
+  label,
+  lines,
+}: {
+  label: string
+  lines: { id: string; text: string }[]
+}) {
+  if (lines.length === 0) return null
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className="w-fit cursor-default text-left text-[11px] text-text-tertiary underline decoration-dotted underline-offset-2"
+        >
+          {label}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="font-normal">
+        <ul className="space-y-1">
+          {lines.map((line) => (
+            <li key={line.id}>{line.text}</li>
+          ))}
+        </ul>
+      </TooltipContent>
+    </Tooltip>
+  )
 }
 
 export function VinculacionGroupAnalytics({
@@ -86,50 +100,65 @@ export function VinculacionGroupAnalytics({
   insightsFetching,
 }: VinculacionGroupAnalyticsProps) {
   const insight = useGroupInsight()
-  const [granularity, setGranularity] = useState<RevenueSeriesGranularity>('week')
-  const [trendChartType, setTrendChartType] = useState<SeriesChartView>('line')
-  const [selectedMetrics, setSelectedMetrics] = useState<ProductDetailTrendMetricId[]>(['net-sales'])
+  const { me } = useWorkspace()
   const connectionsQuery = usePlatformConnectionsQuery()
-
-  const chartConnectionIds = insight.connectionIdsForActive(connectionsQuery.data)
-  const { period, chartProductIds } = insight
-
-  const dateLocale = lang === 'en' ? enUS : esLocale
+  const today = useMemo(() => new Date(), [])
   const kpiSkeleton = <Skeleton className="mt-0.5 h-6 w-24 max-w-full" aria-hidden />
-  const insightKpi = (value: ReactNode): ReactNode => value
-  const kpiDeltaTooltip = t('homeKpiDeltaTooltip')
 
-  const units = period.units
-  const cmPerUnit = units > 0 ? period.contribution_margin / units : 0
-  const avgPrice = units > 0 ? period.period_net_sales / units : 0
-  const unitCogs = units > 0 ? period.period_cogs / units : 0
+  const channelSelection = useMemo(
+    () =>
+      selectFilteredGroupMembers(group, {
+        dimension: 'channel',
+        channelFilter: insight.channelFilter,
+        productFilter: insight.productFilter,
+      }),
+    [group, insight.channelFilter, insight.productFilter],
+  )
+  const filteredMembers = channelSelection.members
+  const allSelected = channelSelection.allSelected
+  const period = useMemo(
+    () => filterGroupPeriod(group, filteredMembers, allSelected),
+    [allSelected, filteredMembers, group],
+  )
+  const chartProductIds = useMemo(
+    () => filteredMembers.map((member) => member.product_id),
+    [filteredMembers],
+  )
+  const chartConnectionIds = useMemo(
+    () => connectionIdsForPlatform(connectionsQuery.data, insight.channelFilter),
+    [connectionsQuery.data, insight.channelFilter],
+  )
 
-  const trendPrevPeriod = useMemo(() => {
-    if (granularity === 'month') return computePreviousPeriod(insightStart, insightEnd)
-    return computeShiftedPreviousPeriod(insightStart, insightEnd)
-  }, [granularity, insightEnd, insightStart])
+  const coverRows = useMemo(
+    () => buildChannelCoverRows(group, filteredMembers, today),
+    [filteredMembers, group, today],
+  )
+  const channelRows = coverRows.filter((row) => !row.isTotal)
+  const totalRow = coverRows.find((row) => row.isTotal)
+
+  const units = useMemo(() => {
+    if (allSelected) {
+      const sold = group.period_gross_units_sold
+      const net = group.period_net_units_sold
+      return { net, sold, returned: Math.max(0, sold - net) }
+    }
+    const sold = filteredMembers.reduce((sum, member) => sum + member.period_gross_units_sold, 0)
+    const net = filteredMembers.reduce((sum, member) => sum + member.period_net_units_sold, 0)
+    return { net, sold, returned: Math.max(0, sold - net) }
+  }, [allSelected, filteredMembers, group.period_gross_units_sold, group.period_net_units_sold])
 
   const kpiPrevPeriod = useMemo(
     () => computeShiftedPreviousPeriod(insightStart, insightEnd),
     [insightEnd, insightStart],
   )
 
-  const { data: series, isError } = useMonthlyRevenueSeries({
+  const { data: series, isError, isFetching: seriesFetching } = useMonthlyRevenueSeries({
     productIds: chartProductIds,
     connectionIds: chartConnectionIds,
     startDate: insightStart,
     endDate: insightEnd,
-    granularity,
+    granularity: 'week',
     enabled: chartProductIds.length > 0 && Boolean(insightStart && insightEnd),
-  })
-
-  const { data: seriesPrev } = useMonthlyRevenueSeries({
-    productIds: chartProductIds,
-    connectionIds: chartConnectionIds,
-    startDate: trendPrevPeriod?.start ?? '',
-    endDate: trendPrevPeriod?.end ?? '',
-    granularity,
-    enabled: chartProductIds.length > 0 && Boolean(trendPrevPeriod),
   })
 
   const prevGroupQuery = useProductLinkGroupQuery(
@@ -138,176 +167,105 @@ export function VinculacionGroupAnalytics({
     kpiPrevPeriod?.end ?? '',
   )
 
-  const filteredPrevPeriod = useMemo(() => {
+  const filteredPrevNetSales = useMemo(() => {
     const prevGroup = prevGroupQuery.data
     if (!prevGroup) return null
-    const { members, allSelected } = selectFilteredGroupMembers(prevGroup, {
-      dimension: insight.dimension,
+    const { members, allSelected: prevAll } = selectFilteredGroupMembers(prevGroup, {
+      dimension: 'channel',
       channelFilter: insight.channelFilter,
       productFilter: insight.productFilter,
     })
-    return filterGroupPeriod(prevGroup, members, allSelected)
+    if (prevAll) return prevGroup.period_net_sales
+    return members.reduce((sum, member) => sum + member.period_net_sales, 0)
   }, [
     insight.channelFilter,
-    insight.dimension,
     insight.productFilter,
     prevGroupQuery.data,
   ])
 
   const previousReady = Boolean(kpiPrevPeriod) && !prevGroupQuery.isLoading
-  const prevUnits = filteredPrevPeriod?.units
-  const prevCmPerUnit =
-    filteredPrevPeriod != null && prevUnits != null && prevUnits > 0
-      ? filteredPrevPeriod.contribution_margin / prevUnits
-      : undefined
-  const prevAvgPrice =
-    filteredPrevPeriod != null && prevUnits != null && prevUnits > 0
-      ? filteredPrevPeriod.period_net_sales / prevUnits
-      : undefined
-  const prevUnitCogs =
-    filteredPrevPeriod != null && prevUnits != null && prevUnits > 0
-      ? filteredPrevPeriod.period_cogs / prevUnits
-      : undefined
+  const comparableHistory = historyIsComparable({
+    previousValue: filteredPrevNetSales,
+    firstActivity: group.first_order_date,
+    previousStart: kpiPrevPeriod?.start,
+  })
+  const salesDelta =
+    previousReady && comparableHistory && filteredPrevNetSales != null
+      ? pctVersusPrevious(period.period_net_sales, filteredPrevNetSales)
+      : null
 
-  function growthBlock(current: number, previous: number | undefined) {
-    const priorUnavailable =
-      !previousReady ||
-      previous === undefined ||
-      !Number.isFinite(previous) ||
-      (previous === 0 && current !== 0)
-    const delta =
-      previous !== undefined && previousReady && Number.isFinite(previous)
-        ? pctVersusPrevious(current, previous)
-        : null
-    return {
-      pct: delta?.pct ?? null,
-      trend: delta?.trend ?? ('flat' as const),
-      unavailable: priorUnavailable,
-    }
-  }
+  const velocityLabel = t('productsGroupAnalyticsVelocity')
+  const daysLabel = t('productsDetailKpiInventoryDays')
+  const unitSuffix = t('productsGroupAnalyticsUnitSuffix')
+  const perDay = t('productsDetailInventoryVelocityUnit')
+  const daysSuffix = t('productsDetailKpiInventoryDaysSuffix')
+  const platformDetailLabel = t('productsGroupAnalyticsPlatformDetail')
 
-  const growthByKey: Record<
-    VistaAKpiKey,
-    { pct: number | null; trend: 'up' | 'down' | 'flat'; unavailable: boolean }
-  > = {
-    'net-sales': growthBlock(period.period_net_sales, filteredPrevPeriod?.period_net_sales),
-    'gross-profit': growthBlock(
-      period.period_gross_profit,
-      filteredPrevPeriod?.period_gross_profit,
-    ),
-    'channel-margin': growthBlock(period.channel_margin, filteredPrevPeriod?.channel_margin),
-    cm: growthBlock(period.contribution_margin, filteredPrevPeriod?.contribution_margin),
-    units: growthBlock(units, prevUnits),
-    'cm-unit': growthBlock(cmPerUnit, prevCmPerUnit),
-    'avg-price': growthBlock(avgPrice, prevAvgPrice),
-    'unit-cogs': growthBlock(unitCogs, prevUnitCogs),
-  }
+  const velocityLines = channelRows
+    .filter((row) => row.velocity != null && row.velocity > 0)
+    .map((row) => ({
+      id: row.id,
+      text: `${productPlatformLabel(row.platform, t)} ${row.velocity?.toLocaleString(undefined, {
+        maximumFractionDigits: 1,
+        minimumFractionDigits: 1,
+      })} ${perDay}`,
+    }))
+  const daysLines = channelRows
+    .filter((row) => row.inventoryDays != null)
+    .map((row) => ({
+      id: row.id,
+      text: `${productPlatformLabel(row.platform, t)} ${row.inventoryDays?.toLocaleString(undefined, {
+        maximumFractionDigits: 1,
+        minimumFractionDigits: 1,
+      })} ${daysSuffix}`,
+    }))
 
-  const onVistaAClick = useCallback((key: VistaAKpiKey) => {
-    const metricId = VISTA_A_TREND_METRIC[key]
-    if (!metricId || !isProductDetailTrendMetricChartable(metricId)) return
-    setSelectedMetrics((prev) => toggleProductDetailTrendMetric(prev, metricId))
-  }, [])
+  const velocityValue =
+    totalRow?.velocity != null
+      ? `${totalRow.velocity.toLocaleString(undefined, {
+          maximumFractionDigits: 1,
+          minimumFractionDigits: 1,
+        })} ${perDay}`
+      : t('productsDetailKpiNoData')
+  const daysValue =
+    totalRow?.inventoryDays != null
+      ? `${totalRow.inventoryDays.toLocaleString(undefined, {
+          maximumFractionDigits: 1,
+          minimumFractionDigits: 1,
+        })} ${daysSuffix}`
+      : t('productsDetailKpiNoData')
 
-  function vistaATileProps(key: VistaAKpiKey) {
-    const metricId = VISTA_A_TREND_METRIC[key]
-    const selectable = Boolean(metricId && isProductDetailTrendMetricChartable(metricId))
-    return {
-      selectable,
-      selected: Boolean(metricId && selectedMetrics.includes(metricId)),
-      accentColor: metricId ? PRODUCT_DETAIL_METRIC_COLORS[metricId] : undefined,
-      onSelect: selectable ? () => onVistaAClick(key) : undefined,
-    }
-  }
-
-  const vistaAPrimary: Array<{
-    key: VistaAKpiKey
-    label: string
-    helpText?: string
-    helpFormulaLeft?: string
-    helpFormulaParts?: readonly string[]
-    value: ReactNode
-    currencyCode?: string
-    numericValue?: number
-    ratePct?: number
-  }> = [
-    {
-      key: 'net-sales',
-      label: t('productsDetailPlatformPaymentNetSales'),
-      value: insightKpi(fmtCard(period.period_net_sales)),
-      currencyCode: baseCurrency,
-      numericValue: period.period_net_sales,
-    },
-    {
-      key: 'gross-profit',
-      label: t('reportsWfGrossProfit'),
-      value: insightKpi(fmtCard(period.period_gross_profit)),
-      currencyCode: baseCurrency,
-      numericValue: period.period_gross_profit,
-      ratePct: period.gross_margin_pct,
-    },
-    {
-      key: 'channel-margin',
-      label: t('productsDetailChannelMargin'),
-      helpText: t('productsDetailChannelMarginHelp'),
-      helpFormulaLeft: t('productsDetailChannelMarginHelpCalcLeft'),
-      helpFormulaParts: [t('productsDetailChannelMarginHelpCalcPart')],
-      value: insightKpi(fmtCard(period.channel_margin)),
-      currencyCode: baseCurrency,
-      numericValue: period.channel_margin,
-      ratePct: period.channel_margin_pct,
-    },
-    {
-      key: 'cm',
-      label: t('reportsNetProfit'),
-      value: insightKpi(fmtCard(period.contribution_margin)),
-      currencyCode: baseCurrency,
-      numericValue: period.contribution_margin,
-      ratePct: period.contribution_margin_pct,
-    },
+  const tenantName = me?.tenant_name?.trim() || t('shellSidebarWorkspaceFallback')
+  const rangeLabel = formatInsightRange(insightStart, insightEnd, lang)
+  const dataNote = [
+    fill(t('productsGroupAnalyticsDataNote'), { tenant: tenantName, range: rangeLabel }),
+    previousReady && !comparableHistory ? t('productsGroupAnalyticsNoCompareReason') : null,
   ]
+    .filter(Boolean)
+    .join(' ')
 
-  const vistaASecondary: Array<{
-    key: VistaAKpiKey
-    label: string
-    value: ReactNode
-    currencyCode?: string
-    numericValue?: number
-  }> = [
-    {
-      key: 'units',
-      label: productDetailTrendMetricLabel('units', t),
-      value: insightKpi(units.toLocaleString()),
-    },
-    {
-      key: 'cm-unit',
-      label: t('productsDetailCmPerUnit'),
-      value: insightKpi(fmtCard(cmPerUnit)),
-      currencyCode: baseCurrency,
-      numericValue: cmPerUnit,
-    },
-    {
-      key: 'avg-price',
-      label: t('productsDetailAvgPrice'),
-      value: insightKpi(fmtCard(avgPrice)),
-      currencyCode: baseCurrency,
-      numericValue: avgPrice,
-    },
-    {
-      key: 'unit-cogs',
-      label: t('productsDetailUnitCogs'),
-      value: insightKpi(fmtCard(unitCogs)),
-      currencyCode: baseCurrency,
-      numericValue: unitCogs,
-    },
-  ]
-
-  const byProduct = insight.dimension === 'product'
+  const salesFooter: ReactNode = !previousReady ? (
+    <Skeleton className="h-3 w-28" aria-hidden />
+  ) : comparableHistory && salesDelta ? (
+    <span
+      className={
+        salesDelta.trend === 'up'
+          ? 'text-[var(--kpi-pill-positive-text)]'
+          : salesDelta.trend === 'down'
+            ? 'text-[var(--kpi-pill-negative-text)]'
+            : 'text-text-tertiary'
+      }
+    >
+      {`${salesDelta.pct > 0 ? '+' : ''}${salesDelta.pct.toFixed(1)}%`}
+    </span>
+  ) : (
+    <span className="text-text-tertiary">{t('productsGroupAnalyticsNoHistory')}</span>
+  )
 
   return (
-    <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
-      <CardHeader className="flex flex-col gap-3 p-0">
-        <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+    <div className="flex flex-col gap-8">
+      <Card className="rounded-none border-none p-0 shadow-none hover:shadow-none">
+        <CardHeader className="flex flex-col gap-3 p-0">
           <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
             <DateRangePicker
               strings={pickerStrings}
@@ -317,106 +275,89 @@ export function VinculacionGroupAnalytics({
               onEndChange={(v) => v && setInsightEnd(v)}
               className="w-full max-w-md"
             />
-            {byProduct ? (
-              <FilterComboboxSingle
-                label={t('productsColProduct')}
-                options={insight.productOptions}
-                value={insight.productFilter}
-                onValueChange={insight.setProductFilter}
-                searchPlaceholder={t('productsSearchPlaceholder')}
-                emptyLabel={t('productsVinculacionPickerEmpty')}
-                allowClear={false}
-                triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
-              />
-            ) : (
-              <FilterComboboxSingle
-                label={t('homeFilterChannels')}
-                options={insight.channelOptions}
-                value={insight.channelFilter}
-                onValueChange={insight.setChannelFilter}
-                searchPlaceholder={t('homeFilterChannelsSearch')}
-                emptyLabel={t('homeFilterChannelsEmpty')}
-                allowClear={false}
-                triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
-              />
-            )}
+            <FilterComboboxSingle
+              label={t('homeFilterChannels')}
+              options={insight.channelOptions}
+              value={insight.channelFilter}
+              onValueChange={insight.setChannelFilter}
+              searchPlaceholder={t('homeFilterChannelsSearch')}
+              emptyLabel={t('homeFilterChannelsEmpty')}
+              allowClear={false}
+              triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
+            />
           </div>
-          <VinculacionInsightDimensionFilter
-            value={insight.dimension}
-            onChange={insight.setDimension}
-            t={t}
-            switchId="group-insight-dimension-analytics"
-            className="shrink-0 self-end"
-          />
-        </div>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4 p-0 pt-4">
-        <div className="grid grid-cols-1 items-stretch gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
-          {vistaAPrimary.map((kpi) => (
-            <ProductDetailInsightKpiTile
-              key={kpi.key}
-              label={kpi.label}
-              helpText={kpi.helpText}
-              helpFormulaLeft={kpi.helpFormulaLeft}
-              helpFormulaParts={kpi.helpFormulaParts}
-              showValues
-              isFetching={insightsFetching}
-              skeleton={kpiSkeleton}
-              numericValue={kpi.numericValue}
-              currencyCode={kpi.currencyCode}
-              ratePct={kpi.ratePct}
-              growthPct={growthByKey[kpi.key].pct}
-              growthTrend={growthByKey[kpi.key].trend}
-              growthUnavailable={growthByKey[kpi.key].unavailable}
-              growthTooltip={kpiDeltaTooltip}
-              value={kpi.value}
-              {...vistaATileProps(kpi.key)}
+        </CardHeader>
+        <CardContent className="flex flex-col gap-6 p-0 pt-4">
+          <div className="grid grid-cols-1 items-stretch gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
+            <KpiCard
+              className="h-full"
+              label={t('productsDetailPlatformPaymentNetSales')}
+              value={insightsFetching ? kpiSkeleton : fmtCard(period.period_net_sales)}
+              currencyCode={insightsFetching ? undefined : baseCurrency}
+              showComparison={false}
+              footerClassName="text-xs"
+              footer={salesFooter}
             />
-          ))}
-        </div>
-        <div className="grid grid-cols-1 items-stretch gap-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
-          {vistaASecondary.map((kpi) => (
-            <ProductDetailInsightKpiTile
-              key={kpi.key}
-              label={kpi.label}
-              showValues
-              isFetching={insightsFetching}
-              skeleton={kpiSkeleton}
-              numericValue={kpi.numericValue}
-              currencyCode={kpi.currencyCode}
-              growthPct={growthByKey[kpi.key].pct}
-              growthTrend={growthByKey[kpi.key].trend}
-              growthUnavailable={growthByKey[kpi.key].unavailable}
-              growthTooltip={kpiDeltaTooltip}
-              value={kpi.value}
-              {...vistaATileProps(kpi.key)}
+            <KpiCard
+              className="h-full"
+              label={t('productsDetailKpiNetUnitsSold')}
+              value={
+                insightsFetching
+                  ? kpiSkeleton
+                  : `${units.net.toLocaleString()} ${unitSuffix}`
+              }
+              showComparison={false}
+              footerClassName="text-xs"
+              footer={
+                <span className="text-text-tertiary">
+                  {fill(t('productsGroupAnalyticsUnitsBreakdown'), {
+                    sold: units.sold.toLocaleString(),
+                    returned: units.returned.toLocaleString(),
+                  })}
+                </span>
+              }
             />
-          ))}
-        </div>
-        <div className="flex justify-end gap-2">
-          <ChartGranularityFilter value={granularity} onChange={setGranularity} t={t} />
-          <AppSeriesChartViewToggle value={trendChartType} onChange={setTrendChartType} t={t} />
-        </div>
-        {isError ? (
-          <p className="text-sm text-destructive">{t('reportsMonthlyLoadError')}</p>
-        ) : (
-          <ProductDetailTrendChart
-            startDate={insightStart}
-            endDate={insightEnd}
-            granularity={granularity}
+            <KpiCard
+              className="h-full"
+              label={velocityLabel}
+              value={insightsFetching ? kpiSkeleton : velocityValue}
+              showComparison={false}
+              footerClassName="text-xs"
+              footer={
+                <PlatformDetail label={platformDetailLabel} lines={velocityLines} />
+              }
+            />
+            <KpiCard
+              className="h-full"
+              label={daysLabel}
+              value={insightsFetching ? kpiSkeleton : daysValue}
+              showComparison={false}
+              footerClassName="text-xs"
+              footer={<PlatformDetail label={platformDetailLabel} lines={daysLines} />}
+            />
+          </div>
+          <GroupWeeklyNetSalesChart
             rows={series?.months ?? []}
-            prevStart={trendPrevPeriod?.start}
-            prevEnd={trendPrevPeriod?.end}
-            rowsPrev={seriesPrev?.months ?? []}
-            comparePrevious={Boolean(trendPrevPeriod && seriesPrev)}
-            selectedMetrics={selectedMetrics}
+            start={insightStart}
+            end={insightEnd}
+            lang={lang}
+            today={today}
             formatMoney={fmtBase}
-            dateLocale={dateLocale}
             t={t}
-            chartType={trendChartType}
+            isLoading={seriesFetching && !series}
+            isError={isError}
           />
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      <GroupChannelCoverTable
+        group={group}
+        members={filteredMembers}
+        lang={lang}
+        t={t}
+        today={today}
+        isFetching={insightsFetching}
+      />
+      <p className="mb-16 text-xs text-text-tertiary">{dataNote}</p>
+    </div>
   )
 }

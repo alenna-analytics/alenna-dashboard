@@ -1,22 +1,16 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductDetailApi } from '@/lib/types/catalog'
 import type { DateRangePickerStrings } from '@/ui/date-range-picker'
 import { Card, CardContent } from '@/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs'
-import { ProductDetailAnalyticsSection } from './product-detail-analytics-section'
-import { ProductDetailChannelPnlMatrix } from './product-detail-channel-pnl-matrix'
-import { ProductDetailInventoryByChannel } from './product-detail-inventory-by-channel'
-import { ProductDetailPlatformPaymentSection } from './product-detail-platform-payment-section'
+import { ProductDetailAnalysisView } from './product-detail-analysis-view'
+import { PRODUCT_DETAIL_ALL_CHANNELS } from './product-detail-analytics-filter'
+import { ProductDetailRentabilidadView } from './product-detail-rentabilidad-view'
 import { ProductDetailVariantsTable } from './product-detail-variants-table'
 import { ProductDetailConfigSection } from './product-detail-config-section'
 import { ProductDetailRelatedSection } from './product-detail-related-section'
-import {
-  buildProductPnlWaterfallSegments,
-  productPnlWaterfallSourceFromDetail,
-} from './product-detail-pnl-waterfall-segments'
-import { ProductDetailWaterfallBlock } from './product-detail-waterfall-block'
 import type { ProductCostPriceChartData } from './product-cost-chart-points'
 
 type ProductDetailTabId =
@@ -79,14 +73,11 @@ export function ProductDetailSections({
   costAmountWithBaseCode,
   fmtBase,
   fmtCard,
-  displayCurrency,
   insightStart,
   insightEnd,
   setInsightStart,
   setInsightEnd,
   pickerStrings,
-  showInsightValues,
-  insightKpi,
   insightsFetching,
   onEditCost,
   onOpenVariantCostEditor,
@@ -96,6 +87,7 @@ export function ProductDetailSections({
   const showCogsTab = !hasVariants
   const showRelatedTab = Boolean(detail.link_group_id)
   const [tab, setTab] = useState<ProductDetailTabId>('analytics')
+  const [channelFilter, setChannelFilter] = useState(PRODUCT_DETAIL_ALL_CHANNELS)
   const visibleTabs: ProductDetailTabId[] = [
     'analytics',
     'platform-payment',
@@ -104,11 +96,6 @@ export function ProductDetailSections({
     ...(showRelatedTab ? (['related'] as const) : []),
   ]
   const activeTab = visibleTabs.includes(tab) ? tab : 'analytics'
-  const pnlSegments = useMemo(
-    () =>
-      buildProductPnlWaterfallSegments(productPnlWaterfallSourceFromDetail(detail), t),
-    [detail, t],
-  )
 
   return (
     <div className="flex flex-col gap-4">
@@ -143,7 +130,7 @@ export function ProductDetailSections({
         <div className="relative mt-6 grid w-full grid-cols-1 overflow-hidden">
         <TabsContent value="analytics">
           <div className="flex flex-col gap-8">
-            <ProductDetailAnalyticsSection
+            <ProductDetailAnalysisView
               productId={productId}
               lang={lang}
               detail={detail}
@@ -155,56 +142,30 @@ export function ProductDetailSections({
               insightEnd={insightEnd}
               setInsightStart={setInsightStart}
               setInsightEnd={setInsightEnd}
+              channelFilter={channelFilter}
+              setChannelFilter={setChannelFilter}
               pickerStrings={pickerStrings}
-              showInsightValues={showInsightValues}
-              insightKpi={insightKpi}
               insightsFetching={insightsFetching}
-              showSectionTitle={false}
-            />
-
-            <ProductDetailWaterfallBlock
-              title={t('productsDetailPnlAnalyticsTitle')}
-              description={t('productsDetailPnlAnalyticsDescription')}
-              segments={pnlSegments}
-              currency={baseCurrency}
-              grossRevenue={detail.period_gross_sales}
-              t={t}
-              finalBarCaption={t('productsDetailPnlFinalHint')}
-              isLoading={insightsFetching}
-            />
-
-            <ProductDetailChannelPnlMatrix
-              detail={detail}
-              t={t}
-              fmtBase={fmtBase}
-              isFetching={insightsFetching}
-            />
-
-            <ProductDetailInventoryByChannel
-              detail={detail}
-              t={t}
-              isFetching={insightsFetching}
             />
           </div>
         </TabsContent>
 
         <TabsContent value="platform-payment">
-          <ProductDetailPlatformPaymentSection
+          <ProductDetailRentabilidadView
             productId={productId}
             lang={lang}
             detail={detail}
-            isFetching={insightsFetching}
             t={t}
-            fmtBase={fmtBase}
+            baseCurrency={baseCurrency}
             fmtCard={fmtCard}
-            currencyCode={displayCurrency}
             insightStart={insightStart}
             insightEnd={insightEnd}
             setInsightStart={setInsightStart}
             setInsightEnd={setInsightEnd}
+            channelFilter={channelFilter}
+            setChannelFilter={setChannelFilter}
             pickerStrings={pickerStrings}
-            showInsightValues={showInsightValues}
-            insightKpi={insightKpi}
+            insightsFetching={insightsFetching}
           />
         </TabsContent>
 

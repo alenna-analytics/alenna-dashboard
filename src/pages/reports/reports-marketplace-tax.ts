@@ -28,12 +28,14 @@ export function buildMarketplaceAwareTaxesEstimated(
   const byPlatform = estimateTaxByPlatform(metrics, platforms, rates)
   const total: PlatformTaxEstimate = byPlatform.total
   let marketplaceBase = 0
+  const ivaDivisor =
+    rates.transferred_iva_pct > 0 ? 1 + rates.transferred_iva_pct / 100 : 1
   for (const platform of platforms) {
     const slug = platform.marketplaceSlug ?? platform.slug
     if (!platformWithholdsMarketplaceTax(slug)) continue
-    marketplaceBase = roundMoney(
-      marketplaceBase + (metrics[platform.slug]?.gross_revenue ?? 0),
-    )
+    const net = metrics[platform.slug]?.net_revenue ?? 0
+    const exIva = net > 0 ? net / ivaDivisor : 0
+    marketplaceBase = roundMoney(marketplaceBase + exIva)
   }
   return {
     withholding_isr: total.withholding_isr,
@@ -42,7 +44,7 @@ export function buildMarketplaceAwareTaxesEstimated(
     transferred_iva: 0,
     expected_net_cash: roundMoney(ebitda - total.withholding_total),
     base_amount: marketplaceBase,
-    base_field: 'gross_revenue',
+    base_field: 'net_revenue_ex_iva',
     formula_version: 'v0-placeholder-marketplace',
     settings: {
       withholding_isr_pct: rates.withholding_isr_pct,

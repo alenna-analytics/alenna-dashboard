@@ -67,7 +67,7 @@ export function ProductDetailHeader({
         />
       </div>
 
-      <ProductDetailStockAlert detail={detail} productId={productId} t={t} />
+      <ProductDetailStockAlert detail={detail} productId={productId} lang={lang} t={t} />
     </div>
   )
 }

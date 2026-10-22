@@ -7,10 +7,8 @@ import {
 
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import {
-  attributedRoas,
   type AdsNetworkId,
   type PlatformAdsRollup,
-  tacosPct,
 } from '@/pages/channels/channels-ads-by-platform'
 import {
   type ChannelPlatform,
@@ -24,7 +22,7 @@ import {
   truncateProductHeaderLabel,
 } from '@/pages/channels/channels-product-header-label'
 import type { PnlRowId } from '@/pages/reports/reports-pnl-rows'
-import { SectionSplit } from '@/pages/reports/report-ui'
+import { SettingsSectionHeader } from '@/pages/configuration/settings-layout'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
@@ -50,19 +48,35 @@ type ChannelsPnlLineId =
   | 'ads_amazon'
   | 'ads_ml'
   | 'ads_other'
+  | 'fee_referral'
+  | 'fee_fba'
+  | 'fee_ml_sale'
+  | 'fee_untracked'
+  | 'fixed_opex'
+  | 'ebitda'
+  | 'ebitda_pct'
+  | 'gross_margin_pct'
+  | 'channel_margin_pct'
+  | 'cm_pct'
   | 'tacos'
   | 'roas'
 
 type PnlLine = {
   id: ChannelsPnlLineId
   labelKey: ShellStringKey
+  hintKey?: ShellStringKey
   kind: 'line' | 'subtotal' | 'total' | 'subrow'
   isDeduction?: boolean
   isNoData?: boolean
   indent?: boolean
-  format: 'money' | 'count' | 'pct' | 'ratio'
+  format: 'money' | 'count' | 'pct' | 'ratio' | 'text'
+  /** Shown instead of the number. `null` falls through to the numeric format. */
+  textValue?: (m: PlatformMetrics, colSlug: string) => string | null
+  /** Gross-margin style: blank the percent when this column has no COGS. */
+  blankWhenCogsMissing?: boolean
+  /** Append * when this column's COGS is missing. */
+  starWhenCogsMissing?: boolean
   value: (m: PlatformMetrics, colSlug: string) => number | null
-  marginPct?: (m: PlatformMetrics) => number | null
 }
 
 const FEE_PLATFORM_SLUG: Record<string, string> = {
@@ -123,7 +137,15 @@ const CORE_BEFORE_FEES: PnlLine[] = [
     kind: 'subtotal',
     format: 'money',
     value: (m) => m.gross_profit,
-    marginPct: (m) => grossMarginPct(m),
+  },
+  {
+    id: 'gross_margin_pct',
+    labelKey: 'reportsKpiMargenBrutoPct',
+    kind: 'line',
+    format: 'pct',
+    blankWhenCogsMissing: true,
+    starWhenCogsMissing: true,
+    value: (m) => (m.net_revenue === 0 ? null : grossMarginPct(m)),
   },
   {
     id: 'platform_fees',
@@ -156,7 +178,14 @@ const AFTER_FEES: PnlLine[] = [
     kind: 'subtotal',
     format: 'money',
     value: (m) => channelMarginAmount(m),
-    marginPct: (m) => channelMarginPct(m),
+  },
+  {
+    id: 'channel_margin_pct',
+    labelKey: 'productsGroupPnlChannelMarginPct',
+    kind: 'line',
+    format: 'pct',
+    starWhenCogsMissing: true,
+    value: (m) => channelMarginPct(m),
   },
   {
     id: 'ads_spend',
@@ -176,7 +205,7 @@ const ADS_SUBROW_DEFS: Array<{
   { id: 'ads_google', labelKey: 'channelsAdsGoogle' },
   { id: 'ads_meta', labelKey: 'channelsAdsMeta', alwaysNull: true },
   { id: 'ads_amazon', labelKey: 'channelsAdsAmazon' },
-  { id: 'ads_ml', labelKey: 'channelsAdsMl' },
+  { id: 'ads_ml', labelKey: 'channelsAdsMercado' },
   { id: 'ads_other', labelKey: 'channelsAdsOtherUnlinked' },
 ]
 
@@ -187,7 +216,14 @@ const AFTER_ADS: PnlLine[] = [
     kind: 'total',
     format: 'money',
     value: (m) => m.contribution_margin,
-    marginPct: (m) => m.contribution_margin_pct,
+  },
+  {
+    id: 'cm_pct',
+    labelKey: 'productsGroupPnlCmPct',
+    kind: 'line',
+    format: 'pct',
+    starWhenCogsMissing: true,
+    value: (m) => (m.net_revenue === 0 ? null : m.contribution_margin_pct),
   },
 ]
 
@@ -229,10 +265,17 @@ const columnHelper = createColumnHelper<PnlLine>()
 
 export type ChannelsPnlDetailLevel = 'full' | 'core'
 
+function wholeAmount(value: number, deduction: boolean, currency?: string): string {
+  if (Math.abs(value) < 0.5) return '—'
+  const rounded = Math.round(Math.abs(value))
+  const text = rounded.toLocaleString()
+  const withCurrency = currency ? `${text} ${currency}` : text
+  return deduction ? `−${withCurrency}` : withCurrency
+}
+
 type ChannelsPnlTableProps = {
   metrics: Record<string, PlatformMetrics>
   platforms: ChannelPlatform[]
-  formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
   labelForRow: (id: PnlRowId) => string
   cmIncomplete?: boolean
@@ -241,10 +284,31 @@ type ChannelsPnlTableProps = {
   detailLevel?: ChannelsPnlDetailLevel
   adsByPlatform?: Record<string, PlatformAdsRollup>
   tenantAdsSpend?: number
+  /** Line ids whose Total cell stays blank when Channels and Reports disagree. */
+  blankTotalLineIds?: readonly string[]
+  amountBasis?: 'money' | 'pct'
+  /** ISO code of the amounts, shown after each money figure. */
+  currency?: string
+  /** Day-prorated fixed costs. Shown only on the Total column. */
+  fixedOperatingExpenses?: number | null
 }
 
 function emphasisClass(kind: PnlLine['kind']): string {
   return kind === 'subtotal' || kind === 'total' ? 'font-semibold' : ''
+}
+
+function cogsMissing(metric: PlatformMetrics | undefined): boolean {
+  if (!metric) return false
+  return metric.net_revenue > 0.5 && Math.abs(metric.cogs) < 0.5
+}
+
+function isAmazon(slug: string): boolean {
+  return slug.trim().toLowerCase() === 'amazon'
+}
+
+function isMercadoLibre(slug: string): boolean {
+  const normalized = slug.trim().toLowerCase().replace(/_/g, '')
+  return normalized === 'mercadolibre' || normalized === 'meli'
 }
 
 function emptyMetricsStub(platform: string): PlatformMetrics {
@@ -270,7 +334,6 @@ function emptyMetricsStub(platform: string): PlatformMetrics {
 export function ChannelsPnlTable({
   metrics,
   platforms,
-  formatMoney,
   t,
   labelForRow,
   cmIncomplete = false,
@@ -279,20 +342,92 @@ export function ChannelsPnlTable({
   detailLevel = 'core',
   adsByPlatform,
   tenantAdsSpend = 0,
+  blankTotalLineIds = [],
+  amountBasis = 'money',
+  currency,
+  fixedOperatingExpenses = null,
 }: ChannelsPnlTableProps) {
   const byProduct = breakdown === 'product'
   const full = detailLevel === 'full'
 
   const lines = useMemo(() => {
-    const footer = footerMode === 'units' ? FOOTER_UNITS : FOOTER_ORDERS
+    const footer =
+      footerMode === 'units' ? FOOTER_UNITS : [...FOOTER_ORDERS, FOOTER_UNITS[0]]
     if (!full) {
       return [...CORE_BEFORE_FEES, ...AFTER_FEES, ...AFTER_ADS, ...footer]
     }
 
     const presentSlugs = new Set(platforms.map((p) => p.slug))
-    const feeRows: PnlLine[] = FEE_SUBROW_DEFS.filter((def) => {
+    const feeAmount = (slug: string, pick: 'referral_fees' | 'fulfillment_fees') =>
+      metrics[slug]?.[pick] ?? 0
+    const amazonSlug = platforms.find((platform) => isAmazon(platform.slug))?.slug
+    const mlSlug = platforms.find((platform) => isMercadoLibre(platform.slug))?.slug
+    const feeCandidates: Array<PnlLine | null> = [
+      amazonSlug && Math.abs(feeAmount(amazonSlug, 'referral_fees')) >= 0.5
+        ? {
+            id: 'fee_referral',
+            labelKey: 'channelsFeeReferral',
+            kind: 'subrow',
+            isDeduction: true,
+            indent: true,
+            format: 'money',
+            value: (_m: PlatformMetrics, colSlug: string) =>
+              colSlug === 'total' || colSlug === amazonSlug
+                ? feeAmount(amazonSlug, 'referral_fees')
+                : 0,
+          }
+        : null,
+      amazonSlug && Math.abs(feeAmount(amazonSlug, 'fulfillment_fees')) >= 0.5
+        ? {
+            id: 'fee_fba',
+            labelKey: 'channelsFeeFba',
+            kind: 'subrow',
+            isDeduction: true,
+            indent: true,
+            format: 'money',
+            value: (_m: PlatformMetrics, colSlug: string) =>
+              colSlug === 'total' || colSlug === amazonSlug
+                ? feeAmount(amazonSlug, 'fulfillment_fees')
+                : 0,
+          }
+        : null,
+      mlSlug && Math.abs(feeAmount(mlSlug, 'referral_fees')) >= 0.5
+        ? {
+            id: 'fee_ml_sale',
+            labelKey: 'channelsFeeMlSale',
+            kind: 'subrow',
+            isDeduction: true,
+            indent: true,
+            format: 'money',
+            value: (_m: PlatformMetrics, colSlug: string) =>
+              colSlug === 'total' || colSlug === mlSlug ? feeAmount(mlSlug, 'referral_fees') : 0,
+          }
+        : null,
+      amazonSlug
+        ? {
+            id: 'fee_untracked',
+            labelKey: 'channelsFeeUntracked',
+            kind: 'subrow',
+            indent: true,
+            format: 'text',
+            textValue: (_m: PlatformMetrics, colSlug: string) =>
+              colSlug === 'total' || colSlug === amazonSlug ? t('channelsChargesToCapture') : null,
+            value: () => null,
+          }
+        : null,
+    ]
+    const feeRows = feeCandidates.filter((row): row is PnlLine => row != null)
+    const amazonHasSplit =
+      !!amazonSlug &&
+      (Math.abs(feeAmount(amazonSlug, 'referral_fees')) >= 0.5 ||
+        Math.abs(feeAmount(amazonSlug, 'fulfillment_fees')) >= 0.5)
+    const mlHasSplit = !!mlSlug && Math.abs(feeAmount(mlSlug, 'referral_fees')) >= 0.5
+    const legacyFeeRows: PnlLine[] = FEE_SUBROW_DEFS.filter((def) => {
       const slug = FEE_PLATFORM_SLUG[def.id]
-      return slug ? presentSlugs.has(slug) : true
+      if (!slug || !presentSlugs.has(slug)) return false
+      if (slug === 'amazon' && amazonHasSplit) return false
+      if (isMercadoLibre(slug) && mlHasSplit) return false
+      return Math.abs(metrics[slug]?.platform_fees_total ?? 0) >= 0.5
     }).map((def) => {
       const platformSlug = FEE_PLATFORM_SLUG[def.id]
       return {
@@ -315,9 +450,18 @@ export function ChannelsPnlTable({
       }
     })
 
+    const adsNetworkSpend = (network: AdsNetworkId) =>
+      Object.values(adsByPlatform ?? {}).reduce(
+        (sum, rollup) => sum + (rollup.byNetwork[network] ?? 0),
+        0,
+      )
     const adsRows: PnlLine[] = ADS_SUBROW_DEFS.filter((def) => {
-      if (def.id === 'ads_other') return tenantAdsSpend > 0
-      return true
+      if (def.alwaysNull) return false
+      if (def.id === 'ads_other') return false
+      if (def.id === 'ads_google') return adsNetworkSpend('google_ads') >= 0.5
+      if (def.id === 'ads_amazon') return adsNetworkSpend('amazon_ads') >= 0.5
+      if (def.id === 'ads_ml') return adsNetworkSpend('mercadolibre_ads') >= 0.5
+      return false
     }).map((def) => {
       if (def.alwaysNull) {
         return {
@@ -357,37 +501,81 @@ export function ChannelsPnlTable({
       }
     })
 
-    const efficiency: PnlLine[] = [
-      {
-        id: 'tacos',
-        labelKey: 'channelsEfficiencyTacos',
-        kind: 'line',
-        format: 'pct',
-        value: (m) => tacosPct(m.ads_spend, m.net_revenue),
-      },
-      {
-        id: 'roas',
-        labelKey: 'channelsEfficiencyRoas',
-        kind: 'line',
-        format: 'ratio',
-        value: (_m, colSlug) => {
-          const rollup = adsByPlatform?.[colSlug]
-          if (!rollup) return null
-          return attributedRoas(rollup.attributedSales, rollup.linkedSpend)
-        },
-      },
-    ]
+    const beforeFees = CORE_BEFORE_FEES.map((line) =>
+      line.id === 'cogs'
+        ? {
+            ...line,
+            textValue: (metric: PlatformMetrics, colSlug: string) =>
+              colSlug !== 'total' && cogsMissing(metric) ? t('channelsCogsUnloaded') : null,
+          }
+        : line,
+    )
+    const afterFees = AFTER_FEES.map((line) =>
+      line.id === 'merchant_shipping'
+        ? {
+            ...line,
+            textValue: (_metric: PlatformMetrics, colSlug: string) =>
+              isAmazon(colSlug) ? t('channelsShippingIncludedInFba') : null,
+          }
+        : line,
+    )
+    const fixedCosts =
+      fixedOperatingExpenses != null && Math.abs(fixedOperatingExpenses) >= 0.5
+        ? [
+            {
+              id: 'fixed_opex' as const,
+              labelKey: 'channelsFixedCosts' as const,
+              hintKey: 'channelsFixedCostsHint' as const,
+              kind: 'line' as const,
+              isDeduction: true,
+              format: 'money' as const,
+              value: (_metric: PlatformMetrics, colSlug: string) =>
+                colSlug === 'total' ? fixedOperatingExpenses : null,
+            },
+            {
+              id: 'ebitda' as const,
+              labelKey: 'reportsWfEbitda' as const,
+              kind: 'total' as const,
+              format: 'money' as const,
+              value: (metric: PlatformMetrics, colSlug: string) =>
+                colSlug === 'total' ? metric.contribution_margin - fixedOperatingExpenses : null,
+            },
+            {
+              id: 'ebitda_pct' as const,
+              labelKey: 'reportsKpiEbitdaMarginPct' as const,
+              kind: 'line' as const,
+              format: 'pct' as const,
+              starWhenCogsMissing: true,
+              value: (metric: PlatformMetrics, colSlug: string) => {
+                if (colSlug !== 'total' || metric.net_revenue === 0) return null
+                return (
+                  ((metric.contribution_margin - fixedOperatingExpenses) / metric.net_revenue) * 100
+                )
+              },
+            },
+          ]
+        : []
 
     return [
-      ...CORE_BEFORE_FEES,
+      ...beforeFees,
       ...feeRows,
-      ...AFTER_FEES,
+      ...legacyFeeRows,
+      ...afterFees,
       ...adsRows,
       ...AFTER_ADS,
-      ...efficiency,
+      ...fixedCosts,
       ...footer,
     ]
-  }, [adsByPlatform, footerMode, full, metrics, platforms, tenantAdsSpend])
+  }, [
+    adsByPlatform,
+    fixedOperatingExpenses,
+    footerMode,
+    full,
+    metrics,
+    platforms,
+    t,
+    tenantAdsSpend,
+  ])
 
   const cols = useMemo(
     () => [...platforms, { slug: 'total', label: t('channelsColTotal') }],
@@ -400,7 +588,11 @@ export function ChannelsPnlTable({
         id: 'concept',
         ...STATEMENT_CONCEPT_COLUMN_SIZE,
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('reportsPnlColConcept')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('reportsPnlColConcept')}
+            className="text-[#767676]"
+          />
         ),
         cell: ({ row }) => {
           const line = row.original
@@ -409,64 +601,74 @@ export function ChannelsPnlTable({
             !footerIds.has(line.id) &&
             line.kind !== 'subrow' &&
             line.id !== 'tacos' &&
-            line.id !== 'roas'
-          const label =
-            line.id === 'contribution_margin' && cmIncomplete
-              ? t('channelsCmProductScopeLabel')
-              : useResolver
-                ? labelForRow(line.id as PnlRowId)
-                : t(line.labelKey)
+            line.id !== 'roas' &&
+            line.id !== 'gross_margin_pct' &&
+            line.id !== 'channel_margin_pct' &&
+            line.id !== 'cm_pct' &&
+            line.id !== 'ebitda_pct' &&
+            line.id !== 'fixed_opex'
+          const label = useResolver ? labelForRow(line.id as PnlRowId) : t(line.labelKey)
           const prefix =
-            line.kind === 'subrow'
-              ? '• '
-              : line.isDeduction && line.kind === 'line'
-                ? '(−) '
-                : line.kind === 'subtotal' || line.kind === 'total'
-                  ? '= '
-                  : ''
+            line.isDeduction && (line.kind === 'line' || line.kind === 'subrow')
+              ? '(−) '
+              : line.kind === 'subtotal' || line.kind === 'total'
+                ? '= '
+                : ''
           return (
             <span
-              className={cn(
-                'text-text-primary',
-                line.indent && 'pl-4',
-                emphasisClass(line.kind),
-                line.kind === 'subrow' && 'text-text-secondary',
-              )}
+              data-row-emphasis={line.id === 'contribution_margin' ? '' : undefined}
+              className="flex min-w-0 flex-col gap-0.5 py-1"
               title={
-                line.kind === 'subrow' && line.id.startsWith('fee_')
+                line.id === 'fee_shopify' || line.id === 'fee_amazon' || line.id === 'fee_ml'
                   ? t('channelsFeeSubrowHint')
                   : undefined
               }
             >
-              {prefix}
-              {label}
+              <span
+                className={cn(
+                  'text-sm text-text-primary',
+                  line.indent && 'pl-4',
+                  emphasisClass(line.kind),
+                )}
+              >
+                {prefix}
+                {label}
+              </span>
+              {line.hintKey ? (
+                <span className={cn('text-xs text-[#767676]', line.indent && 'pl-4')}>
+                  {t(line.hintKey)}
+                </span>
+              ) : null}
             </span>
           )
         },
         meta: {
-          cellClassName: 'align-middle overflow-hidden pr-6',
           headerClassName: 'overflow-hidden',
+          cellClassName: 'h-auto py-1.5 align-middle [&>div]:h-full [&>div]:items-center',
         },
       }),
       ...cols.map((col) =>
         columnHelper.display({
           id: col.slug,
           ...STATEMENT_VALUE_COLUMN_SIZE,
-          header: ({ column }) => {
+          header: () => {
             const isTotal = col.slug === 'total'
             const { display, full: fullLabel, truncated } =
               byProduct && !isTotal
                 ? truncateProductHeaderLabel(col.label)
                 : { display: col.label, full: col.label, truncated: false }
+            const missingCogs = !isTotal && cogsMissing(metrics[col.slug])
             const header = (
-              <DataTableColumnHeader
-                column={column}
-                title={display}
-                className={cn(
-                  'justify-end',
-                  byProduct && !isTotal && 'w-full overflow-hidden',
-                )}
-              />
+              <span className="flex w-full flex-col items-end gap-0.5 py-1">
+                <span className="max-w-full truncate font-numeric text-xs font-medium uppercase text-[#767676]">
+                  {display}
+                </span>
+                {missingCogs ? (
+                  <span className="max-w-full truncate text-[11px] font-normal normal-case text-[#b45309]">
+                    {t('channelsCogsUnloadedHeader')}
+                  </span>
+                ) : null}
+              </span>
             )
             if (!truncated) return header
             return (
@@ -488,63 +690,90 @@ export function ChannelsPnlTable({
           },
           cell: ({ row }) => {
             const line = row.original
+            const emphasize = line.id === 'contribution_margin'
             if (line.isNoData) {
               return (
-                <span className="w-full text-right text-text-secondary">
+                <span
+                  data-row-emphasis={emphasize ? '' : undefined}
+                  className="w-full py-1 text-right text-sm text-text-tertiary"
+                >
                   {t('channelsNoData')}
                 </span>
               )
             }
             const m = metrics[col.slug] ?? emptyMetricsStub(col.slug)
-            const raw = line.value(m, col.slug)
-            if (raw === null) {
-              return (
-                <span className="w-full text-right text-text-secondary">—</span>
-              )
+            const text = line.textValue?.(m, col.slug) ?? null
+            const selfMissing =
+              col.slug === 'total' ? cogsMissing(metrics.total) : cogsMissing(metrics[col.slug])
+            const anyMissing =
+              col.slug === 'total'
+                ? platforms.some((platform) => cogsMissing(metrics[platform.slug]))
+                : selfMissing
+            let formatted = '—'
+            let isText = false
+            if (!(col.slug === 'total' && blankTotalLineIds.includes(line.id))) {
+              if (text) {
+                formatted = text
+                isText = true
+              } else if (line.blankWhenCogsMissing && selfMissing) {
+                formatted = '—'
+              } else {
+                const raw = line.value(m, col.slug)
+                if (raw == null || !Number.isFinite(raw)) {
+                  formatted = '—'
+                } else if (line.format === 'pct') {
+                  formatted = `${raw.toFixed(1)}%`
+                } else if (line.format === 'ratio') {
+                  formatted = `${raw.toFixed(2)}x`
+                } else if (line.format === 'count') {
+                  formatted = Math.round(raw).toLocaleString()
+                } else if (amountBasis === 'pct') {
+                  const net = Math.abs(m.net_revenue)
+                  formatted =
+                    net < 0.5
+                      ? '—'
+                      : line.id === 'net_revenue'
+                        ? '100%'
+                        : `${((Math.abs(raw) / net) * 100).toFixed(1)}%`
+                } else {
+                  formatted = wholeAmount(raw, Boolean(line.isDeduction), currency)
+                }
+                if (
+                  formatted !== '—' &&
+                  line.starWhenCogsMissing &&
+                  anyMissing &&
+                  (line.format === 'pct' || amountBasis === 'pct')
+                ) {
+                  formatted = `${formatted}*`
+                }
+              }
             }
-            let formatted: string
-            if (line.format === 'pct') {
-              formatted = `${raw.toFixed(1)}%`
-            } else if (line.format === 'ratio') {
-              formatted = `${raw.toFixed(2)}x`
-            } else if (line.format === 'count') {
-              formatted = String(Math.round(raw))
-            } else {
-              const display = line.isDeduction ? -Math.abs(raw) : raw
-              formatted = formatMoney(display)
-            }
-            const margin =
-              cmIncomplete && line.id === 'contribution_margin'
-                ? null
-                : line.marginPct?.(m)
+            const unloaded = formatted === t('channelsCogsUnloaded')
             return (
               <span
+                data-row-emphasis={emphasize ? '' : undefined}
                 className={cn(
-                  'w-full text-right font-numeric tabular-nums',
-                  line.isDeduction && 'text-text-secondary',
-                  (line.kind === 'subtotal' || line.kind === 'total') &&
-                    'font-semibold text-text-primary',
-                  cmIncomplete &&
-                    line.id === 'contribution_margin' &&
-                    'text-text-secondary',
+                  'w-full py-1 text-right text-sm text-text-primary',
+                  !isText && 'font-numeric tabular-nums',
                   emphasisClass(line.kind),
+                  formatted === '—' && 'text-text-tertiary',
+                  isText && !unloaded && 'text-text-tertiary',
+                  unloaded && 'text-[#b45309]',
                 )}
               >
                 {formatted}
-                {margin !== null && margin !== undefined
-                  ? ` (${margin.toFixed(1)}%)`
-                  : ''}
               </span>
             )
           },
           meta: {
             headerClassName: 'text-right overflow-hidden',
-            cellClassName: 'text-right overflow-hidden',
+            cellClassName:
+              'h-auto py-1.5 text-right tabular-nums align-middle [&>div]:h-full [&>div]:items-center',
           },
         }),
       ),
     ],
-    [byProduct, cmIncomplete, cols, formatMoney, labelForRow, metrics, t],
+    [amountBasis, blankTotalLineIds, byProduct, cols, currency, labelForRow, metrics, platforms, t],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
@@ -561,10 +790,13 @@ export function ChannelsPnlTable({
     ? t('channelsPnlSubtitleProductScope')
     : byProduct
       ? t('channelsPnlSubtitleByProduct')
-      : t('channelsPnlSubtitle')
+      : amountBasis === 'pct'
+        ? t('channelsPctOfNet')
+        : t('channelsPnlWithIva')
 
   return (
-    <SectionSplit title={title} description={description}>
+    <section className="flex flex-col gap-3 [&_td:has([data-row-emphasis])]:bg-[#f6f3d4]">
+      <SettingsSectionHeader title={title} description={description} />
       <DataTable
         table={table}
         variant="plain"
@@ -572,11 +804,11 @@ export function ChannelsPnlTable({
         tableWidth="full"
         isLoading={false}
         isFetching={false}
-        hasEverLoaded={true}
+        hasEverLoaded
         scrollClassName=""
-        emptyContent={<EmptyState icon="channels" title={t('reportsNoData')} />}
+        emptyContent={<EmptyState size="sm" icon="channels" title={t('reportsNoData')} />}
         skeletonRowCount={8}
       />
-    </SectionSplit>
+    </section>
   )
 }

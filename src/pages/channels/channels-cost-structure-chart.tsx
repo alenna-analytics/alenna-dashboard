@@ -24,6 +24,11 @@ const SEGMENTS = [
     labelKey: 'reportsKpiFulfillmentCost' as const,
   },
   {
+    key: 'ads',
+    color: '#8b7cb8',
+    labelKey: 'channelsAdsSegment' as const,
+  },
+  {
     key: 'cm',
     color: 'var(--chart-1)',
     labelKey: 'reportsWfContributionMargin' as const,
@@ -47,7 +52,13 @@ type ChartSegment = {
 
 type ChartRow = {
   label: string
+  missingCogs: boolean
   segments: ChartSegment[]
+}
+
+function cogsMissing(metric: PlatformMetrics | undefined): boolean {
+  if (!metric) return false
+  return metric.net_revenue > 0.5 && Math.abs(metric.cogs) < 0.5
 }
 
 function toPct(value: number, netRevenue: number): number {
@@ -55,12 +66,18 @@ function toPct(value: number, netRevenue: number): number {
   return (value / netRevenue) * 100
 }
 
-function buildRow(label: string, m: PlatformMetrics, t: (key: ShellStringKey) => string): ChartRow | null {
+function buildRow(
+  label: string,
+  m: PlatformMetrics,
+  t: (key: ShellStringKey) => string,
+  missingCogs: boolean,
+): ChartRow | null {
   if (m.net_revenue === 0) return null
   const values: Record<CostSegmentKey, number> = {
     cogs: toPct(m.cogs, m.net_revenue),
     fees: toPct(m.platform_fees_total, m.net_revenue),
     shipping: toPct(m.merchant_shipping_cost, m.net_revenue),
+    ads: toPct(m.ads_spend, m.net_revenue),
     cm: toPct(m.contribution_margin, m.net_revenue),
   }
   const segments = SEGMENTS.flatMap((seg) => {
@@ -76,7 +93,7 @@ function buildRow(label: string, m: PlatformMetrics, t: (key: ShellStringKey) =>
     ]
   })
   if (segments.length === 0) return null
-  return { label, segments }
+  return { label, missingCogs, segments }
 }
 
 function formatPct(pct: number): string {
@@ -90,11 +107,15 @@ export function ChannelsCostStructureChart({
 }: ChannelsCostStructureChartProps) {
   const data = useMemo((): ChartRow[] => {
     const out: ChartRow[] = []
+    const anyMissing = platforms.some((platform) => cogsMissing(metrics[platform.slug]))
     for (const platform of platforms) {
-      const row = buildRow(platform.label, metrics[platform.slug], t)
+      const metric = metrics[platform.slug]
+      if (!metric) continue
+      const row = buildRow(platform.label, metric, t, cogsMissing(metric))
       if (row) out.push(row)
     }
-    const totalRow = buildRow(t('channelsColTotal'), metrics.total, t)
+    const total = metrics.total
+    const totalRow = total ? buildRow(t('channelsColTotal'), total, t, anyMissing) : null
     if (totalRow) out.push(totalRow)
     return out
   }, [metrics, platforms, t])
@@ -112,54 +133,65 @@ export function ChannelsCostStructureChart({
     )
   }
 
+  const legend = SEGMENTS.map((segment) => ({
+    key: segment.key,
+    color: segment.color,
+    label: t(segment.labelKey),
+  }))
+
   return (
     <div className="relative flex flex-col gap-6">
-      <ul className="flex flex-col gap-5">
+      <ul className="flex flex-col gap-4">
         {data.map((row) => {
           const stackTotal = row.segments.reduce((sum, seg) => sum + seg.pct, 0)
           return (
-            <li key={row.label} className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-text-primary">{row.label}</p>
-              <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted/55">
-                {row.segments.map((seg) => (
-                  <div
-                    key={seg.key}
-                    className="h-full min-w-0 cursor-default"
-                    style={{
-                      width: `${stackTotal > 0 ? (seg.pct / stackTotal) * 100 : 0}%`,
-                      background: seg.color,
-                    }}
-                    onMouseEnter={(event) => {
-                      const rect = event.currentTarget.getBoundingClientRect()
-                      setHover({
-                        rowLabel: row.label,
-                        segment: seg,
-                        x: rect.left + rect.width / 2,
-                        y: rect.top,
-                      })
-                    }}
-                    onMouseLeave={() => setHover(null)}
-                  />
-                ))}
+            <li key={row.label} className="grid grid-cols-[9rem_minmax(0,1fr)] items-center gap-3">
+              <p className="truncate text-sm font-medium text-text-primary">
+                {row.label}
+                {row.missingCogs ? ' *' : ''}
+              </p>
+              <div className="flex h-8 w-full overflow-hidden rounded-md bg-muted/55">
+                {row.segments.map((seg) => {
+                  const width = stackTotal > 0 ? (seg.pct / stackTotal) * 100 : 0
+                  return (
+                    <div
+                      key={seg.key}
+                      className="flex h-full min-w-0 cursor-default items-center justify-center overflow-hidden"
+                      style={{ width: `${width}%`, background: seg.color }}
+                      onMouseEnter={(event) => {
+                        const rect = event.currentTarget.getBoundingClientRect()
+                        setHover({
+                          rowLabel: row.label,
+                          segment: seg,
+                          x: rect.left + rect.width / 2,
+                          y: rect.top,
+                        })
+                      }}
+                      onMouseLeave={() => setHover(null)}
+                    >
+                      {width >= 12 ? (
+                        <span className="px-1 text-[11px] font-medium tabular-nums text-white">
+                          {formatPct(seg.pct)}
+                        </span>
+                      ) : null}
+                    </div>
+                  )
+                })}
               </div>
-              <ul className="flex flex-wrap gap-x-3 gap-y-1">
-                {row.segments.map((seg) => (
-                  <li
-                    key={`${row.label}-${seg.key}`}
-                    className="inline-flex items-center gap-1.5 text-xs tabular-nums text-text-secondary"
-                  >
-                    <span
-                      className="size-1.5 shrink-0 rounded-full"
-                      style={{ background: seg.color }}
-                      aria-hidden
-                    />
-                    {seg.label} {formatPct(seg.pct)}
-                  </li>
-                ))}
-              </ul>
             </li>
           )
         })}
+      </ul>
+      <ul className="flex flex-wrap gap-x-4 gap-y-2">
+        {legend.map((item) => (
+          <li
+            key={item.key}
+            className="inline-flex items-center gap-1.5 text-xs text-text-secondary"
+          >
+            <span className="size-2 shrink-0 rounded-sm" style={{ background: item.color }} aria-hidden />
+            {item.label}
+          </li>
+        ))}
       </ul>
       {hover ? (
         <div

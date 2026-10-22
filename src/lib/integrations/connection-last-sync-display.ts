@@ -16,6 +16,9 @@ export function resolveConnectionLastSuccessfulSyncLine(
   options?: { nowMs?: number },
 ): ConnectionLastSyncLine {
   const plan = conn.sync_plan
+  if (plan?.current_job_id) {
+    return { kind: 'syncing' }
+  }
   if (plan?.last_sync_status === 'syncing' && !isStaleSyncingPlan(conn)) {
     return { kind: 'syncing' }
   }

@@ -76,7 +76,11 @@ export function GroupStatementTable({
         id: 'concept',
         ...STATEMENT_CONCEPT_COLUMN_SIZE,
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('reportsPnlColConcept')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('reportsPnlColConcept')}
+            className="text-[#767676]"
+          />
         ),
         cell: ({ row }) => {
           const line = row.original
@@ -101,7 +105,7 @@ export function GroupStatementTable({
                 {line.label}
               </span>
               {line.hint ? (
-                <span className="text-xs leading-4 text-text-tertiary">{line.hint}</span>
+                <span className="text-xs leading-4 text-[#767676]">{line.hint}</span>
               ) : null}
             </span>
           )
@@ -117,10 +121,10 @@ export function GroupStatementTable({
           ...STATEMENT_VALUE_COLUMN_SIZE,
           header: () => (
             <span className="flex w-full flex-col items-end gap-0.5 py-1">
-              <span className="font-numeric text-xs font-medium uppercase text-muted-foreground">
+              <span className="font-numeric text-xs font-medium uppercase text-[#767676]">
                 {column.label}
               </span>
-              <span className="text-[11px] font-normal normal-case text-text-tertiary">
+              <span className="text-[11px] font-normal normal-case text-[#767676]">
                 {details[column.id] ?? ''}
               </span>
             </span>

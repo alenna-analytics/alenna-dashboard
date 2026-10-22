@@ -140,7 +140,7 @@ function SegmentedControl<T extends string>({
               'h-7 rounded-md px-3 text-xs font-medium transition-colors',
               selected
                 ? 'bg-text-primary text-white'
-                : 'text-text-secondary hover:text-text-primary',
+                : 'text-[#767676] hover:text-text-primary',
             )}
           >
             {option.label}
@@ -354,13 +354,13 @@ export function VinculacionGroupRentabilidad({
           ? 'text-[var(--kpi-pill-positive-text)]'
           : salesDelta.trend === 'down'
             ? 'text-[var(--kpi-pill-negative-text)]'
-            : 'text-text-tertiary'
+            : 'text-[#767676]'
       }
     >
       {`${salesDelta.pct > 0 ? '+' : ''}${salesDelta.pct.toFixed(1)}%`}
     </span>
   ) : (
-    <span className="text-text-tertiary">{t('productsGroupAnalyticsNoHistory')}</span>
+    <span className="text-[#767676]">{t('productsGroupAnalyticsNoHistory')}</span>
   )
 
   const money = (value: number | null) =>
@@ -448,18 +448,9 @@ export function VinculacionGroupRentabilidad({
                 triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
               />
             </div>
-            <div className="flex flex-col items-start gap-2 sm:items-end">
-              <SegmentedControl
-                ariaLabel={t('productsDetailTabPlatformPayment')}
-                value={vista}
-                onChange={setVista}
-                options={[
-                  { value: 'pnl', label: t('productsGroupRentabilidadPnl') },
-                  { value: 'cobro', label: t('productsGroupRentabilidadCobro') },
-                ]}
-              />
+            <div className="flex shrink-0 flex-row flex-nowrap items-center justify-end gap-2">
               {vista === 'pnl' ? (
-                <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                <>
                   <SegmentedControl
                     ariaLabel={t('productsGroupIvaOn')}
                     value={includeIva ? 'with' : 'without'}
@@ -478,23 +469,27 @@ export function VinculacionGroupRentabilidad({
                       { value: 'publication', label: t('productsGroupByPublication') },
                     ]}
                   />
-                </div>
+                </>
               ) : (
-                <div className="flex flex-col items-start gap-2 sm:items-end">
-                  <SegmentedControl
-                    ariaLabel={t('productsGroupCobroTotal')}
-                    value={cobroBasis}
-                    onChange={setCobroBasis}
-                    options={[
-                      { value: 'total', label: t('productsGroupCobroTotal') },
-                      { value: 'unit', label: t('productsGroupCobroPerUnit') },
-                    ]}
-                  />
-                  <p className="text-xs text-text-tertiary sm:text-right">
-                    {t('productsGroupCobroAlwaysIva')}
-                  </p>
-                </div>
+                <SegmentedControl
+                  ariaLabel={t('productsGroupCobroTotal')}
+                  value={cobroBasis}
+                  onChange={setCobroBasis}
+                  options={[
+                    { value: 'total', label: t('productsGroupCobroTotal') },
+                    { value: 'unit', label: t('productsGroupCobroPerUnit') },
+                  ]}
+                />
               )}
+              <SegmentedControl
+                ariaLabel={t('productsDetailTabPlatformPayment')}
+                value={vista}
+                onChange={setVista}
+                options={[
+                  { value: 'pnl', label: t('productsGroupRentabilidadPnl') },
+                  { value: 'cobro', label: t('productsGroupRentabilidadCobro') },
+                ]}
+              />
             </div>
           </div>
         </CardHeader>
@@ -520,7 +515,7 @@ export function VinculacionGroupRentabilidad({
                 value={insightsFetching ? kpiSkeleton : fmtCard(totals.net * pnlFactor)}
                 currencyCode={insightsFetching ? undefined : baseCurrency}
                 showComparison={false}
-                footerClassName="text-xs"
+                footerClassName="text-xs text-[#767676]"
                 footer={salesFooter}
               />
               <KpiCard
@@ -531,9 +526,9 @@ export function VinculacionGroupRentabilidad({
                 }
                 currencyCode={insightsFetching ? undefined : baseCurrency}
                 showComparison={false}
-                footerClassName="text-xs"
+                footerClassName="text-xs text-[#767676]"
                 footer={
-                  <span className="text-text-tertiary">
+                  <span className="text-[#767676]">
                     {shareOfNet(totals.grossProfit, totals.net, shareTemplate)}
                   </span>
                 }
@@ -544,9 +539,9 @@ export function VinculacionGroupRentabilidad({
                 value={insightsFetching ? kpiSkeleton : fmtCard(totals.channelMargin * pnlFactor)}
                 currencyCode={insightsFetching ? undefined : baseCurrency}
                 showComparison={false}
-                footerClassName="text-xs"
+                footerClassName="text-xs text-[#767676]"
                 footer={
-                  <span className="text-text-tertiary">
+                  <span className="text-[#767676]">
                     {shareOfNet(totals.channelMargin, totals.net, shareTemplate)}
                   </span>
                 }
@@ -559,9 +554,9 @@ export function VinculacionGroupRentabilidad({
                 }
                 currencyCode={insightsFetching ? undefined : baseCurrency}
                 showComparison={false}
-                footerClassName="text-xs"
+                footerClassName="text-xs text-[#767676]"
                 footer={
-                  <span className="text-text-tertiary">
+                  <span className="text-[#767676]">
                     {shareOfNet(totals.contribution, totals.net, shareTemplate)}
                   </span>
                 }
@@ -575,13 +570,13 @@ export function VinculacionGroupRentabilidad({
                     : `${units.net.toLocaleString()} ${unitSuffix}`
                 }
                 showComparison={false}
-                footerClassName="text-xs"
+                footerClassName="text-xs text-[#767676]"
                 footer={
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
                         type="button"
-                        className="w-fit cursor-default text-left text-text-tertiary underline decoration-dotted underline-offset-2"
+                        className="w-fit cursor-default text-left text-[#767676] underline decoration-dotted underline-offset-2"
                       >
                         {t('productsGroupCardUnitsHint')}
                       </button>
@@ -606,9 +601,9 @@ export function VinculacionGroupRentabilidad({
                 }
                 currencyCode={insightsFetching || !(units.net > 0) ? undefined : baseCurrency}
                 showComparison={false}
-                footerClassName="text-xs"
+                footerClassName="text-xs text-[#767676]"
                 footer={
-                  <span className="text-text-tertiary">{t('productsGroupCardCmPerUnitHint')}</span>
+                  <span className="text-[#767676]">{t('productsGroupCardCmPerUnitHint')}</span>
                 }
               />
               <KpiCard
@@ -622,9 +617,9 @@ export function VinculacionGroupRentabilidad({
                 }
                 currencyCode={insightsFetching || !(units.net > 0) ? undefined : baseCurrency}
                 showComparison={false}
-                footerClassName="text-xs"
+                footerClassName="text-xs text-[#767676]"
                 footer={
-                  <span className="text-text-tertiary">{t('productsGroupCardAvgPriceHint')}</span>
+                  <span className="text-[#767676]">{t('productsGroupCardAvgPriceHint')}</span>
                 }
               />
               <KpiCard
@@ -638,9 +633,9 @@ export function VinculacionGroupRentabilidad({
                 }
                 currencyCode={insightsFetching || !(units.net > 0) ? undefined : baseCurrency}
                 showComparison={false}
-                footerClassName="text-xs"
+                footerClassName="text-xs text-[#767676]"
                 footer={
-                  <span className="text-text-tertiary">
+                  <span className="text-[#767676]">
                     {cogsDiffer
                       ? t('productsGroupCardCogsDiff')
                       : t('productsGroupCardCogsSame')}
@@ -662,8 +657,8 @@ export function VinculacionGroupRentabilidad({
                 }
                 currencyCode={insightsFetching || !showCobroMoney ? undefined : baseCurrency}
                 showComparison={false}
-                footerClassName="text-xs"
-                footer={<span className="text-text-tertiary">{t('productsGroupIvaOn')}</span>}
+                footerClassName="text-xs text-[#767676]"
+                footer={<span className="text-[#767676]">{t('productsGroupIvaOn')}</span>}
               />
               <KpiCard
                 className="h-full"
@@ -677,9 +672,9 @@ export function VinculacionGroupRentabilidad({
                 }
                 currencyCode={insightsFetching || !showCobroMoney ? undefined : baseCurrency}
                 showComparison={false}
-                footerClassName="text-xs"
+                footerClassName="text-xs text-[#767676]"
                 footer={
-                  <span className="inline-flex items-center gap-1 text-text-tertiary">
+                  <span className="inline-flex items-center gap-1 text-[#767676]">
                     {t('productsGroupCobroRetainedFooter')}
                     <InfoTooltip side="bottom">{t('productsGroupCobroRetainedTooltip')}</InfoTooltip>
                   </span>
@@ -697,9 +692,9 @@ export function VinculacionGroupRentabilidad({
                 }
                 currencyCode={insightsFetching || !showCobroMoney ? undefined : baseCurrency}
                 showComparison={false}
-                footerClassName="text-xs"
+                footerClassName="text-xs text-[#767676]"
                 footer={
-                  <span className="text-text-tertiary">
+                  <span className="text-[#767676]">
                     {cobroBasis === 'unit'
                       ? t('productsGroupCardCmPerUnitHint')
                       : t('productsGroupCobroMatchesTable')}
@@ -709,11 +704,12 @@ export function VinculacionGroupRentabilidad({
               <KpiCard
                 className="h-full"
                 label={t('productsDetailPlatformPaymentPayoutPct')}
+                helpText={t('productsGroupCobroAlwaysIva')}
                 value={insightsFetching ? kpiSkeleton : payoutPct == null ? '—' : `${payoutPct.toFixed(1)}%`}
                 showComparison={false}
-                footerClassName="text-xs"
+                footerClassName="text-xs text-[#767676]"
                 footer={
-                  <span className="text-text-tertiary">{t('productsGroupCobroPayoutFooter')}</span>
+                  <span className="text-[#767676]">{t('productsGroupCobroPayoutFooter')}</span>
                 }
               />
             </div>
@@ -774,13 +770,13 @@ export function VinculacionGroupRentabilidad({
             </p>
             <button
               type="button"
-              className="mt-2 text-sm font-medium text-text-primary underline underline-offset-2"
+              className="mt-2 cursor-pointer text-sm font-medium text-text-primary underline underline-offset-2 transition-opacity hover:opacity-70"
               onClick={() => setVista('cobro')}
             >
               {t('productsGroupPnlViewCobro')}
             </button>
           </div>
-          <p className="mb-16 text-xs text-text-tertiary">
+          <p className="mb-16 text-xs text-[#767676]">
             {fill(t('productsGroupPnlDisclaimer'), { tenant: tenantName, range: rangeLabel })}
           </p>
         </>
@@ -810,7 +806,7 @@ export function VinculacionGroupRentabilidad({
             yearWithheldLoading={ytdGroupQuery.isFetching}
             t={t}
           />
-          <p className="mb-16 text-xs text-text-tertiary">
+          <p className="mb-16 text-xs text-[#767676]">
             {fill(t('productsGroupCobroDisclaimer'), { tenant: tenantName, range: rangeLabel })}
           </p>
         </>

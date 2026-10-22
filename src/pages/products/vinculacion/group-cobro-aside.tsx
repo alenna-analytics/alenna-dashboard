@@ -111,7 +111,11 @@ export function GroupCobroAside({
       columnHelper.display({
         id: 'channel',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('homeFilterChannels')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('homeFilterChannels')}
+            className="text-[#767676]"
+          />
         ),
         cell: ({ row }) => (
           <span className="text-sm font-semibold text-text-primary">
@@ -122,7 +126,11 @@ export function GroupCobroAside({
       }),
       columnHelper.accessor('how', {
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('productsGroupTimingHow')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('productsGroupTimingHow')}
+            className="text-[#767676]"
+          />
         ),
         cell: ({ getValue }) => (
           <span className="text-sm text-text-secondary">{getValue()}</span>
@@ -135,7 +143,7 @@ export function GroupCobroAside({
           <DataTableColumnHeader
             column={column}
             title={t('productsGroupTimingRelease')}
-            className="justify-end"
+            className="justify-end text-[#767676]"
           />
         ),
         cell: () => (
@@ -149,7 +157,7 @@ export function GroupCobroAside({
           <DataTableColumnHeader
             column={column}
             title={t('productsGroupTimingNext')}
-            className="justify-end"
+            className="justify-end text-[#767676]"
           />
         ),
         cell: () => (
@@ -180,7 +188,7 @@ export function GroupCobroAside({
           <p className="mt-2 text-sm text-text-secondary">{t('productsGroupCobroCreditBody')}</p>
           <button
             type="button"
-            className="mt-3 text-sm font-medium text-text-primary underline underline-offset-2"
+            className="mt-3 cursor-pointer text-sm font-medium text-text-primary underline underline-offset-2 transition-opacity hover:opacity-70"
             onClick={() => setYearOpen(true)}
           >
             {t('productsDetailCobroFiscalCreditAlertLink')}

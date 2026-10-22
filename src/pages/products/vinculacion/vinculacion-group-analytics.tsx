@@ -5,6 +5,7 @@ import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { ProductLinkGroupApi } from '@/lib/types/product-links'
 import {
   computeShiftedPreviousPeriod,
+  historyIsComparable,
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
 import { useMonthlyRevenueSeries } from '@/pages/reports/use-monthly-revenue-series'
@@ -183,11 +184,15 @@ export function VinculacionGroupAnalytics({
   ])
 
   const previousReady = Boolean(kpiPrevPeriod) && !prevGroupQuery.isLoading
+  const comparableHistory = historyIsComparable({
+    previousValue: filteredPrevNetSales,
+    firstActivity: group.first_order_date,
+    previousStart: kpiPrevPeriod?.start,
+  })
   const salesDelta =
-    previousReady && filteredPrevNetSales != null && filteredPrevNetSales > 0
+    previousReady && comparableHistory && filteredPrevNetSales != null
       ? pctVersusPrevious(period.period_net_sales, filteredPrevNetSales)
       : null
-  const comparableHistory = salesDelta != null
 
   const velocityLabel = t('productsGroupAnalyticsVelocity')
   const daysLabel = t('productsDetailKpiInventoryDays')

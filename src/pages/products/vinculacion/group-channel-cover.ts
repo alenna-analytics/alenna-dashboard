@@ -3,13 +3,14 @@ import type {
   ProductLinkGroupMemberApi,
 } from '@/lib/types/product-links'
 
-/** Cover below this many days is critical. 2.9 days reads as critical; 45 does not. */
+/** Cover below this many days is critical. 7–14 is attention. Above 14 is normal. */
 export const CRITICAL_COVER_DAYS = 7
+export const ATTENTION_COVER_DAYS = 14
 
 /** Reorder point = velocity × lead time × this factor. */
 export const REORDER_LEAD_TIME_FACTOR = 1.2
 
-export type ChannelCoverAlert = 'critical' | 'normal' | 'unknown'
+export type ChannelCoverAlert = 'critical' | 'attention' | 'normal' | 'unknown'
 
 export type ChannelCoverRow = {
   id: string
@@ -45,10 +46,16 @@ export function inventoryDaysFromStockVelocity(
   return Math.round((stock / velocity) * 10) / 10
 }
 
-export function coverAlert(stock: number, days: number | null): ChannelCoverAlert {
+export function coverAlert(
+  stock: number,
+  days: number | null,
+  velocity: number | null = null,
+): ChannelCoverAlert {
   if (stock <= 0) return 'critical'
+  if (velocity != null && velocity <= 0) return 'unknown'
   if (days == null) return 'unknown'
   if (days < CRITICAL_COVER_DAYS) return 'critical'
+  if (days <= ATTENTION_COVER_DAYS) return 'attention'
   return 'normal'
 }
 
@@ -71,6 +78,7 @@ export function reorderPointUnits(
 
 function worstAlert(alerts: ChannelCoverAlert[]): ChannelCoverAlert {
   if (alerts.includes('critical')) return 'critical'
+  if (alerts.includes('attention')) return 'attention'
   if (alerts.length === 0 || alerts.every((alert) => alert === 'unknown')) return 'unknown'
   return 'normal'
 }
@@ -132,7 +140,7 @@ export function buildChannelCoverRows(
       stockoutOn: stockoutDate(inventoryDays, today),
       reorderPoint,
       leadTimeMissing: reorderPoint == null,
-      alert: stockKnown ? coverAlert(stock, inventoryDays) : 'unknown',
+      alert: stockKnown ? coverAlert(stock, inventoryDays, velocity) : 'unknown',
       isTotal: false,
     }
   })

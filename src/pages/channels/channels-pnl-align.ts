@@ -15,8 +15,8 @@ function finish(metric: PlatformMetrics): PlatformMetrics {
 
 /**
  * Put settlement shipping on the P&L when the KPI row left it at zero, and
- * attribute linked ads to the matching channel. The total subtracts that
- * spend plus any ads that still have no channel.
+ * attribute ads to the matching channel. Ads that still have no channel are
+ * spread by net sales so the total equals the sum of the columns.
  */
 export function alignChannelPnl(input: {
   metrics: Record<string, PlatformMetrics>
@@ -25,8 +25,6 @@ export function alignChannelPnl(input: {
   tenantAdsSpend: number
 }): { metrics: Record<string, PlatformMetrics>; unlinkedAds: number } {
   const metrics: Record<string, PlatformMetrics> = {}
-  let shippingDelta = 0
-  let adsDelta = 0
   let linkedAds = 0
 
   for (const [slug, metric] of Object.entries(input.metrics)) {
@@ -40,8 +38,6 @@ export function alignChannelPnl(input: {
     const ads = rollup ? rollup.linkedSpend : metric.ads_spend
     const shippingChange = shipping - metric.merchant_shipping_cost
     const adsChange = ads - metric.ads_spend
-    shippingDelta += shippingChange
-    adsDelta += adsChange
     linkedAds += ads
     metrics[slug] = finish({
       ...metric,
@@ -53,15 +49,36 @@ export function alignChannelPnl(input: {
 
   const total = input.metrics.total
   const unlinkedAds = Math.max(0, input.tenantAdsSpend - linkedAds)
+  const netSum = Object.values(metrics).reduce(
+    (sum, metric) => sum + Math.max(0, metric.net_revenue),
+    0,
+  )
+  if (unlinkedAds > 0 && netSum > 0) {
+    for (const [slug, metric] of Object.entries(metrics)) {
+      const share = Math.max(0, metric.net_revenue) / netSum
+      const extra = unlinkedAds * share
+      metrics[slug] = finish({
+        ...metric,
+        ads_spend: metric.ads_spend + extra,
+        contribution_margin: metric.contribution_margin - extra,
+      })
+    }
+  }
   if (total) {
+    const channels = Object.values(metrics)
     metrics.total = finish({
       ...total,
-      merchant_shipping_cost: total.merchant_shipping_cost + shippingDelta,
-      ads_spend: total.ads_spend + adsDelta + unlinkedAds,
-      contribution_margin:
-        total.contribution_margin - shippingDelta - adsDelta - unlinkedAds,
+      merchant_shipping_cost: channels.reduce(
+        (sum, metric) => sum + metric.merchant_shipping_cost,
+        0,
+      ),
+      ads_spend: channels.reduce((sum, metric) => sum + metric.ads_spend, 0),
+      contribution_margin: channels.reduce(
+        (sum, metric) => sum + metric.contribution_margin,
+        0,
+      ),
     })
   }
 
-  return { metrics, unlinkedAds }
+  return { metrics, unlinkedAds: 0 }
 }

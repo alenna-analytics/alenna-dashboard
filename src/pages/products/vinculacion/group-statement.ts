@@ -69,6 +69,39 @@ function roundMoney(value: number): number {
   return Math.round(value * 100) / 100
 }
 
+/**
+ * Sin IVA applies to sales, discounts, returns, fees, and shipping.
+ * COGS and ads stay as captured. Derived lines are rebuilt from those parts.
+ * `factor` is 1 with IVA, or 1 / (1 + rate) when the platform does not report tax.
+ */
+export function presentStatementColumn(
+  column: GroupStatementColumn,
+  factor: number,
+): GroupStatementColumn {
+  if (factor === 1) return column
+  const gross = roundMoney(column.gross * factor)
+  const discounts = roundMoney(column.discounts * factor)
+  const returns = roundMoney(column.returns * factor)
+  const fees = roundMoney(column.fees * factor)
+  const shipping = roundMoney(column.shipping * factor)
+  const net = roundMoney(gross - discounts - returns)
+  const grossProfit = roundMoney(net - column.cogs)
+  const channelMargin = roundMoney(grossProfit - fees - shipping)
+  const contribution = roundMoney(channelMargin - column.ads)
+  return {
+    ...column,
+    gross,
+    discounts,
+    returns,
+    fees,
+    shipping,
+    net,
+    grossProfit,
+    channelMargin,
+    contribution,
+  }
+}
+
 function cogsOf(member: GroupStatementMember): number {
   if (member.cogs != null && Number.isFinite(member.cogs)) return member.cogs
   if (member.cost != null && Number.isFinite(member.cost)) return member.netUnits * member.cost

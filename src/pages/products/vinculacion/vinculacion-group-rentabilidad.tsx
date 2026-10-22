@@ -8,11 +8,11 @@ import { cn } from '@/lib/utils'
 import { useTaxRatesQuery } from '@/pages/configuration/tax-rates/use-tax-rates-queries'
 import { productPlatformLabel } from '@/pages/products/product-platform-label'
 import { buildProductPnlWaterfallSegments } from '@/pages/products/product-detail-pnl-waterfall-segments'
-import type { ProductPnlWaterfallSource } from '@/pages/products/product-detail-pnl-waterfall-segments'
 import { buildSettlementWaterfallSegments } from '@/pages/reports/settlement-waterfall-segments'
 import type { Segment } from '@/pages/reports/waterfall-chart'
 import {
   computeShiftedPreviousPeriod,
+  historyIsComparable,
   pctVersusPrevious,
 } from '@/pages/reports/reports-ui-helpers'
 import { useWorkspace } from '@/shell/providers/workspace-context'
@@ -34,6 +34,7 @@ import {
   membersToStatement,
   payoutPct as payoutPctOf,
   platformsToStatement,
+  presentStatementColumn,
 } from './group-statement'
 import { buildCobroStatementRows, buildPnlStatementRows, countLabel } from './group-statement-rows'
 import { GroupStatementTable } from './group-statement-table'
@@ -159,26 +160,6 @@ function renameSegments(segments: Segment[], names: string[]): Segment[] {
   }))
 }
 
-function scaleSource(
-  source: ProductPnlWaterfallSource,
-  factor: number,
-): ProductPnlWaterfallSource {
-  if (factor === 1) return source
-  return {
-    grossSales: source.grossSales * factor,
-    netSales: source.netSales * factor,
-    cogs: source.cogs * factor,
-    grossProfit: source.grossProfit * factor,
-    channelMargin: source.channelMargin * factor,
-    adsAssigned: source.adsAssigned * factor,
-    contributionMargin: source.contributionMargin * factor,
-    discounts: source.discounts * factor,
-    returns: source.returns * factor,
-    marketplaceFees: source.marketplaceFees * factor,
-    shippingCharges: source.shippingCharges * factor,
-  }
-}
-
 function scaleSettlement(
   settlement: ProductLinkGroupSettlementApi,
   factor: number,
@@ -243,6 +224,15 @@ export function VinculacionGroupRentabilidad({
     [group, selection.members, statementMode, t, taxRates],
   )
   const totals = statement.total
+  const pnlView = useMemo(
+    () => ({
+      columns: statement.columns.map((column) => presentStatementColumn(column, pnlFactor)),
+      total: presentStatementColumn(statement.total, pnlFactor),
+    }),
+    [pnlFactor, statement],
+  )
+  const pnlColumns = pnlView.columns
+  const pnlTotals = pnlView.total
   const units = {
     sold: totals.grossUnits,
     net: totals.netUnits,
@@ -278,38 +268,38 @@ export function VinculacionGroupRentabilidad({
   }, [insight.channelFilter, prevGroupQuery.data, t, taxRates])
 
   const previousReady = Boolean(kpiPrevPeriod) && !prevGroupQuery.isLoading
+  const comparableHistory = historyIsComparable({
+    previousValue: prevNetSales,
+    firstActivity: group.first_order_date,
+    previousStart: kpiPrevPeriod?.start,
+  })
   const salesDelta =
-    previousReady && prevNetSales != null && prevNetSales > 0
-      ? pctVersusPrevious(totals.net, prevNetSales)
+    previousReady && comparableHistory && prevNetSales != null
+      ? pctVersusPrevious(pnlTotals.net, prevNetSales * pnlFactor)
       : null
 
-  const pnlSource = useMemo(
-    () =>
-      scaleSource(
-        {
-          grossSales: totals.gross,
-          netSales: totals.net,
-          cogs: totals.cogs,
-          grossProfit: totals.grossProfit,
-          channelMargin: totals.channelMargin,
-          adsAssigned: totals.ads,
-          contributionMargin: totals.contribution,
-          discounts: totals.discounts,
-          returns: totals.returns,
-          marketplaceFees: totals.fees,
-          shippingCharges: totals.shipping,
-        },
-        pnlFactor,
-      ),
-    [pnlFactor, totals],
-  )
   const pnlSegments = useMemo(
     () =>
       renameSegments(
-        buildProductPnlWaterfallSegments(pnlSource, t),
+        buildProductPnlWaterfallSegments(
+          {
+            grossSales: pnlTotals.gross,
+            netSales: pnlTotals.net,
+            cogs: pnlTotals.cogs,
+            grossProfit: pnlTotals.grossProfit,
+            channelMargin: pnlTotals.channelMargin,
+            adsAssigned: pnlTotals.ads,
+            contributionMargin: pnlTotals.contribution,
+            discounts: pnlTotals.discounts,
+            returns: pnlTotals.returns,
+            marketplaceFees: pnlTotals.fees,
+            shippingCharges: pnlTotals.shipping,
+          },
+          t,
+        ),
         PNL_SEGMENT_KEYS.map((key) => t(key)),
       ),
-    [pnlSource, t],
+    [pnlTotals, t],
   )
 
   const cobroScale = cobroBasis === 'total' ? 1 : units.net > 0 ? 1 / units.net : 0
@@ -399,9 +389,9 @@ export function VinculacionGroupRentabilidad({
         : publicationDetail(column.publicationCount)
   }
   const pnlRows = buildPnlStatementRows({
-    columns: statement.columns,
-    total: totals,
-    factor: pnlFactor,
+    columns: pnlColumns,
+    total: pnlTotals,
+    factor: 1,
     cogsHint,
     t,
   })
@@ -440,10 +430,8 @@ export function VinculacionGroupRentabilidad({
                 searchPlaceholder={t('homeFilterChannelsSearch')}
                 emptyLabel={t('homeFilterChannelsEmpty')}
                 allowClear={false}
-                triggerClassName="w-full sm:w-auto sm:min-w-[12rem]"
+                triggerClassName="w-full cursor-pointer sm:w-auto sm:min-w-[12rem]"
               />
-            </div>
-            <div className="flex shrink-0 flex-row flex-nowrap items-center justify-end gap-2">
               {vista === 'pnl' ? (
                 <>
                   <FilterComboboxSingle
@@ -475,7 +463,10 @@ export function VinculacionGroupRentabilidad({
                     triggerClassName="cursor-pointer"
                   />
                 </>
-              ) : (
+              ) : null}
+            </div>
+            <div className="flex shrink-0 flex-row flex-nowrap items-center justify-end gap-2">
+              {vista === 'cobro' ? (
                 <SegmentedControl
                   ariaLabel={t('productsGroupCobroTotal')}
                   value={cobroBasis}
@@ -485,7 +476,7 @@ export function VinculacionGroupRentabilidad({
                     { value: 'unit', label: t('productsGroupCobroPerUnit') },
                   ]}
                 />
-              )}
+              ) : null}
               <SegmentedControl
                 ariaLabel={t('productsDetailTabPlatformPayment')}
                 value={vista}
@@ -517,7 +508,7 @@ export function VinculacionGroupRentabilidad({
               <KpiCard
                 className="h-full"
                 label={t('productsDetailPlatformPaymentNetSales')}
-                value={insightsFetching ? kpiSkeleton : fmtCard(totals.net * pnlFactor)}
+                value={insightsFetching ? kpiSkeleton : fmtCard(pnlTotals.net)}
                 currencyCode={insightsFetching ? undefined : baseCurrency}
                 showComparison={false}
                 footerClassName="text-xs text-[#767676]"
@@ -527,7 +518,7 @@ export function VinculacionGroupRentabilidad({
                 className="h-full"
                 label={t('productsDetailKpiGrossProfit')}
                 value={
-                  insightsFetching ? kpiSkeleton : fmtCard(totals.grossProfit * pnlFactor)
+                  insightsFetching ? kpiSkeleton : fmtCard(pnlTotals.grossProfit)
                 }
                 currencyCode={insightsFetching ? undefined : baseCurrency}
                 showComparison={false}
@@ -541,7 +532,7 @@ export function VinculacionGroupRentabilidad({
               <KpiCard
                 className="h-full"
                 label={t('productsDetailChannelMargin')}
-                value={insightsFetching ? kpiSkeleton : fmtCard(totals.channelMargin * pnlFactor)}
+                value={insightsFetching ? kpiSkeleton : fmtCard(pnlTotals.channelMargin)}
                 currencyCode={insightsFetching ? undefined : baseCurrency}
                 showComparison={false}
                 footerClassName="text-xs text-[#767676]"
@@ -555,7 +546,7 @@ export function VinculacionGroupRentabilidad({
                 className="h-full"
                 label={t('reportsContributionMargin')}
                 value={
-                  insightsFetching ? kpiSkeleton : fmtCard(totals.contribution * pnlFactor)
+                  insightsFetching ? kpiSkeleton : fmtCard(pnlTotals.contribution)
                 }
                 currencyCode={insightsFetching ? undefined : baseCurrency}
                 showComparison={false}
@@ -601,7 +592,7 @@ export function VinculacionGroupRentabilidad({
                 value={
                   insightsFetching
                     ? kpiSkeleton
-                    : money(units.net > 0 ? (totals.contribution * pnlFactor) / units.net : null) ??
+                    : money(units.net > 0 ? pnlTotals.contribution / units.net : null) ??
                       '—'
                 }
                 currencyCode={insightsFetching || !(units.net > 0) ? undefined : baseCurrency}
@@ -617,7 +608,7 @@ export function VinculacionGroupRentabilidad({
                 value={
                   insightsFetching
                     ? kpiSkeleton
-                    : money(units.net > 0 ? (totals.net * pnlFactor) / units.net : null) ??
+                    : money(units.net > 0 ? pnlTotals.net / units.net : null) ??
                       '—'
                 }
                 currencyCode={insightsFetching || !(units.net > 0) ? undefined : baseCurrency}
@@ -633,7 +624,7 @@ export function VinculacionGroupRentabilidad({
                 value={
                   insightsFetching
                     ? kpiSkeleton
-                    : money(units.net > 0 ? (totals.cogs * pnlFactor) / units.net : null) ??
+                    : money(units.net > 0 ? pnlTotals.cogs / units.net : null) ??
                       '—'
                 }
                 currencyCode={insightsFetching || !(units.net > 0) ? undefined : baseCurrency}
@@ -736,7 +727,7 @@ export function VinculacionGroupRentabilidad({
         segments={vista === 'pnl' ? pnlSegments : cobroSegments}
         currency={baseCurrency}
         grossRevenue={
-          vista === 'pnl' ? pnlSource.grossSales : cobroSettlement.gross_revenue
+          vista === 'pnl' ? pnlTotals.gross : cobroSettlement.gross_revenue
         }
         t={t}
         finalBarCaption={

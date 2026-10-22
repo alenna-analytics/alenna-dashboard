@@ -490,6 +490,8 @@ const SHELL_STRINGS = {
     channelsPnlTitle: 'P&L por canal',
     channelsViewPnl: 'P&L por canal',
     channelsViewCobro: 'Cobro por canal',
+    channelsReconciliationAlert:
+      'Canales y Reportes no cuadran en este rango. El total no se muestra hasta que coincidan.',
     channelsPnlTitleByProduct: 'P&L por producto',
     channelsSettlementTitle: 'Liquidación plataforma',
     channelsSettlementSubtitle:
@@ -1859,7 +1861,9 @@ const SHELL_STRINGS = {
     productsGroupInventoryTotalHint: 'La alerta toma el canal más crítico',
     productsGroupInventoryMissingLeadTime: 'Falta lead time',
     productsGroupInventoryAlertCritical: 'Crítico',
+    productsGroupInventoryAlertAttention: 'Atención',
     productsGroupInventoryAlertNormal: 'Normal',
+    productsGroupInventoryNoRecentSales: 'Sin ventas recientes',
     productsGroupInventoryVelocityCaption: 'Velocidad: promedio de los últimos 90 días',
     productsGroupAnalyticsVelocity: 'Velocidad de venta',
     productsGroupAnalyticsPlatformDetail: 'Detalle por plataforma',
@@ -2917,6 +2921,8 @@ const SHELL_STRINGS = {
     channelsPnlTitle: 'P&L by channel',
     channelsViewPnl: 'P&L by channel',
     channelsViewCobro: 'Settlement by channel',
+    channelsReconciliationAlert:
+      'Channels and Reports do not match for this range. The total stays hidden until they do.',
     channelsPnlTitleByProduct: 'P&L by product',
     channelsSettlementTitle: 'Platform settlement',
     channelsSettlementSubtitle:
@@ -4270,7 +4276,9 @@ const SHELL_STRINGS = {
     productsGroupInventoryTotalHint: 'The alert uses the most critical channel',
     productsGroupInventoryMissingLeadTime: 'Lead time missing',
     productsGroupInventoryAlertCritical: 'Critical',
+    productsGroupInventoryAlertAttention: 'Watch',
     productsGroupInventoryAlertNormal: 'Normal',
+    productsGroupInventoryNoRecentSales: 'No recent sales',
     productsGroupInventoryVelocityCaption: 'Velocity: average of the last 90 days',
     productsGroupAnalyticsVelocity: 'Sales velocity',
     productsGroupAnalyticsPlatformDetail: 'Detail by platform',

@@ -62,25 +62,39 @@ function formatDays(value: number | null): string | null {
   return value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 }
 
+type ChannelCoverTableProps = {
+  lang: string
+  t: ShellT
+  isFetching?: boolean
+} & (
+  | {
+      rows: ChannelCoverRow[]
+      group?: undefined
+      members?: undefined
+      today?: undefined
+    }
+  | {
+      rows?: undefined
+      group: ProductLinkGroupApi
+      members: ProductLinkGroupMemberApi[]
+      today: Date
+    }
+)
+
 export function GroupChannelCoverTable({
+  rows: providedRows,
   group,
   members,
   lang,
   t,
   today,
   isFetching = false,
-}: {
-  group: ProductLinkGroupApi
-  members: ProductLinkGroupMemberApi[]
-  lang: string
-  t: ShellT
-  today: Date
-  isFetching?: boolean
-}) {
-  const rows = useMemo(
-    () => buildChannelCoverRows(group, members, today),
-    [group, members, today],
-  )
+}: ChannelCoverTableProps) {
+  const rows = useMemo(() => {
+    if (providedRows) return providedRows
+    if (!group || !members || !today) return []
+    return buildChannelCoverRows(group, members, today)
+  }, [group, members, providedRows, today])
 
   const columns = useMemo(
     () => [
@@ -148,7 +162,13 @@ export function GroupChannelCoverTable({
           />
         ),
         cell: ({ getValue, row }) => {
-          const formatted = formatVelocity(getValue())
+          const value = getValue()
+          if (value != null && value <= 0) {
+            return (
+              <span className="text-[#767676]">{t('productsGroupInventoryNoRecentSales')}</span>
+            )
+          }
+          const formatted = formatVelocity(value)
           if (!formatted) return <TableEmptyCell />
           return (
             <span className={cn(row.original.isTotal && 'font-semibold')}>{formatted}</span>
@@ -225,10 +245,16 @@ export function GroupChannelCoverTable({
           if (alert === 'unknown') return <TableEmptyCell />
           return (
             <div className="flex w-full justify-end">
-              <StatusPill variant={alert === 'critical' ? 'error' : 'success'}>
+              <StatusPill
+                variant={
+                  alert === 'critical' ? 'error' : alert === 'attention' ? 'warning' : 'success'
+                }
+              >
                 {alert === 'critical'
                   ? t('productsGroupInventoryAlertCritical')
-                  : t('productsGroupInventoryAlertNormal')}
+                  : alert === 'attention'
+                    ? t('productsGroupInventoryAlertAttention')
+                    : t('productsGroupInventoryAlertNormal')}
               </StatusPill>
             </div>
           )

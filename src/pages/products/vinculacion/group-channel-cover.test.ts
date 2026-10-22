@@ -7,6 +7,7 @@ import type {
 
 import {
   buildChannelCoverRows,
+  coverAlert,
   reorderPointUnits,
   stockoutDate,
 } from './group-channel-cover'
@@ -148,6 +149,16 @@ describe('stockoutDate', () => {
     expect(date?.getFullYear()).toBe(2026)
     expect(date?.getMonth()).toBe(8)
     expect(date?.getDate()).toBe(27)
+  })
+})
+
+describe('coverAlert', () => {
+  it('uses critical, attention, and normal bands', () => {
+    expect(coverAlert(18, 2.9, 6.25)).toBe('critical')
+    expect(coverAlert(10, 10, 1)).toBe('attention')
+    expect(coverAlert(10, 14, 1)).toBe('attention')
+    expect(coverAlert(10, 15, 1)).toBe('normal')
+    expect(coverAlert(10, null, 0)).toBe('unknown')
   })
 })
 

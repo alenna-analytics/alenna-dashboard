@@ -31,7 +31,6 @@ import {
   estimateSettlementTaxByPlatform,
   settlementWithEstimatedTax,
 } from '@/pages/products/product-pnl-tax-estimates'
-import { resolveAmazonFeesNoticeState } from '@/lib/integrations/amazon-fees-notice'
 import { ChartGranularityFilter } from '@/pages/dashboard/chart-granularity-filter'
 import { AppSeriesChartViewToggle } from '@/pages/dashboard/app-chart-view-toggle'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
@@ -39,6 +38,7 @@ import { HomeNoIntegrationsState } from '@/pages/dashboard/home-no-integrations-
 import { SectionContainer, ChartSectionHeader } from '@/pages/reports/report-ui'
 import { useChannelTimeSeries } from '@/pages/reports/use-channel-time-series'
 import { useKpisByChannel } from '@/pages/reports/use-kpis-by-channel'
+import { useReports } from '@/pages/reports/use-reports'
 import { DashboardPage, pageSubtitleClassName, pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { useLanguage } from '@/shell/providers/language-provider'
 import { FilterComboboxMulti } from '@/ui/filters/filter-combobox-multi'
@@ -233,6 +233,12 @@ export function ChannelsPage() {
   )
 
   const tenantAdsSpend = Number(kpis?.tenant_ads_spend ?? 0)
+  const reportsKpis = useReports({
+    connectionIds: activeConnectionIds,
+    startDate,
+    endDate,
+    enabled: queriesEnabled,
+  })
   const { data: taxRatesResponse } = useTaxRatesQuery()
   const taxRates = taxRatesResponse?.settings ?? null
   const alignedPnl = useMemo(() => {
@@ -245,6 +251,17 @@ export function ChannelsPage() {
     })
   }, [adsByPlatform, displayedPlatforms, kpis?.items, settlementAgg, tenantAdsSpend])
   const currentAgg = alignedPnl.metrics
+  const reportsCm = reportsKpis.data?.contribution_margin
+  const reportsNet = reportsKpis.data?.net_revenue
+  const cmMismatch =
+    reportsCm != null &&
+    Math.abs(reportsCm - (currentAgg.total?.contribution_margin ?? 0)) >= 1
+  const netMismatch =
+    reportsNet != null && Math.abs(reportsNet - (currentAgg.total?.net_revenue ?? 0)) >= 1
+  const blankTotalLineIds = [
+    ...(netMismatch ? (['net_revenue'] as const) : []),
+    ...(cmMismatch ? (['contribution_margin', 'cm_pct'] as const) : []),
+  ]
   const cobroSettlement = useMemo(() => {
     if (!taxRates) return settlementAgg
     const estimates = estimateSettlementTaxByPlatform(
@@ -278,11 +295,6 @@ export function ChannelsPage() {
     return next
   }, [displayedPlatforms, settlementAgg, taxRates])
 
-  const amazonFeesNoticeState = resolveAmazonFeesNoticeState(
-    connections,
-    activeConnectionIds,
-  )
-
   const pageAlerts = useMemo(() => {
     type PageAlertItem = {
       key: string
@@ -291,14 +303,6 @@ export function ChannelsPage() {
       tone: ContextAlertTone
     }
     const items: PageAlertItem[] = []
-    if (amazonFeesNoticeState !== 'none') {
-      items.push({
-        key: 'amazon-fees',
-        title: t('integrationAmazonFeesUnavailableBanner'),
-        icon: AlertTriangle,
-        tone: 'warning',
-      })
-    }
     if (cmIncomplete) {
       items.push({
         key: 'cm-incomplete',
@@ -308,7 +312,7 @@ export function ChannelsPage() {
       })
     }
     return items
-  }, [amazonFeesNoticeState, cmIncomplete, t])
+  }, [cmIncomplete, t])
 
   const isInitialLoad =
     connectorsLoading || (queriesEnabled && kpisLoading && !kpis)
@@ -396,17 +400,24 @@ export function ChannelsPage() {
               ))}
             </ContextAlertsGroup>
           ) : null}
+          {vista === 'pnl' && (cmMismatch || netMismatch) ? (
+            <ContextAlertCard
+              title={t('channelsReconciliationAlert')}
+              icon={AlertTriangle}
+              tone="warning"
+            />
+          ) : null}
           {vista === 'pnl' ? (
           <ChannelsPnlTable
             metrics={currentAgg}
             platforms={displayedPlatforms}
-            formatMoney={formatConverted}
             t={t}
             labelForRow={labelForRow}
             cmIncomplete={cmIncomplete}
             detailLevel="full"
             adsByPlatform={adsByPlatform}
             tenantAdsSpend={alignedPnl.unlinkedAds}
+            blankTotalLineIds={blankTotalLineIds}
           />
           ) : null}
 

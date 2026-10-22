@@ -4,6 +4,8 @@ import {
   buildGroupStatement,
   effectiveTaxRate,
   finalizeGroupStatement,
+  presentStatementColumn,
+  type GroupStatementColumn,
   type GroupStatementMember,
 } from './group-statement'
 
@@ -117,5 +119,41 @@ describe('buildGroupStatement', () => {
     expect(statement.total.tax).toBeCloseTo(70 + amazon!.tax)
     expect(statement.total.payout).toBeCloseTo(ml!.payout + amazon!.payout)
     expect(effectiveTaxRate(ml!, 16)).toBeCloseTo((70 / (1300 / 1.16)) * 100)
+  })
+})
+
+describe('presentStatementColumn', () => {
+  it('strips IVA from sales and fees and leaves COGS and ads', () => {
+    const column: GroupStatementColumn = {
+      id: 'amazon',
+      platform: 'amazon',
+      label: 'Amazon',
+      publicationCount: 1,
+      gross: 1160,
+      discounts: 0,
+      returns: 0,
+      net: 1160,
+      cogs: 190,
+      grossProfit: 970,
+      fees: 116,
+      shipping: 0,
+      channelMargin: 854,
+      ads: 50,
+      contribution: 804,
+      grossUnits: 2,
+      netUnits: 2,
+      taxReal: 0,
+      tax: 0,
+      cancelCost: 0,
+      payout: 1044,
+    }
+    const presented = presentStatementColumn(column, 1 / 1.16)
+    expect(presented.gross).toBeCloseTo(1000)
+    expect(presented.net).toBeCloseTo(1000)
+    expect(presented.fees).toBeCloseTo(100)
+    expect(presented.cogs).toBe(190)
+    expect(presented.ads).toBe(50)
+    expect(presented.grossProfit).toBeCloseTo(810)
+    expect(presented.contribution).toBeCloseTo(660)
   })
 })

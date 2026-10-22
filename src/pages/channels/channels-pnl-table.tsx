@@ -24,7 +24,7 @@ import {
   truncateProductHeaderLabel,
 } from '@/pages/channels/channels-product-header-label'
 import type { PnlRowId } from '@/pages/reports/reports-pnl-rows'
-import { SectionSplit } from '@/pages/reports/report-ui'
+import { SettingsSectionHeader } from '@/pages/configuration/settings-layout'
 import { cn } from '@/lib/utils'
 import { DataTable } from '@/ui/data-table/data-table'
 import { DataTableColumnHeader } from '@/ui/data-table/data-table-column-header'
@@ -249,10 +249,16 @@ const columnHelper = createColumnHelper<PnlLine>()
 
 export type ChannelsPnlDetailLevel = 'full' | 'core'
 
+function wholeAmount(value: number, deduction: boolean): string {
+  if (Math.abs(value) < 0.5) return '—'
+  const rounded = Math.round(Math.abs(value))
+  const text = rounded.toLocaleString()
+  return deduction ? `−${text}` : text
+}
+
 type ChannelsPnlTableProps = {
   metrics: Record<string, PlatformMetrics>
   platforms: ChannelPlatform[]
-  formatMoney: (value: number) => string
   t: (key: ShellStringKey) => string
   labelForRow: (id: PnlRowId) => string
   cmIncomplete?: boolean
@@ -261,6 +267,8 @@ type ChannelsPnlTableProps = {
   detailLevel?: ChannelsPnlDetailLevel
   adsByPlatform?: Record<string, PlatformAdsRollup>
   tenantAdsSpend?: number
+  /** Line ids whose Total cell stays blank when Channels and Reports disagree. */
+  blankTotalLineIds?: readonly string[]
 }
 
 function emphasisClass(kind: PnlLine['kind']): string {
@@ -290,7 +298,6 @@ function emptyMetricsStub(platform: string): PlatformMetrics {
 export function ChannelsPnlTable({
   metrics,
   platforms,
-  formatMoney,
   t,
   labelForRow,
   cmIncomplete = false,
@@ -299,6 +306,7 @@ export function ChannelsPnlTable({
   detailLevel = 'core',
   adsByPlatform,
   tenantAdsSpend = 0,
+  blankTotalLineIds = [],
 }: ChannelsPnlTableProps) {
   const byProduct = breakdown === 'product'
   const full = detailLevel === 'full'
@@ -431,7 +439,11 @@ export function ChannelsPnlTable({
         id: 'concept',
         ...STATEMENT_CONCEPT_COLUMN_SIZE,
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title={t('reportsPnlColConcept')} />
+          <DataTableColumnHeader
+            column={column}
+            title={t('reportsPnlColConcept')}
+            className="text-[#767676]"
+          />
         ),
         cell: ({ row }) => {
           const line = row.original
@@ -446,56 +458,55 @@ export function ChannelsPnlTable({
             line.id !== 'cm_pct'
           const label = useResolver ? labelForRow(line.id as PnlRowId) : t(line.labelKey)
           const prefix =
-            line.kind === 'subrow'
-              ? '• '
-              : line.isDeduction && line.kind === 'line'
-                ? '(−) '
-                : line.kind === 'subtotal' || line.kind === 'total'
-                  ? '= '
-                  : ''
+            line.isDeduction && (line.kind === 'line' || line.kind === 'subrow')
+              ? '(−) '
+              : line.kind === 'subtotal' || line.kind === 'total'
+                ? '= '
+                : ''
           return (
             <span
-              className={cn(
-                'text-text-primary',
-                line.indent && 'pl-4',
-                emphasisClass(line.kind),
-                line.kind === 'subrow' && 'text-text-secondary',
-              )}
+              data-row-emphasis={line.id === 'contribution_margin' ? '' : undefined}
+              className="flex min-w-0 flex-col gap-0.5 py-1"
               title={
                 line.kind === 'subrow' && line.id.startsWith('fee_')
                   ? t('channelsFeeSubrowHint')
                   : undefined
               }
             >
-              {prefix}
-              {label}
+              <span
+                className={cn(
+                  'text-sm text-text-primary',
+                  line.indent && 'pl-4',
+                  emphasisClass(line.kind),
+                )}
+              >
+                {prefix}
+                {label}
+              </span>
             </span>
           )
         },
         meta: {
-          cellClassName: 'align-middle overflow-hidden pr-6',
           headerClassName: 'overflow-hidden',
+          cellClassName: 'h-auto py-1.5 align-middle [&>div]:items-start',
         },
       }),
       ...cols.map((col) =>
         columnHelper.display({
           id: col.slug,
           ...STATEMENT_VALUE_COLUMN_SIZE,
-          header: ({ column }) => {
+          header: () => {
             const isTotal = col.slug === 'total'
             const { display, full: fullLabel, truncated } =
               byProduct && !isTotal
                 ? truncateProductHeaderLabel(col.label)
                 : { display: col.label, full: col.label, truncated: false }
             const header = (
-              <DataTableColumnHeader
-                column={column}
-                title={display}
-                className={cn(
-                  'justify-end',
-                  byProduct && !isTotal && 'w-full overflow-hidden',
-                )}
-              />
+              <span className="flex w-full flex-col items-end gap-0.5 py-1">
+                <span className="max-w-full truncate font-numeric text-xs font-medium uppercase text-[#767676]">
+                  {display}
+                </span>
+              </span>
             )
             if (!truncated) return header
             return (
@@ -517,44 +528,40 @@ export function ChannelsPnlTable({
           },
           cell: ({ row }) => {
             const line = row.original
+            const emphasize = line.id === 'contribution_margin'
             if (line.isNoData) {
               return (
-                <span className="w-full text-right text-text-secondary">
+                <span
+                  data-row-emphasis={emphasize ? '' : undefined}
+                  className="w-full py-1 text-right text-sm text-text-tertiary"
+                >
                   {t('channelsNoData')}
                 </span>
               )
             }
             const m = metrics[col.slug] ?? emptyMetricsStub(col.slug)
-            const raw = line.value(m, col.slug)
-            if (raw === null) {
-              return (
-                <span className="w-full text-right text-text-secondary">—</span>
-              )
-            }
-            let formatted: string
-            if (line.format === 'pct') {
-              formatted = `${raw.toFixed(1)}%`
-            } else if (line.format === 'ratio') {
-              formatted = `${raw.toFixed(2)}x`
-            } else if (line.format === 'count') {
-              formatted = String(Math.round(raw))
-            } else if (Math.abs(raw) < 0.005) {
-              formatted = '—'
-            } else {
-              const display = line.isDeduction ? -Math.abs(raw) : raw
-              formatted = formatMoney(display)
+            let formatted = '—'
+            if (!(col.slug === 'total' && blankTotalLineIds.includes(line.id))) {
+              const raw = line.value(m, col.slug)
+              if (raw == null || !Number.isFinite(raw)) {
+                formatted = '—'
+              } else if (line.format === 'pct') {
+                formatted = `${raw.toFixed(1)}%`
+              } else if (line.format === 'ratio') {
+                formatted = `${raw.toFixed(2)}x`
+              } else if (line.format === 'count') {
+                formatted = Math.round(raw).toLocaleString()
+              } else {
+                formatted = wholeAmount(raw, Boolean(line.isDeduction))
+              }
             }
             return (
               <span
+                data-row-emphasis={emphasize ? '' : undefined}
                 className={cn(
-                  'w-full text-right font-numeric tabular-nums',
-                  line.isDeduction && 'text-text-secondary',
-                  (line.kind === 'subtotal' || line.kind === 'total') &&
-                    'font-semibold text-text-primary',
-                  cmIncomplete &&
-                    line.id === 'contribution_margin' &&
-                    'text-text-secondary',
+                  'w-full py-1 text-right font-numeric text-sm tabular-nums text-text-primary',
                   emphasisClass(line.kind),
+                  formatted === '—' && 'text-text-tertiary',
                 )}
               >
                 {formatted}
@@ -563,12 +570,12 @@ export function ChannelsPnlTable({
           },
           meta: {
             headerClassName: 'text-right overflow-hidden',
-            cellClassName: 'text-right overflow-hidden',
+            cellClassName: 'h-auto py-1.5 text-right tabular-nums [&>div]:items-center',
           },
         }),
       ),
     ],
-    [byProduct, cmIncomplete, cols, formatMoney, labelForRow, metrics, t],
+    [blankTotalLineIds, byProduct, cols, labelForRow, metrics, t],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function refs by design
@@ -588,7 +595,8 @@ export function ChannelsPnlTable({
       : t('channelsPnlSubtitle')
 
   return (
-    <SectionSplit title={title} description={description}>
+    <section className="flex flex-col gap-3 [&_td:has([data-row-emphasis])]:bg-[#f6f3d4]">
+      <SettingsSectionHeader title={title} description={description} />
       <DataTable
         table={table}
         variant="plain"
@@ -596,11 +604,11 @@ export function ChannelsPnlTable({
         tableWidth="full"
         isLoading={false}
         isFetching={false}
-        hasEverLoaded={true}
+        hasEverLoaded
         scrollClassName=""
-        emptyContent={<EmptyState icon="channels" title={t('reportsNoData')} />}
+        emptyContent={<EmptyState size="sm" icon="channels" title={t('reportsNoData')} />}
         skeletonRowCount={8}
       />
-    </SectionSplit>
+    </section>
   )
 }

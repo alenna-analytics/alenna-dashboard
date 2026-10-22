@@ -144,6 +144,8 @@ export type ProductLinkGroupApi = {
   period_settlement_by_platform: ProductLinkGroupPlatformSettlementApi[]
   period_start: string | null
   period_end: string | null
+  /** Earliest order date for the group, independent of the selected range. */
+  first_order_date?: string | null
   base_currency: string
 }
 

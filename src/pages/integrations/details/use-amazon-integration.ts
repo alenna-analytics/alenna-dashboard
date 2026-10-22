@@ -9,7 +9,6 @@ import { useLanguage } from '@/shell/providers/language-provider'
 import { useWorkspace } from '@/shell/providers/workspace-context'
 import { apiFetch, apiPostJson } from '@/lib/api'
 import { isAmazonSandboxConnectMode } from '@/lib/integrations/amazon-connect-mode'
-import { amazonFeesNoticeStateFromConnection } from '@/lib/integrations/amazon-fees-notice'
 import { connectionNeedsInitialSync } from '@/lib/integrations/sync-freshness'
 import { formatShopifyLastSync } from '@/lib/integrations/shopify-format'
 import {
@@ -158,7 +157,6 @@ export function useAmazonIntegration() {
   const connected =
     hasConnection && !connectionNeedsInitialSync(activeConnection)
   const activeConnectionId = activeConnection?.id ?? ''
-  const feesNoticeState = amazonFeesNoticeStateFromConnection(activeConnection)
   const syncPlan: SyncPlan | null = activeConnection?.sync_plan ?? null
   const neverLabel = shellT(lang, 'integrationDetailLastSyncNever')
   const lastSyncDisplay = formatShopifyLastSync(
@@ -543,7 +541,6 @@ export function useAmazonIntegration() {
     connected,
     activeConnectionId,
     activeConnection,
-    feesNoticeState,
     syncPlan,
     amazonSyncPhase,
     amazonJobQuery,

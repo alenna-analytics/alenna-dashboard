@@ -65,6 +65,16 @@ export type ProductLinkGroupMemberApi = {
   period_gross_sales: number
   period_net_sales: number
   period_orders: number
+  /** Real line COGS (units × cost). Absent on older payloads. */
+  period_cogs?: number
+  period_settlement_gross?: number
+  period_settlement_net?: number
+  period_discounts?: number
+  period_returns?: number
+  period_marketplace_fees?: number
+  period_shipping_charges?: number
+  period_tax_withholdings?: number
+  period_cancel_costs?: number
 }
 
 export type ProductLinkGroupPlatformPeriodApi = {

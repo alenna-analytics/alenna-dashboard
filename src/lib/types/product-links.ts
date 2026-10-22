@@ -58,6 +58,7 @@ export type ProductLinkGroupMemberApi = {
   listings_count: number
   stock_quantity: number | null
   platform_price: number | null
+  platform_synced_at?: string | null
   matchable: boolean
   period_gross_units_sold: number
   period_net_units_sold: number

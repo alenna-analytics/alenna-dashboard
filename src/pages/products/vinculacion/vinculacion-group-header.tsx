@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { MoreVertical, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { useMoney } from '@/hooks/use-money'
 import { INTEGRATION_UI } from '@/lib/integrations/catalog'
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
-import type { ProductLinkGroupApi } from '@/lib/types/product-links'
+import type { ProductLinkGroupApi, ProductLinkGroupMemberApi } from '@/lib/types/product-links'
 import { cn } from '@/lib/utils'
 import { pageTitleClassName } from '@/shell/layout/dashboard-page'
 import { AppIcon } from '@/ui/app-icon'
@@ -22,12 +23,14 @@ import {
 import { Input } from '@/ui/input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/tooltip'
 
+import { formatProductDetailDate } from '../product-detail-header-utils'
 import { productPlatformLabel } from '../product-platform-label'
 
 type ShellT = (key: ShellStringKey) => string
 
 type VinculacionGroupHeaderProps = {
   group: ProductLinkGroupApi
+  lang: string
   t: ShellT
   title: string
   canEditTitle: boolean
@@ -75,6 +78,33 @@ function StatColumn({
   )
 }
 
+function averageUnitCost(members: ProductLinkGroupMemberApi[]): number | null {
+  const costs = members
+    .map((member) => member.cost)
+    .filter((cost): cost is number => cost != null && Number.isFinite(cost))
+  if (costs.length === 0) return null
+  return costs.reduce((sum, cost) => sum + cost, 0) / costs.length
+}
+
+function totalStock(group: ProductLinkGroupApi): number | null {
+  const stocks = group.members
+    .map((member) => member.stock_quantity)
+    .filter((stock): stock is number => stock != null && Number.isFinite(stock))
+  if (stocks.length > 0) return stocks.reduce((sum, stock) => sum + stock, 0)
+  return group.consolidated_stock_quantity
+}
+
+function latestSyncIso(members: ProductLinkGroupMemberApi[]): string | null {
+  let latestMs: number | null = null
+  for (const member of members) {
+    if (!member.platform_synced_at) continue
+    const ms = new Date(member.platform_synced_at).getTime()
+    if (!Number.isFinite(ms)) continue
+    if (latestMs == null || ms > latestMs) latestMs = ms
+  }
+  return latestMs != null ? new Date(latestMs).toISOString() : null
+}
+
 function MembersTooltipList({
   group,
   t,
@@ -106,6 +136,7 @@ function MembersTooltipList({
 
 export function VinculacionGroupHeader({
   group,
+  lang,
   t,
   title,
   canEditTitle,
@@ -118,9 +149,12 @@ export function VinculacionGroupHeader({
 }: VinculacionGroupHeaderProps) {
   const [editingTitle, setEditingTitle] = useState(false)
   const titleInputRef = useRef<HTMLInputElement>(null)
+  const { format: formatMoney } = useMoney()
   const platforms = uniqueMemberPlatforms(group.members.map((member) => member.platform))
-  const channelCount = platforms.length
-  const productCount = group.members.length
+  const publicationCount = group.members.length
+  const unitCost = averageUnitCost(group.members)
+  const stock = totalStock(group)
+  const syncIso = latestSyncIso(group.members)
   const showActions = canAddMember || canEditTitle || canDissolve
 
   useEffect(() => {
@@ -150,12 +184,22 @@ export function VinculacionGroupHeader({
   const stats = (
     <div className="grid w-full grid-cols-2 gap-x-4 gap-y-4 sm:inline-flex sm:max-w-full sm:flex-wrap sm:items-stretch">
       <div className="flex shrink-0 sm:border-border-subtle sm:pr-5">
-        <StatColumn label={t('productsDetailHeaderStatChannelsLabel')} valueClassName="tabular-nums">
-          {channelCount}
+        <StatColumn label={t('productsDetailHeaderStatChannelsLabel')} valueClassName="flex-wrap gap-1.5">
+          {platforms.length > 0
+            ? platforms.map((platform) => {
+                const slug = platform.trim().toLowerCase()
+                const ui = slug ? INTEGRATION_UI[slug] : undefined
+                return (
+                  <ChannelBadge key={platform} logoSrc={ui?.logoSrc}>
+                    {productPlatformLabel(platform, t)}
+                  </ChannelBadge>
+                )
+              })
+            : '—'}
         </StatColumn>
       </div>
       <div className="flex shrink-0 sm:border-l sm:border-border-subtle sm:pl-6 sm:pr-5">
-        <StatColumn label={t('productsVinculacionHeaderProductsLabel')}>
+        <StatColumn label={t('productsVinculacionHeaderPublicationsLabel')}>
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -164,13 +208,30 @@ export function VinculacionGroupHeader({
                 aria-label={t('productsVinculacionHeaderRelatedHover')}
               >
                 <AppIcon name="products" colorize className="size-3.5" />
-                <span className="tabular-nums">{productCount}</span>
+                <span className="tabular-nums">{publicationCount}</span>
               </button>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[240px] text-left text-xs leading-snug">
               <MembersTooltipList group={group} t={t} />
             </TooltipContent>
           </Tooltip>
+        </StatColumn>
+      </div>
+      <div className="flex shrink-0 sm:border-l sm:border-border-subtle sm:pl-6 sm:pr-5">
+        <StatColumn label={t('productsGroupHeaderUnitCost')} valueClassName="tabular-nums">
+          {unitCost == null
+            ? '—'
+            : formatMoney(unitCost, { nativeCurrency: group.base_currency })}
+        </StatColumn>
+      </div>
+      <div className="flex shrink-0 sm:border-l sm:border-border-subtle sm:pl-6 sm:pr-5">
+        <StatColumn label={t('productsGroupHeaderTotalStock')} valueClassName="tabular-nums">
+          {stock == null ? '—' : stock.toLocaleString()}
+        </StatColumn>
+      </div>
+      <div className="flex shrink-0 sm:border-l sm:border-border-subtle sm:pl-6">
+        <StatColumn label={t('productsDetailHeaderStatLastSyncLabel')}>
+          {syncIso ? formatProductDetailDate(syncIso, lang) : '—'}
         </StatColumn>
       </div>
     </div>
@@ -188,12 +249,12 @@ export function VinculacionGroupHeader({
         <DropdownMenu>
           <DropdownMenuTrigger
             className={cn(
-              'inline-flex size-8 items-center justify-center rounded-md border border-border-default bg-white text-text-primary outline-none',
+              'inline-flex size-[26px] items-center justify-center rounded-md border border-border-default bg-white text-text-primary outline-none',
               'hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30',
             )}
             aria-label={t('productsVinculacionMoreActions')}
           >
-            <MoreVertical className="size-4 shrink-0" aria-hidden />
+            <MoreVertical className="size-3.5 shrink-0" aria-hidden />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuGroup>
@@ -261,20 +322,6 @@ export function VinculacionGroupHeader({
           ) : (
             <h1 className={pageTitleClassName}>{group.title}</h1>
           )}
-
-          {platforms.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-1.5">
-              {platforms.map((platform) => {
-                const slug = platform.trim().toLowerCase()
-                const ui = slug ? INTEGRATION_UI[slug] : undefined
-                return (
-                  <ChannelBadge key={platform} logoSrc={ui?.logoSrc}>
-                    {productPlatformLabel(platform, t)}
-                  </ChannelBadge>
-                )
-              })}
-            </div>
-          ) : null}
 
           <div className="hidden sm:block">{stats}</div>
         </div>

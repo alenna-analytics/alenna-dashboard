@@ -16,7 +16,7 @@ import { shellT } from '@/lib/i18n/shell-strings'
 import type { RevenueSeriesGranularity } from '@/lib/types/reports'
 import { bucketAdsSeriesPoints, type AdsTrendChartRow } from '@/pages/ads/ads-series-buckets'
 import type { AdsSeriesPoint } from '@/pages/ads/use-ads-kpis'
-import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
+import { ChartSeriesMark, ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { EmptyState } from '@/ui/empty-state'
 import { Skeleton } from '@/ui/skeleton'
@@ -198,11 +198,11 @@ export function AdsTrendChart({
       </div>
       <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
         <span className="inline-flex items-center gap-1.5 text-text-secondary">
-          <span className="inline-block size-2 shrink-0 rounded-full bg-[var(--chart-3)]" aria-hidden />
+          <ChartSeriesMark color="var(--chart-3)" />
           {spendLabel}
         </span>
         <span className="inline-flex items-center gap-1.5 text-text-secondary">
-          <span className="inline-block size-2 shrink-0 rounded-full bg-[var(--chart-1)]" aria-hidden />
+          <ChartSeriesMark color="var(--chart-1)" />
           {salesLabel}
         </span>
       </div>

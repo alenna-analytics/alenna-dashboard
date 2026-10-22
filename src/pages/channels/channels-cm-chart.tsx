@@ -17,7 +17,7 @@ import {
 import type { ChannelPlatform } from '@/pages/channels/channels-platform-aggregate'
 import { eachRevenueBucketMeta } from '@/pages/reports/reports-ui-helpers'
 import { cn } from '@/lib/utils'
-import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
+import { ChartSeriesMark, ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 
 const PLATFORM_COLORS = [
@@ -235,11 +235,7 @@ export function ChannelsCmChart({
                 hidden ? 'opacity-40' : 'opacity-100',
               )}
             >
-              <span
-                className="inline-block size-2 shrink-0 rounded-full"
-                style={{ background: color }}
-                aria-hidden
-              />
+              <ChartSeriesMark color={color} />
               <span>{platform.label}</span>
             </button>
           )

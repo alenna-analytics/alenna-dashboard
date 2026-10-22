@@ -26,7 +26,7 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
-import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
+import { ChartSeriesMark, ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 
 import { parseLocalYmd } from './reports-ui-helpers'
 
@@ -276,6 +276,7 @@ function ChartTooltip({
         />
         <ChartTooltipSeriesRow
           color="var(--warning)"
+          dashed
           label={t('reportsMonthlyLegendGrossMarginPct')}
           value={`${toNum(row.gross_margin_pct).toFixed(1)}%`}
         />
@@ -360,7 +361,11 @@ function ChartLegendToggle({
               !isOff && 'hover:border-border-subtle hover:bg-bg-elevated/80',
             )}
           >
-            <span className={cn('size-2.5 shrink-0 rounded-full', item.swatchClass)} aria-hidden />
+            {item.key === 'margin' ? (
+              <ChartSeriesMark color="var(--warning)" dashed />
+            ) : (
+              <span className={cn('size-2.5 shrink-0 rounded-full', item.swatchClass)} aria-hidden />
+            )}
             <span
               className={cn('text-text-secondary', isOff && 'line-through decoration-text-tertiary')}
             >

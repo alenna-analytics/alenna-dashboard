@@ -17,7 +17,7 @@ import {
 import type { ShellStringKey } from '@/lib/i18n/shell-strings'
 import type { MonthlyRevenueMonthRow, RevenueSeriesGranularity } from '@/lib/types/reports'
 import { cn } from '@/lib/utils'
-import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
+import { ChartSeriesMark, ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { EmptyState } from '@/ui/empty-state'
 import { chartLineActiveDot, chartLineDot } from '@/pages/dashboard/chart-line-dot'
@@ -139,6 +139,7 @@ function MultiTrendTooltip({
               {comparePrevious && prevValue != null && Number.isFinite(Number(prevValue)) ? (
                 <ChartTooltipSeriesRow
                   color="var(--text-tertiary)"
+                  dashed
                   label={`${productDetailTrendMetricLabel(id, t)}${prevSuffix}`}
                   value={formatProductDetailTrendMetricValue(
                     id,
@@ -504,11 +505,7 @@ export function ProductDetailTrendChart({
               hiddenKeys[id] ? 'opacity-40' : 'opacity-100',
             )}
           >
-            <span
-              className="inline-block h-0 w-3 shrink-0 border-t-2 border-solid"
-              style={{ borderColor: PRODUCT_DETAIL_METRIC_COLORS[id] }}
-              aria-hidden
-            />
+            <ChartSeriesMark color={PRODUCT_DETAIL_METRIC_COLORS[id]} />
             <span>{productDetailTrendMetricLabel(id, t)}</span>
           </button>
         ))}
@@ -527,10 +524,7 @@ export function ProductDetailTrendChart({
                     hiddenKeys[prevKey] ? 'opacity-40' : 'opacity-100',
                   )}
                 >
-                  <span
-                    className="inline-block h-0 w-3 shrink-0 border-t-2 border-dashed border-[var(--text-tertiary)]"
-                    aria-hidden
-                  />
+                  <ChartSeriesMark color="var(--text-tertiary)" dashed />
                   <span>
                     {productDetailTrendMetricLabel(id, t)} ({previousPeriodLabel})
                   </span>

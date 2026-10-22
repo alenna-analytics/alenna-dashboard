@@ -25,7 +25,7 @@ import {
 } from 'recharts'
 
 import { cn } from '@/lib/utils'
-import { ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
+import { ChartSeriesMark, ChartTooltipFrame, ChartTooltipSeriesRow, ChartTooltipTitle, chartRechartsTooltipProps } from '@/ui/chart-tooltip'
 import type { SeriesChartView } from '@/ui/chart-view-toggle'
 import { mergeRevenueSeriesRows } from '@/pages/reports/monthly-revenue-chart'
 
@@ -111,12 +111,14 @@ function TrendTooltip({
   payload,
   formatValue,
   comparePrevious,
+  previousDashed = false,
   t,
 }: {
   active?: boolean
   payload?: ReadonlyArray<{ payload?: TrendRow }>
   formatValue: (value: number) => string
   comparePrevious: boolean
+  previousDashed?: boolean
   t: (key: ShellStringKey) => string
 }) {
   if (!active || !payload?.length) return null
@@ -134,6 +136,7 @@ function TrendTooltip({
         {comparePrevious && row.previous !== null && row.previousBucketLabel ? (
           <ChartTooltipSeriesRow
             color="var(--chart-line-secondary)"
+            dashed={previousDashed}
             label={`${t('dashboardRevenueSeriesPrevious')} (${row.previousBucketLabel})`}
             value={formatValue(row.previous)}
           />
@@ -273,7 +276,12 @@ export function DashboardRevenueTrendChart({
               chartType === 'bar' ? { fill: 'var(--muted)', opacity: 0.45 } : undefined
             }
             content={
-              <TrendTooltip formatValue={formatValue} comparePrevious={comparePrevious} t={t} />
+              <TrendTooltip
+                formatValue={formatValue}
+                comparePrevious={comparePrevious}
+                previousDashed={chartType === 'line'}
+                t={t}
+              />
             }
             {...chartRechartsTooltipProps}
           />
@@ -416,7 +424,7 @@ export function DashboardRevenueTrendChart({
             hiddenKeys.current ? 'opacity-40' : 'opacity-100',
           )}
         >
-          <span className="inline-block size-2 shrink-0 rounded-full bg-[var(--chart-3)]" aria-hidden />
+          <ChartSeriesMark color="var(--chart-3)" />
           <span>{t('dashboardRevenueSeriesCurrent')}</span>
         </button>
         {comparePrevious ? (
@@ -428,10 +436,7 @@ export function DashboardRevenueTrendChart({
               hiddenKeys.previous ? 'opacity-40' : 'opacity-100',
             )}
           >
-            <span
-              className="inline-block size-2 shrink-0 rounded-full bg-[var(--chart-line-secondary)]"
-              aria-hidden
-            />
+            <ChartSeriesMark color="var(--chart-line-secondary)" dashed={chartType === 'line'} />
             <span>{t('dashboardRevenueSeriesPrevious')}</span>
           </button>
         ) : null}

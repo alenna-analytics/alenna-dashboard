@@ -5,6 +5,7 @@ import {
   CONNECTORS_SYNC_BASELINE_REFETCH_MS,
   connectorsQueryRefetchIntervalMs,
   deriveConnectionSyncFreshness,
+  resolveConnectionSyncFreshnessPillContent,
   syncFreshnessPillBadgeVariant,
 } from '@/lib/integrations/sync-freshness'
 import type { PlatformConnection } from '@/lib/types/connectors'
@@ -171,5 +172,19 @@ describe('syncFreshnessPillBadgeVariant', () => {
         ageMs: 8 * 24 * 60 * 60 * 1000,
       }),
     ).toBe('error')
+    expect(syncFreshnessPillBadgeVariant({ kind: 'fixture' })).toBe('neutral')
+  })
+
+  it('treats a fixture workspace as demo data even when the seed is months old', () => {
+    const conn = baseConnection({
+      platform: 'amazon',
+      last_synced_at: '2026-08-13T14:59:00.000Z',
+    })
+    expect(
+      resolveConnectionSyncFreshnessPillContent(conn, {
+        fixtureWorkspace: true,
+        nowMs: Date.parse('2026-10-22T20:00:00.000Z'),
+      }),
+    ).toEqual({ kind: 'fixture' })
   })
 })

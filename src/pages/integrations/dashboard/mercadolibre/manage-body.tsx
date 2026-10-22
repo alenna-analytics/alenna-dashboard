@@ -12,6 +12,7 @@ import { IntegrationConsentDialog } from '@/pages/integrations/dashboard/integra
 import { formatMercadoLibreSyncUserError } from '@/lib/integrations/mercadolibre-sync-user-error'
 import { mercadoLibreSyncSummaryLine } from '@/lib/integrations/mercadolibre-sync-summary'
 import { resolveConnectionSyncFreshnessPillContent } from '@/lib/integrations/sync-freshness'
+import { formatConnectionLastSyncFooter } from '@/lib/integrations/sync-freshness-pill-label'
 import type { MercadoLibreIntegrationHook } from '@/pages/integrations/details/use-mercadolibre-integration'
 import { useCancelPlatformSyncJob } from '@/hooks/use-cancel-platform-sync-job'
 import { GLOBAL_ACTIVITY_MELI_SYNC_ID } from '@/shell/providers/global-activity-provider'
@@ -74,6 +75,7 @@ function MercadoLibreSyncSection({
 
   const syncPill = resolveConnectionSyncFreshnessPillContent(activeConnection, {
     forceSyncing: meliSyncPhase === 'working',
+    fixtureWorkspace: isFixture,
   })
 
   const buttonLabel = shellT(lang, lifecycleButtonLabelKey(syncPlan))
@@ -163,7 +165,7 @@ function MercadoLibreSyncSection({
         actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
         actionLoading={syncMutation.isPending}
         badge={<AppIcon name="validation" colorize className="size-4 shrink-0 text-success" />}
-        footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
+        footer={formatConnectionLastSyncFooter(lang, lastSyncDisplay, isFixture)}
         className="w-full"
       />
     )
@@ -195,7 +197,7 @@ function MercadoLibreSyncSection({
         actionDisabled={syncMutation.isPending || isFixture || planSyncPaused}
         actionLoading={syncMutation.isPending}
         badge={syncPill ? <SyncFreshnessPillBadge pill={syncPill} lang={lang} /> : undefined}
-        footer={`${shellT(lang, 'connectionsLastSynced')}: ${lastSyncDisplay}`}
+        footer={formatConnectionLastSyncFooter(lang, lastSyncDisplay, isFixture)}
         className="w-full"
       />
     </>

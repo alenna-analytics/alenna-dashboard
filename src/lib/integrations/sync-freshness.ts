@@ -24,6 +24,8 @@ export type DeriveSyncFreshnessOptions = {
   suppressSyncing?: boolean
   nowMs?: number
   staleAfterMs?: number
+  /** Staging fixture workspace: sync is disabled, so age is not a failure. */
+  fixtureWorkspace?: boolean
 }
 
 function isActiveShopifyConnection(conn: PlatformConnection): boolean {
@@ -194,6 +196,7 @@ export function connectorsQueryRefetchIntervalMs(
 
 export type SyncFreshnessPillContent =
   | { kind: 'syncing'; freshnessState: SyncFreshnessState }
+  | { kind: 'fixture' }
   | (SyncFreshnessPillTiming & { freshnessState: SyncFreshnessState; ageMs: number })
 
 function latestSyncedAtMs(connections: PlatformConnection[]): number | null {
@@ -243,6 +246,10 @@ export function resolveConnectionSyncFreshnessPillContent(
     return null
   }
 
+  if (options?.fixtureWorkspace) {
+    return { kind: 'fixture' }
+  }
+
   const freshnessState = deriveConnectionSyncFreshness(conn, options)
   if (!freshnessState) return null
 
@@ -263,7 +270,8 @@ export function resolveConnectionSyncFreshnessPillContent(
 
 export function syncFreshnessPillBadgeVariant(
   pill: SyncFreshnessPillContent,
-): 'info' | ConnectionSyncAgePillVariant {
+): 'info' | 'neutral' | ConnectionSyncAgePillVariant {
+  if (pill.kind === 'fixture') return 'neutral'
   if (pill.kind === 'syncing' || pill.freshnessState === 'syncing') return 'info'
   return connectionSyncAgePillVariant(pill.ageMs)
 }
